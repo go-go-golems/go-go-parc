@@ -1,0 +1,147 @@
+{
+  "restatement": {
+    "intent": "Run each unit of agent work as one non-interactive, isolated invocation whose result depends only on an assembled, saved prompt and an explicit, least-privilege set of mounted tools, returning one machine-readable answer plus a kept transcript.",
+    "problem": "An agent run that inherits the operator's environment, keeps an open conversation and answers in free text cannot be repeated, compared across models or prompt versions, retried, or audited.",
+    "solution": "Make a run a function of an explicit run spec (item, model, thinking, prompt version, tag). Give each run its own directory holding the assembled prompt from versioned parts, a per-run tool mount with read-only inputs and a fresh workspace, the event stream and a transcript. Start the agent non-interactively with built-in tools, context files, skills and templates off, require one fenced JSON object as the final message, extract it defensively with known repairs, and write the answer atomically. A batch runner then parallelises runs, keeps variants apart by tag, and skips runs that already have a valid answer."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Because the exact prompt is the run's only input and its primary record: when a result surprises you it is the first thing to read, and it is what makes the run reconstructible and auditable later. It also forces the prompt to be a materialised artifact from versioned parts rather than something implicit.",
+      "where": "Implementation notes 2; Solution; Collaborations step 2"
+    },
+    {
+      "id": "Q2",
+      "answer": "The answers (ground truth / labels). Items carry blind ids, controls with known answers are mixed in, and the answer keys live outside every mount, so the agent can neither read nor infer what it is being scored against.",
+      "where": "Implementation note 3 (\"Never mount the truth\"); Solution"
+    },
+    {
+      "id": "Q3",
+      "answer": "Reruns are cheap because answers are written atomically with a status and a spec hash, and the batch runner skips only runs whose answer file exists with status ok and a matching spec hash — so a rerun retries failures only. Variants are kept apart by tag: each tag gets its own answer directory and log, and comparing variants is then a join on item ids.",
+      "where": "Implementation note 6; Sketch (finish/batch); Collaborations step 1"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because models slip (a typo, an extra colon, an unescaped newline) and a strict parser would reject the whole run for one character while a lenient one accepts wrong answers; so it reads only the final message, takes the last fenced JSON block, and applies a small set of logged repairs before failing. The dust project needed three: a dropped key (`{\"q003\", …}` instead of `{\"q003\": …}`), a colon after a bare id, and raw newlines inside string values.",
+      "where": "Implementation note 4; Forces (strict contracts against model slips); Sketch `extract`"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "This is the chapter's own shape: many homogeneous items, six variants that must be compared fairly on the same blind items, per-item retry, and an answer schema that can be stated exactly (field name → value or null, plus a refusal). The OCR tool is just a mounted read-only capability, which the pattern already supports.",
+      "participants": {
+        "Run spec": "item = invoice id (blind), model, thinking level, promptVersion (v1|v2), tag = e.g. \"claude@v2\" — six tags",
+        "Run directory": "runsRoot/<tag>/<invoiceId>/ with prompt.md, tools.json, ws/, events.jsonl, transcript.html, answer.json",
+        "Prompt assembler": "role (invoice field extractor) + how to work + required steps + known mistakes + describeBlind(invoice) + output contract (field schema with a literal example) + reference (field definitions, units, date formats)",
+        "Tool mount": "the OCR tool only, over the scan directory read-only; scans + a helpers dir readable; writes confined to dir/ws; gold annotations never mounted",
+        "Agent invocation": "one non-interactive call per invoice, builtins/context files/skills/templates off, stdin closed, per-run timeout",
+        "Extractor": "last fenced JSON object of the final message → invoice fields; same three repairs, plus a per-run record of which repair fired",
+        "Batch runner": "6 tags × 2,000 specs, ~8 workers, skip answered runs, per-run timeout and per-batch cost budget"
+      },
+      "sketch": "value RunSpec: invoice, model, thinking, promptVersion, tag   -- tag = model + \"@\" + promptVersion\n\nrun(spec) → Answer | Failure\n  dir = fresh(runsRoot / spec.tag / spec.invoice.id)\n  write(dir/\"prompt.md\", assemble(spec.promptVersion, describeBlind(spec.invoice)))\n  write(dir/\"tools.json\", mount(tools: [ocr], read: [scanDir, helpersDir], write: dir/\"ws\"))  -- never gold/\n  events = agent(cwd: dir, prompt: read(dir/\"prompt.md\"), builtinTools: none, contextFiles: none,\n                 skills: none, templates: none, nonInteractive: true)\n  exportTranscript(events, dir/\"transcript.html\"); write(dir/\"events.jsonl\", events)\n  finish(spec, withTimeout(extract(events), 20 min))\n\nassemble(v, item) → text   -- role | how to work | steps | known mistakes | blind item | field schema + example | reference\n\nbatch([RunSpec(inv, m, \"high\", v, tag: m + \"@\" + v)\n       for m in [\"m1\",\"m2\",\"m3\"] for v in [\"v1\",\"v2\"] for inv in invoices], parallel: 8)\n\n-- score: join answers on invoice id per tag; report field accuracy next to failure rate",
+      "key_notes": [
+        "Note 3 (never mount the truth) — the gold invoice annotations must live outside scanDir/helpersDir, otherwise all six variants are worthless; mix in a few known-answer invoices instead.",
+        "Note 4 (one fenced JSON object + literal schema example + logged repairs) — invoice schemas have many optional fields, so the repairs are what keep parse failure from being confused with extraction error.",
+        "Note 8 (state budgets in the prompt) — OCR of a long PDF can produce far more pages/images than a routed API accepts; a page/image budget must be in the prompt or runs end with nothing.",
+        "Note 6 (tags, skip answered) — 12,000 runs is a lot of money; the spec-hash skip and tag separation are what make the second and third sweep affordable and comparable.",
+        "Note 7 (own writable workspace) — a shared OCR-output cache outside dir/ws is the realistic way parallelism starts colliding.",
+        "Note 1 and 11 (switch everything off; canary the seal) — the operator's own skills/context would otherwise make the six variants non-comparable."
+      ],
+      "risk": "Treating extraction Failures as wrong answers (or letting a shared OCR cache/answer directory sit outside the run) so a model or prompt version that is merely harder to parse, or that ran second, scores worse than it is — reported as accuracy instead of as accuracy plus failure rate."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is exactly the chapter's first two 'do not use' cases: the work is one interactive task with a person in the loop, and it needs broad access to a live environment; sealing would remove the conversation and the live access that make it work, and auditing must come from logs instead. A fixed JSON contract also discards the hypothesis chain that is the whole product of debugging.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, 'do not use' — both clauses apply directly; no forcing.",
+        "Note 1 (switch everything off, mount only what is needed) — a live-debug agent needs broad read access to logs/dashboards, which is the opposite of the least-privilege mount, so the sealing half has no meaning here.",
+        "Note 5 (keep the event stream and transcript) — this is the one piece worth borrowing: an interactive session that logs every tool call is the audit trail the chapter itself says should replace the run directory.",
+        "Variation 'Resumable runs' — if a sealed run is wanted at all, it belongs after the incident, replaying captured log excerpts to compare hypotheses, not during it."
+      ],
+      "risk": "Forcing the fit yields an agent working from a stale snapshot with no ability to follow the engineer's follow-up questions, and a JSON answer that throws away the reasoning; the engineer then debugs the harness instead of the incident."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Header rating (★★, 'close to invariant')",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The star rating and the invariant claim are asserted with no scale and no argument; a reader cannot tell what would make this a 3-star pattern, and the claim 'any system with this problem converges on this shape' is not evidenced by the three known uses.",
+      "suggestion": "Either drop the rating or define the scale in the overview and add one sentence of evidence (e.g. which of SWE-bench/Inspect/Evals independently arrived at which participant)."
+    },
+    {
+      "section": "Collaborations step 1 vs Sketch `batch`",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Collaborations says the runner skips runs 'whose answer file exists', but `finish` writes an answer file for failures too, and the sketch requires status == \"ok\" and a matching spec hash. As written, a naive implementation following step 1 would never retry a failed run — defeating note 6.",
+      "suggestion": "Make step 1 say 'skips runs whose answer file records status ok and the current spec hash', matching the sketch."
+    },
+    {
+      "section": "Sketch `batch` / `finish` (spec hash)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "hash(spec) covers only the spec fields (item, model, thinking, promptVersion, tag). A prompt part edited under an existing version — the very drift note 2 warns about — leaves the hash unchanged, so stale answers are silently treated as done.",
+      "suggestion": "Hash the assembled prompt and tool mount too (promptHash ⊕ mountHash) into the answer record, and document that prompt versions must be immutable content-addressed files."
+    },
+    {
+      "section": "Extraction / Consequences",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The chapter never says how a Failure is scored. Since the whole point is comparing models and prompt versions, whether an unparseable run is a wrong answer, an excluded sample, or a separate reported rate changes the comparison; note 4's 'a whole run of six answers was lost to one typo' shows failures are common enough to matter.",
+      "suggestion": "Add an explicit rule (e.g. failures are excluded from accuracy and reported as a failure rate per tag, alongside repair counts), and say where it is recorded in the answer file."
+    },
+    {
+      "section": "Solution / Prompt assembler",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'Reference material' is listed as the last prompt part with no definition, and it is unclear how it differs from the read-only data mounted as a tool; the fixed part order is asserted ('fixed order') without saying what breaks if you reorder or omit a part.",
+      "suggestion": "Say what belongs in the reference part (definitions, schema docs, worked example) versus the mount, and state the reason for the order (contract last so it is nearest the answer)."
+    },
+    {
+      "section": "Implementation note 4",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The three repairs are named but not specified: 'a colon after a bare id' and 'a dropped key' are not enough to reimplement, and 'known repairs' is an open-ended list that silently couples the extractor to each model's quirks; nothing says repairs should be counted.",
+      "suggestion": "Give the before/after for each repair (or a pointer to the shared runner code), and require the extractor to log which repair fired per run so a rising count is a signal."
+    },
+    {
+      "section": "Implementation note 9 (the shell bites)",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "`[ cond ] && cmd` under `set -e` and zsh word splitting are facts about writing bash wrappers, not about sealing runs; they are three anecdotes from the dust runners and will age or mislead anyone not using zsh.",
+      "suggestion": "Cut from this chapter (it belongs in the vault's runner handbook) or reduce to one line: 'the runner is shell; make it idempotent and test it, since in-flight runs observe script edits.'"
+    },
+    {
+      "section": "Implementation note 1",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "The exact pi CLI flags are quoted as if the pattern were pi-specific, while Consequence 3 correctly says isolation flags differ per agent product. A reader on another agent cannot tell which part is the requirement.",
+      "suggestion": "State the requirement generically ('disable every ambient context source the product has'), then give the pi flags as an appendix line with the date."
+    },
+    {
+      "section": "Intent vs Consequences",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "The Intent says the result depends 'only on what you gave it', but Consequences admits runs are not bit-reproducible because a routed model name can shift underneath. The purity claim is stronger than the guarantee delivered.",
+      "suggestion": "Soften to 'depends only on the run spec, the saved prompt and the mounted tools, modulo the provider's model version and decoding', and repeat the recording requirement here."
+    },
+    {
+      "section": "Known uses",
+      "kind": "missing",
+      "severity": "low",
+      "note": "SWE-bench, Inspect and OpenAI Evals are listed with no mapping to this chapter's participants and no case where sealing was the wrong choice, so they support plausibility rather than reusability.",
+      "suggestion": "For each, name the participant it instantiates (e.g. Inspect's sample ≈ run directory + spec, its scorer ≈ the extract+score step) and add one short 'where this was tried and did not fit'."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The participant table, the seven-step collaboration and the numbered notes make the shape easy to reuse, but the batch/skip semantics contradict each other, the scoring of failures is undefined, and the shell anecdotes are noise."
+  }
+}

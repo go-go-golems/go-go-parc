@@ -1,20 +1,182 @@
 {
   "quiz": {
     "a": {
-      "Q1": [["builder"]],
-      "Q2": [["square", "²"]],
-      "Q3": [["refus", "error", "e_frame", "reject"], ["align", "fraction", "sub-pixel", "subpixel", "pixel"]],
-      "Q4": [["fit"], ["schema", "definition", "next to", "document", "unit"]]
+      "Q1": [
+        [
+          "builder"
+        ]
+      ],
+      "Q2": [
+        [
+          "square",
+          "\u00b2"
+        ]
+      ],
+      "Q3": [
+        [
+          "refus",
+          "error",
+          "e_frame",
+          "reject"
+        ],
+        [
+          "align",
+          "fraction",
+          "sub-pixel",
+          "subpixel",
+          "pixel"
+        ]
+      ],
+      "Q4": [
+        [
+          "fit"
+        ],
+        [
+          "schema",
+          "definition",
+          "next to",
+          "document",
+          "unit"
+        ]
+      ]
     },
     "b": {
-      "Q1": [["linear"], ["insert", "convert", "as("]],
-      "Q2": [["perform", "loop", "per element", "per-element", "cost", "overhead", "fast"]],
-      "Q3": [["once", "cache", "visible", "inspect", "graph", "duplicat", "remember", "test"]],
-      "Q4": [["origin"]]
+      "Q1": [
+        [
+          "linear"
+        ],
+        [
+          "insert",
+          "convert",
+          "as("
+        ]
+      ],
+      "Q2": [
+        [
+          "perform",
+          "loop",
+          "per element",
+          "per-element",
+          "cost",
+          "overhead",
+          "fast"
+        ]
+      ],
+      "Q3": [
+        [
+          "once",
+          "cache",
+          "visible",
+          "inspect",
+          "graph",
+          "duplicat",
+          "remember",
+          "test"
+        ]
+      ],
+      "Q4": [
+        [
+          "origin"
+        ]
+      ]
+    },
+    "a2": {
+      "Q1": [
+        [
+          "builder"
+        ]
+      ],
+      "Q2": [
+        [
+          "square",
+          "\u00b2"
+        ]
+      ],
+      "Q3": [
+        [
+          "refus",
+          "error",
+          "e_frame",
+          "reject"
+        ],
+        [
+          "align",
+          "fraction",
+          "sub-pixel",
+          "subpixel",
+          "pixel"
+        ]
+      ],
+      "Q4": [
+        [
+          "fit"
+        ],
+        [
+          "schema",
+          "definition",
+          "next to",
+          "document",
+          "unit"
+        ]
+      ]
+    },
+    "b2": {
+      "Q1": [
+        [
+          "linear"
+        ],
+        [
+          "insert",
+          "convert",
+          "as("
+        ]
+      ],
+      "Q2": [
+        [
+          "perform",
+          "loop",
+          "per element",
+          "per-element",
+          "cost",
+          "overhead",
+          "fast"
+        ]
+      ],
+      "Q3": [
+        [
+          "once",
+          "cache",
+          "visible",
+          "inspect",
+          "graph",
+          "duplicat",
+          "remember",
+          "test"
+        ]
+      ],
+      "Q4": [
+        [
+          "origin"
+        ]
+      ]
     }
   },
   "fits": {
-    "a": {"T1": true, "T2": false},
-    "b": {"T1": true, "T2": false}
+    "a": {
+      "T1": true,
+      "T2": false
+    },
+    "b": {
+      "T1": true,
+      "T2": false
+    },
+    "a2": {
+      "T1": true,
+      "T2": false
+    },
+    "b2": {
+      "T1": true,
+      "T2": false
+    }
   }
 }

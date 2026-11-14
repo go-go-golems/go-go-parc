@@ -1,0 +1,137 @@
+{
+  "restatement": {
+    "intent": "Make the reading of a number — its length unit, its coordinate frame, its sample scale — an explicit tag on the container that holds many of them, so that an operation either gets matching tags or a declared, catalogued conversion, and never a silent reinterpretation.",
+    "problem": "When a number's unit, frame or scale lives only in the author's head, a value read on the wrong scale produces a plausible result instead of an error.",
+    "solution": "Tag the container (image, array, table) on three separate axes: sample space, frame, and unit of lengths. Declare directed conversions in one catalogue with cost and losslessness. Each operation declares which space it works in, whether its image inputs must share a frame, and the space of its result. The graph builder — not the kernels — satisfies those rules by inserting cached, lossless conversion nodes and refusing (or warning) otherwise; numeric arguments carry declared units and are bound to the evaluation scale."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Neither the kernels nor the operations: the graph builder inserts them as ordinary nodes. Kernels assume their declared space, so conversion code exists once, is cached and is visible in the graph. (The Editor lab is the counterexample: its physical kernels convert inside their loops.)",
+      "where": "Implementation notes 1 ('Kernels never convert'); Collaborations step 4"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because areas scale with the square of the evaluation scale. A minimum area given in document pixels squared must be multiplied by scale², not scale; with a linear length unit it would be 100× too strict at one-tenth scale.",
+      "where": "Implementation notes 5 ('Areas scale with the square'); Structure, Argument unit"
+    },
+    {
+      "id": "Q3",
+      "answer": "It refuses with E_FRAME and a fix that crops both to a common box (and, for disjoint tiles, tells you to open the region covering both). It does not resample or pad because that shifts masks against images by fractions of a pixel, which matters for specks three pixels wide.",
+      "where": "Collaborations step 3; Implementation notes 6"
+    },
+    {
+      "id": "Q4",
+      "answer": "The label stored the radius of a fitted circle, about twice the speck's own radius, without recording that definition; used as the speck's radius it produced a median SNR of 0.86 instead of 1.56 until someone compared the numbers with the pictures. Lesson: a field's unit *and definition* belong in its schema, data you did not produce must be tagged, and every re-encoding on the way to a dataset is a recorded conversion.",
+      "where": "Implementation notes 9 ('Tag the data you did not produce')"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "All three axes are live and all three failure modes are present: degrees vs metres vs pixels, WGS84 vs national grid vs camera frame, and DN vs reflectance; and an agent supplies numeric arguments ('2 hectares', 'blur 5 m') whose meaning must not depend on the mosaic's pyramid level. The chapter's own note 6 anticipates exactly this domain by adding reprojection to the catalogue.",
+      "participants": {
+        "Tagged value": "Each geotagged photo, mosaic tile and field-outline collection: frame = CRS + rectangle (WGS84 or EPSG:27700), unit = the length unit of its coordinates (px for the raw photo, m for the grid), space = encoded sRGB vs linear reflectance. Field outlines are the vector analogue; the area column of a query result also needs a unit.",
+        "Conversion catalogue": "deg↔WGS84-to-grid (PROJ/geodesy, per-datum parameters), px↔ground metres via GSD, encoded↔linear reflectance, m↔ha. Losslessness is per value kind: a vector CRS transform is effectively exact, but raster reprojection resamples and is lossy.",
+        "Operation rule": "Stitching follows its receiver and needs a shared frame; classification/thresholding works in reflectance; perimeter/area works in projected metres (declared space) and needs one CRS; buffer/blur works in metres on the grid.",
+        "Argument unit": "Hectares, m², metres (buffer radius, minimum field width), pixels (raw-pixel radius on a source photo), fraction of extent.",
+        "Builder": "Chooses the work space, checks that mosaicked tiles share a CRS rectangle, refuses deg-typed lengths for metric ops (E_FRAME/E_SPACE), and refuses to silently reproject a raster per operation.",
+        "Scale binder": "Divides a metre argument by the evaluation GSD (ground metres per buffer pixel) — the general form of the chapter's ×scale; hectares→m² is a fixed factor, not a scale binding."
+      },
+      "sketch": "photo = open(\"DSC_0421.jpg\", tags{frame: WGS84(lat,lon), unit: px, space: encoded, gsd: 0.04 m/px})\nmos   = stitch(photos,   rule{works: follows,  needFrame: same})\ngrid  = mos.as(\"EPSG:27700\", acceptLoss: true)   -- raster reprojection: explicit, once, at ingest\npoly  = grid.outline()                            -- follows receiver -> grid metres;\n                                                  -- area computed with geodesic definition, not raw grid\nq     = poly.where(area > Arg(2, \"ha\"))            -- 2 ha x 10000 -> m2, no scale binding\nprev  = grid.at(scale)\nblur  = prev.blur(radius: Arg(5, \"m\"))             -- bindArg: 5 / gsd(prev) -> buffer px\nalt   = photo.buffer(Arg(5, \"m\"))                 -- refuse(E_SPACE): photo has no ground scale; use grid",
+      "key_notes": [
+        "6 — one shared coordinate system, refusal on mismatched extents, reprojection as a catalogue entry: the whole raison d'être here, and the reason outlines, mosaics and queries line up.",
+        "8 — only lossless inserted, lossy always explicit: raster reprojection is a resample, so it must be one explicit `as()` at ingest, never a builder-inserted step per query, or every query resamples again and areas/counts drift.",
+        "5 — areas scale with the square: hectares/m² and the grid scale factor are the same trap; area must never be recomputed on whatever pyramid level a query happens to hit.",
+        "7 — parameters from the value's tags: the CRS, datum and GSD come from each image/dataset, not from a build constant; a mosaic of mixed GSD or mixed CRS must show it in the conversion key.",
+        "9 — tag data you did not produce: farmer-declared or third-party outlines carry a definition ('declared' vs 'imagery-derived') that a unit tag alone does not capture.",
+        "3 — keep the axes separate: 'degrees' is a unit, WGS84 is a frame, DN-vs-reflectance is a space; conflating them makes every refusal ambiguous in exactly this domain."
+      ],
+      "risk": "Letting the builder insert the reprojection so it looks lossless and automatic: each operation resamples the raster again, so repeated queries give slightly different areas and field counts — a plausible-but-wrong result of exactly the kind the pattern exists to prevent. Second risk: computing area as raw planar area on the grid metres without the projection scale factor, which is off by roughly (1+k)² and passes every tag check."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The applicability rule excludes it directly: every field has exactly one representation, nothing is ever converted, and none of the fields is a quantity, so tags would add ceremony and a per-operation rule for zero possible refusals. The real hazards there are validation and canonical form (email normalisation, Unicode normalisation of name/bio, one stored date format, and a timezone if 'age' is ever computed) — that is schema and normalisation work, not units and frames.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "The most relevant part of the chapter is its 'Do not use it when' bullet on single-representation values — cite it rather than stretching the pattern.",
+        "If a genuine quantity later appears (height in cm vs in), tag that one field's unit locally; do not impose a catalogue and a builder on fields that have no second reading."
+      ],
+      "risk": "Adopting the ceremony anyway 'to be safe': every operation acquires a rule and every new 'space' needs catalogue entries, so the cost is paid continuously while the benefit is zero — and the actual bugs (bad email, mixed date formats, name normalisation) stay untouched because they are not on any of the three axes."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (convertTo) and Implementation notes 8",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`convertTo` refuses any non-lossless step unless acceptLoss is set, and `precision` is never defined — nothing says whether it is the source's, the destination's or the working precision. On the natural reading (destination precision) every physical operation on an 8-bit encoded image refuses on the last line of `build`, the conversion of the result back to the receiver's space, contradicting note 8's claim that encoded→linear→encoded 'is effectively lossless' and 'goja-cv inserts it freely'.",
+      "suggestion": "Define losslessness as a property of (from, to, working precision) and pass the working precision through build; reserve storage precision for save and explicit `as()`. One sentence in the sketch and one in note 8."
+    },
+    {
+      "section": "Structure (Operation rule), Collaborations step 3",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`sameFrame: bool` with an equality test is far too strict: it refuses compositing a small look onto a full image, pasting a mask, stitching, and the mixed-encoding display overlay that note 10 depends on. The chapter's own overlay example cannot be built under its own frame rule.",
+      "suggestion": "Make the rule a declared relation — `same | contains | overlaps | disjoint-ok` — with the refusal and fix per relation, rather than a boolean."
+    },
+    {
+      "section": "Structure, Tagged value ('frame') vs Implementation notes 3 and 6",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The frame is 'Rect in document coordinates' with no tag saying which coordinate system those coordinates are in, so the three axes are not actually independent: the moment a second CRS exists (which note 6 and the geospatial 'known use' both assume), the frame itself needs a conversion, and that is a different catalogue entry from a sample-space conversion. The structure table pretends one implicit global coordinate system.",
+      "suggestion": "Make the frame a rectangle *plus* a CRS/frame identifier, and give the catalogue a second kind of entry for frame transformations (reprojection), with its own losslessness rule (vector exact, raster resampling)."
+    },
+    {
+      "section": "Argument unit, Scale binder (bindArg)",
+      "kind": "too-specific",
+      "severity": "high",
+      "note": "The entire argument vocabulary is `docPx, docPx², fraction, level`, and bindArg hardcodes `× scale` / `× scale²`. That is the goja-cv special case. A domain whose native length is metres (or currency, or frames in robotics) cannot be expressed: one would write 'document pixels' for which no conversion exists. This directly undercuts the Known uses list (finance, robotics, geospatial).",
+      "suggestion": "Give `unit` a general form (dimension + factor, e.g. `length: m`) and make the binder a per-domain 'units → buffer pixels' factor (here: 1/GSD), with docPx as the instance where the factor happens to be the evaluation scale."
+    },
+    {
+      "section": "Implementation notes 8 and Consequences",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The round-trip cost is admitted and then hand-waved: 'a chain of physical operations pays one round trip per operation unless adjacent conversions are merged'. Nothing says who merges, at which stage, whether the merge may change node identity and cache keys, or whether a chain stays in linear light between operations.",
+      "suggestion": "Either drop the clause or add a short implementation note on a build-time simplification pass that fuses inverse `as()` pairs before hashing, and state explicitly that it does not change results, only keys."
+    },
+    {
+      "section": "Motivation, Implementation notes 9",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The gold-label radius is used as motivation for unit tags, but that failure is definitional (fitted-circle radius vs speck radius), not a unit or scale mismatch — both numbers are document pixels, so no conversion and no tag on the unit axis would have refused or warned. The anecdote is then asked to carry a lesson that the pattern cannot deliver.",
+      "suggestion": "Keep the anecdote but state plainly that tags *record* a definition and cannot detect a wrong one, which is why the remedy is schema plus lineage (note 9, Chapter 11) rather than the conversion catalogue. That also stops the chapter from over-claiming."
+    },
+    {
+      "section": "Structure (Tagged value: 'tables … read as stored'), Collaborations step 6",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The chapter insists that areas carry a unit, then gives no place for that unit to live: measurement results are tables, which are declared `space: none` and 'read as stored', so a stats table's area column (px²) and SNR column have no unit or definition at all. This is the one output shape every agent actually reads.",
+      "suggestion": "Add one row or sentence on tagged tables: per-column unit and definition (as note 9 demands), and whether column units participate in operation rules."
+    },
+    {
+      "section": "Structure (Conversion catalogue) vs Sketch (convertTo)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The catalogue promises 'the cheapest path of lossless steps', but `convertTo` searches the cheapest path and then rejects it if any step is lossy, so the reported refusal hides the best available lossy route and E_LOSSY gives only a generic 'use as()' hint.",
+      "suggestion": "State that the search runs over the lossless sub-graph, and that on failure the refusal names the cheapest lossy path with its cost, so the fix can say which `as()` to write."
+    },
+    {
+      "section": "Applicability vs Variations; Structure (Tagged value)",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The third 'do not use it when' bullet is just the 'Explicit conversions only' variation restated, and the `none`-space handling for masks, labels and tables is repeated in the Structure table, Collaborations, and the sketch without ever saying whether a `none`-space value can be the receiver of a physical operation or be combined with an image.",
+      "suggestion": "Cut the duplicated applicability bullet, and replace the three scattered mentions of `none` with one short rule: what `none` means, that it never converts, and what it refuses to be combined with."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "Very clear shape — three axes, builder-inserts, refusals with fixes — but the lossless/precision gate is under-specified, `sameFrame` as an equality boolean refuses legitimate operations, and the argument-unit vocabulary is shaped so tightly around document pixels that the advertised non-image domains (geo, finance, robotics) would have to pretend they are images."
+  }
+}

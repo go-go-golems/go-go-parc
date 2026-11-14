@@ -1,0 +1,137 @@
+{
+  "restatement": {
+    "intent": "Run each unit of agent work as one isolated, non-interactive invocation whose input is a versioned prompt plus an explicit least-privilege tool mount, and whose output is one parseable answer, so many runs can be compared, retried and audited.",
+    "problem": "An agent run that inherits the operator's environment, holds an open conversation and answers in free text cannot be repeated, compared or audited, and a batch of such runs cannot be retried or scored.",
+    "solution": "Make the run a function call with explicit arguments (work item, model, prompt version, tag). Give it a private directory holding the assembled prompt, a per-run tool configuration with read-only inputs and a fresh writable workspace, the event stream and a transcript. Start the agent non-interactively with built-in tools, context files, skills and templates switched off; require one fenced JSON object as the final message, extract it with known repairs, and write the answer atomically. A batch runner runs these specs in parallel under tags, skipping runs that already have a valid answer."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "`--no-builtin-tools` keeps out the agent product's own tools; `--no-context-files` keeps out the operator's context/instruction files; `--no-skills` keeps out the operator's installed skills; `--no-prompt-templates` keeps out the operator's prompt templates. Tools then arrive only through a per-run MCP configuration.",
+      "where": "Implementation notes 1 (\"Switch everything off, then mount what the run needs\")"
+    },
+    {
+      "id": "Q2",
+      "answer": "So parallel runs never share a writable directory: a shared workspace, cache or answer file is where concurrent runs collide and where state leaks between runs. A fresh per-run workspace also contains a failure to one directory; a builder run gets a subdirectory holding only its inputs.",
+      "where": "Forces (\"Parallelism against shared state\"), Implementation note 7, Consequences (\"Failures are contained to one run and one directory\")"
+    },
+    {
+      "id": "Q3",
+      "answer": "(a) Editing a runner script while a batch is using it changes the code of in-flight runs; (b) `[ cond ] && cmd` as the last command under `set -e` aborts the script when the condition is false; (c) in zsh an unquoted variable holding several words is not word-split. Any two of these.",
+      "where": "Implementation note 9 (\"Expect the shell to bite\")"
+    },
+    {
+      "id": "Q4",
+      "answer": "The dust project wrote the recipe three times (annotator, validator, judge) with the same extraction code pasted into each. The lesson is to write the runner once, driven by a run spec, with prompt parts and tool mounts as data, which removes the copies and their drift.",
+      "where": "Implementation note 10 (\"Write the runner once\"); Motivation repeats the three-time history"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is thousands of independent, identical-shaped judgements that must be comparable across models/prompt versions and retried cheaply; each answer is a small fixed schema, so a correct answer is stateable.",
+      "participants": {
+        "Run spec": "finding id + repository + commit, model, thinking level, prompt version (e.g. `fp-v1`), tag naming the variant.",
+        "Run directory": "`runsRoot/<tag>/<findingId>/` holding `prompt.md`, `tools.json`, `ws/`, `events.jsonl`, `transcript.html`, `answer.json`.",
+        "Prompt assembler": "Joins the finding's blind id, the rule description, the code excerpt/paths to read, the triage taxonomy (real issue hypothesis categories), and the output contract with a literal example `{\"verdict\": \"real\"|\"false-positive\", \"reason\": ..., \"evidence\": [file:line]}`.",
+        "Tool mount": "Read-only mount of the checkout at that commit plus the rule-documentation directory; own writable `ws/`; network off; never the label store, the SAST tool's baseline/suppression files, or previous triage exports.",
+        "Agent invocation": "Non-interactive, built-in tools/context files/skills/templates off, only the read tools plus maybe bash-to-pinpoint; stdin closed.",
+        "Extractor": "Last fenced JSON in the final message, known repairs, verdict validated against the two allowed values.",
+        "Batch runner": "Parallel (say 8–12) over all findings for one tag, per-run timeout, skip runs whose `answer.json` has `status: \"ok\"` and a matching spec hash.",
+        "Comparison step (implicit in the chapter, must be added)": "Joins answers by finding id across tags/models and scores them against a hand-labelled control set."
+      },
+      "sketch": "```text\nvalue RunSpec: findingId, repo, commit, model, thinking, promptVersion, tag\n\nrun(spec) → Answer | Failure\n  dir = fresh(runsRoot / spec.tag / spec.findingId)\n  write(dir / \"prompt.md\", assemble(spec.promptVersion, describeBlind(finding)))   -- id + rule + code paths, never the label\n  write(dir / \"tools.json\", mount(read: [checkoutAt(spec.commit), ruleDocsDir],\n                                  write: dir / \"ws\", network: none))              -- never labels/baseline\n  events = agent(cwd: dir, prompt: read(dir / \"prompt.md\"), model: spec.model, thinking: spec.thinking,\n                 builtinTools: none, contextFiles: none, skills: none, templates: none,\n                 nonInteractive: true)\n  write(dir / \"events.jsonl\", events); exportTranscript(events, dir / \"transcript.html\")\n  return extract(events)   -- {verdict in {real, false-positive}, reason, evidence: [file:line]}\n\nbatch([RunSpec(f.id, f.repo, f.commit, \"deepseek-4.1-flash\", \"high\", \"fp-v1\", tag: \"fp-v1\")\n       for f in findings])                                -- controls mixed in, timeouts, retry failures only\n```",
+      "key_notes": [
+        "Note 3 (never mount the truth) is the one that decides success: 5,000 repositories are full of the answer — `# noqa` comments, lint suppressions, the SAST baseline file, prior triage CSVs, tests that exercise the \"bug\". Audit every mount for label leakage and mix in hand-labelled controls so accuracy is measurable.",
+        "Note 1 plus note 11: the seal must be tested, not assumed — the checkout is a large read surface, and an agent upgrade that silently re-enables built-in tools or network lets runs look things up instead of reading the code.",
+        "Note 4: one fenced JSON in the final message with a literal schema example matters more at this scale, because free-form verdicts (\"likely FP, minor\") are the main parse failure; log which repair fired so repairs cannot silently convert a wrong verdict into a plausible one.",
+        "Note 6/10: with thousands of specs, one runner driven by the run spec plus tags is what makes \"retry only failures\" and \"compare variants by joining on finding id\" true rather than aspirational.",
+        "Note 8 (budgets) applies concretely: the finding plus its code may exceed the context, so the prompt must state a budget and the assembler must truncate deterministically, else variants are not compared on equal evidence."
+      ],
+      "risk": "Leaking the verdict through the mount (whole repo, baseline file, previous triage output, or network access to the same rule's issue tracker), which yields excellent-looking accuracy that measures nothing."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is exactly the chapter's first \"do not use\" case: a multi-hour conversation with a person in the loop. The value lies in the unsealed feedback between designer and agent, and there is no repeatable unit of work and no stateable correct answer, so sealing removes what makes it work and leaves nothing to compare.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Only two pieces are worth borrowing later, not as seals: the \"run directory\" idea as a record (keep the transcript and the final brief in one place), and \"single-call evaluation\" if the designer later wants to A/B two prompt versions of a fixed brief — which is a new, separate, sealed task, not the brainstorm."
+      ],
+      "risk": "Forcing the fit by sealing each turn: the agent loses accumulated design context every turn, drafts stop building on each other, and the measurements produced compare a conversation nobody would have had."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch / extract",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`try: return parse(block)` followed by `try: return parse(repairs(block))` has no defined semantics (does the first fall through?), and the repairs are unnamed magic. Worse, the chapter's own example repair — a dropped key, `{\"q003\", …}` — cannot be repaired without inventing a value, yet the text presents all three repairs as equally safe. A repair that supplies content is a different risk class from one that strips a stray colon.",
+      "suggestion": "State one attempt ladder explicitly (parse → apply repair r in order, recording which fired in the answer file → Failure), tabulate the repair rules as data, and mark which are lossless (newline escaping, stray colon) versus content-inventing (dropped key), refusing the latter and recording `Failure(\"repaired-invented\")` instead."
+    },
+    {
+      "section": "Implementation notes 1 (and Solution: \"nothing from the operator's environment\")",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The seal is described only as four pi flags. \"Nothing from the operator's environment\" also means environment variables, credentials, `$HOME`, git config and network egress, none of which the flags touch — an agent can still read an API key, a cached answer file or a mounted secrets dir. A reader on another agent product has no idea what to switch off.",
+      "suggestion": "Add a short table: capability to disable (built-in tools, context files, skills, templates, network, credentials, home dir) → generic mechanism → how to verify (canary test). Keep the pi flags as one worked example, not as the definition of the seal."
+    },
+    {
+      "section": "Sketch (`finish`) and Collaborations step 1/5",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "Retry semantics are contradictory and, as written, destructive: the answer file carries `status`, and the skip rule keys on `status == \"ok\"` and a spec hash, while Collaborations says \"skips those whose answer file exists\" — which would skip failed runs. Also, when a failed run is retried, `fresh(dir)` wipes the events of the attempt you most want to read.",
+      "suggestion": "Say the skip test is only `status == \"ok\" && specHash == hash(spec)`, and make attempts append-only: `dir/attempt-001/`, or keep `events.jsonl` and write `answer.json` beside a truncated prompt hash, so retries add evidence instead of erasing it."
+    },
+    {
+      "section": "Run spec / Consequences (\"not bit-reproducible\")",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The Intent claims the result \"depends only on what you gave it\", but Consequences concedes routed model names change underneath and decoding settings must be \"recorded\" — yet the Run spec has no field for temperature, max tokens, seed or resolved provider model version. The claim and the data model disagree.",
+      "suggestion": "Add `decoding: {temperature, topP, maxTokens, seed?, providerModelVersion?}` to the Run spec, include it in `hash(spec)`, and soften the Intent to \"depends only on what you gave it, plus nondeterminism you recorded\"."
+    },
+    {
+      "section": "Structure / Collaborations step 5",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The pattern's entire justification is comparability, but no participant owns it: scoring/joining across tags appears only as an unnamed \"comparison step\" that is delegated to Chapter 10. A reader implementing the table as listed gets runs and answers but no way to answer \"was v3 better than v2?\".",
+      "suggestion": "Either add an **Answer store / comparison** participant (join answers on item id across tags, score against controls) or say plainly in Structure that scoring is deliberately out of scope and that answering a comparison question requires Chapter 10."
+    },
+    {
+      "section": "Implementation note 9 (\"Expect the shell to bite\")",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Three facts about bash/zsh traps (set -e with `&&`, zsh word splitting) are shell lore, not reusable pattern guidance, and they sit at the same level as the load-bearing notes. A Python or Go runner gets nothing from them; a shell runner needs more than this.",
+      "suggestion": "Compress to the general rule — \"run the batch from a versioned, checked-in script with an explicit interpreter, never a file you edit mid-batch\" — and move the three anecdotes to an appendix or a hazards sidebar."
+    },
+    {
+      "section": "Applicability — Do not use, third bullet",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "\"There is no way to state what a correct answer looks like; you can seal the run, but not use its output\" overclaims. Sealed runs with no ground truth are still useful as a cheap first pass whose outputs humans label, and as a relative signal between variants on the same items; the dust project's blind controls are exactly how you bootstrap that.",
+      "suggestion": "Reframe: without a correctness criterion you cannot *score* the answers automatically; you can still rank variants and use the outputs as drafts for human labelling — add controls to get from the second to the first."
+    },
+    {
+      "section": "Variations — Resumable runs",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "\"A second, separately recorded stage\" is not reconciled with the rest of the pattern: the answer path is one file per item, the skip rule keys on it, and the tool mount is written per run. It is unstated how a stage-2 run is keyed, whether it reuses the workspace, and whether stage 1 counts as answered.",
+      "suggestion": "Give the stage a place in the spec (`stage: 2`, `parent: runId`), say the stage-2 directory is a sibling that mounts stage 1's transcript read-only, and note that only the last stage's answer counts for scoring."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The dust specifics (\"360 judgements per variant\", the language validated by agents reading one chapter) entertain but do not help a reader decide whether to apply the pattern; the three-item general problem list already does that job.",
+      "suggestion": "Cut the Motivation to one short dust paragraph plus the three general cases, and move the numbers into Known uses or Consequences."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 5,
+    "comment": "Structure, Forces and the sketch make the shape easy to copy, but pi-only seal flags with no environment/credential story, a destructive retry story and an under-specified repair ladder are what keep it from being a clean reusable pattern."
+  }
+}

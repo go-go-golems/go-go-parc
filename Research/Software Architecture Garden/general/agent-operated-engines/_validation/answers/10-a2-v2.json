@@ -1,0 +1,125 @@
+{
+  "restatement": {
+    "intent": "Use agents to label or judge many items, and decide with measured evidence — not faith — which of their answers to keep: a deterministic criterion filters what it can, planted items with known answers measure each judge, and thresholds derived from those controls decide what is accepted, reviewed by a person, or left unknown.",
+    "problem": "Agent output is plentiful and of unknown quality: trusting it all poisons the data, checking it all wastes the people the agents were meant to free, and measuring it against a flawed reference misleads both.",
+    "solution": "Run the work in stages. Where a cheap measured criterion separates good proposals from bad, calibrate it on labelled data and apply it as a deterministic gate, and call what it removes unknown rather than negative. Mix blind controls with known answers into every judging batch, score each model and prompt version on ranking, accuracy, calibration and the share of real items it can safely decide, and set accept thresholds where the controls hit the precision you need. Accept beyond the thresholds; send the uncertain middle plus a random audit sample of the accepted to a person who sees the item but not the verdict; and when judges disagree confidently with a control, have a person re-check the control."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "The gate removes doubtful positives, not certain negatives. Recording them as negatives would teach the downstream model that faint dust is clean film, so they become 'ignore'/'unknown' regions in training rather than negative labels.",
+      "where": "Motivation, first bullet; Solution ('what it removes becomes \"unknown\", not \"no\"'); Implementation note 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "Accuracy alone says nothing about whether a judge's probability can be used as a threshold, or where it is trustworthy. Controls give, per model and prompt version on identical items: ranking quality (AUC), accuracy at p=0.5, calibration (Brier), the thresholds (hi/lo) where controls reach the target precision, and the usable share of real items those thresholds unlock. Controls come from both sides of the decision and blind, so both error directions are measured and the judge cannot detect them.",
+      "where": "Structure (Scorer row); Collaborations steps 2–4; Implementation notes 4, 5, 6"
+    },
+    {
+      "id": "Q3",
+      "answer": "Nine of the first ten 'not dust' controls the person checked turned out to be dust the gold set had missed; the judges that had 'failed' those controls had been right, and the ranking of prompt versions changed once the controls were corrected. Rule: when several judges confidently agree against a control's known answer, a person checks the control, and corrected controls update the scores.",
+      "where": "Motivation, third bullet ('The yardstick was wrong'); Solution, last sentence; Collaborations step 6; Implementation note 7"
+    },
+    {
+      "id": "Q4",
+      "answer": "Blind review measures the agent; showing the verdict makes the reviewer echo or anchor on it, so the review samples agreement rather than accuracy. Besides the uncertain middle, a random sample of accepted items (~10%) is audited, and so are controls that several judges confidently contradict.",
+      "where": "Implementation note 8; Sketch step 4 (audit sample); Sketch step 5 and Collaborations step 6 (doubted controls)"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Volume (50,000) far exceeds review capacity (3,000), 800 lawyer labels already exist as control material, and wrong risk labels are costly. It fits with two hard constraints: 20 classes make per-class controls thin, and the middle band will almost certainly exceed 3,000, so most items must end up 'unknown', not 'accepted'.",
+      "participants": {
+        "Proposer": "the agent that segments clauses and assigns candidate risk categories",
+        "Gate": "deterministic criteria — clause segmenter confidence, presence of required defined terms/citations, similarity to the client's playbook template library; failures become 'unclassified', never 'no risk'",
+        "Judge": "sealed agent runs (Chapter 9) per clause, returning p per category plus a top class",
+        "Controls": "the 800 lawyer-labelled clauses, stratified positive/negative per category, blind ids, same source/pool as real clauses; a slice held out from gate and threshold tuning",
+        "Scorer": "per category: AUC, accuracy@0.5, Brier, hi/lo thresholds at the client's required precision, usable share",
+        "Router": "accepts clauses beyond thresholds for top class with no other class passing; middle band ranked by distance from threshold",
+        "Review queue": "the ~3,000 lawyer slots, clause shown with contract context but not the agent's category; decisions into the ledger"
+      },
+      "sketch": "value Clause: id (blind), text, contractId, truth?   -- truth only for the 800 controls\nvalue Verdict: clauseId, topClass, pByClass\n\n-- hold out ~150 of the 800 for scoring; calibrate the gate on the rest\ngate(c) → keep | unknown\n  if segmenter(c.text) not confident:            return unknown   -- unknown, not \"no risk\"\n  if similarity(c.text, playbook) < t:           return unknown\n  return keep\n\n-- per category k: 20 x {pos, neg} control pools\nbatch = shuffle(realClauses ++ sample(controls, pos 3, neg 6, perClass))\nruns  = chunks(batch, 6)\n\nscore(verdicts, controls) → per class k: {auc, accuracyAt05, brier, hi[k], lo[k], usableShare}\n  hi[k] = lowest p with precision(k | p ≥ hi) ≥ 0.95 on ≥ 8 controls\n  -- if a class has too few controls: no threshold, whole class goes to review\n\nfor v in real verdicts:\n  if v.p[top] ≥ hi[top] and all(v.p[other] ≤ lo[other]):  accept(v, top)\n  else:                                                   middle.enqueue(v)\n\nreview = top 2700 of middle by |p − hi[top]|      -- note 10; the rest stays unknown\nreview ++ randomSample(accepted, 0.05)\nreview ++ controls where ≥ 2 of 3 judges confidently contradict truth",
+      "key_notes": [
+        "Note 10 (rank by uncertainty, size to reviewers) — the binding constraint: 3,000 of 50,000 is 6%, so the band will not fit; the top of the ranking is reviewed and the remainder is 'unknown', not 'accepted'.",
+        "Notes 2 and 9 (calibrate and score on different items; small control sets are noisy) — 800 labels over 20 categories is ~40 per class before holding out a scoring slice; below a minimum count, refuse to set a threshold for that class.",
+        "Note 5 (score calibration, not only ranking) — with 20 imbalanced classes, accuracy@0.5 is meaningless; Brier and per-class precision at threshold are the numbers the client is buying.",
+        "Note 1 (unknown, not negative) — a gate-failed clause recorded as 'no risk' becomes a false compliance statement in a deliverable.",
+        "Notes 7 and 8 (expect the yardstick to be wrong; review blind and audit the accepted) — the 800 labels came from lawyers who may have disagreed, and lawyer review of the accepted sample is the only check on the accept band.",
+        "The sketch's multi-class rule (top class passes and no other does) matters: risk categories are not mutually exclusive, so a clause raising two risks must not be silently reduced to one."
+      ],
+      "risk": "Treating the 800 earlier lawyer labels as ground truth, tuning and scoring on the same ones, and then delivering 'the other 45,000 are low risk' when the honest statement is 'unknown' — a result that looks like full coverage and is none."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is the chapter's own first exclusion: every item must be checked by a person anyway, so the agent is an assistant to each review, not a triage stage. The pattern's central output — a band no person sees, justified by controls and an audit sample — is exactly what the regulator forbids, and no statistical argument substitutes for a pharmacist's signature on each claim.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "The Applicability exclusion 'every item must be checked by a person anyway (legal or safety requirements)' applies directly; note 8's audit sample of the accepted band cannot discharge a per-claim sign-off duty.",
+        "What is salvageable without claiming the pattern: laddering the queue by uncertainty (note 10) and blind presentation of items (note 8) to make the pharmacist's mandatory review faster and less anchored; the Scorer can still measure the agent's drafting quality on controls.",
+        "Setting a threshold here would also move the legal accountability: the decision not to look becomes an unchecked automated judgement, which is the one thing the controls exist to prevent."
+      ],
+      "risk": "Building the pipeline anyway and describing pharmacists as 'reviewing the uncertain middle', which quietly converts a mandatory 100% sign-off into a sampled one — a compliance failure dressed as triage."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch, score()",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "`hi = lowest p where precision(label = yes | p ≥ hi) on controls ≥ 0.85` is not well defined: the lowest p satisfying the constraint sits near 0 on a noisy small control set (one lucky control in the tail passes), and there is no minimum tail size, no monotone constraint, and no smoothing. The 0.85 target also appears as an unexplained constant, though it should follow from the cost of a false accept versus a false reject.",
+      "suggestion": "State hi as the lowest p whose tail holds at least N controls (N given) and a one-sided lower confidence bound on precision ≥ target, optionally after an isotonic fit; add two sentences on choosing the target precision from the asymmetry of the two errors."
+    },
+    {
+      "section": "Collaborations, step 2",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'runs of a few items each go to judges' never says whether every real item is seen by every judge or a judge is assigned per item, nor how many judges run. Yet the whole comparison of models and prompts, the 'usable share', and the 'agreeCount(judges, …) ≥ 2' rule in the sketch depend on that answer.",
+      "suggestion": "Add one sentence in Structure or step 2: the same items are judged by all variants under comparison, and the confident-disagreement rule is stated relative to the number of judges (e.g. 'all judges, or all but one')."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "The first bullet carries the entire evaluation: iso ranges, three precision/recall pairs, six tiles, 150 points, and a caveat about the same tiles. The reader must hold a dozen unrelated figures to reach the two that teach anything (the overlapping iso band, and the made-on-the-same-tiles caveat).",
+      "suggestion": "Keep the iso band overlap, the single comparison (75/71 vs 64/70) and the caveat; move the rest to a table in a footnote or to Chapter 13, where variant comparison belongs."
+    },
+    {
+      "section": "Solution and Implementation notes",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The capacity rule — when the middle band exceeds reviewer capacity, review the top of the uncertainty ranking and leave the rest unknown — sits at note 10, but it is a cost-boundary condition of the pattern, not a tip. Nothing in Applicability or the Solution tells a reader to compute the expected band size before building the pipeline, and Consequences list no exit condition when usable share is so low that the pipeline costs more than it saves.",
+      "suggestion": "Move note 10's first half into the Solution, and add to Applicability a precondition: estimate the band against review capacity (and usable share) from a pilot batch before committing; name 'usable share too low' as a reason to stop or improve the judge rather than accept more."
+    },
+    {
+      "section": "Structure / Sketch (multi-class)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Multi-class routing exists only as a two-line comment in the sketch; the prose never discusses categories that overlap (a clause, a post, a scan can raise two risks at once), items whose top class cannot get a threshold for lack of controls, or two classes passing at once. Many real uses of this pattern are multi-label, not binary.",
+      "suggestion": "Add a short subsection: per-class one-vs-rest scoring, minimum controls per class or the class defaults to 'all review', and the rule for overlapping accepts and for abstention when no class passes."
+    },
+    {
+      "section": "Implementation note 8 / Sketch step 4",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The 10% audit sample is asserted with no basis, and there is no feedback rule: what happens if the audit finds the accepted band is worse than the target precision? As written, an audit that fails changes nothing.",
+      "suggestion": "Say how the sample size follows from the precision you must be able to rule out, and add the consequence: a failing audit invalidates that accept band, the batch is re-queued, and thresholds are recomputed before more items are accepted."
+    },
+    {
+      "section": "Known uses",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "Snorkel is listed as combining 'deterministic gates' with accuracies, but its labelling functions emit labels (including abstentions), not keep/unknown decisions calibrated against a labelled gate threshold; the fit is loose enough to mislead a reader into thinking the gate role is the same thing.",
+      "suggestion": "Either describe Snorkel as an adjacent idea (learned accuracies over noisy labelling functions, gates not required) or drop the entry and keep the gold-questions and LLM-judge citations, which are exact."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The three-stage shape (gate, blind controls, threshold-routed blind review) is memorable and the failure modes are honest, but the central threshold formula is under-specified, the capacity limit hides in a note, and the chapter never generalises past its binary, single-class dust example."
+  }
+}

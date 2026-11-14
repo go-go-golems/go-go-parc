@@ -146,9 +146,10 @@ save(path, bytes) → ok | Refusal
     if st is directory:            return refuse(E_ARG, "a directory", fix: loc.rel ++ "/x.json")
     if identity(st) in opened and identity(st) not in written:
                                    return refuse(E_ACCESS, "would replace a file this session opened")
+  loc.root.handle.makeParents(loc.rel)                 -- parents are created inside the root, never outside
   tmp = loc.root.handle.createExclusive(randomName())  -- fails if anything already exists there
-  write(tmp, bytes); rename(tmp, loc.rel)              -- atomic replacement
-  written = written ++ [identity(loc.rel)]
+  write(tmp, bytes); rename(tmp, loc.rel)              -- atomic; rename replaces a name, it never follows a link
+  written = written ++ [identity(loc.root.handle.lstat(loc.rel))]   -- the file's identity, taken after the rename
 
 load(name) → Script | Refusal                          -- the one way to load code
   (f, loc) = open(name)
@@ -177,16 +178,21 @@ startup(flags) → Session | Error
 5. **Strict flags for anything that changes privileges.** A repeated `--root` used to keep the last value, so an old
    configuration with two roots made the dataset directory writable without any error. A security-relevant flag is
    given once, or start-up fails with a fix.
-6. **Resolve relative names the same way everywhere.** Paths given on the command line (a prelude, an image) resolve
+6. **Know what the lookup order allows: a save can shadow a read-only file.** Relative names look in the writable root
+   first, so a session that saves `labels.json` makes every later read of `labels.json` return its own copy instead of
+   the read-only one. goja-cv cannot save scripts, so a library cannot be shadowed this way, but data files can.
+   Either refuse saves whose name exists in a read root, or warn when a read is served from the writable root while
+   a read root has the same name; and load trusted libraries by absolute path at start-up.
+7. **Resolve relative names the same way everywhere.** Paths given on the command line (a prelude, an image) resolve
    like paths in programs: the writable root first, then the read roots. A later fix had to make a symlinked read root
    inside the workspace resolve to its target, or the workspace's own containment refused it.
-7. **Show names as the agent should write them.** A file in the writable root is shown by its relative name; a file in
+8. **Show names as the agent should write them.** A file in the writable root is shown by its relative name; a file in
    a read root by its absolute name, so the agent can copy either back into a call.
-8. **Give each parallel run its own writable root.** The dust runners create a fresh workspace per run and mount data
+9. **Give each parallel run its own writable root.** The dust runners create a fresh workspace per run and mount data
    and helpers read-only; the subagents handbook adds the rule never to mount the answers (the controls' truth).
-9. **Refuse saving one path twice in one call.** Two saves to the same name in one program are almost always a mistake;
+10. **Refuse saving one path twice in one call.** Two saves to the same name in one program are almost always a mistake;
    goja-cv refuses the second (`E_DUPLICATE`).
-10. **Test that a regression test fails without its fix.** Twice, goja-cv's first test for a hole passed without the fix
+11. **Test that a regression test fails without its fix.** Twice, goja-cv's first test for a hole passed without the fix
     (a small save finished before the race could happen; a comparison of paths was vacuous). Security tests must be
     shown to fail first.
 
@@ -203,7 +209,9 @@ startup(flags) → Session | Error
 ## Consequences
 
 - \+ Inputs cannot be modified by a session, whatever its programs do through the file API.
-- \+ Escapes through links, races and alternative loaders are closed by construction, not by vigilance.
+- \+ Escapes through `..`, links and alternative loaders are closed by the operating system and by having one loader.
+  The opened-file and duplicate checks are the engine's own; they assume no other process writes into the same root
+  at the same time.
 - \+ Parallel runs cannot interfere with each other's files.
 - \+ Refusals with fixes teach agents the boundary instead of leaving them to probe it.
 - − The file API is narrower than the language's; code that expects arbitrary paths must be adapted.

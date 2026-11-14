@@ -1,0 +1,142 @@
+{
+  "restatement": {
+    "intent": "Make the reading of a number — its length unit, its coordinate frame, its sample scale — a tag carried by the container that holds it, so that operations can declare what they need and the rest happens by declared rule rather than by memory.",
+    "problem": "When a number's unit, frame or scale exists only in the author's head, a value read on the wrong scale produces a plausible answer instead of an error.",
+    "solution": "Tag each container on three separate axes (space, frame, unit). Declare every conversion in one catalogue with its cost, its parameters and whether it is lossless. Give each operation a rule — which space it works in, whether its inputs must share a frame, which space its result is in — and let the builder, not the kernel, insert cached lossless conversions, bind argument units to the evaluation scale, and refuse E_FRAME / E_SPACE / E_LOSSY where no admissible conversion exists."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A physical operation (encoding, exposure, healing, grey conversion) declares works: physical, so the builder picks linear light as the work space, inserts catalogue conversions on every input into it, runs the kernel there, then converts the result back to the receiver's space (`result: follows`). On an encoded image this means an inserted encoded→linear step before the kernel and a linear→encoded step after it — the kernel itself never converts.",
+      "where": "Collaborations step 2 and 4; Sketch (`work = physical → linear`, `result: follows → convertTo(n, receiver.space)`); Implementation note 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because all samples in one buffer are read the same way, so the tag is a property of the whole value, not of each element; and because checking per element would be a cost in a performance-critical loop — the chapter's own exclusion says tag the container and check once per operation.",
+      "where": "Solution; Applicability (\"Do not use it when ... checked per element\"); Structure, Tagged value"
+    },
+    {
+      "id": "Q3",
+      "answer": "Conversion code exists once instead of being duplicated in every kernel, it is a cached hash-consed node, it shows up in the graph the agent can inspect, and the builder can refuse a lossy step — whereas per-kernel conversion (the Editor lab) must be re-remembered by every new kernel and is invisible in the graph.",
+      "where": "Implementation note 1; Consequences (+ Conversions are visible, cached and testable)"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because the frame is a rectangle in document coordinates, not in tile-local ones. A tile opened with `origin: [2048, 1024]` gets frame [2048, 1024, 1024, 1024]; a crop keeps the parent frame; and results report positions in document coordinates, the one system every value shares.",
+      "where": "Collaborations steps 1 and 6; Sketch `open(\"tile.tif\", origin: …)`; Implementation note 6"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is the chapter's own finance example, and the two hardest parts map cleanly: currency is the unit axis, and the rate is a conversion whose parameter comes from the value (the transaction date), exactly as note 7 describes. The one adjustment is that a ledger is heterogeneous, so rows must first be grouped per currency into homogeneous containers — the pattern tags containers, not rows.",
+      "participants": {
+        "Tagged value": "An amount container whose numbers share one unit: a per-currency subtotal column (EUR/USD/JPY), or a whole single-currency account. Tags: unit = currency, and an `asOf` date tag that the conversion reads.",
+        "Conversion catalogue": "The daily rate table: directed pair → rate as of a date, with cost (spread/fee) and a lossless flag — rounding to JPY's whole units or to cents is lossy.",
+        "Operation rule": "`sum` / `avg` / `percent-of`: sameUnit = true (rows must share a currency), result: follows its receiver (the report column, in home currency). `convert` is itself a conversion and declares its result space.",
+        "Argument unit": "Report arguments: a cap '500' declared in the user's home currency, or '10%' declared as a fraction of the report total — so the two cannot be confused.",
+        "Builder": "The query planner behind the assistant's generated report queries: inserts rate conversions as ordinary cached steps, refuses E_UNIT on a mixed-currency sum with a fix that names `groupBy(currency)`, refuses E_LOSSY unless the query says `as(\"JPY\")`.",
+        "Scale binder": "Report time: converts each per-currency subtotal into the user's home currency at that subtotal's rate date, before or after subtotalling as the rule says — the same query must give the same numbers whatever home currency is bound last."
+      },
+      "sketch": "value Money: amount, tags: { unit: Currency, asOf: Date }\nvalue Conv:  from: Currency, to: Currency, lossless(p) → bool, cost, params(tags) → Rate   -- rate on tags.asOf\nvalue OpRule: sameUnit: bool, result: follows | declared(Currency)\n\nbuild(op, recv, args) → Node | Refusal      -- recv = report column, home currency\n  inputs = [recv] ++ amountArgs(args)\n  if rule.sameUnit:\n    for x in inputs[1:]:\n      if x.unit ≠ recv.unit:\n        return refuse(E_UNIT, from: x.unit, to: recv.unit,\n                      fix: \"rows.groupBy(unit), then convert each subtotal on its own asOf\")\n  conv = [convertTo(x, recv.unit) for x in inputs]      -- keyed by x.tags.asOf, not today\n  return node(op, conv, bindArgs(args))                 -- percent args bind to fraction of total\n\nconvertTo(x, c, acceptLoss: false):\n  path = catalogue.cheapestPath(x.unit, c)              -- params(x.tags) = rate on x.tags.asOf\n  if not all(k.lossless(p) for k in path) and not acceptLoss:\n    return refuse(E_LOSSY, fix: \"total.as(\\\"JPY\\\") rounds on purpose\")",
+      "key_notes": [
+        "Note 7 (parameters from the value) is the decisive one: the rate must key on the transaction's date and enter the conversion node's key, or a build-time constant silently mis-states every historical expense.",
+        "Note 8 (only lossless inserted, lossy explicit) decides the JPY and cent-rounding behaviour: refusing instead of rounding is what stops a totals report from drifting.",
+        "Note 3 (three axes separate) keeps the refusal legible — currency mismatch, date mismatch and rounding are three different refusals, not one 'money type' error.",
+        "Note 2 (tag on the value, not in the caller's head) matters because the caller is an LLM: currency must live on the column, not be implied by a number in a generated query."
+      ],
+      "risk": "Converting at the wrong point or with the wrong rate: summing mixed currencies first and converting the sum with today's rate gives a plausible, stable-looking, wrong total — and because nothing crashes, nobody checks it."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Both exclusion conditions hold: every sample has exactly one representation and the design intends to keep it that way, and a per-sample tag can only be consumed by a per-element check, inside a 1 ms budget. The pattern survives here only in its degenerate, container-level form — the buffer carries sample rate, channel layout and output bit depth, and the only conversions are at the boundaries (output quantisation, resampling, oversampling before a nonlinear stage).",
+      "participants": {
+        "Tagged value": "The buffer as a whole: sample rate, channel layout, amplitude domain (linear float), output bit depth on the way out — never a per-sample tag.",
+        "Conversion catalogue": "Boundary conversions only: oversample ×2 for a saturating stage, resample 48→44.1 kHz, quantise to 24-bit on export.",
+        "Operation rule": "Per plug-in stage: works in linear float; sameFrame → all channels share block size and time offset; result follows the buffer.",
+        "Builder": "Not present at run time — resolved once at graph/plugin setup, or not at all; there is no per-buffer graph build in the budget.",
+        "Scale binder": "Time and gain arguments (a 30 ms attack, a -6 dB threshold) are bound once per parameter change, not per sample."
+      },
+      "sketch": "-- rejected as stated (tag per sample). Narrower form, container level only:\nvalue Buffer: data, tags: { rate: 48000, layout: stereo, domain: linear_float }\n-- no per-sample tag; conversions only at the edge of the plug-in, never in the block loop",
+      "key_notes": [
+        "The Applicability exclusion on per-element checks is the whole answer; note 1 (kernels never convert) also argues against it, since a sample tag's only consumer would be a per-element branch inside the kernel.",
+        "Note 6's spirit applies shifted to time: channels and buffers must share a block alignment, which is a container-level check made once per block.",
+        "Note 3 (separate axes) explains why one 'unit' tag per sample would still be the wrong checklist: rate, layout and amplitude domain fail differently and none of them varies within a buffer."
+      ],
+      "risk": "Bundling the whole pattern in anyway, because it sounds rigorous: per-sample tags in a 32-sample buffer turn a cheap multiply into a tag check plus a possible conversion path lookup, blowing the 1 ms budget for a class of errors the fixed internal format already rules out."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (`convertTo`) vs Implementation note 8",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The sketch's default `convertTo(n, receiver.space)` at the end of `build` calls convertTo with `acceptLoss: false`. For the running example — a 16-bit TIFF whose file units are encoded — the return leg linear→encoded is lossy by note 8's own table ('encoded↔linear is lossless in float, lossy into 8 bits'), so every physical operation on the chapter's own motivating input would raise E_LOSSY instead of building.",
+      "suggestion": "Define losslessness relative to the value's own precision (a 16-bit round trip that stays inside the source quantisation is admissible on the return leg) and say so explicitly, or pass an `acceptLoss` mode that the builder sets for the return-to-receiver leg only."
+    },
+    {
+      "section": "Structure / Solution (the unit axis)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The title and Intent promise that 'which unit a length is in' is a tag on values, but the unit axis is only ever an argument unit (docPx, docPx², fraction, level), and the participant table fixes it to 'document pixels for goja-cv's regions'. No value-to-value unit conversion appears in the catalogue, so a geospatial or robotics reader looking for metres↔degrees↔feet finds no home for it, and the three-axis symmetry is overstated.",
+      "suggestion": "Either say plainly that the unit axis is argument-only in this pattern and unit-to-unit conversion of stored values is the separate Variations case, or add unit pairs to the catalogue with a worked example (metres↔degrees needs a projection, which is already note 6's reprojection)."
+    },
+    {
+      "section": "Sketch (`c.lossless(x.precision)`), Implementation note 8",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`precision` appears only inside this one expression: it is not a field of Tags, not a field of Conv, and never defined. Whether losslessness is a property of a space pair, of a space pair at a bit depth, or of the conversion plus its params (the file's curve) is left to the reader, yet the entire insert-or-refuse decision hangs on it.",
+      "suggestion": "Add precision to the Tags value in the sketch and state the rule in one sentence: `lossless(precision)` is true when the round trip reproduces every representable input exactly at that precision."
+    },
+    {
+      "section": "Collaborations step 5 / Implementation note 4",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Step 5 says `stats` reports on the receiver's space, and note 4 says a physical operation's levels are read in linear light. Together these set a trap: an agent that measures a threshold on an encoded image and passes it to a physical operation gets a level read on the wrong scale, silently — precisely the failure the chapter exists to prevent.",
+      "suggestion": "Give a level argument's declared unit a space component ('0.05, read on linear'), so `bindArg` can convert or refuse; or make a level argument on a physical operation force the receiver into linear, as the sketch's own `img.as(\"linear\").mask.luminance(above: 0.05)` line already does by hand."
+    },
+    {
+      "section": "Structure table, Collaborations step 3, Sketch (`mixesEncodings`)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Masks and tables carry `space: none` and are 'read as stored and never converted', but they are still included in `inputs` before the sameFrame loop, so an operation on an image plus a mask of a sub-region is refused E_FRAME — although the mask is not a value to be combined on a common scale. Nor does `mixesEncodings` say whether `none` counts as an encoding.",
+      "suggestion": "State whether the frame rule applies to `space: none` inputs (suggested: it does, but the refusal's fix should name the mask), and define `mixesEncodings` over the non-`none` inputs only."
+    },
+    {
+      "section": "Structure table (Tagged value), Implementation note 6, Sketch (frame: Rect)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The frame is an axis-aligned rectangle in document coordinates. A scan rotated 90°, a mirrored crop, a rotated bbox from a detector, or a map layer in a rotated projection cannot be represented, and no note says what such a value does — silently dropped frame, or refused, or an implicit axis swap.",
+      "suggestion": "One sentence: either declare frames axis-aligned and require rotation to be resolved into overlapping axis-aligned tiles, or add an orientation field to the frame and say which conversions preserve it."
+    },
+    {
+      "section": "Sketch (`cheapestPath`), Conversion catalogue row",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The catalogue stores a cost per conversion and the builder takes the cheapest path of lossless steps — but it is never said how cost and losslessness combine when the only lossless path is much dearer, or what happens when the only path at all is lossy. The choice between E_SPACE (no path) and E_LOSSY (path exists, all lossy) is also not stated in the sketch's control flow order.",
+      "suggestion": "One paragraph: search only lossless edges; if none reaches the target, report E_LOSSY with the cheapest lossy path and the acceptLoss fix; only when the target is unreachable report E_SPACE. Say whether cost is build-time or run-time relevant."
+    },
+    {
+      "section": "Motivation, Implementation notes 6 and 9",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The participant table and most notes are written for goja-cv rather than for the pattern: 'document pixels for goja-cv's regions', the nine prototypes, the dust project's gold labels and its 0.86-vs-1.56 SNR, the Editor lab. A reader from the finance, geo or robotics side has to translate before deciding whether a participant exists in their system.",
+      "suggestion": "Make the Structure table domain-neutral (a length unit, a frame, a sample space) and move the goja-cv history into one short 'worked example' box, keeping note 9's general rule ('a field's unit and definition belong in its schema') outside it."
+    },
+    {
+      "section": "Known uses (PostgreSQL)",
+      "kind": "other",
+      "severity": "low",
+      "note": "The pg_cast analogy is used to support note 8's absolute 'only lossless conversions are inserted', but PostgreSQL's cast contexts allow assignment casts that do lose information (numeric→int rounds), so the analogy slightly contradicts the claim it is meant to support.",
+      "suggestion": "Either pick a tighter analogue or say what the analogy covers: PostgreSQL's real point here is the declared catalogue plus the implicit/assignment/explicit third state, which is closer to this chapter's three dispositions than to 'lossless only'."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core discipline (three axes, rules per operation, builder-inserted lossless conversions, explicit lossy ones) is clear and I would apply it, but the unit axis is thinner than advertised, the losslessness criterion is undefined enough to refuse the chapter's own running example, and the structure table is written for one project rather than for a reader from another domain."
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "restatement": {
+    "intent": "Give a program exactly the file access its task needs: one writable directory, a list of read-only directories, and nothing else — enforced by the kernel rather than by inspecting path strings.",
+    "problem": "When an agent's programs can name any path, one unexpected path (a link, a repeated flag, a second loading mechanism) defeats string-based path checks and lets them read or overwrite what they should not.",
+    "solution": "Name one writable root and an ordered list of read-only roots; resolve every relative path against writable-then-read roots and require absolute paths to lie inside one, using the OS's root-relative handle for every open and stat so the kernel refuses escapes, `..` and outward links. Saves go only to the writable root, never through a link, never over a file the session opened (compared by file identity), always via an exclusively created random temp file renamed into place. Exactly one loader, and privilege-changing flags are given once or refused."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A path string that looks contained can name a file outside the root through a link: a dangling symlink inside the output root let a save create a file outside it, and an in-root link to an opened input let a save overwrite that input. Strings describe names, not file identity, so the only reliable check is kernel-enforced root-relative resolution plus identity comparison.",
+      "where": "Problem; Forces ('Name checks against identity checks'); Motivation table; Implementation note 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "The session records the identity of every file it opens (the 'opened set'); a save lstat's the target without following links and refuses if that identity is in the opened set (and the session has not itself written the file), using an identity comparison such as `os.SameFile` rather than a name comparison — because an in-root link to an input defeats any name check.",
+      "where": "Solution; Structure ('Opened set'); Collaborations step 3; Implementation note 2; the `save` sketch"
+    },
+    {
+      "id": "Q3",
+      "answer": "Every additional entry point is another boundary that must be defended separately, and goja-cv's `require` loaded any file on disk — an agent used it within two runs to pull its helper library from outside the roots. With one loader that resolves through the locator, loading is contained by the same rules as reading.",
+      "where": "Forces ('Many ways in against one'); Implementation note 4; Collaborations step 4"
+    },
+    {
+      "id": "Q4",
+      "answer": "Last-value-wins makes a mistake silent: a stale configuration that passed `--root` twice made the gold-data folder writable without any error, so a privilege change happened unnoticed. Requiring the flag exactly once turns that into a start-up failure with a fix pointing to `--read`.",
+      "where": "Forces ('Flexible configuration against strict flags'); Collaborations step 1; Implementation note 5; `startup` sketch"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is the pattern's canonical case: valuable inputs on a shared machine, scratch outputs, and many parallel runs that must not touch each other or other teams' repositories. The build server's other repositories are exactly what must stay outside the declared roots.",
+      "participants": {
+        "Writable root": "the single git checkout handed to that agent run (e.g. /srv/runs/<run-id>/checkout)",
+        "Read roots": "the shared vendored-library cache, mounted read-only, searched after the checkout",
+        "Locator": "maps a program's path to (root, name): relative paths try the checkout then the cache; absolute paths must lie inside one of them",
+        "Root handle": "one os.Root / openat2(RESOLVE_BENEATH) handle per root, so the kernel refuses escapes and any symlink leaving a root",
+        "Opened set": "identities of files this run opened — critical because checkouts routinely contain symlinks into the shared cache or elsewhere",
+        "Writer": "writes only inside the run's checkout via random, exclusively created temp files renamed into place",
+        "Loader": "the single `load(name)` that resolves through the locator; `require` of any path is refused"
+      },
+      "sketch": "startup(flags) → Session | Error\n  if count(flags.root) ≠ 1:\n    return error(\"--root takes one directory; add read-only dirs with --read DIR\")\n  writable = /srv/runs/<run-id>/checkout\n  reads    = [/srv/cache/vendored]          -- mounted read-only\n  return Session(WritableRoot(writable), ReadRoots(reads),\n                 Locator, OpenedSet, Writer, Loader)\n\nopen(\"src/app.js\") → (File, Location) | Refusal\n  loc = locate(path, forWrite: false)       -- checkout, then vendored cache\n  f   = loc.root.handle.open(loc.rel)       -- kernel refuses .. and escaping links\n  opened = opened ++ [identity(f)]\n\nsave(\"build/out.json\", bytes) → ok | Refusal\n  loc = locate(path, forWrite: true)        -- checkout only\n  mkdirAll-parents inside loc.root, then lstat / link / opened-set checks\n  tmp = loc.root.handle.createExclusive(randomName())\n  write(tmp, bytes); rename(tmp, loc.rel)\n\nload(\"lib/helpers.js\") → Script              -- through the locator, like any read\nrequire(path) → refuse(E_ACCESS, \"files cannot be required\", fix: \"await load(name)\")",
+      "key_notes": [
+        "Note 1 (OS-enforced root) — the whole guarantee rests on it; other teams' repositories must simply not be reachable from any declared root, so the kernel, not a reviewer, is what stops the agent.",
+        "Note 2 (identities, not names) — the load-bearing check here, because a checkout can contain an in-repo symlink pointing at a shared cache file or another tree; the opened set is what prevents a save from destroying the cache through it.",
+        "Note 8 (one writable root per parallel run) — dozens of agents share one host, so a reused or shared checkout leaks work between runs and breaks the read-only mounts.",
+        "Note 3 (exclusive random temp names) — on a busy shared server, temp names in a predictable run directory are plantable by a neighbouring job.",
+        "Note 5 (strict flags) — agent command lines are often generated or replayed from stale templates; a repeated `--root` must fail loudly rather than widen access.",
+        "Note 6 (one resolution rule for CLI paths and program paths) — preludes, configs and test fixtures must resolve the same way or the CLI becomes a second, unchecked entry point."
+      ],
+      "risk": "Agents that legitimately need `git`, a build tool or a package manager will use a shell or a toolchain the file API does not govern, and touch whatever the process can reach; the pattern must be paired with a container or a per-run user, otherwise it protects only the polite path. A secondary risk is quietly making the shared cache writable 'just for now', which silently voids the read roots."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "There is no filesystem access to contain, so the pattern has nothing to hold: the chapter's own Applicability says not to use it in that case. Adding a workspace would create the writes, paths and loader that must then be defended — new attack surface, not safety.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Not applicable. The invariant here is the tool surface itself: two tools, no paths, no writes, no loader. If a file tool is ever added, adopt the pattern then — Locator, Root handle and Writer at once, not a bare 'read any path' helper."
+      ],
+      "risk": "Mistaking the pattern for a generic 'security' tick-box. The live risks in this system sit elsewhere — the calculator's evaluator and the weather API client (URL construction, SSRF) — which the pattern neither covers nor mentions."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (`save`)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`written = written ++ [identity(loc.rel)]` records the identity of a *path string*, not of a file, and contradicts the chapter's own rule that identities are compared, not names. It is also recorded after the rename, so the sketch never shows how a session that created a file escapes the second-save refusal.",
+      "suggestion": "Replace with `written = written ++ [identity(loc.root.handle.lstat(loc.rel))]` after the rename, and state once whether `written` is per session or per call."
+    },
+    {
+      "section": "Sketch (`save`) vs Consequences",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The save sequence is check-then-rename: between `lstat` and `rename` another process can create a link or file at `loc.rel`, and the rename silently replaces it. Consequences claims escapes are 'closed by construction, not by vigilance', which overstates what the sketch actually does.",
+      "suggestion": "Use `renameat2` with `RENAME_NOREPLACE` for create-only saves (or re-verify the target's identity after rename and undo on mismatch), and either fix or soften the 'by construction' claim."
+    },
+    {
+      "section": "Collaborations step 3 / Sketch (`save`)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Step 3 saves `out/labels.json`, but nothing in the sketch or notes creates the `out/` directory, and `save` explicitly refuses a target that is a directory. The reader cannot tell whether parents are created, must pre-exist, or must be made by some other call.",
+      "suggestion": "Add a `mkdirAll` through the root handle before the exclusive temp create, or state that saves only work in existing directories and how a program creates one."
+    },
+    {
+      "section": "Solution / Implementation note 8",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Lookup order is writable root first, so a session can plant a file in its own writable root that shadows a same-named read-only file — including a helper library or a trusted asset — and later reads silently get the planted copy. Note 2's identity check does not catch it, because the planted file is a new file with a new identity. The chapter mentions never mounting 'the answers' but never names shadowing.",
+      "suggestion": "Add a note: for storage written and read within one session, intentional reuse of a written file is allowed, but a save whose relative name collides with an existing read-root entry is refused, and `load` resolves against read roots only."
+    },
+    {
+      "section": "Implementation note 6",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'A later fix had to make a symlinked read root inside the workspace resolve to its target, or the workspace's own containment refused it' is one sentence of dense history that appears to contradict the rule that links are refused. A reader cannot tell whether links are allowed for roots, for paths, or never.",
+      "suggestion": "State the rule explicitly: root paths are canonicalised once at start-up (following links), and there is exactly one root handle per canonical root; per-path links are then always refused."
+    },
+    {
+      "section": "Implementation notes 1–5 vs Motivation table",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "Notes 1–5 retell the same five holes, with the same finders and fixes, that the Motivation table already gives in more compact form. The repetition is the chapter's main excess: readers who accept the motivation must read the same story twice.",
+      "suggestion": "Keep the table as the evidence, and cut each of notes 1–5 to the resulting rule plus at most a clause of justification, cross-referencing the table row instead of restating it."
+    },
+    {
+      "section": "Known uses (Deno)",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "Deno's `--allow-read`/`--allow-write` is a permission-list mechanism, not this shape: there is no single writable root, no ordered read roots, no opened set and no identity check, and Deno historically had precisely the symlink and string-matching weaknesses this chapter rejects.",
+      "suggestion": "Either drop it, or list it as a related mechanism and say which participant is missing (the root handle and the opened set)."
+    },
+    {
+      "section": "Collaborations / Structure ('Loader')",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The loader is described as the one way to load code, but the chapter never says what a loaded script can do: whether it receives the same session file API, whether its own reads join the opened set, or whether the language's ambient I/O globals are removed. Without that, 'one way in' is only true for the load call, not for what the loaded code can reach.",
+      "suggestion": "One sentence: loaded scripts run with the session's contained API and no other file primitives; state whether the script file joins the opened set (it does, via `open`)."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The mechanism (root handle + identity set + exclusive temp rename + single loader + strict flags) is crisply transferable and the failure modes are convincing; marks are lost for the sketch's identity/TOCTOU slips, the unmentioned parent-directory and shadowing cases, and notes that restate the motivation table."
+  }
+}

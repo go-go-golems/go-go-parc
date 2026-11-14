@@ -1,0 +1,162 @@
+{
+  "restatement": {
+    "intent": "Give an agent a single tool that runs a short program against the engine's API inside a session that persists between calls, and return the result in a form the agent can read inside its context budget.",
+    "problem": "One tool per operation forces a round trip per step and cannot loop or filter, but switching to model-written programs loses state, floods the context, and silently drops what the programs produced unless the session and its replies are designed for it.",
+    "solution": "One eval tool runs a program as a function body with the engine API in scope, in a session serialised to one program at a time and bounded by a deadline. The session is split into a generic runtime (execute, time out, persist) and a domain result processor (before-hook, process, processFailure). State survives only on one named object that every reply's context block lists. The reply carries the value as capped YAML or tables with a note on what was cut, warnings folded by line, a context block rebuilt each call, and every created picture within a count/byte budget, naming the ones left out. Task libraries load as preludes or by name, install helpers on the state object, and describe themselves from their own source."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A generic runtime (the Session: executes programs one at a time, enforces the deadline, persists state and loaded libraries) and a domain result processor (before-hook, process, processFailure, rendering value/warnings/context/attachments). The Session/runtime is the generic part; the processor is the domain plug-in.",
+      "where": "Solution; Structure table; Implementation note 3"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because agents filter and sort in plain code and then need to scan the result: a header plus one line per flat record is far more compact than nested YAML and easier to read, so tables get a share of the cap and note which rows are shown.",
+      "where": "Implementation note 5; Sketch (tables: arrays of ≥2 flat records, tableBudget: ⅔ × CAP); Solution"
+    },
+    {
+      "id": "Q3",
+      "answer": "The 39 annotator agents never called cv.docs or cv.help; they learned from the helpers they used and from results. Conclusion: documentation does not reach agents, so the next step (hint, fix, warning) belongs in the reply, and helpers should describe themselves from their own source.",
+      "where": "Motivation ('Documentation went unread'); Implementation notes 8 and 10"
+    },
+    {
+      "id": "Q4",
+      "answer": "UNUSED_NODE fired 19 times in the annotator study and 18 of those were on correct code. Lesson: a warning that is usually wrong teaches agents to ignore warnings, so lints must be precise or absent.",
+      "where": "Implementation note 11"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Long experiments are data-dependent sequences of the same engine's operations (spawn, step N times with a check each iteration, read sensors, render), and simulator state is worth keeping between calls. It also matches the exclusion test only partially: stepping is a side effect, but it lives inside the sandboxed session and needs no per-action confirmation.",
+      "participants": {
+        "Eval tool": "`eval(program)`: async function body with the sim API (world.spawn, world.step, sensors, camera) in scope; description states await, `return`, the cap, how frames are attached, and that handles go on `mem`.",
+        "Session": "The persistent simulator runtime: one program at a time, a per-call deadline that must be generous because stepping is slow, and the physics world itself surviving between calls.",
+        "State object": "`mem`: body/scene handles, experiment config, collected readings and helper functions — never copies of physics state, only handles into it.",
+        "Result processor": "Turns sensor reads and metric arrays into tables, renders the failure with the line in the agent's program plus the sim time reached, and remembers which helper docs it printed.",
+        "Context block": "Named inputs (seed, dt), `mem` keys by kind (handles vs data), helper signatures, loadable libraries, and what changed since the last call.",
+        "Attachment queue": "Camera frames and plots the program rendered, delivered in order within a count/byte budget, naming by line the frames that did not fit.",
+        "Library loader": "Preludes: a general sim-helpers library, then experiment-specific helpers (grip, sample sweep) built on it; on-demand load by name mid-experiment."
+      },
+      "sketch": "```text\nsession = Session(simRuntime, simProcessor,\n                  policy: {timeout: 120s, readOnly: false},\n                  preludes: [\"sim-helpers.js\", \"experiment-helpers.js\"])\n\nevalTool(program) → Reply                     -- one program at a time, deadline owned by the session\n  -- in use\n  if !mem.world: mem.world = await sim.reset({ seed: 7 })\n  mem.arm = mem.arm ?? await mem.world.spawn(\"arm\", { at: [0, 0, 0] })\n  mem.trace = []\n  while mem.world.time < 2.0:\n    await mem.world.step(0.01)\n    mem.trace.push(await mem.arm.sensors())\n  mem.contacts = mem.trace.filter(s => s.contact).slice(-12)      -- table\n  return mem.world.camera(\"side\").render()                        -- attachment\n\ncontextBlock(runtime) → text\n  inputs: seed, dt, sim time\n  state:  world: SimHandle, arm: BodyHandle, trace: list, contacts: list\n  helpers: grip(force), sweep(n)\n  libraries: sim-helpers, experiment-helpers\n```",
+      "key_notes": [
+        "Note 1 (explicit state) matters most: in a function-body runtime every `const` handle dies after the call, so `mem` must hold body/scene handles from the first spawn onward or the agent quietly starts a second world.",
+        "Note 7 (deliver every frame created) is the difference between usable and useless: a bare `camera(...).render()` statement is the natural way to record a frame, and under a 4-frame/8 MiB budget the reply must name by line the frames it withheld.",
+        "Note 9 (failures and timeouts are replies): long stepping loops will hit the deadline routinely, so the timeout reply must still return pictures, warnings and — critically — the sim time and what persisted, so the agent can continue instead of restarting.",
+        "Note 4 (cap and say how to get the rest): sensor traces are wide; without tables plus a slicing hint the agent will burn calls on truncated YAML.",
+        "Note 2 (contract in the description): the agent must know that stepping is awaited, that `return` is what gets shown, and that state goes on `mem`; nothing else will teach it.",
+        "Note 8 (preludes) is what keeps grip/sweep routines out of every program, but an on-demand `load` needs to report back, since prelude-style silence at load time would leave the agent guessing."
+      ],
+      "risk": "A deadline firing mid-step leaves the world partly advanced and `mem` partly updated, so the agent cannot tell where the experiment stands: it may re-spawn objects, double a trace, or read a half-updated reading list as final. The timeout reply has to report sim time and what persisted."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter excludes exactly this case: every call must be reproducible on its own, and a persistent session makes a call's outcome depend on its history. Regulated actions also fall under the 'separate, narrow tools that are each visible and reviewable' exclusion. Only the reply half of the pattern (capped text with a note, tables, structured refusals) is reusable.",
+      "participants": {
+        "Eval tool": "Rejected as the primary interface: replaced by one narrow, schema-validated tool per regulated action (or the 'structured call tool' variation, `call(path, args)`, if a single endpoint is required).",
+        "Session": "None: the stateless-eval variation, or no session at all, with explicit inputs and outputs per call.",
+        "State object": "None; state is a parameter of each call, echoed in the reply and in the audit record.",
+        "Result processor": "Kept, but stateless: renders each action's result and failure with capped text, tables and structured refusals — no cross-call memory, no per-call reset.",
+        "Context block": "Not a session view; at most a fixed listing of available actions and their contracts, identical on every call.",
+        "Attachment queue": "Empty for a logging API; if documents are attached, a per-call budget with named omissions still applies.",
+        "Library loader": "Not applicable; no persistent namespace to install helpers into."
+      },
+      "sketch": "",
+      "key_notes": [
+        "The 'do not use it' bullet on audit-grade reproducibility is the deciding note, not an implementation note.",
+        "Note 4 (cap the value, say how to get the rest) and the table rule still carry over to the narrow tools' replies.",
+        "Note 10 (put the next step in the reply) still applies: the agent learns from refusals and hints, not from docs.",
+        "Note 2 (state the contract) applies per tool: the schema plus a short description is the substitute for the eval tool's contract clauses."
+      ],
+      "risk": "The team keeps the session because one tool is friendlier to write, and then 'reproduces' a logged action by replaying the session up to that point — hidden state returns through the back door and no audit record can be tied to inputs alone."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution",
+      "kind": "too-long",
+      "severity": "high",
+      "note": "The Solution is one long chain of clauses that packs in the two-part split, the state object, the cap, tables, warnings, the context block, the attachment budget and layered preludes. This is the sentence a reader is supposed to remember, and it cannot be remembered.",
+      "suggestion": "State the kernel in two or three sentences (one tool, persistent session, explicit state object, generic runtime plus domain processor) and put the reply's parts and the loader in a short numbered list after it."
+    },
+    {
+      "section": "Structure / Sketch / Implementation note 6",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The sketch updates `seen[f.name]` inside `contextBlock`, which processFailure also calls (Collaborations step 4, note 9), yet the inline comment says 'updated after successful calls only'. A helper first installed during a failing call is therefore marked seen and its doc line never shown — the opposite of note 6.",
+      "suggestion": "Move the `seen` update out of contextBlock into process() after a successful call, or pass a `commit: bool` so processFailure renders docs without consuming the delta."
+    },
+    {
+      "section": "Implementation note 2 (tool description)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The quoted contract promises 'every look of an eval is delivered', but note 7 and the Attachment queue deliver only four pictures / 8 MiB and name the rest by line. An agent that trusts the quote will assume a fifth frame reached it.",
+      "suggestion": "Change the clause to something like 'each look attaches a picture; up to four per eval are delivered and any left out are named by line', and note that the description must agree with the budget."
+    },
+    {
+      "section": "Implementation note 4 vs. Intent / tool description",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'Max 9000 chars' is ambiguous: the cap applies to the rendered value only, while warnings, the context block and omission notices are appended after it, so the whole reply can exceed the stated number. A reader cannot tell whether CAP bounds the reply or only the value.",
+      "suggestion": "Say explicitly that CAP bounds the value, that warnings and context block are separately budgeted, and give the worst-case reply size the agent should expect."
+    },
+    {
+      "section": "Structure (participants)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Warnings are load-bearing throughout (folded by line, precise-or-absent lints, hints instead of docs) but have no participant or slot in the reply's definition; they appear only inside the Result processor's responsibilities. The reply format lists text, tables, context block, attachments — not warnings.",
+      "suggestion": "Add warnings to the reply's stated parts (a 'Warning channel' row, or an explicit bullet under Result processor) with their contract: call site, folded by line, never invented if usually wrong."
+    },
+    {
+      "section": "Structure / Sketch (context block)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "`mem` grows without bound in a long session, and `fit(...)` silently truncates the concatenated inputs/state/helpers/docs list. The block exists so the agent does not guess what exists, yet nothing says what gets dropped when the budget is hit or how state is evicted besides 'the agent deletes what it no longer needs'.",
+      "suggestion": "Specify the truncation order (e.g. inputs, then state keys, then helpers, then docs) and say what the reply shows when it truncated — a note naming the dropped keys, not a silent cut."
+    },
+    {
+      "section": "Structure (Attachment queue / Session)",
+      "kind": "missing",
+      "severity": "low",
+      "note": "The chapter asserts calls are serialised ('a second call waits') but never says what a waiting or concurrent caller sees: queued, refused, timed out. This is the one place where the session's behaviour is user-visible and undefined.",
+      "suggestion": "One sentence: is a second call queued behind the first (and against which deadline), or refused with a specific kind?"
+    },
+    {
+      "section": "Implementation note 8 (load, don't paste)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'Prelude output is discarded' is defensible at start-up, but the note gives on-demand `cv.load(name)` no return value and no confirmation in the reply, even though the Forces section names invisible loading as the cost of libraries and note 10 insists agents read only replies. Loading the same library twice is also unspecified.",
+      "suggestion": "Say what an on-demand load returns (which helpers it installed, whether it was already loaded) and make reload idempotent or explicit."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "The evidence is dense in project numbers — 39 agents, 3.2 KB, 374 evals, 39 pastes, 19 lints of which 18 wrong — with no denominator or source, so a reader cannot judge whether the paste problem is 10% of evals or concentrated in ten agents. The 'shape recurs' paragraph then repeats what Applicability already says.",
+      "suggestion": "Keep two or three numbers that carry an argument, state the base each is out of, and cut the recurring-shapes list or merge it into Applicability."
+    },
+    {
+      "section": "Also known as / Variations",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "'Notebook kernel' is listed as an alias and also as a variation ('cells kept as a document'), so the reader cannot tell whether keeping history as an artefact is the same pattern or a different one.",
+      "suggestion": "Pick one: make the notebook kernel the alias of the persistent session, and make the variation the specific extra (a rerunnable cell document) it adds."
+    },
+    {
+      "section": "Applicability / Consequences",
+      "kind": "missing",
+      "severity": "low",
+      "note": "The chapter never states what it costs to start a session (compile/runtime start, prelude failures stopping start-up) or that serialisation bounds throughput, yet those are the practical reasons a team might pick narrow tools for a few operations.",
+      "suggestion": "Add one line to Applicability: if operations are few, `mem` will stay small and a session's start-up and serialisation are pure overhead."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The problem, forces and the generic-runtime/domain-processor split are clear and well argued, and the implementation notes are earned from real failures; reusability suffers because the participant table and notes carry goja-cv names, byte budgets and verbatim tool text, and the context block's truncation and the load/cap contracts are left underspecified."
+  }
+}

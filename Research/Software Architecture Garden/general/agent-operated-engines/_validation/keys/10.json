@@ -1,0 +1,206 @@
+{
+  "quiz": {
+    "a": {
+      "Q1": [
+        [
+          "doubt",
+          "faint",
+          "teach",
+          "clean",
+          "not certain",
+          "ignore"
+        ]
+      ],
+      "Q2": [
+        [
+          "auc",
+          "rank"
+        ],
+        [
+          "brier",
+          "calibrat"
+        ]
+      ],
+      "Q3": [
+        [
+          "dust",
+          "missed",
+          "unlabel",
+          "wrong"
+        ],
+        [
+          "check",
+          "person",
+          "disagree"
+        ]
+      ],
+      "Q4": [
+        [
+          "echo",
+          "verdict",
+          "measure",
+          "influenc",
+          "bias"
+        ],
+        [
+          "audit",
+          "sample",
+          "confident"
+        ]
+      ]
+    },
+    "b": {
+      "Q1": [
+        [
+          "overstate",
+          "same",
+          "held-out",
+          "held out",
+          "optimis"
+        ]
+      ],
+      "Q2": [
+        [
+          "separat",
+          "0.63",
+          "every item",
+          "not predictive",
+          "lean"
+        ]
+      ],
+      "Q3": [
+        [
+          "threshold",
+          "beyond",
+          "precision"
+        ],
+        [
+          "time",
+          "people",
+          "saves",
+          "review"
+        ]
+      ],
+      "Q4": [
+        [
+          "0.06"
+        ],
+        [
+          "suggest",
+          "identical",
+          "same items"
+        ]
+      ]
+    },
+    "a2": {
+      "Q1": [
+        [
+          "doubt",
+          "faint",
+          "teach",
+          "clean",
+          "not certain",
+          "ignore"
+        ]
+      ],
+      "Q2": [
+        [
+          "auc",
+          "rank"
+        ],
+        [
+          "brier",
+          "calibrat"
+        ]
+      ],
+      "Q3": [
+        [
+          "dust",
+          "missed",
+          "unlabel",
+          "wrong"
+        ],
+        [
+          "check",
+          "person",
+          "disagree"
+        ]
+      ],
+      "Q4": [
+        [
+          "echo",
+          "verdict",
+          "measure",
+          "influenc",
+          "bias"
+        ],
+        [
+          "audit",
+          "sample",
+          "confident"
+        ]
+      ]
+    },
+    "b2": {
+      "Q1": [
+        [
+          "overstate",
+          "same",
+          "held-out",
+          "held out",
+          "optimis"
+        ]
+      ],
+      "Q2": [
+        [
+          "separat",
+          "0.63",
+          "every item",
+          "not predictive",
+          "lean"
+        ]
+      ],
+      "Q3": [
+        [
+          "threshold",
+          "beyond",
+          "precision"
+        ],
+        [
+          "time",
+          "people",
+          "saves",
+          "review"
+        ]
+      ],
+      "Q4": [
+        [
+          "0.06"
+        ],
+        [
+          "suggest",
+          "identical",
+          "same items"
+        ]
+      ]
+    }
+  },
+  "fits": {
+    "a": {
+      "T1": true,
+      "T2": false
+    },
+    "b": {
+      "T1": true,
+      "T2": false
+    },
+    "a2": {
+      "T1": true,
+      "T2": false
+    },
+    "b2": {
+      "T1": true,
+      "T2": false
+    }
+  }
+}

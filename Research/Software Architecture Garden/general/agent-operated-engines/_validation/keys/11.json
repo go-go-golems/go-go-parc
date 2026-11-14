@@ -1,0 +1,164 @@
+{
+  "quiz": {
+    "a": {
+      "Q1": [
+        [
+          "accept",
+          "rate",
+          "band",
+          "confidence",
+          "measure"
+        ]
+      ],
+      "Q2": [
+        [
+          "history",
+          "replay",
+          "lose",
+          "audit"
+        ]
+      ],
+      "Q3": [
+        [
+          "disagree",
+          "drift",
+          "edge case",
+          "differ"
+        ]
+      ],
+      "Q4": [
+        [
+          "format",
+          "reader",
+          "break",
+          "plain rows",
+          "json"
+        ]
+      ]
+    },
+    "b": {
+      "Q1": [
+        [
+          "made",
+          "maker",
+          "what made"
+        ],
+        [
+          "decid",
+          "who"
+        ]
+      ],
+      "Q2": [
+        [
+          "acceptance",
+          "rate",
+          "offered again",
+          "information"
+        ]
+      ],
+      "Q3": [
+        [
+          "who",
+          "reviewer",
+          "actor"
+        ]
+      ],
+      "Q4": [
+        [
+          "fold",
+          "overlay",
+          "log"
+        ]
+      ]
+    },
+    "a2": {
+      "Q1": [
+        [
+          "accept",
+          "rate",
+          "band",
+          "confidence",
+          "measure"
+        ]
+      ],
+      "Q2": [
+        [
+          "history",
+          "replay",
+          "lose",
+          "audit"
+        ]
+      ],
+      "Q3": [
+        [
+          "disagree",
+          "drift",
+          "edge case",
+          "differ"
+        ]
+      ],
+      "Q4": [
+        [
+          "format",
+          "reader",
+          "break",
+          "plain rows",
+          "json"
+        ]
+      ]
+    },
+    "b2": {
+      "Q1": [
+        [
+          "made",
+          "maker",
+          "what made"
+        ],
+        [
+          "decid",
+          "who"
+        ]
+      ],
+      "Q2": [
+        [
+          "acceptance",
+          "rate",
+          "offered again",
+          "information"
+        ]
+      ],
+      "Q3": [
+        [
+          "who",
+          "reviewer",
+          "actor"
+        ]
+      ],
+      "Q4": [
+        [
+          "fold",
+          "overlay",
+          "log"
+        ]
+      ]
+    }
+  },
+  "fits": {
+    "a": {
+      "T1": true,
+      "T2": false
+    },
+    "b": {
+      "T1": true,
+      "T2": false
+    },
+    "a2": {
+      "T1": true,
+      "T2": false
+    },
+    "b2": {
+      "T1": true,
+      "T2": false
+    }
+  }
+}

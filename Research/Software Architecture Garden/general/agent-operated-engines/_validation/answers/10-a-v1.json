@@ -1,0 +1,139 @@
+{
+  "restatement": {
+    "intent": "Let agents produce or judge many items, then decide with numbers — not hope — which of their answers to trust, so that scarce human review goes only where it changes the outcome.",
+    "problem": "Agent labels and verdicts are plentiful but of unknown quality: trusting them all poisons the data, checking them all wastes the people the agents were meant to save, and measuring them against a flawed reference misleads both.",
+    "solution": "Run the work in stages. Where a cheap criterion separates good proposals from bad, calibrate it on labelled data and apply it as a deterministic gate, whose removals become 'unknown' rather than 'no'. Mix blind controls with known answers into every judging batch and score each judge, model and prompt version on them (AUC, accuracy, Brier, thresholds at target precision, usable share). Accept only answers beyond the thresholds; send the uncertain middle plus a random audit sample of the accepted band to a blind human queue, and check any control that several judges confidently contradict."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "The gate removes doubtful positives, not certain negatives. Relabelling them 'negative' would teach the detector that faint dust is clean film, so they become 'ignore' regions in training.",
+      "where": "Implementation notes 1 (and the Motivation bullet on agents over-keeping)"
+    },
+    {
+      "id": "Q2",
+      "answer": "Controls give each judge/variant a score on the same blind, two-sided items, so judges are ranked on identical evidence and their probabilities become usable: ranking quality (AUC), accuracy at 0.5, calibration (Brier), the thresholds at which controls reach target precision, and the usable share of real items beyond those thresholds.",
+      "where": "Structure (Scorer row), Collaborations 3–4, Implementation notes 5 and 6"
+    },
+    {
+      "id": "Q3",
+      "answer": "Nine of the first ten 'not dust' controls a person checked were unlabelled dust; the judges that had 'failed' them were right and the prompt-version ranking changed. Rule: expect the yardstick to be wrong — when several judges disagree confidently with a control, a person checks the control, and corrected controls update the scores.",
+      "where": "Motivation ('The yardstick was wrong'), Solution last sentence, Implementation note 7, Sketch step 5"
+    },
+    {
+      "id": "Q4",
+      "answer": "The queue shows the item, not the agent's verdict, so review measures the agent instead of echoing it. A random sample (~10%) of accepted items is enqueued too, or the confident band is never checked; controls under doubt also go to a person.",
+      "where": "Implementation note 8 ('Review blind, and audit the confident'), Sketch step 4, Solution"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Many items, a small human budget, 800 existing lawyer labels to serve as controls, and label errors that cost real money — exactly the applicability conditions. It fits only if thresholds are also constrained by the 3,000-clause review capacity, and if the pattern is extended from binary to 20 categories.",
+      "participants": {
+        "Proposer": "The classifying agent (plus any rule/lexicon extractor) producing a candidate category and probability per clause.",
+        "Gate": "A deterministic cue where one exists — e.g. boilerplate/template match, clause length, mandatory cross-reference presence, or schema validity — marking doubtful clauses 'unknown', never 'no risk'.",
+        "Judge": "The sealed per-clause agent run returning category + p (one-vs-rest per risk category), one run per prompt version.",
+        "Controls": "The 800 lawyer-labelled clauses, stratified across all 20 categories and including hard negatives from sibling categories, given blind ids of the same form and the same length/shape as real clauses.",
+        "Scorer": "Per category: AUC, accuracy at 0.5, Brier, hi/lo thresholds at target precision, and usable share; the usable share must be read against the 6% review budget.",
+        "Router": "Accepts clauses beyond the thresholds; everything else, plus a 10% audit sample of accepted clauses, goes to lawyers blind.",
+        "Review queue": "Lawyers see the clause text only, ranked by distance from the decision threshold, decisions written to the ledger."
+      },
+      "sketch": "gate(c) -> keep | unknown\n  if c.kind == boilerplate and ruleMatch(c) == none: return unknown   -- unknown, not \"no risk\"\n  return keep\n\nbatch = shuffle(clauses ++ controls)   -- controls: 800 lawyer labels, all 20 categories + sibling-category negatives\nruns  = chunks(batch, 6)              -- sealed runs (Ch. 9), blind ids for real and control items alike\n\nscore(verdicts, controls, k) -> { auc_k, brier_k, hi_k, lo_k, usableShare_k }   -- k = one-vs-rest\nfor v in verdicts of real clauses:\n  if v.p[risk] >= hi_risk and v.p[other] <= lo_other: accept(v.itemId, risk)\n  else: review.enqueue(v.itemId, showVerdict: false)\nif reviewQueue.size > 3000: keep the 3000 nearest the threshold; report the rest as unreviewed\nfor v in randomSample(accepted, 0.10): review.enqueue(v.itemId, showVerdict: false)\nfor c in controls where two judges confidently contradict c.truth: lawyer checks c; correct and rescore",
+      "key_notes": [
+        "Note 2 (calibrate the gate out of sample): the 800 labels must be split — a gate tuned on them and scored on the same ones overstates itself, exactly the flaw the chapter admits in its own example.",
+        "Note 9 (small control sets are noisy): 800 labels over 20 categories is ~40 per category, worse than the chapter's already-noisy 60; per-category AUC and 0.85-precision thresholds will have wide error bars, so pool categories or report them as provisional.",
+        "Note 1 (unknown is not negative): the deliverable must not turn gate-marked clauses into 'no risk' — a client-facing artefact makes this mistake very easy.",
+        "Notes 5 and 6 (calibration and usable share): with 3,000 reviews for 50,000 clauses, whether the router's accepted band fits the human budget matters more than AUC.",
+        "Note 10 (rank the queue by uncertainty) and note 8 (blind review plus a 10% audit): the only way to spend 3,000 reviews well, and the only check on the accepted band.",
+        "Note 7 (expect the yardstick to be wrong): lawyer labels on 800 clauses will contain disagreements between lawyers; those controls need adjudication before they set thresholds.",
+        "Note 11 (define each metric once): a gate rule reimplemented in the pipeline, the judges and the report will drift."
+      ],
+      "risk": "Treating it as a binary yes/no pattern and letting the middle band grow without a capacity bound — 40% usable, as in the dust project, leaves far more than 3,000 clauses for lawyers, so the thresholds must be set from precision and review capacity together, with the unreviewed remainder disclosed rather than silently accepted."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The Applicability section excludes exactly this: when every item must be checked by a person for legal or safety reasons, 'the agent is then an assistant to each review, not a triage stage'. The pattern's Router works by deciding which items no person sees, which is the one thing the regulator forbids.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Only the measurement half is reusable: Controls (pharmacist-signed claims as gold items), Scorer (accuracy, Brier, per-claimer thresholds), note 7 (check controls a judge confidently contradicts — a wrong gold claim here is a safety signal), note 8 (blind review so pharmacist sign-off stays independent), note 10 (rank the pharmacist queue by uncertainty to order attention, not to skip items), note 11 (one definition of any deterministic pre-check).",
+        "The Gate may survive as a flagging/prioritising device that still passes every claim to a pharmacist, but its output must never be 'accepted, no human needed'."
+      ],
+      "risk": "Quietly reusing the router's accepted band as 'no pharmacist review needed' — a compliance and safety breach dressed up as triage. If the team wants the pattern, it must be recast as agent-assisted review of all claims with measured agent accuracy, not as triage."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Motivation ('Agents over-kept') vs Implementation note 2",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The Motivation claims annotator-plus-gate (75/71) beat the two-agent validator pipeline (64/70), but note 2 admits the gate's threshold was chosen on the same six tiles it was scored on. The headline comparison is therefore inflated, and the reader is invited to trust a number the chapter itself undercuts.",
+      "suggestion": "Add the caveat inline in the Motivation and mark 75/71 as provisional pending a held-out re-check; or present the comparison as 'on the development tiles' and say what a valid comparison would need."
+    },
+    {
+      "section": "Sketch and Structure (Scorer)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Everything is binary: one label, one p, one hi/lo pair. There is no guidance for a multi-class or multi-label judge (e.g. 20 contract risk categories), where a clause's 'no' is not the complement of its 'yes'. The most common real transfer silently breaks the sketch.",
+      "suggestion": "Add a short variation or note on one-vs-rest per class: per-class control counts, per-class thresholds, how usable share is defined when an item can carry several labels, and what to do when classes are rare."
+    },
+    {
+      "section": "Router / Collaborations 5",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The chapter admits the best judge made only ~40% of items usable, so the middle band is usually large — yet the router just enqueues it with no rule for when the band exceeds human review capacity. That is the binding constraint in every real deployment.",
+      "suggestion": "Add an implementation note: set thresholds from target precision and review capacity jointly, keep the highest-value slice of the band when it overflows (note 10), and state what must be reported about the unreviewed remainder."
+    },
+    {
+      "section": "Sketch step 3 (hi/lo definition)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "`hi = lowest p where precision(label = yes | p ≥ hi) on controls ≥ 0.85` is circular as written (hi on both sides) and assumes precision is monotone in the threshold without saying so. Worse, precision estimated on 60 controls moves in steps of ~1.7% per control, so a 0.85 target has an error bar comparable to the effects note 9 warns about — a connection the chapter never makes.",
+      "suggestion": "Define it as a sweep over candidate thresholds with an explicit monotonicity assumption and a tie rule, and say how many controls per side are needed for a 0.85 precision target to be estimable at all."
+    },
+    {
+      "section": "Solution line and Sketch step 5 ('check the control')",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The sketch uses `agreeCount(judges, against: c.truth, p > 0.8) ≥ 2`, which fixes a threshold and a quorum but not the state of a control under doubt: is it excluded from scoring immediately, do the judges that contradicted it still count, and do the hi/lo thresholds move while it is adjudicated? This is the chapter's most distinctive loop and its mechanics are missing.",
+      "suggestion": "Give the lifecycle: suspect → suspended from scoring → adjudicated → corrected or upheld → rescore and re-derive thresholds; say who adjudicates and how the change is recorded in the ledger."
+    },
+    {
+      "section": "Gate (Motivation and Sketch)",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The gate is only ever `iso` on `smallSpot` tiles at 2.0. The reader gets no test for 'where a cheap measured criterion exists' and no gate drawn from the other domains the chapter itself lists (tests and linters for code review, regex or schema or cross-field checks for contracts).",
+      "suggestion": "State the property a good gate needs (cheap, deterministic, calibrated, one-sided: confident-bad removal, not confident-good acceptance) and give two or three non-image examples in one sentence each."
+    },
+    {
+      "section": "Applicability ('some items with known answers exist or can be made')",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'Can be made' hides the central cost: controls are typically made by the same scarce experts the pattern is trying to save, and their number drives every threshold. Nothing says how many controls per side, or how the 60-of-360 batch ratio was chosen.",
+      "suggestion": "Add a rule of thumb: controls per batch as a share, controls per side needed for a target precision, and an explicit note that controls consume expert time, so making them is a budget decision."
+    },
+    {
+      "section": "Motivation vs Implementation notes 1, 3, 7",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The three Motivation bullets (over-keeping, judge comparison, wrong yardstick) are re-told almost verbatim as notes 1, 3 and 7, and the Forces list restates them a third time. A reader who has read the Motivation learns little new in the notes, and the repetition makes the chapter feel longer than its content.",
+      "suggestion": "Keep the numbers in the Motivation (they are the evidence) and reduce the notes to the rule plus a pointer, or move the first appearance of each fact into the notes and let the Motivation stay at two sentences per problem."
+    },
+    {
+      "section": "Structure (Judge) / Chapter 9 reference",
+      "kind": "missing",
+      "severity": "low",
+      "note": "Batches are chunked into runs of six, so a judge sees its controls alongside real items. Note 4 requires blind ids but says nothing about within-chunk leakage: a judge that notices a suspicious cluster of unusually easy items in its own chunk can still bias the measurement.",
+      "suggestion": "Say why chunks are six, whether control placement within a chunk is constrained, and whether controls and real items are ever interleaved differently across variants."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 2,
+    "would_apply_it": 3,
+    "comment": "The three-part shape (calibrated gate, blind planted controls, blind review of the middle plus an audit sample) is clear and genuinely transferable, but the binary-only sketch, dust-specific gate, and the absent capacity rule leave a practitioner doing real multi-class, budget-bound work to invent the hard parts."
+  }
+}

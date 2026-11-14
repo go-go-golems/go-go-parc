@@ -1,0 +1,129 @@
+{
+  "restatement": {
+    "intent": "Let a vision-capable agent judge what items are by looking, while all positions, sizes and scores come from computed rows with stable ids, never from reading numbers off a picture; pictures are marked by those ids, packed many-per-image into sheets, and rationed against stated budgets.",
+    "problem": "When an agent must both see and measure, pictures alone give imprecise numbers and an unbounded image count, and numbers alone leave it unable to judge what they describe.",
+    "solution": "Compute candidates as rows with stable ids and exact numbers. Return a marked view (each item labelled by its row id) and sheets of small magnified cells, optionally several views per cell side by side. The agent answers by id, and the engine maps ids back to rows and refuses ids it never showed. Pictures are capped per call and per conversation, delivered within budget with ommitted ones named."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Because a single shared contrast stretch is dominated by the brightest item; a faint speck next to a bright one disappears. `stretch: \"cell\"` gives each cell its own range so faint items stay visible.",
+      "where": "Implementation notes 5 (\"Stretch each cell to its own range when contrast varies\")"
+    },
+    {
+      "id": "Q2",
+      "answer": "They are not dropped silently: the deliverer names each one it could not fit in a `LOOKS` warning, by label and source line, with a fix hint such as fewer cells per sheet or a smaller zoom. Only `returnedFirst` pictures up to the per-call count/byte cap are attached.",
+      "where": "Implementation note 7 and the `deliver` pseudocode; Collaborations step 4"
+    },
+    {
+      "id": "Q3",
+      "answer": "APIs downscale large images before the model sees them, erasing three-pixel specks. Several small crops, each magnified, arrive as one sheet; an uncropped overview loses the detail the model needs.",
+      "where": "Implementation note 8 (and note 3), plus Forces \"Context against detail\""
+    },
+    {
+      "id": "Q4",
+      "answer": "The scene view and a band-pass (\"speck\") view of the same cell: the scene shows what the object is, the band-pass view shows whether it stands out from grain.",
+      "where": "Implementation note 4; Collaborations step 3"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Exactly the dust situation at larger scale: a detector already produces measured candidates with coordinates and sizes, the model must judge real-vs-artefact visually, and 40 candidates exceed any reasonable one-image-per-item budget.",
+      "participants": {
+        "Item rows": "Detector output: id, centre x/y, slice index, diameter, detector score/confidence.",
+        "Marked view": "One slice with each nodule circled and labelled by its candidate id.",
+        "Sheet": "Grid of 3D crops (a few slices per nodule), each cell labelled by candidate id, magnified around the nodule.",
+        "View presets": "Lung window slice for shape/context, a nodule-emphasised window and a coronal/sagittal reformat for shape and spiculation.",
+        "Budget": "e.g. 4 pictures per call, 8 MiB per call, ~50 per conversation (the API's 100-image hard limit), stated in the prompt.",
+        "Deliverer": "Attaches the sheet(s), counts every crop/look against both budgets, and names omitted ones by line in a `LOOKS` warning."
+      },
+      "sketch": "```text\nvalue Nodule: id, z, cx, cy, r, score            -- from the detector, exact\ncandidates = sortBy(measure(nodules), -score)[0:40]\nkeep = candidates[0:15]                            -- agent filters in code, id stays stable\ncrop3d(keep, slices: 5, views: [lung, nodule], zoom: 4).look(\"top 15\")\ndeliver(callPictures, budget) → (delivered, warnings)\nbyId = { n.id: n for n in keep }\nfor i in answer.nodules:\n  if i not in byId: return refuse(E_UNKNOWN_ID, i, valid: keys(byId))\nlabels = [byId[i] for i in answer.nodules]         -- exact z, cx, cy, r\n```",
+      "key_notes": [
+        "Note 2 (ids in picture match ids in rows) — the agent will sort by score and view subsets; relabelling by sheet position would break the answer mapping.",
+        "Note 3 / note 8 (sheets of small magnified cells beat one overview) — 40 nodules cannot each get an image; a 12–15 cell sheet also keeps cells legible after downscaling.",
+        "Note 5 (per-cell stretch) — HU windowing varies per scan; one global window will hide low-contrast nodules.",
+        "Note 6 (state the budget in instructions) — a radiology session with many slices will hit the 100-image wall.",
+        "Note 9 (check ids on the way back) — refuse ids from an earlier sheet or invented ids; the detector rows are ground truth."
+      ],
+      "risk": "Treating the pattern as permission to send one custom 3D movie/crop per nodule, blowing the count and byte budgets; or letting the model infer z-coordinates from slices instead of citing ids."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "There are no candidate items with identity or position to number, and the judgement is a global appearance property of the whole photo. Numbered marks and sheets add cost without adding information; the chapter's own exception applies.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability 'do not use' clause 2 (no natural identity or position — a global colour cast): show one picture with a question, not marks.",
+        "Variations: 'Numbers only' is the closer fit — compute colour statistics (mean R/G/B, grey-card ratios) as rows and let the model judge by numbers plus one unmarked picture per photo."
+      ],
+      "risk": "Forcing the pattern yields marks on subjects like faces or skies, prompting the model to reason about objects instead of the cast; or substituting crops for whole frames, destroying the only thing being judged."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Motivation",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The evidence is dense with dust-project particulars (5–10 px error, 24 of 32, 14/13 of 53 vs 4/5, the formula `x = crop_x + (px − 52) / 2`, 100-image cap, lost batches). A reader has to filter a lab notebook before reaching the pattern.",
+      "suggestion": "Keep one striking number (positions read off rulers were 5–10 px off) and move the score tables to an appendix or a one-line performance footnote."
+    },
+    {
+      "section": "Sketch / Structure",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "`Sheet` has a `labels: ids` field and `sheet(...).look(...)` is a helper with unexplained chaining, while `deliver(callPictures, budget)` takes a `callPictures` that the sheet creation never registers into. A reader cannot tell whether `look`/`sheet` push into a per-call collection or return values.",
+      "suggestion": "Show the registry explicitly, e.g. `look(p) → ref` appends to `call.pictures` and returns a ref; then `deliver(call.pictures, budget)`. Drop the redundant `labels` field or say what it holds."
+    },
+    {
+      "section": "Sketch (deliver)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The byte check is `bytes(delivered) + bytes(p) ≤ budget.bytes`, but it never checks the per-conversation count against the same picture, and the per-call branch uses `count(delivered) < budget.perCall` — so a picture that passes the count but exceeds bytes is not 'delivered', yet it also does not count as skipped; conversely the conversation-limit condition silently appears untested in the warning text ('not delivered'). Two different reasons collapse into one warning message that only suggests 'fewer cells per sheet'.",
+      "suggestion": "Record which limit tripped (`reason: perCall | bytes | conversation`) in the Warning and name it in the message, and state the exact precedence order of the three checks."
+    },
+    {
+      "section": "Forces",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The forces name five tensions but omit cost/latency of computing markers and sheets (rasterising, upscaling, band-pass filtering per item), which is the practical reason teams skip sheet generation and send raw crops.",
+      "suggestion": "Add a force like 'cheap to produce against cheap to read', or state in Implementation notes that sheet generation must be fast enough to run per call."
+    },
+    {
+      "section": "Implementation notes 3 and 8",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "Notes 3 and 8 say almost the same thing ('sheets of small magnified cells beat single zooms' / 'several small magnified looks beat one large overview'), and note 3 already forward-references note 8.",
+      "suggestion": "Merge into one note with the cap (15 cells, API dependent) and the downscaling rationale together."
+    },
+    {
+      "section": "Implementation notes 10 and the 39-agent study",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "Call counts (`look` 223, `sheet` 161, `crop` 153) and the '39-agent study' appear without a pointer to where the study lives, so the reader cannot verify the claim but is asked to act on it.",
+      "suggestion": "Either cite the study (chapter or appendix reference) or soften to a general statement: documented-but-unexampled tools go unused; put the evidence tools in copyable examples."
+    },
+    {
+      "section": "Applicability / Consequences",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The chapter says someone must produce candidates as rows first, but never says what to do when the measurement is unreliable — the dust case's own failure mode (24 of 32 positions held nothing measurable) suggests candidates can be wrong, yet no guidance on stale/missing candidates, or how to widen the search when a gold object has no row.",
+      "suggestion": "Add a note: rows are claims, not truth; include a low-threshold pass plus a cheap 'nothing here' answer path, and let the labelled-grid variation cover the no-candidate-yet case explicitly."
+    },
+    {
+      "section": "Known uses",
+      "kind": "other",
+      "severity": "low",
+      "note": "Playwright's accessibility snapshot is cited as an example, but that is ids-in-text rather than ids-in-picture; the analogy is loose and could mislead a reader into thinking a DOM snapshot is a marked view.",
+      "suggestion": "Say explicitly that Playwright is the 'ids stand in for exact references' half of the pattern (like Proxy), not the picture half."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The core split (numbers for measurement, marked sheets for judgement, statable budget) transfers cleanly and the applicability section is honest, but the sketch's deliver/registry plumbing is muddled and the motivation is over-weighted with dust-project metrics."
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "restatement": {
+    "intent": "Let callers write a computation as a graph of operation calls without running it; identical calls collapse to one interned node, and a node's value is computed only on request and cached under a key derived from the operation, its arguments and the keys of its inputs.",
+    "problem": "Expensive computations recur in slightly different words and are requested piecemeal, so recomputing wastes most of the effort, while caching by variable name or by source text returns stale values.",
+    "solution": "Every operation call returns an immutable node; the builder binds the call against its operation record, hashes operation + canonical arguments + input node hashes, and interns equal nodes. The evaluator derives a signature from the node hash, the quantised evaluation parameters, the operation's implementation version and the input signatures, then serves from a per-request memo, then a byte-budgeted value cache, then a single-flight shared computation whose inputs are evaluated in parallel. Values are never mutated, and warnings reported during computation are stored with the value so cached hits can replay them."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Because a function's behaviour is not recoverable from its text: two closures with identical source but different captured variables would hash the same and collide onto a stale value (exactly what several of the nine earlier prototypes did). Instead the builder runs the function once against a placeholder node and keeps the subgraph it builds, so the key is made of real nodes.",
+      "where": "Forces (last bullet); Implementation notes §5"
+    },
+    {
+      "id": "Q2",
+      "answer": "The warnings raised while the value was computed (and, in the sketch, its byte size and run cost). Warnings must be stored because otherwise they appear on the first request and silently vanish on every cached one; bytes and cost feed the eviction policy and measurement.",
+      "where": "Sketch (value Entry); Collaborations step 3; Implementation notes §8 and §9"
+    },
+    {
+      "id": "Q3",
+      "answer": "Keys built from outputs let a rebuild stop early: after recomputing a node, if its output hash is unchanged, everything downstream keeps its cached value. Structural (input-derived) keys cannot do this because they cannot know the output did not change; the price of the output-key scheme is a hash of every output.",
+      "where": "Forces (structural vs output keys); Implementation notes §10; Variations (verifying keys with early cutoff)"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because in the short-cut case the value is the input's own cached value, shared under the input's signature. Writing this node's metadata (frame, encoding) onto it would mutate another node's cache entry and corrupt results for every other caller of that input.",
+      "where": "Forces (sharing against isolation); Implementation notes §7"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Pipelines are deterministic, expensive (reprojection and mosaicking of large rasters), written repeatedly with small parameter edits, requested piecemeal (a layer now, statistics later), and several analysts ask for the same derived layer during the day — that is the pattern's whole force set, with the strongest case being cross-analyst sharing.",
+      "participants": {
+        "Node": "each pipeline call: reproject, mosaic, vegetation index, zonal statistics, plus the source leaves",
+        "Builder": "interns nodes per signature of the call, so two analysts spelling the same reprojection with defaults filled get one node; turns a per-pixel or per-zone callback into a subgraph",
+        "Source": "the rasters themselves, keyed by content hash (note 11), because the cache outlives one machine and one session",
+        "Signature": "node hash + CRS, resolution, resampling method, nodata rule, band mapping (all quantised) + operation version + input signatures",
+        "Evaluator": "computes on an explicit request (`await`, a stats cell), evaluating mosaic inputs in parallel while the kernel runs",
+        "Run memo": "one analyst's notebook execution: repeated references to the same layer inside a single run never touch the shared store twice",
+        "Value cache": "a server-side store, probably partly on disk, since a mosaic of a sentinel-2 tile set is far larger than a 2 GiB memory budget",
+        "In-flight group": "every analyst asking for the same freshly edited layer at 09:00 joins one computation instead of starting five"
+      },
+      "sketch": "```text\nsrc   = source(\"s3://rasters/s2-2024-06/\")          -- Source: content hash, not mtime (note 11)\nndvi  = src.reproject(crs: \"EPSG:3857\", res: 10m, method: \"cubic\")\n           .mosaic(tiles: sceneList)\n           .ndvi(red: \"B8\", nir: \"B4\")                -- Nodes only; nothing computed\nawait ndvi.zonal(polys: districts).stats()             -- evaluation point (note 12)\n-- second analyst, same layer: same signature -> in-flight join, then cache hit;\n-- only their new zonal layer is computed\n```",
+      "key_notes": [
+        "Note 11 (source identity): mtime+size is valid only within one machine and session; a cache shared across analysts needs the content hash or keys lie.",
+        "Note 2 (parameters in the key, quantised, computed at the quantised value): resampling method, CRS axis order and nodata handling all change the numbers; omitting any of them returns a wrong measurement with no error.",
+        "Note 6 (single-flight and parallel inputs): the many-input mosaic is where parallelism pays, and the many-analyst scenario is where sharing one in-flight computation pays.",
+        "Note 9 (budget and policy): raster values dwarf memory; the budget must be a setting with a disk tier, and a wrong policy thrashing the mosaic is the realistic failure.",
+        "Note 1 (canonical arguments): \"10m\" versus 10 with a unit field versus a nearest-neighbour default must not become three nodes.",
+        "Note 10 (no early cutoff): an edit to one masked parcel still re-mosaics the whole layer unless output hashing or per-region keys (Chapter 4) are added."
+      ],
+      "risk": "Getting the key too narrow: a pipeline node keyed without resampling method, nodata rule or the operation's version is a silent wrong number in a published report, and nothing in the mechanism reports the collision — that is worse here than a recomputation."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Charging a card and sending mail are side effects; their 'keys would lie' in exactly the way the Applicability section forbids. A cache hit would either skip a real charge or skip a real receipt, and laziness would make a handler that builds a node and charges nobody. Repeated-webhook protection is idempotency-key deduplication against a durable record of processed event ids, not a value cache keyed by request content.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability 'do not use it when' (side effects or hidden state) is the decisive clause; the laziness force compounds it, since a statement that builds a node does nothing.",
+        "Only the pure part — rendering the receipt PDF from an immutable order record — could be a node keyed by the order content, with the charge and the send outside the graph."
+      ],
+      "risk": "Someone adds a cache hit path for the effect nodes and a redelivered webhook is acknowledged without charging, or a retry with a fresh id double-charges; either way the bug is invisible until reconciliation."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Implementation notes §5 and the `withinMask` sketch",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The placeholder mechanism is the hardest idea in the chapter and the least specified. It never says how `subgraph(inner, hole)` substitutes the hole when the call is bound, whether the function may close over nodes built outside the call, what happens if it returns a non-node, or what an author sees when they write `img.width > 1000`.",
+      "suggestion": "Show one concrete before/after: the failing data-dependent function, the `E_PLACEHOLDER` error text, and the same intent rewritten with a select/threshold node or an explicit argument. State explicitly whether a captured outer node is legal and how it enters the key."
+    },
+    {
+      "section": "Sketch `evaluate` and Implementation notes §6",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Failure is not covered at all. If `op.run` throws or returns a structured refusal (Chapter 6), is it cached under the signature, and do the joiners of the in-flight group receive the same failure or retry independently? An operation that always fails can silently fill the cache.",
+      "suggestion": "Add a note: refusals are not cached as values (or are cached with a distinguishable entry), the in-flight group delivers the same refusal to all joiners, and a failed computation frees the group."
+    },
+    {
+      "section": "Signature participant, Collaborations step 3, Implementation notes §8",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Warning replay is ambiguous between the two stores: the run memo also returns a value on a hit, and §8 only says warnings are reported 'once per evaluation'. A reader cannot tell whether a second use within one request re-reports, and whether 'evaluation' means one request or one cache lookup.",
+      "suggestion": "One sentence: warnings are reported once per (signature, request), deduplicated in the run memo, and re-reported on every request that hits the cache."
+    },
+    {
+      "section": "Rating ★★ and Variations",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The rating claims this is 'close to invariant: any system with this problem converges on this shape', but the Variations section describes four working alternatives (dirty bits, verifying keys, call-level memoization) and the Applicability section tells readers to skip the pattern for fine-grained change. The claim overstates the convergence and undercuts the guidance.",
+      "suggestion": "Say what actually forces the shape — sharing values across callers and across programs — and rate it on that narrower claim."
+    },
+    {
+      "section": "Implementation notes §3 and §9",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Key width and cache policy are stated in running-example numbers (10⁵ tiles, 52-bit keys, 10⁻⁶, 2 GiB, LRU, 'a quarter as many tiles', 'a third more') that a reader cannot transfer to their own scale. The rules behind them — size keys so expected collisions over the session's key count stay well below one; measure the policy on your workload — are buried.",
+      "suggestion": "State the rule first, keep the birthday bound as a one-line formula, and demote the bench figures to a single sentence pointing at the measured-redesign chapter."
+    },
+    {
+      "section": "Structure (Run memo) and Solution",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Only values are budgeted. The interned node table, the run memo and the per-(node, params) signature memo grow with the session and nothing says when they are reclaimed — the note 3 figure of 10⁵ keys is about the node/tile table, not the value cache, so the chapter's own number argues for a bound it never sets.",
+      "suggestion": "Say that the node table is session-scoped (or garbage-collected by reachability from live roots) and that signatures are memoized per run, so a reader knows which of the four stores can grow without limit."
+    },
+    {
+      "section": "Sketch (`n.op.identity(n.args)`) and Implementation notes §7",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The identity short-cut appears in the sketch as an unexplained predicate and is discussed only through the goja-cv anecdote. It is a real participant in the design — an operation declaring which argument combinations make it a no-op — and a reader cannot tell whether it is required or an optimisation, nor who declares it.",
+      "suggestion": "Name it in the Structure table as part of the operation record, and say in one line that it is an optional optimisation with an obligation (the copy rule of §7)."
+    },
+    {
+      "section": "Motivation, Applicability, Known uses, Variations",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The same possibilities list (build system, spreadsheet, notebook) appears three times, the stale-source-text failure story appears three times (Motivation, Forces last bullet, note 5), and the masked-layer waste measurement appears twice (Applicability bullet 3, note 10).",
+      "suggestion": "Keep the use-case list in Known uses only, the failure story once in Motivation with note 5 pointing back, and the masked-layer number only in note 10."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The intent, problem, solution and participant roles transfer cleanly and the failure modes of caching by name or text are stated sharply; reusability is pulled down by the placeholder mechanism, error handling and warning replay being under-specified, and by several notes stated in running-example numbers rather than as rules."
+  }
+}

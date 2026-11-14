@@ -1,0 +1,180 @@
+{
+  "quiz": {
+    "a": {
+      "Q1": [
+        [
+          "surpris",
+          "read",
+          "audit",
+          "exact",
+          "what it was told",
+          "first thing"
+        ]
+      ],
+      "Q2": [
+        [
+          "answer",
+          "truth",
+          "control"
+        ]
+      ],
+      "Q3": [
+        [
+          "skip",
+          "exist"
+        ],
+        [
+          "tag"
+        ]
+      ],
+      "Q4": [
+        [
+          "slip",
+          "typo",
+          "repair"
+        ],
+        [
+          "key",
+          "newline",
+          "colon"
+        ]
+      ]
+    },
+    "b": {
+      "Q1": [
+        [
+          "no-builtin-tools",
+          "builtin"
+        ],
+        [
+          "context-files",
+          "context files",
+          "skills"
+        ]
+      ],
+      "Q2": [
+        [
+          "parallel",
+          "collide",
+          "interfere",
+          "share"
+        ]
+      ],
+      "Q3": [
+        [
+          "set -e",
+          "zsh",
+          "edit",
+          "split",
+          "while a batch"
+        ]
+      ],
+      "Q4": [
+        [
+          "once",
+          "one runner",
+          "spec",
+          "copies",
+          "drift"
+        ]
+      ]
+    },
+    "a2": {
+      "Q1": [
+        [
+          "surpris",
+          "read",
+          "audit",
+          "exact",
+          "what it was told",
+          "first thing"
+        ]
+      ],
+      "Q2": [
+        [
+          "answer",
+          "truth",
+          "control"
+        ]
+      ],
+      "Q3": [
+        [
+          "skip",
+          "exist"
+        ],
+        [
+          "tag"
+        ]
+      ],
+      "Q4": [
+        [
+          "slip",
+          "typo",
+          "repair"
+        ],
+        [
+          "key",
+          "newline",
+          "colon"
+        ]
+      ]
+    },
+    "b2": {
+      "Q1": [
+        [
+          "no-builtin-tools",
+          "builtin"
+        ],
+        [
+          "context-files",
+          "context files",
+          "skills"
+        ]
+      ],
+      "Q2": [
+        [
+          "parallel",
+          "collide",
+          "interfere",
+          "share"
+        ]
+      ],
+      "Q3": [
+        [
+          "set -e",
+          "zsh",
+          "edit",
+          "split",
+          "while a batch"
+        ]
+      ],
+      "Q4": [
+        [
+          "once",
+          "one runner",
+          "spec",
+          "copies",
+          "drift"
+        ]
+      ]
+    }
+  },
+  "fits": {
+    "a": {
+      "T1": true,
+      "T2": false
+    },
+    "b": {
+      "T1": true,
+      "T2": false
+    },
+    "a2": {
+      "T1": true,
+      "T2": false
+    },
+    "b2": {
+      "T1": true,
+      "T2": false
+    }
+  }
+}

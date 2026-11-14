@@ -1,0 +1,131 @@
+{
+  "restatement": {
+    "intent": "Run each unit of agent work as one non-interactive, hermetic invocation whose only inputs are a saved, versioned prompt and an explicitly mounted, least-privilege tool set, and whose output is one machine-readable answer plus a kept event stream.",
+    "problem": "An agent run that inherits the operator's environment, holds an open-ended conversation and answers in free text cannot be repeated, compared or audited, so a batch of such runs cannot be retried or scored.",
+    "solution": "Make a run a function call with explicit arguments: a run spec (item, model, prompt version, tag) and its own directory. Assemble the prompt from versioned parts and save it there, mount tools per run (read-only inputs, fresh writable workspace, never the answers), and start the agent with built-ins, context files, skills and templates switched off. Demand one fenced JSON object, extract it from the event stream with known repairs, keep events plus a transcript, and let a batch runner parallelise specs, keep variants apart by tag, and skip runs already answered."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "`--no-builtin-tools --no-context-files --no-skills --no-prompt-templates`: they keep out the agent's own built-in tools, the operator's context/instruction files, the operator's skills, and the operator's prompt templates — so only the per-run MCP mounts exist.",
+      "where": "Implementation notes 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "So parallel runs never share a writable directory, cache or answer file and collide; it also gives each run a place holding only its own inputs (a builder run gets its own subdirectory).",
+      "where": "Implementation notes 7; Forces (\"Parallelism against shared state\")"
+    },
+    {
+      "id": "Q3",
+      "answer": "Editing a script while a batch is using it changes in-flight runs; `[ cond ] && cmd` as the last command under `set -e` aborts the script; in zsh an unquoted variable holding several words is not split into words.",
+      "where": "Implementation notes 9"
+    },
+    {
+      "id": "Q4",
+      "answer": "The dust project wrote the recipe three times with the same extraction code pasted into each script; the chapter says to write it once — one runner driven by a run spec, with prompt parts and tool mounts as data — to remove the copies and their drift.",
+      "where": "Implementation notes 10; also Motivation"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "5,000 independent, repeated judgements with a fixed two-way answer, quality that must be measured across models/rules versions, and a need to retry only failures — exactly the pattern's applicability list. Each finding is naturally one unit of work with read-only inputs.",
+      "participants": {
+        "Run spec": "finding id, repository + pinned commit, model, thinking level, prompt/rules version, tag (e.g. `v3-semgrep`).",
+        "Run directory": "`runs/<tag>/<finding-id>/` holding prompt.md, tools.json, ws/, events.jsonl, transcript.html, answer.json.",
+        "Prompt assembler": "role (security reviewer), how to work, required steps (read the finding, read the cited code and its callers, decide, cite lines), known mistakes (trusting comments, ignoring sanitizers upstream), the finding with a blind id, output contract, rule documentation as reference.",
+        "Tool mount": "read-only mount of the checked-out source at the pinned revision plus helper search scripts; writable only in `ws/`; no ground-truth labels, no prior human triage, no `.git` history.",
+        "Agent invocation": "pi started in the run directory with all four switches off, non-interactive, stdin closed; tools only via the per-run MCP config.",
+        "Extractor": "last fenced JSON `{id, verdict: real|false_positive, reason, evidence[]}`, with the known repairs (dropped key, raw newlines) and a recorded failure otherwise.",
+        "Batch runner": "walks the 5,000 specs, ~6–12 workers, logs start/end, keeps each rules/model variant under its own tag, skips findings already answered so a rerun retries only the failures."
+      },
+      "sketch": "value RunSpec: finding, repoRev, model, thinking, promptVersion, tag\n\nrun(spec) → Answer | Failure\n  dir = fresh(runsRoot / spec.tag / spec.finding.id)\n  write(dir/\"prompt.md\", assemble(spec.promptVersion, spec.finding))\n  write(dir/\"tools.json\", mount(read: [checkout(spec.repoRev, files: finding.paths ++ callers),\n                                        ruleDocs],\n                                write: dir/\"ws\"))    -- no .git, no labels, no prior triage\n  events = agent(cwd: dir, prompt: read(dir/\"prompt.md\"), model: spec.model, thinking: spec.thinking,\n                 builtinTools: none, contextFiles: none, skills: none, templates: none,\n                 nonInteractive: true)\n  write(dir/\"events.jsonl\", events); exportTranscript(events, dir/\"transcript.html\")\n  return extract(events)\n\nextract(events) → Answer | Failure\n  -- last fenced JSON: {\"id\": \"f0173\", \"verdict\": \"real\" | \"false_positive\",\n  --                    \"reason\": ..., \"evidence\": [lines]}\n\nbatch(specs, parallel: 8)\n  parallelMap([s for s in specs if status(s) != \"answered\"], run, workers: 8)\n\n-- in use\nbatch([RunSpec(f, revOf(f), \"deepseek-4.1-flash\", \"high\", \"rules-v3\", tag: \"v3\") for f in findings])",
+      "key_notes": [
+        "1 — Switch everything off, then mount: the whole fairness claim depends on the operator's own instructions never reaching the reviewer; then allow only read+search on the pinned checkout.",
+        "3 — Never mount the truth: here the truth is partly inside the data (a fix commit, a `// TODO: this is safe because…` comment, a past triage note). Mount a pinned snapshot, not `.git`, and keep labelled controls outside every mount.",
+        "6 — Tags and skip answered: 5,000 findings means the batch will be rerun; per-variant answer directories plus a join on finding id are what make model/rules comparisons cheap.",
+        "7 — Own writable workspace: many workers writing scratch files into one repo checkout is the failure this prevents.",
+        "4 — One fenced JSON with a literal schema example, plus repairs; and decide deliberately whether an unparseable answer is an abstain or a retry (see review notes).",
+        "2 — Save the assembled prompt: a surprising \"false positive\" on a security finding is only arguable if you can show exactly what code and rules the run was given."
+      ],
+      "risk": "Mounting the live repository (moving HEAD, full git history, issue/PR text, existing scan suppressions) so the agent can read the answer instead of deriving it — the numbers look excellent and are meaningless."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is the applicability's explicit exclusion: one interactive task with a person in the loop, where sealing removes the conversation that makes it work. There is also no stateable correct answer and no repetition to compare, so a fixed fenced-JSON contract would only capture drafts the designer is still reacting to.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "The pattern's own \"Do not use it when\" bullet 1 applies verbatim (person in the loop).",
+        "If any single-call part is worth sealing, it is the bounded one — the 'Single-call evaluation without tools' variation, e.g. judging three finished drafts against a written brief — not the afternoon of iteration."
+      ],
+      "risk": "Forcing the fit and turning the session into a sequence of sealed runs: each turn loses the designer's accumulated context and the agent's own prior drafts, so the collaboration collapses into a slow prompt-relay with per-run directories nobody reads."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (`batch`) vs. Collaborations step 4 and note 4",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Contradiction in the failure path: `extract` returns `Failure` and the extractor \"records why it could not\", but `batch` skips any spec whose `answerPath` exists, while note 6 promises \"a rerun of the batch retries only failures\". If a failure writes an answer file, failures are never retried; if it does not, the reason is not recorded where the batch can see it.",
+      "suggestion": "Split the outcome: `answer.json` only on success, `failure.json` (or a `status` field) otherwise; `batch` skips only `status == answered`. Say this once in the sketch so the retry rule is unambiguous."
+    },
+    {
+      "section": "Consequences (\"the seal must be checked whenever the agent is upgraded\")",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The seal is the load-bearing claim of the chapter, yet there is no described way to check it. A renamed flag or a new default context loader silently re-leaks the operator's skills and nobody notices until the comparison looks odd.",
+      "suggestion": "Add one implementation note: a canary run that asks the agent to list its tools, instructions and any files it can read, asserting the output mentions only the mount; run it in CI against each pinned agent version."
+    },
+    {
+      "section": "Implementation notes 1 and the Sketch",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The capability list is expressed as pi's flag names (`--no-builtin-tools`, `builtinTools: none`) inside what is presented as a general pattern; a reader with another harness has to reverse-engineer the categories. Note 1's second half partly fixes this, but only for the builder case.",
+      "suggestion": "State the four categories abstractly first (built-in tool set, operator context/instruction files, skills, prompt templates), then give the pi flags as one instance — and add a matching \"what to look for in your product\" column."
+    },
+    {
+      "section": "Implementation note 3 (\"Never mount the truth\")",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The note assumes the truth is a separate answers file. In most realistic uses (code review, static-analysis triage, bug fixing) the answer sits inside the data: git history, a fix commit, a comment, a suppression marker, the benchmark's own test file.",
+      "suggestion": "Extend the note: enumerate the in-band leak channels (VCS history, comments, issue text, tests) and say to mount a pinned, sanitised snapshot rather than a live checkout."
+    },
+    {
+      "section": "Implementation notes 8–9 and 11",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "Note 9 (`set -e` and `&&`, zsh word splitting) is generic shell advice with nothing to do with sealing; note 11's second half (a routed provider reporting cost zero) is provider trivia. They sit in the section a reader uses to apply the pattern and dilute it.",
+      "suggestion": "Move note 9 to an appendix or a runner-operations page; keep only the run-relevant part of note 11 (\"verify the answer file, not the duration or the reported cost\")."
+    },
+    {
+      "section": "Structure / Implementation notes (budgets, limits)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Note 8 covers only the prompt-side evidence budget (image count). Nothing bounds a sealed run in wall-clock or tokens, and nothing says what happens when a tool-calling agent loops until killed — yet \"a batch of 360 judgements per variant\" only works if a stuck run is detected.",
+      "suggestion": "Add a note: a per-run timeout and token/cost cap belong in the run spec, and on expiry the runner records a failure with the events up to that point so the run is still auditable."
+    },
+    {
+      "section": "Rating line and Intent",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "\"Rating: ★★ (close to invariant…)\" is asserted, not argued, and the gloss \"any system with this problem converges on this shape\" would make the reader skip the chapter — which is odd for a pattern whose participants are non-obvious (extractor repairs, blind ids, tags).",
+      "suggestion": "Either inline what the stars mean and defer the invariance claim to Consequences, or drop the rating from the chapter head."
+    },
+    {
+      "section": "Sketch (Run spec) and Prompt assembler",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "`thinking` and the fixed part order are unexplained: a reader cannot tell whether `thinking` is a portable notion or one vendor's knob, nor why the order (role → how to work → steps → known mistakes → items → contract → reference) matters.",
+      "suggestion": "One line on what `thinking` maps to on a non-reasoning model (e.g. always `\"default\"`), and one line on why the contract comes after the items but the reference last."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "Participants, sketch and notes are concrete enough to rebuild the runner in a new domain, but the failure-path contradiction in the batch/extractor pair and the pi-specific phrasing of the seal cost it points and would trap a careful reader on first implementation."
+  }
+}

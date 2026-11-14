@@ -1,0 +1,129 @@
+{
+  "restatement": {
+    "intent": "Let a vision-capable agent look at things to judge them without ever asking it to read a coordinate off a picture: measurements come back as id-carrying rows, pictures carry the same ids as marks, and pictures are rationed.",
+    "problem": "An agent that must both see and measure gets imprecise numbers from pictures and an unbounded image count, while numbers alone leave it unable to judge what they describe.",
+    "solution": "Compute positions, sizes and scores in code and return them as rows with stable ids. Draw pictures only to support judgement, labelling each item with its row's id, and pack many items into one sheet of small magnified cells with whatever views the decision needs side by side. Never ask the agent to read a number from a picture; it answers by id and the engine maps ids back to the rows. Cap pictures per call and per conversation, state the cap in the agent's instructions, deliver everything a call created up to the cap, and name the omitted pictures by line."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "When brightness varies across items, one shared stretch makes a faint item vanish next to a bright one; stretching each cell to its own range keeps faint candidates visible.",
+      "where": "Implementation notes, note 5 ('Stretch each cell to its own range when contrast varies')"
+    },
+    {
+      "id": "Q2",
+      "answer": "They are not delivered — but they are not dropped silently either: each omitted picture is named by label and line in a LOOKS warning returned with the reply.",
+      "where": "Solution; Collaborations step 4; Sketch (deliver) ; Implementation notes, note 7"
+    },
+    {
+      "id": "Q3",
+      "answer": "APIs downscale large images before the model sees them, which erases small detail such as three-pixel specks; several small already-magnified looks keep the detail at a comparable image count.",
+      "where": "Implementation notes, note 8; Forces ('Context against detail')"
+    },
+    {
+      "id": "Q4",
+      "answer": "The scene view and a band-pass 'speck' view of the same cell: the scene shows what the object is, the band-pass view shows whether it stands out from grain.",
+      "where": "Implementation notes, note 4; Collaborations step 3"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It matches the pattern's core situation exactly: positions and sizes come from a detector as numbers, the decision (nodule versus vessel cross-section or artefact) is visual, and 40 candidates per scan exceeds any sensible per-call image budget.",
+      "participants": {
+        "Item rows": "Detector output: id, slice index z, cx, cy, diameter in mm, confidence and any radiomics scores — one row per candidate, never re-derived from the picture.",
+        "Marked view": "The full slice with each candidate circled and labelled by its row id, so the agent can see context and nodules the detector is unsure about.",
+        "Sheet": "A grid of up to ~15 cells per sheet, each a magnified crop of the slice around one candidate and labelled with its row id; a second sheet for candidates 16–40, since 40 items do not fit one legible sheet.",
+        "View presets": "Windowing presets rather than stretch presets: lung window for ground-glass and fissures, mediastinal/soft-tissue window for solid nodules against vessels, optionally a thin MIP slab over adjacent slices to show 3D continuity.",
+        "Budget": "Per-call picture count and byte cap plus a per-conversation count, stated in the reporting prompt together with the suggestion to prefer sheets and numbers.",
+        "Deliverer": "Attaches the sheets, counts each against both budgets, and returns a LOOKS-style warning naming any sheet not delivered."
+      },
+      "sketch": "value Nodule: id, z, cx, cy, d, conf      -- numbers from the detector\ncands = detect(scan) → [Nodule]              -- ~40 rows\nkeep  = sortBy(cands, -conf)[0:12]           -- agent filters in code, ids survive\nsheet(keep, views: [window(slice(keep.z), \"lung\"),\n                    window(slice(keep.z), \"soft\")],\n      cell: 48 px, zoom: 3).look(\"top 12 candidates\")\n-- remaining rows go to a second sheet or are named as not shown\ndeliver(callPictures, budget) → (delivered, warnings)\nanswer = { nodules: [3, 7] } → [keep[i] for i in answer.nodules]   -- exact z, cx, cy, d",
+      "key_notes": [
+        "Note 2 (ids match rows) matters most: 40 candidates filtered and split across two sheets must still be labelled by row id, not renumbered 1..12 per sheet.",
+        "Notes 3 and 8 (sheets beat zooms; small magnified looks beat large composites): 40 single crops is impossible, so cell size and zoom must keep nodules judgeable after downscale.",
+        "Note 4 (views side by side): lung window plus soft-tissue window is the direct analogue of scene plus band-pass, and for nodules it is the view pair that actually decides the call.",
+        "Note 5 applies with a correction, not literally: per-cell auto-stretch destroys HU comparability, so fix window/level per preset instead and reserve per-cell stretch only for display of faint structures.",
+        "Note 6 (state the budget in the instructions) so the agent plans two sheets rather than asking for 40 crops."
+      ],
+      "risk": "Using one shared window or a per-cell auto-stretch, so faint ground-glass nodules vanish or intensities become uncomparable, and renumbering cells so the answer's ids no longer map to detector rows — plus the pattern's own '-' : nodules the detector never found appear in no sheet at all."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter's own exclusion applies: the judgement is a global property with no items to number and no positions to measure, so Item rows and Marked view have nothing to hold and marks would be read as objects. The pattern's value (exact numbers passed outside vision, ids as the answer channel) is absent — the cast is itself the measurement.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Not applicable. If pictures are wanted at all, this is the 'show one picture with a question' fallback, or the 'Numbers only' variation: compute grey-world / percentile statistics per photo as rows and let a threshold or the model pick the correction from those numbers.",
+        "The nearest legitimate use is a comparison sheet of renderings (original plus two or three candidate white-balance corrections side by side, no ids), which borrows 'pictures support judgement' but none of the marking machinery."
+      ],
+      "risk": "Forcing the fit: numbered marks on a colour cast are noise the model may treat as content, and a sheet of ten full photographs is downscaled so heavily that the cast — the only signal — is altered by the very resize the pattern warns about."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Motivation",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "\"located 14 and 13 of 53 gold points ... against 4 and 5 before\" gives no metric: what counts as located, at what pixel tolerance, and are the pairs two agents or two runs? \"5 to 10 pixels off\" likewise does not say whether those are source pixels or crop pixels. Without this the headline evidence cannot be checked or compared to the reader's own setting.",
+      "suggestion": "State the metric once: tolerance (e.g. within 3 source pixels of gold), n, and that each pair is one agent's run; and say the ruler error is in source pixels."
+    },
+    {
+      "section": "Solution / Sketch (deliver)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Three caps (perCall, bytes, perConversation) are checked but no priority or tie-break is given once the per-call cap is hit, the iteration order over non-returned side-effect pictures is never specified, and nothing says what happens when a single picture alone exceeds budget.bytes.",
+      "suggestion": "Give the rule explicitly: returned pictures first, then creation order; a picture larger than the byte cap is refused as an error, not counted; and say whether perConversation exhaustion ends the run or only the pictures."
+    },
+    {
+      "section": "Structure (Budget) and Collaborations step 6",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Budget is described as limits 'stated in the agent's instructions', but the deliverer is what enforces them, so ownership is muddled. Step 6 tells the agent to stop looking when 'near the budget', yet nothing tells the agent how it knows — the reply never reports remaining counts.",
+      "suggestion": "Split the responsibility (instructions forecast, transport enforces) and require each reply to carry remaining per-call and per-conversation counts, plus a stated rule for what the agent does on a LOOKS warning: re-request a cheaper view, or answer with what it has."
+    },
+    {
+      "section": "Solution, Applicability, Implementation notes 3 and 7",
+      "kind": "too-specific",
+      "severity": "high",
+      "note": "Concrete tuning numbers from one pipeline appear as if they were the pattern: twelve, top 12, fifteen cells, four per call, 8 MiB, 50 of 100. A reader on a transport with a 20-image limit and no byte cap cannot tell which numbers are normative and which are goja-cv's.",
+      "suggestion": "Put the shape in prose ('as many cells as stay legible after the API downscales'; 'a budget well under the hard limit') and confine all numerals to the implementation notes and examples, labelled as one project's values."
+    },
+    {
+      "section": "Solution / Structure",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The whole design rests on answers-by-id, yet nothing says how a bad answer is caught: unknown ids, ids from a filtered-out row, ids from a sheet that was never delivered, or a coordinate copied from a picture despite rule 1. \"The engine maps them to numbers\" glosses over the main failure mode.",
+      "suggestion": "Add a note with a refusal path, e.g. answer ids are validated against the delivered rows and unknown ids produce `refuse(kind: UNKNOWN_ID, hints: [delivered ids], fix: resend from rows)`; and say coordinate answers are ignored in favour of the row's numbers."
+    },
+    {
+      "section": "Structure (View presets) vs Implementation note 9",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "View presets are a named participant, but note 9's own evidence is that documented views never used in examples were never used. The pattern therefore recommends a participant that its evidence says will go unused unless it also appears in helpers and examples — the note's conclusion is not carried back into Structure or Sketch.",
+      "suggestion": "Make presets concrete at the call site: name the preset strings (\"scene\", \"speck\", \"colour\") in the sheet/crop signature in the Sketch, and state in Structure that presets must be discoverable from the helper signature, not from prose."
+    },
+    {
+      "section": "Implementation note 1 vs Variations ('Labelled grid')",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "\"Never make a model read a number off a picture\" is stated absolutely, yet the labelled-grid variation explicitly has the agent name a cell, which is reading a coarse position off a picture. The rule as written contradicts its own variation.",
+      "suggestion": "Restate the rule as 'never let a model read precision off a picture' and say in the grid variation what accuracy that variation accepts and when it is preferable."
+    },
+    {
+      "section": "Implementation note 7 / Sketch",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The delivery contract — returned first, per-call cap, byte cap, name omissions by line — appears in the Solution, again in the Sketch, again in note 7. Note 7 is worth keeping only for the v1-to-v2 lesson (silently dropped `look` calls), which the code cannot show.",
+      "suggestion": "Trim note 7 to the failure it records; let the Sketch be the single normative statement of the delivery order and caps."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The split between numbered rows and id-marked pictures is crisp and immediately usable, but one project's tuning numbers stand in for the rule, and the answer-validation and budget-ownership gaps are exactly where a second adopter would fall over."
+  }
+}

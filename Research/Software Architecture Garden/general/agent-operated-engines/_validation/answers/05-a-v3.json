@@ -1,0 +1,153 @@
+{
+  "restatement": {
+    "intent": "Expose one tool that runs a short agent-written program inside a session that persists between calls, with the engine's API in scope, and hand back a reply the agent can actually read. Task-specific helper libraries are loaded into the session in layers rather than pasted into programs.",
+    "problem": "One tool call per operation forces round trips and cannot loop, filter or combine, while handing the agent a general program loses state between calls, floods the context with raw results and silently drops what the program created, unless the session and the reply are designed for it.",
+    "solution": "Split the tool into a generic session (runs one program at a time under a deadline, owns one explicit state object and the loaded libraries) and a domain result processor (renders value, warnings, context block and attachments, including on failure). Cap the rendered value and say how to get the rest, render lists of flat records as tables, and rebuild a small context block every call that shows inputs, state keys, helper signatures, loadable libraries and doc lines only for helpers that are new or changed. Deliver every picture created within a count and byte budget, naming any left out. Load helper libraries as preludes or by name; each helper documents itself from its own source."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "On one named state object (`mem`) that is listed in every context block; runtimes that evaluate each program as a function body drop top-level `const`/`let` after the call, and an explicit object also makes what persists visible to the agent.",
+      "where": "Solution; Structure (State object); Implementation note 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "Every call: named/unnamed opened inputs, the state object's data keys with their kinds, helper signatures, and the libraries available to load. Only when new or changed: a helper's full doc line (compared by source hash) — the rest is deltas, so the block stays a few lines.",
+      "where": "Structure (Context block); Implementation note 6; sketch `contextBlock`"
+    },
+    {
+      "id": "Q3",
+      "answer": "They are not delivered; each one is named by the line that created it in a warning appended to the text (`not delivered: <line>`). Delivery is in order within the count and byte budget (four pictures, 8 MiB), each picture once, and files the program saved stay in the workspace and are named in the reply.",
+      "where": "Solution; Structure (Attachment queue); sketch `budget(...)`; Implementation note 7"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because no one reads them: preludes exist to install helpers on the state object, so their output would only spend context. A prelude that fails stops the session from starting, and the start-up error names file, line and message.",
+      "where": "Structure (Library loader); Implementation note 8; sketch comment `-- layered; output discarded`"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "The chapter names the database agent as a recurrence of this shape: many data-dependent operations over one engine, results far larger than a reply, and session state (temp tables, session variables) worth keeping. The one twist is that the state holder is the database catalog, not a JS `mem` object, so the context block must be read from the catalog.",
+      "participants": {
+        "Eval tool": "One `sql` tool taking a script (several statements); its description states: one connection per session, temp tables and session variables persist, the last result set is returned, replies are capped at N chars, writes are refused because the session is read-only.",
+        "Session": "A single persistent connection to the replica: serialised script execution, per-script deadline, read-only policy, and a rollback on timeout or error so no open transaction holds locks.",
+        "State object": "The session's own state: temporary tables, session variables, `search_path`, prepared helper views. There is no separate `mem`; the context block lists temp tables with row counts instead of `mem` keys with kinds.",
+        "Result processor": "Turns the last result set into a table, folds server notices (sequential scan, implicit cast) by statement position, and renders SQL errors with SQLSTATE, position and the temp tables that already existed.",
+        "Context block": "Rebuilt per call from the catalog: temp tables with row counts, relevant session settings, helper views/macros with signatures, and doc lines only for new or changed helpers.",
+        "Attachment queue": "Usually empty; if a script exported a CSV or a chart into the workspace, deliver it within budget and name the file.",
+        "Library loader": "Prelude script(s) loaded at session start that create exploration helpers (`sample(rel, n)`, `profile(rel)`) as views or functions, plus on-demand loading by name."
+      },
+      "sketch": "session = Session(sqlRuntime, dbProcessor,\n                  policy: {timeout: 30s, readOnly: true},        -- read-only enforced by the connection, not by parsing SQL\n                  preludes: [\"explore-helpers.sql\"])            -- loaded in layers; output discarded\n\nevalTool(script) → Reply                                          -- calls serialised, one script at a time\n  processor.beforeEval(runtime)                                   -- reset row buffers and notice list\n  try: v = runtime.run(script, deadline: now() + policy.timeout)   -- temp tables survive; open transaction rolled back\n       return processor.process(runtime, v)                       -- v = last result set\n  catch e: return processor.processFailure(runtime, e)            -- SQLSTATE + position; earlier temp tables kept\n\nprocess(runtime, v) → Reply\n  text = table(v.columns, v.rows, tableBudget: ⅔ × CAP)           -- header line + one line per record\n  text = cap(text, CAP, note: \"showing 140 of 10000 rows: add filters, aggregate, or LIMIT\")\n  text = text ++ foldByLine(notices())                            -- same notice + same statement, with a count\n  text = text ++ contextBlock(runtime)                            -- temp tables + row counts, settings, helper macros, libraries\n  return Reply(text, atts: budget(queue(), maxCount: 2, maxBytes: 8 MiB))",
+      "key_notes": [
+        "#4 Cap the text and say how to get the rest — decisive here: 10,000 rows is far past any cap, so the table rendering plus a note naming rows shown and rows total is the whole difference between a usable reply and a blown context.",
+        "#5 Render lists of records as tables — result sets are exactly the flat-record case; nested JSON would cost several times the budget.",
+        "#6 Rebuild the context block and show deltas — the state here is invisible (temp tables growing across steps), so listing them with row counts is what stops the agent re-deriving them.",
+        "#2 State the contract in the tool description — the agent must know that several statements share one session, that the last result set is returned, and that writes are refused; none of that is guessable from SQL.",
+        "#9 Failures and timeouts are replies — a mid-script error must still show the temp tables that exist, and a timeout must roll back rather than leave an open transaction on a replica.",
+        "#8 Load, don't paste — the `SET`/`search_path`/sampling preamble agents repeat every call belongs in a prelude."
+      ],
+      "risk": "Trusting a read-only policy implemented by inspecting the SQL text, and letting the agent pull 10,000 raw rows instead of aggregating in SQL: enforce read-only at the connection level (read-only transaction) and make the cap note steer toward `LIMIT`/aggregation rather than toward fetching pages."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The Applicability section excludes exactly this case: a handful of independent actions with side effects that must each be confirmed want separate narrow tools, so each proposed action is visible and reviewable. Banking also fails the audit criterion (every call reproducible on its own), and the session's persistence is a liability, not a benefit, since a stale session context is precisely what must not carry into a transfer.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, third bullet: audit-grade, reproducible calls -> stateless structured call with explicit inputs.",
+        "Variation \"Many narrow tools\": two tools, `transfer(account, amount, requestId)` and `freezeCard(cardId)`, each with a typed schema and a confirmation gate, is the right form.",
+        "Only the reply format carries over (capped text, tables, structured errors) — the chapter itself says the reply format still applies when narrow tools are offered instead."
+      ],
+      "risk": "Taking the chapter's \"reply format still applies\" clause as licence to keep the general eval tool: a general program in scope can compose a loop of transfers, or hide a transfer inside a helper library, and nothing in the confirmation step would show the customer what will actually run."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The Solution is one ~150-word sentence that packs seven separate decisions (state object, two-part session, reply contents, prelude loading). A reader cannot hold it, and the Structure table then re-lists the same decisions.",
+      "suggestion": "Break it into a numbered \"therefore\" list of five bullets, each one decision, ordered the same way as the Structure table."
+    },
+    {
+      "section": "Sketch vs Implementation note 6",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`contextBlock` writes `seen[f.name] = hash(source(f))` unconditionally, but note 6 says the record is updated \"after successful calls only\". `processFailure` also builds the context block, so a call that fails would consume the doc lines for helpers the agent never got to use.",
+      "suggestion": "Move the `seen` update out of `contextBlock` into the success path of `process`, or pass a `commit: bool`; state the rule once."
+    },
+    {
+      "section": "Solution / note 9 (state and interruption)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "\"State assigned before a timeout persists\" means an interrupted program leaves `mem` half-updated, and nothing tells the agent how to detect or recover from that. The chapter calls programs \"short\" but gives no guidance on resuming a failed multi-step program.",
+      "suggestion": "Add an implementation note: writes to the state object are not atomic; recommend assigning to a scratch key and committing at the end, or snapshotting `mem` per call and naming the affected keys in the failure reply."
+    },
+    {
+      "section": "Structure (Attachment queue) vs note 7",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Structure says attachments are \"delivered in order\", note 7 says \"returned ones first, then the others\". Also \"each once\" and `unique(queue())` never say what makes two attachments the same (same picture value? same call site?).",
+      "suggestion": "Pick one ordering rule (creation order with returned-first as a stated exception) and define the dedupe key in one clause."
+    },
+    {
+      "section": "Sketch (`foldByLine`, `warning(LOOKS, …)`)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`foldByLine` is used twice and defined nowhere — fold what, by what key, into what? `LOOKS` appears as a warning kind only in the sketch; the prose never mentions it, so an implementer cannot tell whether it is part of the pattern or goja-cv's own vocabulary.",
+      "suggestion": "One sentence in the Solution or note 4: warnings sharing a kind and a call site collapse to one line with a count. Name `LOOKS` as the processor's own kind or drop it."
+    },
+    {
+      "section": "Structure (Session) and Applicability",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Read-only is listed as a session policy but never defined: enforced where (API capabilities, filesystem, both) and what the agent sees when it tries to write. There is also no reset/new-session operation, yet note 9 tells the agent to \"start a new session\" after a poisoned runtime.",
+      "suggestion": "Say where the policy is enforced and how a refusal is reported, and add a restart affordance to the Session participant (or name the tool that recreates it)."
+    },
+    {
+      "section": "Sketch (`yaml(v, …)`)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "No rule for values that cannot be serialised — engine handles (node, image), functions, cycles, or a value too large to serialise at all. The API in scope returns handles constantly, and the sketch builds the whole YAML string before `cap` trims it, so a 10,000-row array is fully rendered first.",
+      "suggestion": "Add a note: handles render as kind plus id/name, cycles are refused by name, and the renderer stops at the cap while serialising rather than after."
+    },
+    {
+      "section": "Structure (Library loader) and note 8",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Doc lines are read \"from its own source\", which only works for plain-source libraries; nothing says what happens when `load(name)` fails at runtime (prelude failure is specified, on-demand failure is not), nor what happens when two layers install a helper with the same name — and the `seen` delta is keyed by name only, so collisions would suppress doc lines.",
+      "suggestion": "State the collision rule (later layer wins, with a warning?) and the failed-load reply; note the source-readability requirement for self-describing helpers."
+    },
+    {
+      "section": "Motivation, note 8, and the sketch configuration",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "\"Thirty-nine annotator agents\", \"3.2 KB\", \"of 374 evals, 39 were pastes\", \"the dust pipeline's judge\", `judge-helpers.js` — the study is real evidence, but a reader cannot separate the measurement from the running project's furniture, and the layered-prelude idea gets buried in project names.",
+      "suggestion": "Keep the counts in one sentence explicitly labelled as one study's measurements, and use neutral names in the sketch/config (`task-helpers` instead of `judge-helpers`)."
+    },
+    {
+      "section": "Applicability, sketch, note 4",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "9,000 chars, four pictures and 8 MiB appear in the sketch as if they were the pattern, while note 4 admits 9,000 was not a measured optimum. An implementer copying the sketch inherits numbers with no derivation.",
+      "suggestion": "Write them as `CAP = 9000 -- illustrative` in the sketch and give the rule instead (a fraction of the model's context window; a handful of pictures)."
+    },
+    {
+      "section": "Intent",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The Intent is a single sentence with three semicolon-separated clauses, so the tool's job and the reply's contents get equal weight and neither is memorable.",
+      "suggestion": "Split into two sentences: what the tool is, then what the reply contains."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The evaluator/result-processor seam, explicit state object, per-call context deltas and empty-attachment-queue rule are genuinely portable, but the one-sentence Solution, the unconditional `seen` update and the undefined `foldByLine`/`LOOKS` leave an implementer guessing on exactly the parts they must build."
+  }
+}

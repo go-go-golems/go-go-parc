@@ -1,0 +1,208 @@
+{
+  "quiz": {
+    "a": {
+      "Q1": [
+        [
+          "error="
+        ],
+        [
+          "warns="
+        ],
+        [
+          "looks="
+        ],
+        [
+          "fragment"
+        ]
+      ],
+      "Q2": [
+        [
+          "build on",
+          "earlier",
+          "depend"
+        ],
+        [
+          "independent",
+          "fresh"
+        ]
+      ],
+      "Q3": [
+        [
+          "reference",
+          "build",
+          "src:",
+          "filled",
+          "pulled"
+        ]
+      ],
+      "Q4": [
+        [
+          "people",
+          "reference",
+          "refusal",
+          "helper",
+          "point"
+        ]
+      ]
+    },
+    "b": {
+      "Q1": [
+        [
+          "explain",
+          "show",
+          "guide"
+        ],
+        [
+          "code",
+          "exist"
+        ]
+      ],
+      "Q2": [
+        [
+          "not run",
+          "illustrat",
+          "partial"
+        ],
+        [
+          "visible",
+          "review"
+        ]
+      ],
+      "Q3": [
+        [
+          "explain",
+          "flat"
+        ],
+        [
+          "current",
+          "drift",
+          "test"
+        ]
+      ],
+      "Q4": [
+        [
+          "teach",
+          "apply",
+          "reader",
+          "understand"
+        ],
+        [
+          "agent",
+          "playbook",
+          "validat"
+        ]
+      ]
+    },
+    "a2": {
+      "Q1": [
+        [
+          "error="
+        ],
+        [
+          "warns="
+        ],
+        [
+          "looks="
+        ],
+        [
+          "fragment"
+        ]
+      ],
+      "Q2": [
+        [
+          "build on",
+          "earlier",
+          "depend"
+        ],
+        [
+          "independent",
+          "fresh"
+        ]
+      ],
+      "Q3": [
+        [
+          "reference",
+          "build",
+          "src:",
+          "filled",
+          "pulled"
+        ]
+      ],
+      "Q4": [
+        [
+          "people",
+          "reference",
+          "refusal",
+          "helper",
+          "point"
+        ]
+      ]
+    },
+    "b2": {
+      "Q1": [
+        [
+          "explain",
+          "show",
+          "guide"
+        ],
+        [
+          "code",
+          "exist"
+        ]
+      ],
+      "Q2": [
+        [
+          "not run",
+          "illustrat",
+          "partial"
+        ],
+        [
+          "visible",
+          "review"
+        ]
+      ],
+      "Q3": [
+        [
+          "explain",
+          "flat"
+        ],
+        [
+          "current",
+          "drift",
+          "test"
+        ]
+      ],
+      "Q4": [
+        [
+          "teach",
+          "apply",
+          "reader",
+          "understand"
+        ],
+        [
+          "agent",
+          "playbook",
+          "validat"
+        ]
+      ]
+    }
+  },
+  "fits": {
+    "a": {
+      "T1": true,
+      "T2": false
+    },
+    "b": {
+      "T1": true,
+      "T2": false
+    },
+    "a2": {
+      "T1": true,
+      "T2": false
+    },
+    "b2": {
+      "T1": true,
+      "T2": false
+    }
+  }
+}

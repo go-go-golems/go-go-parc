@@ -11,5 +11,5 @@ cp "$HINT" "$OUT/hint-$ST.md"
 cd "$OUT/work"
 pi -p --mode json --tools read,write,edit,bash --no-context-files --no-skills --no-prompt-templates \
    --session "$f" --session-dir "$OUT/session" --model "$MODEL" --thinking "$THINK" \
-   "$(cat "$HINT")" < /dev/null > "$OUT/events-$ST.jsonl" 2> "$OUT/stderr-$ST.log" || echo "pi exit $?" >> "$OUT/stderr-$ST.log"
+   "$(cat "$HINT"; printf '\n\nAdd a new step to DIARY.md for this request, in the format of DIARY-FORMAT.md.\n')" < /dev/null > "$OUT/events-$ST.jsonl" 2> "$OUT/stderr-$ST.log" || echo "pi exit $?" >> "$OUT/stderr-$ST.log"
 "$HERE/after.sh" "$N" "$AG" "$TAG" "$ST"

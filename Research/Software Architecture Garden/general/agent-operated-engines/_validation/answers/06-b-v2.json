@@ -1,0 +1,140 @@
+{
+  "restatement": {
+    "intent": "Make every failure a structured refusal rich enough that the caller repairs the call on the next attempt without reading documentation, and raise warnings in the same shape.",
+    "problem": "A failure that only says something went wrong forces the caller to rediscover the API, and an agent pays for each guess with a round trip and part of its context.",
+    "solution": "Give every failure from every layer one record: a code from a closed list, a one-sentence message, the operation path to the failing step, the line in the caller's own program, a few nearest valid alternatives, a conceptual hint, and a fix written as pasteable code in the caller's names. Suggestions are produced in a fixed order from certain to guessed (namespaced member, transcript-mined redirect, near spelling, same name on another kind of value), host-language errors are translated into the same shape with the host's error name kept as a field, and warnings carry the same fields at the offending line, folded with a count. Everything produced before the failure is still delivered."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Code (from the closed list), message, path (the chain of operations from source to the failing one, as labels), where (the line in the agent's program plus its source), valid (at most a handful of alternatives, nearest first), hint, fix (code the agent can paste), and hostName — the host error's own name when the failure came from the host language.",
+      "where": "Structure table (Refusal) and the `value Refusal` declaration in the Sketch"
+    },
+    {
+      "id": "Q2",
+      "answer": "The near-misses that cost the most are conceptual, not spelling: no edit-distance rule maps `zoom` to `crop(…).look({ zoom })`, and edit distance cannot tell a typo from a different word one letter away (`crop`/`drop`). Transcripts show what agents demonstrably typed, so each mined name can ship with a literal, correct fix.",
+      "where": "Implementation notes 1 and 2 (and the Forces entry 'Generic against mined')"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because the agent did not write them. The path exists to tell the agent which step of its own chain failed, so inserted internal conversions would point at code the agent cannot see or edit.",
+      "where": "Implementation note 5 ('The path is part of the message')"
+    },
+    {
+      "id": "Q4",
+      "answer": "It was deleted after firing 19 times in an annotator study, 18 of them on correct code. The rule drawn: a warning that is usually wrong is worse than no warning — measure every warning on real transcripts before shipping it.",
+      "where": "Implementation note 8 ('A warning that is usually wrong is worse than none')"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "All three Applicability conditions hold: callers are analysts and a model that cannot read the warehouse internals, each failed attempt costs a round trip or a support question, and the name space (columns across 2,000 tables, plus per-dialect functions) is large and easy to confuse. The one thing to narrow is the promise of a fix for *every* error — a timeout or a permission failure has no pasteable rewrite.",
+      "participants": {
+        "Refusal": "The validator's structured SQL compile error: code (E_UNKNOWN_COLUMN, E_AMBIGUOUS_COLUMN, E_COLUMN_NOT_IN_FROM, E_UNKNOWN_FUNCTION / E_WRONG_DIALECT), message, path (FROM/JOIN chain → ✗ the failing column or function), where (line:column offset in the submitted SQL, plus statement index), valid (nearest columns, capped), hint, fix (a SQL fragment in the query's own aliases), hostName when the rewrite came from the engine's own error text.",
+        "Code list": "One closed list owned by the validator, one code per rule (unknown column, ambiguous, wrong table, wrong dialect, unsupported type cast), each documented with a test query that must raise exactly that code.",
+        "Suggester": "Pre-validation against the catalog: qualify an ambiguous column, consult redirects, fall back to spelling inside the joined tables, then report a column that exists on a table not in scope.",
+        "Redirect table": "Mined from the query log per engine: `strftime`/`DATE_TRUNC`, `TOP`/`LIMIT`, `IFNULL`/`COALESCE`, `NOW()`/`CURRENT_DATE`, argument-order mistakes in `datediff`, plus misspelled column names that recur.",
+        "Translator": "The warehouse adapter: maps Postgres/BigQuery/Snowflake engine error text into the same record, keeping the engine's own error name as `hostName`.",
+        "Site tracker": "The parser's token positions: every refusal points at the line and column of the SQL the analyst (or the model) actually submitted.",
+        "Warning folder": "Warnings raised while validating or explaining the query — no partition filter, SELECT * on a wide table, implicit string→date cast, a join that explodes row count — folded per (code, line, message) with a count."
+      },
+      "sketch": "value Refusal: code, message, path: [label], where, valid: [name], hint?, fix?, hostName?\n\n-- scope = aliases in FROM/JOIN; catalog = information_schema snapshot + query-log frequencies\nsuggestColumn(name, scope) → Suggestion | none\n  -- 1. structural: the name resolves, it just needs qualifying\n  hits = [t for t in scope.tables where catalog.has(t, name)]\n  if len(hits) > 1: return Suggestion(E_AMBIGUOUS_COLUMN, \"it exists on \" ++ join(hits, \", \"),\n                                     hits[0] ++ \".\" ++ name)\n  -- 2. mined from the query log: what analysts and the model actually typed\n  if redirects has lower(name):\n    return Suggestion(E_UNKNOWN_COLUMN, redirects[name].hint, redirects[name].fix)   -- fix is SQL text\n  -- 3. near spelling, searched inside the joined tables first, then the catalog by usage\n  c = closest(name, columns(scope.tables) ++ byFrequency(catalog.columns), budget: 1)\n  if c: return Suggestion(E_UNKNOWN_COLUMN, \"did you mean \" ++ c ++ \"?\", c)\n  -- 4. same name, other relation: the column is real, the table is just not joined\n  for t in catalog.tables where catalog.has(t, name) and t ∉ scope.tables:\n    return Suggestion(E_COLUMN_NOT_IN_FROM, name ++ \" lives on \" ++ t ++ \", not in this query\",\n                      \"LEFT JOIN \" ++ t ++ \" ON \" ++ t ++ \".id = …\")\n  return none\n\nsuggestFunction(name, dialect) → Suggestion | none\n  if redirects[dialect] has name:\n    return Suggestion(E_WRONG_DIALECT, redirects[dialect][name].hint, redirects[dialect][name].fix)\n  if curatedDialectMap has name:\n    return Suggestion(E_WRONG_DIALECT, name ++ \" is \" ++ dialectOf(name) ++ \"; here use …\",\n                      fix(name, dialect))\n  return closest(name, dialect.functions, budget: 1)\n\n-- in use\nSELECT amount FROM ord            → E_AMBIGUOUS_COLUMN,          fix \"o.amount\"\nSELECT strftim(ts,'%Y') …         → E_WRONG_DIALECT,             fix \"DATE_TRUNC('year', ts)\"\nSELECT lifetime_value FROM users  → E_COLUMN_NOT_IN_FROM,        fix \"JOIN orders o ON …\"\n",
+      "key_notes": [
+        "Note 1 (mine redirects from logs): the dialect mistakes are exactly the conceptual near-misses edit distance cannot reach — `strftime` is not a misspelling of `DATE_TRUNC`, and `IFNULL` is a valid name in the wrong dialect. The query log is the transcript equivalent here.",
+        "Note 2 (one fixed order, stated once): the four steps map one-to-one onto qualify → mined → spelling → other table, and the order matters more than usual because step 4 emits a JOIN that changes the result set, so it must never win over step 1.",
+        "Note 10 (one redirect table): dialect mappings and column redirects must be owned by the catalog service, not duplicated in the validator, the web UI's autocomplete and the per-engine adapters, or a fix added in one place is invisible in the others.",
+        "Note 11 (test codes and fixes): every templated rewrite must be run as a real query in CI — a wrong JOIN fix silently changes an analyst's numbers, which is far worse than a refusal.",
+        "Note 6 (the line in the caller's program): the caller's program is the SQL text itself, so `where` must be line:column plus the statement index in a multi-statement script, not the validator's internal parse position.",
+        "Note 3 (fixes in the caller's names): rewrite using the aliases already in the query (`o.amount`, not `orders.amount`), or the fix is not pasteable.",
+        "Note 8 (measure warnings): partition-filter, SELECT * and implicit-cast warnings will fire on correct queries; measure each on the query log before shipping."
+      ],
+      "risk": "Precision collapse at scale: `nearestFirst` over ~10⁵ columns is noise unless candidates are restricted to tables in scope and ordered by usage, and a one-edit budget on long snake_case names still flags genuinely different siblings (`billing_country` vs `shipping_country`, `amount_usd` vs `amount_eur`). The failure mode is a confidently wrong fix that changes results silently — plus, if pre-validation runs before the engine, an extra round trip on every query."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is the chapter's own first 'do not use' case: the callers are code that branches on errors and never retries with modified input, so a code and a message suffice. Hints, alternatives and fixes would never be read, must still be maintained and tested as the API changes (a drifting fix is the pattern's most damaging output), and they inflate every log line.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "None of the implementation notes are worth the work here — note 11 says why: fixes drift unless they are tested, and untested fixes are the most damaging output. Spending that budget here buys nothing.",
+        "The parts worth keeping are the cheap ones the chapter would still honour: one closed code list with one code for host/engine failures (note 4), so the calling programs can branch reliably instead of matching message text.",
+        "The only case that would flip this is a human reading the failures during an incident; then a short hint helps operations but 'fix as code' still is not what they need."
+      ],
+      "risk": "Adding unread fields is not free: each hint and fix becomes an API surface that must be tested as the batch job changes, and a confidently wrong fix can be pasted by a human from a runbook or a support thread long after the code path that generated it stopped being correct."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "\"give every failure one structured shape … and a fix written as code the agent can paste\" over-generalizes: the Refusal type marks hint and fix optional, and there is no pasteable fix for a timeout, a permission failure, E_INTERNAL, or a kernel that rejects valid-looking data. A reader following the Solution literally will fabricate fixes for error classes that have none — the exact damage note 11 warns about.",
+      "suggestion": "Say \"a hint and a fix where one can be computed from the registry\"; add one sentence on which failure classes legitimately return neither, and forbid inventing a fix to fill the field."
+    },
+    {
+      "section": "Implementation note 4 vs Collaborations 3 / Sketch",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The chapter promises 'a stable code from a closed list' and 'callers can branch on codes reliably', but Collaborations 3 says goja-cv 'still reports the host's TypeError as the code', the Sketch emits `code: E_HOST, hostName: …`, and the 'in use' block says `rows.count() → E_HOST (hostName TypeError)`. A reader cannot tell which of the two is the shipped behaviour, and the closed-list guarantee is exactly the thing being promised.",
+      "suggestion": "Pick one: make E_HOST the code, keep the host name in `hostName`, and move the goja-cv deviation into a single 'what we used to do and why it was wrong' aside."
+    },
+    {
+      "section": "Sketch (`unknownMethod`)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`valid: s ? [] : nearestFirst(...)` drops the valid-alternatives list whenever the suggester produced anything, yet Intent and Structure present 'the valid alternatives' as a core field alongside hint and fix. It is not stated whether suggestion and alternatives are mutually exclusive by design or that this is a shortcut.",
+      "suggestion": "State the rule explicitly (e.g. 'a suggestion replaces the list, because eight names plus a fix buries the fix'), or return a capped list plus the suggestion and show the resulting reply."
+    },
+    {
+      "section": "Sketch (`translate`) / Implementation note 3",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The translator is shown as two hard-coded message matches (`m == \"count\"`, `isMethodOfNodes(m)`) inside a `match hostError`. Nothing says how this scales past two cases, how brittle matching on host message text is across host versions, or what the caller sees when no pattern matches (presumably a bare E_HOST with no hint — unstated).",
+      "suggestion": "Describe the translator as a table of (host message pattern → hint/fix template) populated only from transcript evidence, state the fallback explicitly, and say what happens when the host renames an error."
+    },
+    {
+      "section": "Structure (Site tracker) vs Implementation note 6",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Structure says the site tracker 'records the line in the agent's program for every call', which reads as eager per-call bookkeeping; note 6 says it 'records the first stack frame outside the engine for every call', which is derived from the stack on failure. The difference matters: one costs allocation and frame work on every call, the other costs a stack walk on failure.",
+      "suggestion": "Make the Structure entry say 'resolves the caller's line for a failure, from the first stack frame outside the engine', and keep the eager variant only if the engine really does it."
+    },
+    {
+      "section": "Applicability / Structure",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "`nearestFirst` is used in the Sketch but never defined, and 'at most a handful, nearest first' is the only ordering rule given. For a small registry that is fine; for a large name space (thousands of columns, hundreds of options) the ordering rule determines whether the field is useful or noise, and the chapter gives no way to choose it.",
+      "suggestion": "Define the ordering (structural match, mined, in-scope/usage frequency, then edit distance) and give the cap a reason — the number of names an agent can hold while choosing."
+    },
+    {
+      "section": "Solution / Implementation note 7",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Repeats are folded for warnings only. An agent that loops on the same broken line gets the identical rich refusal on every attempt, each carrying path, hint and fix — the most expensive text in the system, delivered repeatedly until the context is exhausted. This is the loop case the pattern exists for and it is unhandled.",
+      "suggestion": "Extend the fold rule to refusals: a refusal identical in (code, line, message) to the previous one returns the same fields once with a count and the message 'this is attempt 3 on line 2; the fix above was not applied'. Say how the count reaches the agent's reply."
+    },
+    {
+      "section": "Implementation notes (whole section)",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "Eleven notes for a pattern rated ★★ (near invariant) is heavy, and several only restate the Solution or document goja-cv internals a reader cannot act on: note 5 repeats the path field from the Sketch, note 7 repeats the warning sentence from the Solution, and note 10's 'graph package / module / operations' detail is implementation history rather than guidance.",
+      "suggestion": "Fold 5 into the Solution, merge 6 and 7 into one note on 'where and folding', and cut 10 to a single sentence ('one redirect table, owned by the registry'). Keep 1, 2, 4, 8, 11 as the load-bearing notes."
+    },
+    {
+      "section": "Implementation note 2 / Sketch `closest(..., budget: max(1, min(3, len(name) / 3)))`",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "The budget is given as an exact formula with no statement of whether it is prescriptive or a starting value, and its justification is only the short-name case; the note itself says it cannot separate `crop` from `drop`. A reader will copy the constant and inherit the misfire.",
+      "suggestion": "Mark it as a starting value to tune on transcripts, and say what the observable is (rate of accepted suggestions versus rejected ones in the next eval)."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The refusal shape and the certain-to-guessed ordering rule are genuinely portable and the SQL/data-warehouse case maps onto them almost mechanically; clarity and reusability drop because of the E_HOST/closed-list contradiction, the undefined `nearestFirst`, the `valid: []` shortcut, and the absence of a fold rule for repeated refusals."
+  }
+}

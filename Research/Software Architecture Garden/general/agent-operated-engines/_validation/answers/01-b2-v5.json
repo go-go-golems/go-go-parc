@@ -1,0 +1,156 @@
+{
+  "restatement": {
+    "intent": "Describe every operation of an engine exactly once, as a validated data record, and make every consumer — checker, help, refusals, agent context, tests — read that record instead of keeping its own copy.",
+    "problem": "When several consumers each hold their own idea of an operation's arguments and result, they drift apart and the caller gets silent wrong behaviour instead of a precise refusal.",
+    "solution": "Store one OpRecord per receiver kind and name in a registry: argument specs with type, unit, defaults, hard limits, usual range and near-miss redirects, plus a cross-argument hook, result kind and fields, flags and either an implementation or an expansion. Validate each record structurally and semantically at registration (and cross-record at end of start-up). Then bind calls only through the record, render help/context from it, build refusals from it, and have a test walk the whole registry. Anything that cannot be a record goes on one short, tested exceptions list."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Refuse it, and do so before checking for missing arguments, because a near-miss typo deserves a repair rather than a report that some other argument is missing. The diagnoser then builds E_UNKNOWN_OPTION carrying the valid option names and, when the spec or record holds a redirect, a fix naming the intended call. It must never ignore the key or fall back to a default.",
+      "where": "Sketch `bind`, first loop; Implementation notes 2 (last sentence) and 3"
+    },
+    {
+      "id": "Q2",
+      "answer": "On the Argument spec, in its `unit` field; default, min, max and usual range are all expressed in that unit, and the binder checks the value as the caller wrote it. Conversion to the engine's working scale happens later, at evaluation. This matters at preview scale because the prototypes failed to scale radii and crops when exporting at full size, so the exported picture differed from the preview the user had approved.",
+      "where": "Structure (Argument spec); Collaborations step 2; Implementation note 2"
+    },
+    {
+      "id": "Q3",
+      "answer": "`cv.open` is bound by hand and the \"Globals\" section of the reference is fixed hand-written text. The chapter says to keep such parts in one visible list and add a test asserting every name reachable from the agent appears either in the registry or in that list, and to test those parts separately.",
+      "where": "Implementation note 9; Solution (last sentence)"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because help, refusals, the reference, the agent's context and the walker all key off records; a composite left outside the registry would be a hole each of them has to special-case. So it still carries name, receiver kind, argument specs, result kind and docs, and marks itself as an expansion instead of an implementation — registration already enforces exactly one of the two — so composites are described and checked like any other operation.",
+      "where": "Implementation note 10; Structure (Operation record); Implementation note 1"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Three independent consumers (planner/type-checker, notebook completion, error reporter) plus a growing catalogue written by other people at run time is exactly the applicability trigger; the SQL language's overload-by-type means the lookup must return candidate sets rather than one record.",
+      "participants": {
+        "Operation record": "a UDF descriptor: name, typed argument specs, declared return column set, doc string, volatile/confirm flags, samples, and an entry point into the Python callable",
+        "Argument spec": "one SQL-typed parameter (name, type class, position, default, nullable, value docs) mapped from the Python signature",
+        "Flags": "`volatile` (planner may not fold or reorder), `confirm` for functions that mutate analyst data, `internal` for helper functions the planner may use but analysts may not call directly",
+        "Registry": "the function catalogue, keyed by name → set of signatures; validates each UDF at registration and re-validates cross-record references after each analyst registration, since registration happens at run time, not at start-up",
+        "Binder": "the planner's argument matcher: picks the candidate whose argument types match, refuses on type mismatch instead of coercing Python `None`/`0`",
+        "Describer": "two renderings: the completion popup (signature line + first doc sentence) and the full function reference page with limits and value docs",
+        "Diagnoser": "\"no function matches the given argument types\", listing every candidate and why each failed, plus the nearest name",
+        "Walker": "a test that calls every UDF with its samples on a small fixture table and compares the result's column names and types to the declared fields"
+      },
+      "sketch": "value ArgSpec:  name, sqlType, position?, default?, nullable, doc, typeClass\nvalue FnRecord: name, args: [ArgSpec], returns: [FieldSpec], flags, samples, doc, entry→py\n\ncatalog.register(fn) → ok | refuse(E_BAD_UDF, …)   -- types resolve, samples present, no dup args\ncatalog.seal()        → ok | refuse(E_UNRESOLVED, …) -- cross-record, after each run-time batch\n\nlookup(name) → [FnRecord]                        -- overload set, keys are (name, signature)\nbind(name, raw) → BoundCall | Failure\n  cands = lookup(name)\n  if cands is empty: return Failure(UNKNOWN_FUNCTION, name)\n  tried = []\n  for c in cands:\n    r = matchArgs(c, raw)   -- per-arg type/limit checks, never coerce; unknown keys first\n    if r is BoundCall: return r\n    tried = tried ++ [r]\n  return Failure(NO_MATCH, name, tried)   -- diagnoser lists each candidate's failure\n\nexplain(NO_MATCH) → refuse(E_NO_MATCH, name, nearest: closest(name, catalog.names()),\n                            hint: \"\"\"no signature took (text, int); candidate 2 wanted (text, numeric)\"\"\")",
+      "key_notes": [
+        "Note 7 (one record per receiver kind and name) must be inverted here: adopt the Overload sets variation, so lookup returns candidates and the binder selects by argument types; otherwise `round(str)` and `round(int, digits)` cannot coexist.",
+        "Note 1 (validate at registration, cross-record checks after registration completes) is the highest-risk note: analysts register at run time, so you need a `seal()`/re-validate step per batch, not only at start-up.",
+        "Note 6 (pluggable argument types, consumers outside the core): the SQL type classes are your domain types; completion and the planner must be modules reading records, or the type system and the UI will drift again.",
+        "Note 3 (no silent defaults, no zero-coercion): Python's None/0 and SQL's implicit casts are the exact trap from goja-cv v1 — a UDF must refuse rather than coerce.",
+        "Note 5 (walk the registry, know what it does not prove): one happy-path call per Python function proves very little; generate limit and NULL tests from the specs.",
+        "Note 10 (user-defined operations are records too) is the whole point here — analyst functions must enter the same catalogue, not a parallel one.",
+        "Note 4 (keep near-miss redirects in the records): SQL analysts will type `substr`/`length` variants, so option- and name-level redirects belong in the specs, not in three separate tables."
+      ],
+      "risk": "Treating the declared Python types as truth and letting arbitrary analyst code run in the planner's process: the registry then documents a fiction, and one `import` in a UDF takes down the engine. Declare types from the signature, check them, and run UDFs out of process."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Every applicability condition fails: there is one consumer (the researcher, who reads the source), no agent, no end user, no published docs, no other author, and nothing registered at run time. The operations are general-purpose composed code, not a catalogue somebody chooses among by name — the chapter explicitly calls a registry of every function in a program \"a second type system\".",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability (\"do not use it when only one consumer needs an operation's shape and the caller can read the source; a function signature is enough\") and the \"general-purpose code rather than a catalogue\" exclusion decide this outright.",
+        "The third exclusion applies too: PyTorch already gives the records — `nn.Module` with type hints, `__init__` defaults and `__repr__` is the description. Build on that instead of a parallel table.",
+        "Consequences − (\"the binder becomes a small type system that needs its own design and tests\" and \"every new operation touches shared code\") is the cost the researcher would pay for no consumer.",
+        "If a second consumer or run-time registration ever appears (a shared config-driven experiment runner, a UI), the trigger is that event — not a crossed count of modules."
+      ],
+      "risk": "Building it anyway \"for cleanliness\" and ending up maintaining argument specs that duplicate the type hints, then having them disagree after the third refactor. If configuration is the real pain, use dataclass configs or YAML-with-validation, not an operation registry."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Motivation, third bullet (\"A wrong default was taken silently\")",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The load-bearing anecdote is unreadable: `cv.open(path, { encoding: P.choice(…) })` \"passed a value where a literal was expected; the accessor read it as an empty string\". A reader cannot reconstruct the bug — is `P.choice` an enum constructor? why does reading it yield `\"\"` rather than a type error? Without that, the reader cannot judge whether the registry would have caught it.",
+      "suggestion": "Rewrite in plain terms, naming the wrong and right call: `cv.open(path, encoding: P.choice(\"srgb\",\"linear\"))` where the accessor expected a string literal, so it read `\"\"` and silently applied sRGB. State explicitly which check (type, not enum-member) catches it."
+    },
+    {
+      "section": "Solution",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "One dense paragraph does three jobs at once: lists nine record fields inline, lists four consumers, and ends with the exceptions rule. It is the most important paragraph in the chapter and the hardest to read; the field list is duplicated verbatim in the Sketch.",
+      "suggestion": "Split into: (1) one sentence naming the record and pointing to the Sketch for its fields; (2) one sentence per consumer role; (3) the exceptions rule as its own bolded sentence, since it is the rule that keeps the pattern from leaking."
+    },
+    {
+      "section": "Structure, Flags row",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The row mixes pattern-level flags with goja-cv flags (`class: pixel|geometric|decoration`, `global` \"needs its whole input\", lossless-preview hint) as if all belonged to the pattern, and then spends most of its length on a `confirm` flag for a hypothetical side-effecting system that appears nowhere in the Sketch or the implementation notes. A reader cannot tell which flags are essential.",
+      "suggestion": "Give the pattern-level flag set in four bullets — callability (`internal`), purity/side effects (`confirm`/`volatile`), identity, cost or preview hint — each with a one-line example, and move the image-pipeline flags into a labelled \"in goja-cv\" sentence. Decide whether `confirm` is part of the pattern: if yes, add it to the OpRecord sketch and say how the confirmed retry re-enters the binder."
+    },
+    {
+      "section": "Sketch, `registry.register` vs Implementation note 1",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Note 1 says cross-record checks (redirect targets registered by another plug-in) run \"at the end of start-up\", but the Registry participant and the sketch expose only `register`. There is no `seal()`, `validateAll()` or start-up step anywhere in the structure, so an implementer following the sketch cannot place the check that note 1 calls mandatory.",
+      "suggestion": "Add `registry.seal() → ok | refuse(E_BAD_RECORD, …)` to the Sketch and one line to Collaborations step 1, and say what happens to calls made before `seal`."
+    },
+    {
+      "section": "Sketch, `explain` for UNKNOWN_OPTION",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The UNKNOWN_OPTION refusal carries `valid: optionNames(rec)` and a redirect fix, but no `nearest`, while UNKNOWN_METHOD does — even though the chapter's own motivating example (`temp` for `target`) is an option near-miss and its stated promise is \"a near-miss beats 'missing'\". A typo not present in the redirect table gets a list and no suggestion.",
+      "suggestion": "Add `nearest: closest(failure.key, optionNames(failure.rec))` and show the ranking rule once (edit distance plus same-type preference), so record authors know which typos are handled for free and which need a redirect entry."
+    },
+    {
+      "section": "Sketch, `fields(boundArgs) → [FieldSpec]`",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "FieldSpec is never defined, though the walker's `required(declared)` implies it has an optionality marker, and note 5 says some options add columns. Whether a field carries a type (the walker checks keys only), and whether optional fields may be absent from the result, is left to guesswork.",
+      "suggestion": "Add one line: `value FieldSpec: name, type, optional, doc` and state that the walker compares keys and optionality, not values; mention that a type check is a cheap extra if the engine can report result types."
+    },
+    {
+      "section": "Structure (Flags `internal`) / Solution",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Nothing says how the `internal` flag is honoured by the other participants: does the diagnoser list internal names in `valid`, does the describer render them in help and in the agent's context line, does the walker call them? Since `valid: registry.names(failure.on)` in the sketch obviously would leak them, this is a bug the chapter's own pseudocode contains.",
+      "suggestion": "State the rule once — internal records are enumerable by the binder and walker but never by describer or diagnoser, so `names()` takes a visibility argument — and show it in the sketch."
+    },
+    {
+      "section": "Implementation note 10 (composites)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Composite records are called \"records like any other\", but two concrete questions are unanswered: does an expansion-only record require `samples` and does the walker run it as a call or as an expansion (note 5 makes samples mandatory for \"every callable record\", note 10 makes composites callable)? And when a sub-operation refuses or warns, is the refusal/warning attributed to the composite's name or the leaf's?",
+      "suggestion": "Add two sentences: composites get samples and are walked through `expand`; errors and warnings are re-attributed to the top-level record with the sub-step path in the refusal's `where` field."
+    },
+    {
+      "section": "Implementation note 6, mid-paragraph (\"When agents building a small registry from this chapter were later asked…\")",
+      "kind": "other",
+      "severity": "low",
+      "note": "This is an appeal to an experiment whose setup, sample size and criterion are unnamed, inside a chapter that otherwise argues from concrete goja-cv failures. It reads as evidence but carries none, and the actual claim (\"new files only, plus a two-line delegate\") is a design guideline that would be stronger stated as a rule.",
+      "suggestion": "Either name the experiment (who, how many, what was measured) or drop it and state the rule: adding an argument type must require no edit to registration, binding or storage — only a new type module and a delegate for each consumer."
+    },
+    {
+      "section": "Applicability, second exclusion",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "\"The operations are general-purpose code rather than a catalogue (a registry of every function in a program is a second type system)\" is the exclusion most readers need to apply to themselves, and \"catalogue\" is never defined operationally. The first exclusion, by contrast, gives a build trigger; this one gives none.",
+      "suggestion": "Add a one-line test: a catalogue is a set whose members the caller selects among by name at run time (and which someone other than the implementer can extend); general-purpose code is a set the programmer composes by hand at write time. Keep the neural-network-modules or `map`/`filter` example as the counter-case."
+    },
+    {
+      "section": "Known uses",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "Five entries, and ONNX, Kubernetes and MCP all make the same point (one schema drives validation, docs and discovery); only PyTorch and Glazed add a distinct lesson (generated bindings; flags and parsing from one definition).",
+      "suggestion": "Cut to three, each with the sentence that makes it different — PyTorch for code generation, ONNX or Kubernetes for shape/validation beyond argument checking, Glazed for the command-line analogue."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The Sketch and the implementation notes are unusually precise and portable, but the Solution paragraph is overloaded, the Flags participant mixes pattern with image-pipeline specifics, and two of the chapter's own pseudocode fragments (internal names in `valid`, missing `nearest` for options) show gaps a reader will hit immediately."
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "restatement": {
+    "intent": "Use agents to label or judge many items, and only trust their answers where planted, blind controls show they are accurate enough — gating what a cheap measured rule can already settle, and sending the uncertain middle to people.",
+    "problem": "Agent labels are plentiful but of unknown quality, checking everything wastes the people agents were meant to save, and measuring judges against a flawed reference misleads everyone.",
+    "solution": "Gate proposals with a deterministic criterion calibrated on labelled data; what it removes becomes unknown, not negative. Mix in blind controls with known answers, score each model and prompt version on those controls (ranking, accuracy, calibration, usable share), and set acceptance thresholds where the controls reach the required precision. Accept beyond the thresholds, send the middle band plus a random audit sample of accepted items to a reviewer who does not see the verdict, and re-check any control that judges confidently contradict."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Because a threshold fitted to a set of items looks better on those same items than on new ones — the dust gate's iso 2.0 was chosen and scored on the same six tiles, so its 75/71 overstates it and was recorded as needing a held-out check.",
+      "where": "Implementation note 2; also Motivation, first bullet"
+    },
+    {
+      "id": "Q2",
+      "answer": "Isolation was a good gate cue for annotator over-keeps but a poor judge cue (AUC 0.63 on the judge controls), and teaching it in the judge prompt dropped AUC from 0.78 to 0.71 — a cue must be measured on the controls of the stage that uses it, not on the stage where it was discovered.",
+      "where": "Implementation note 3"
+    },
+    {
+      "id": "Q3",
+      "answer": "The share of real items that fall beyond the judge's thresholds at the required precision, i.e. how much work the judge actually removes from people (best dust judge: ~40 %). It matters because high control accuracy with a narrow confident band saves nobody any time.",
+      "where": "Implementation note 6; Structure (Scorer)"
+    },
+    {
+      "id": "Q4",
+      "answer": "AUC from 60 controls carries about ±0.06 uncertainty, so differences smaller than that are suggestive at best; the conclusion is to compare variants on identical items and not over-read small gaps (thresholds also move with every control correction).",
+      "where": "Implementation note 9; Consequences"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Many items (2 M/year), a detector plus agent doing the bulk work, two reviewers covering only thousands, and historical expert labels that can serve as controls — exactly the pattern's shape.",
+      "participants": {
+        "Proposer": "the box detector (proposes crops) and the species agent (proposes a label per crop)",
+        "Gate": "a deterministic box-quality rule — minimum pixels on the animal, blur/contrast, exposure — calibrated on whole held-out site-years, freezing the threshold",
+        "Judge": "the species agent run per crop, returning species or is-target with a probability (one-versus-rest per species, or a single target/not-target decision)",
+        "Controls": "crops with historical expert species labels plus known-empty crops, blind-id'd, stratified by site and season, mixed into every batch",
+        "Scorer": "per model/prompt version on those controls: AUC, accuracy, Brier, precision thresholds at the target, and the share of the 2 M they make usable",
+        "Router": "accepts crops beyond the thresholds; sends the middle band (ranked by distance from the boundary) and a 10 % audit sample to review",
+        "Review queue": "the two ecologists, shown the crop and the question but not the agent's label; verdicts go to the ledger"
+      },
+      "sketch": "value Crop: id (blind), pixels, site, season, truth?   -- truth only for controls\n\ngate(c) → keep | unknown\n  if c.pixels < 40 or blur(c) > 0.6: return unknown     -- frozen; calibrated on held-out site-year\n  return keep\n\nbatch = shuffle(keptCrops ++ stratify(historical, site, season, 40))\nruns  = chunks(batch, 6)\ns     = score(runs, controls) → { auc, brier, hi, lo, usableShare }\n\nfor v in verdicts of real crops:\n  if v.p >= s.hi: accept(v.id, v.label)\n  elif v.p <= s.lo: accept(v.id, empty)\n  else: review.enqueue(v.id, showVerdict: false)      -- ranked by |p - boundary|\nfor v in randomSample(accepted, 0.10): review.enqueue(v.id, showVerdict: false)\n-- if middle band > ~2000 per year: accept only its top-ranked slice, leave the rest unknown",
+      "key_notes": [
+        "Note 10 (rank and size the queue to the reviewers): decisive here — 2 M items make the middle band orders of magnitude larger than two ecologists, so most of it must stay unknown by design, not be accepted.",
+        "Note 4 (controls blind and alike): historical expert images differ in resolution, date stamp and site from today's deployment, so blind ids leak and judges learn to spot control-era images.",
+        "Notes 2 and 9 (held-out calibration, noisy small control sets): split by site-year rather than at random, and stratify controls by camera/season, or 60 controls are dominated by one easy site.",
+        "Note 1 (removed is unknown, not negative): a crop gated out for blur must not become 'empty', or the detector is taught that camera traps are empty.",
+        "Note 7 (expect the yardstick to be wrong): old expert labels may be wrong or use an older taxonomy; contested controls need an ecologist."
+      ],
+      "risk": "Treating the historical labels as a uniform, stationary control pool: they were sampled by experts who preferentially named rare species, from sites and protocols that have changed, so 85 % precision on controls will not hold on this year's 2 M — and near-empty images will dominate the confident band and flatter it."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Two of the chapter's own do-not-use conditions hold: there are no known answers and none can be produced cheaply (controls would take more expert hours than the 40 tickets themselves), and 40 one-off items are faster to tag by hand than to wrap in a gate, control batches and an audit loop.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, 'no known answers exist and none can be produced' and 'items so few that a person can label them faster than the pipeline can be built': both apply and both are fatal here.",
+        "Note 9 would bite immediately: a 60-control batch is larger than the whole corpus, so controls cannot even be constructed inside the work.",
+        "The one piece worth borrowing is note 8's blind review — have a person tag the 40 without seeing the agent's suggestion, if the agent's opinion is wanted at all; that is a review habit, not this pattern."
+      ],
+      "risk": "The likely failure is building the apparatus anyway — the team spends the effort on a Scorer and thresholds, discovers no number is meaningful without controls, and ships 40 tags whose quality nobody measured. If volume later becomes recurring (say 40k tickets a month), the pattern becomes right, and notes 4, 6 and 9 then govern it."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Motivation, first bullet",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The 75/71-vs-64/70 comparison is presented as the reason to prefer a gate, but the paragraph then admits the threshold was chosen on the same six tiles. The evidence paragraph reads as a win while the caveat undercuts it; a reader skimming takes the wrong lesson.",
+      "suggestion": "Either lead with the caveat ('this overstates the gate; the honest comparison needs a held-out set') or drop the number from Motivation and let note 2 carry it as the illustrative mistake."
+    },
+    {
+      "section": "Sketch, scoring and routing",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "`hi = lowest p where precision(...) ≥ 0.85` assumes precision rises monotonically with p, which the chapter never states, and the code has no case for a judge whose thresholds cross (hi ≤ lo) or that never reaches 85 % — it silently accepts nothing or everything.",
+      "suggestion": "State the monotonicity assumption explicitly and add the degenerate branch, e.g. `if hi <= lo: refuse('unusable-judge', judge: v.model, hints: ['collect more controls'], fix: 'route the whole band to review')`."
+    },
+    {
+      "section": "Sketch, routing loop",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The multi-class rule ('top class passes its threshold and no other class does') lives in a comment, while the routing loop assumes one verdict per item. With classes decided one-versus-rest, per-class acceptance is not a single comparison, and an item that passes two classes has no defined route.",
+      "suggestion": "Write the multi-class branch into the pseudocode: compute each class's p against its own hi/lo, accept only on a unique top-class pass, and send multi-pass items to review."
+    },
+    {
+      "section": "Structure / Collaborations, controls",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Note 4 says controls must come 'from the same source (detections of the same detector)', but the most common real case is that the only known answers are historical labels from an older round — a different source by construction. The chapter gives no fallback, and its single example never hits the case.",
+      "suggestion": "Separate 'same distribution' from 'same upstream detector', and add guidance for historical controls: stratify them, measure their drift from the current batch, and treat their precision estimates as an upper bound."
+    },
+    {
+      "section": "Solution / Collaborations, audit",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The audit sample is enqueued but its result is never used: nothing says what audit error rate invalidates a threshold, retires a judge, or pulls back the accepted band. As written the audit is a measurement with no decision attached.",
+      "suggestion": "Add the closing rule, e.g. 'if audit precision on accepted items falls below the target minus 2σ, suspend acceptance for that variant, re-score on refreshed controls, and requeue the accepted band'."
+    },
+    {
+      "section": "Collaborations, step 6 / Structure",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Contested controls are sent to the same blind review queue, but no participant owns adjudicating or rewriting a control, and the queue's decisions are described as going to the ledger, not back into the control set. The 'check the yardstick' loop therefore has no owner.",
+      "suggestion": "Add a control-adjudication responsibility (and a line in the diagram from the human check back into Controls), saying who may rewrite a control and how the rescoring is versioned."
+    },
+    {
+      "section": "Sketch, batch construction",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "`sample(controlsPositive, 30) ++ sample(controlsNegative, 30)` is drawn once and, as written, the same 60 reappear every batch — judges can memorise them, and note 9 already concedes the noise. Nothing says the pool must be larger and rotated.",
+      "suggestion": "Sample per batch from a larger stratified pool with rotation, and record which controls a given judge has already seen."
+    },
+    {
+      "section": "Known uses",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Snorkel's labelling functions are described as 'deterministic gates', but labelling functions are combined through a learned accuracy model, not applied as a keep/unknown filter — that is consensus-of-judges with learned weights, not the Gate participant.",
+      "suggestion": "Correct the description, or move Snorkel to the Consensus variation as the case where the accuracy model replaces the fixed 85 % threshold."
+    },
+    {
+      "section": "Implementation notes (as a set)",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Six of eleven notes (2, 3, 5, 7, 11 and much of 1) are postmortems of the dust project's own mistakes and file layout — three copies of the isolation metric, two scripts of control scoring. They teach less than they cost, and the general rule they imply is not stated.",
+      "suggestion": "Keep 3 and 11 but compress each to a sentence of rule plus one example, and state the general principle — one implementation per metric, each cue measured on the stage that uses it — before the anecdotes."
+    },
+    {
+      "section": "Applicability / Variations",
+      "kind": "other",
+      "severity": "low",
+      "note": "'No gate' sits in Variations, yet Gate is a first-class participant in Structure, the diagram and steps 1–2. A reader with no cheap deterministic criterion cannot tell how much of the pattern survives.",
+      "suggestion": "Mark Gate optional in Structure and the diagram (the 'unknown' branch disappears) and promote No-gate to a short paragraph under Applicability saying controls and thresholds then carry the full weight."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The gate → blind controls → thresholds → blind review + audit core is genuinely reusable and the participant table is the chapter's best asset, but the underspecified multi-class routing, the unactioned audit and the 'same-source controls' rule keep it from being directly transplantable."
+  }
+}

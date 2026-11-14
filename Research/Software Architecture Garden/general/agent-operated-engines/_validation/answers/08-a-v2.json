@@ -1,0 +1,131 @@
+{
+  "restatement": {
+    "intent": "Give an agent's programs exactly the file access their task needs — one directory they may write, a list of directories they may only read, and nothing else — and make the boundary hold when a program, a planted link, or a second loading mechanism tries to cross it.",
+    "problem": "When an agent's programs may name any path, one unexpected path (a link, a repeated flag, a second way to load code) lets them read or overwrite what they should not, and checking path strings does not stop it.",
+    "solution": "Open every root as an operating-system directory handle so the kernel, not a string check, refuses `..`, links and escapes, and route every open, stat, save and load through one Locator. Allow writes only into the writable root, never through a link, never over a file identity the session already opened, and always as an exclusively created temporary file renamed into place. Permit exactly one way to load code, and accept every privilege-changing flag once or not at all."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A string check sees a name, but the filesystem resolves links and races: a dangling symlink inside the output root let a save create a file outside it, and an in-root symlink let a save overwrite an opened input. Identity, not spelling, decides what a path touches.",
+      "where": "Problem; Forces (\"Name checks against identity checks\"); Implementation note 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "It keeps an opened set of file identities taken when files were opened, and before saving it refuses a target whose identity is in that set (compared by `os.SameFile`, not by name) unless the session already wrote that file. Because a link gives a second name for the same file, so name comparison would miss the input entirely.",
+      "where": "Structure (Opened set); Collaborations steps 2–3; Sketch `save`; Implementation note 2"
+    },
+    {
+      "id": "Q3",
+      "answer": "Each extra loader is one more boundary to defend, and it bypasses the locator: goja-cv's `require(\"/abs/path.js\")` loaded any JavaScript file on disk, which an agent used within two runs to load a library from outside the roots. One loader resolving through the locator keeps loading inside the same containment as reading.",
+      "where": "Forces (\"Many ways in against one\"); Collaborations step 4; Implementation note 4"
+    },
+    {
+      "id": "Q4",
+      "answer": "Last-value-wins turns a configuration accident into a silent privilege change: a repeated `--root` kept the second value, so an old registration made the gold-data folder writable with no error. Given once or refused, the mistake becomes a start-up error with a fix.",
+      "where": "Forces (\"Flexible configuration against strict flags\"); Collaborations step 1; Implementation note 5"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is close to the pattern's own example: a writable work tree, a shared read-only cache, and other teams' repositories on the same machine that the agent must never reach. Two caveats: the agent's build and shell activity is outside this pattern's reach, and the shared cache is a genuine shadowing surface.",
+      "participants": {
+        "Writable root": "the agent's own git checkout (a fresh worktree/copy per run), the only place it may create and replace files",
+        "Read roots": "the shared vendored-library cache directory, opened read-only and never mounted into the checkout",
+        "Locator": "resolves relative names against the checkout first, then the vendored cache in order; absolute paths must lie inside one of the two",
+        "Root handle": "one `os.Root` (or `openat2` + `RESOLVE_BENEATH`) per root, so `../../other-team/repo/x.go` and symlinks out of the checkout fail in the kernel",
+        "Opened set": "identities of every vendored header/source the session opened, so a save cannot replace one through a parent-directory link into the cache",
+        "Writer": "temporary file created exclusively under a random name inside the checkout, renamed into place; refuses links, directories and opened identities",
+        "Loader": "the single script/plugin entry (e.g. `load(name)`), resolved by the locator; `require` of arbitrary paths refused"
+      },
+      "sketch": "startup(flags) → Session | Error\n  if count(flags.checkout) ≠ 1: return error(\"--checkout takes one directory; add read-only dirs with --read DIR\")\n  return Session(writable: root(flags.checkout), reads: [root(d) for d in flags.read])  -- kernel-confined handles\n\nopen(p) → (File, Location) | Refusal\n  loc = locate(p, forWrite: false)      -- checkout, then vendored cache; absolute: inside one\n  f = loc.root.handle.open(loc.rel)     -- kernel refuses .., links, escapes\n  opened = opened ++ [identity(f)]\n  return f, loc\n\nsave(p, bytes) → ok | Refusal\n  loc = locate(p, forWrite: true)       -- checkout only\n  st = loc.root.handle.lstat(loc.rel)\n  if st is link or st in opened: return refuse(E_ACCESS, ..., fix: \"save under another name\")\n  tmp = loc.root.handle.createExclusive(randomName()); write(tmp, bytes); rename(tmp, loc.rel)\n  written = written ++ [identity(lstat(loc.rel))]\n\nrequire(path) → refuse(E_ACCESS, \"files cannot be required\", fix: \"await load(name)\")\nload(name) → Script | Refusal          -- resolves through the locator like any read",
+      "key_notes": [
+        "Note 1 (let the operating system enforce the root) matters most: the build server hosts other teams' repositories, so string checks on `../..` are exactly the failure this situation cannot tolerate; use `os.Root`/`openat2 RESOLVE_BENEATH` per checkout and per cache.",
+        "Note 9 (one writable root per parallel run): a shared checkout or a shared writable scratch dir across concurrent agents breaks the opened-set and duplicate assumptions stated in Consequences.",
+        "Note 6 (lookup order allows shadowing) is the live risk here: a coding agent can save a file whose name collides with a vendored library, so every later `load`/read returns its copy. Refuse saves that collide with a read root, or load trusted libraries by absolute path at start-up.",
+        "Note 5 (strict flags): exactly one `--checkout`; the cache comes in through `--read`, and a second writable root must fail at start-up with a fix.",
+        "Note 7 (resolve command-line paths like program paths) and note 8 (show names as the agent should write them): the agent copies paths back into edit calls, so the displayed form must be the one the locator accepts.",
+        "Variations + Consequences: `git`, `make`, package installs and hooks write files without going through this API, so run each agent in a process-level sandbox (container/jail) and use this pattern inside it."
+      ],
+      "risk": "Treating the pattern as the whole boundary: the agent's own file API is contained, but `git checkout`, build tools, hooks or a shell reach anywhere on the server — or the vendored cache is mounted writable/inside the checkout, so a symlinked parent directory plus a rename puts a write into shared libraries."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The pattern contains filesystem access, and there is none: the chapter's own Applicability says not to use it when \"there is no filesystem access at all (all data arrives through the API); the pattern has nothing to contain.\" Adding a writable workspace would create the attack surface it claims to reduce — a persistence and exfiltration channel — plus new failure modes for no gain.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, third \"do not use\" bullet: nothing to contain, so every participant (writable root, read roots, locator, root handle, opened set, writer, loader) would have no work to do.",
+        "The real risks in that assistant are tool-argument validation and injection through fetched weather data, which are outside this chapter; process isolation is irrelevant when the tools are two HTTP/arithmetic calls."
+      ],
+      "risk": "Forcing the fit: building a workspace because \"sandboxing is good\" and thereby handing a prompt-injectable assistant a place to store and stage data it previously could not touch."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution / Structure (Opened set) and Implementation note 2",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The stated reason for the opened set does not survive the writer as specified: the writer already refuses a final component that is a link, and rename-into-place replaces a name rather than writing through an inode, so an in-root symlink or hard link to an input cannot damage the input. The check's unique value is unstated: a symlinked *parent* directory that resolves inside the writable root but leads into a read root lying inside it (note 7's own case), and hard links, which `lstat` cannot distinguish from ordinary files.",
+      "suggestion": "Rewrite note 2 around parent-directory links and hard links, and say plainly that with \"never follow a link\" plus \"always rename what we created\" the opened set is a second line of defence against future in-place writes, not the mechanism that stops today's holes."
+    },
+    {
+      "section": "Structure / Collaborations (locator rules)",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "\"Relative: writable root, then read roots; absolute: inside one\" leaves overlapping roots undefined — a read root nested inside the writable root (explicitly possible per note 7), two read roots where one contains the other, or the same directory passed as both. For an absolute path inside two roots the rule does not say which root handle opens it, and for writes it does not say whether the read root's subtree of the writable root stays unwritable.",
+      "suggestion": "State a precedence rule (most specific root wins; a path inside a read root is readable but not writable even when it is also under the writable root) and make overlapping roots a start-up error or a documented special case."
+    },
+    {
+      "section": "Structure / Sketch (operations covered)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Only open, save and load exist. An agent that saves `out/labels.json` must also make and list directories, and scratch work needs delete and move. Deletion is the one write that rename-into-place cannot make safe: unlinking a read-root file, or a link placed in the writable root, needs its own refusal rule.",
+      "suggestion": "Add `mkdir`, `list`, `remove`, `move` to the participants and sketch with their refusal rules, or state explicitly that the file API excludes them and that programs must work by saving a new name."
+    },
+    {
+      "section": "Implementation notes 6, 7, 10, 11",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "These read as goja-cv bug notes rather than reusable advice. Note 11 (make the regression test fail before the fix) is general testing hygiene with no containment content; note 10 (`E_DUPLICATE`) is a lint with no security effect and has no counterpart anywhere in the sketch; notes 6 and 7 carry their weight only through goja-cv's \"cannot save scripts\" and \"symlinked read root\" details.",
+      "suggestion": "Cut note 11. Reduce note 10 to one clause in the sketch or the Collaborations text. Restate 6 and 7 as general rules (shadowing through lookup order; resolve every path, including command-line ones, through the same locator) with the goja-cv story as one sentence each."
+    },
+    {
+      "section": "Consequences",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "\"Parallel runs cannot interfere with each other's files\" is stated as a property of the pattern, but it holds only if every run gets its own writable root and no run's read roots overlap another's writable root — and the chapter itself admits the opened-set checks \"assume no other process writes into the same root at the same time.\"",
+      "suggestion": "Make the benefit conditional and point at note 9, so a reader who shares one scratch directory does not read the benefit as a guarantee."
+    },
+    {
+      "section": "Sketch `save` (lstat → createExclusive → rename)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The sequence looks race-prone: between the `lstat` and the `rename` another process can put a link or a directory at the target. It is in fact safe for the reason the chapter never gives — `rename` replaces the name, so a planted link is replaced rather than followed — but the only hint is the parenthetical \"rename replaces a name, it never follows a link\", with no statement of what the `lstat` is therefore for (error messages, not safety).",
+      "suggestion": "Say which step is load-bearing: exclusive creation and rename semantics provide the safety; `lstat` supplies the refusal kinds and the opened-set check. Otherwise a reader adds a lock that fixes nothing or, worse, \"improves\" the writer into an in-place write."
+    },
+    {
+      "section": "Loader / Collaborations step 4",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "`load` compiles with `origin: loc`, but nothing says what origin is for: whether loaded code may itself `load` further files relative to its own directory, how cycles are handled, and whether loaded code receives the session's full authority (it appears to). A single loader that resolves through the locator is only half a rule.",
+      "suggestion": "Add two or three lines: transitive loads resolve relative to the loading script's Location or to the roots only (pick one), cycles are refused with a named kind, and loaded code runs with the same authority as the session."
+    },
+    {
+      "section": "Motivation (the five-hole table)",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "The \"Found by\" column is anecdote that does not generalize, and two of the five holes (repeated `--root`, `require`) are configuration and loader-policy mistakes rather than path containment, so \"five holes in goja-cv's file access\" overstates the coherence of the list. There is also no cleanup sentence for stale temporaries after a crash, nor a warning that random temp names are visible to directory listings.",
+      "suggestion": "Retitle the table and mark each row kernel-enforced vs policy, or move the two policy rows next to notes 4–5. Add one sentence on stale temporaries and whether listings hide them."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 5,
+    "comment": "The shape is memorable and the failure stories are unusually honest, which drove reusability and the willingness to apply; clarity lost a point on undefined overlapping roots and on an opened-set rationale that does not match the writer as written."
+  }
+}

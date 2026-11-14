@@ -1,0 +1,138 @@
+{
+  "restatement": {
+    "intent": "Give an agent a single tool that runs a short program against an engine API in a session that persists between calls, and return value, warnings, session context and created pictures in one capped, readable reply.",
+    "problem": "One tool call per operation forces round trips so the agent cannot loop or filter, while raw program execution loses state, floods the context, and silently drops what the program created.",
+    "solution": "One eval tool runs a program in a persistent session; a generic runtime executes under a deadline and persists, a domain result processor renders the reply. The reply is capped text (tables for flat records) plus folded warnings, a context block rebuilt each call showing what the session holds, and a budgeted attachment queue naming what was left out. State lives on one named object; domain libraries load as layered preludes or by name and describe themselves from their source."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A generic runtime (executes, times out, serialises calls, persists) and a domain result processor (renders value, warnings, context block, attachments; resets per-call state). The runtime is the generic part; go-go-goja's `replsession` is it, `cvsession` is the plug-in.",
+      "where": "Solution; Structure (Session / Result processor rows); Implementation note 3"
+    },
+    {
+      "id": "Q2",
+      "answer": "A header line plus one line per record is far more compact than nested YAML and easier to scan, and agents already filter and sort in plain code, so the records arrive pre-shaped for reading rather than re-nesting.",
+      "where": "Implementation note 5"
+    },
+    {
+      "id": "Q3",
+      "answer": "All 39 annotator agents never called `cv.docs` or `cv.help`; they learned from helper sources and from results. Conclusion: put the next step (hints, fixes, warnings, self-describing helpers) in the reply, not in documentation.",
+      "where": "Motivation ('Documentation went unread'); Implementation notes 8 and 10"
+    },
+    {
+      "id": "Q4",
+      "answer": "`UNUSED_NODE` fired 19 times in the annotator study and 18 of those were on correct code. Lesson: a lint must be precise or absent, because a warning that is usually wrong teaches agents to ignore warnings.",
+      "where": "Implementation note 11"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Many simulator operations combined in data-dependent ways (spawn, step in loops, read sensors, filter trials) over long experiments whose state — body handles, world, loaded helpers — is worth keeping. Rendered frames are exactly the attachment case.",
+      "participants": {
+        "Eval tool": "one `sim` tool whose description states: body of an async function, use `await`, `return` what you want to see, top-level declarations do not survive, store handles on `mem`, load libraries with `sim.load(name)`",
+        "Session": "the persistent physics session: one program at a time, a step-count or wall-clock deadline, owns `mem` and the loaded sim helpers",
+        "State object": "`mem`: world handle, spawned body ids, cached sensor series, trial log; `delete mem.x` when a trial is abandoned",
+        "Result processor": "renders sensor records as tables, folds simulator warnings (contacts, unstable joints) by line, resets the frame and warning queues before each call",
+        "Context block": "world and seeds, body ids with kinds, helper signatures, doc lines only for newly loaded or changed sim helpers, loadable experiment libraries",
+        "Attachment queue": "camera frames and render strips the program produced, bounded per call, with placeholders naming frames left out by line",
+        "Library loader": "preludes: general sim helpers, then task experiment helpers built on them (e.g. a trial-runner); a failing prelude refuses to start and names file, line and message"
+      },
+      "sketch": "-- preludes: [\"sim-helpers.js\", \"trial-helpers.js\"]\nmem.world = await sim.world({seed: 7})            -- seed on mem so a trial is repeatable\nmem.bodies = (await mem.world.spawn(specs)).map(b => b.id)\nfor (s of [0.5, 1, 2, 4]) {\n  await mem.world.step(to: s)\n  mem.series.push({ t: s, ...await mem.world.sensors(mem.bodies) })\n}\nreturn mem.world.sheet(mem.series.map(s => s.t))  -- frames attach via .look(\"t=...\")\n",
+      "key_notes": [
+        "7 (deliver every picture): a bare `world.render()` used as a statement is the exact goja-cv v1 bug; frames must be delivered even when not returned, or trajectory evidence disappears silently.",
+        "1 (make state explicit): body/world handles must live on `mem`; they fail as top-level consts and every later call would fail to find its objects.",
+        "9 (failures and timeouts): long step loops are the natural place to hit the deadline; the reply must still carry frames and sensor data created before it, and say when the runtime is unusable and a new session is needed.",
+        "4 and 6 (caps and context deltas): sensor series are long arrays; the ⅔-of-cap table budget and the 'return fewer fields' note are what keep the agent from drowning, and the context block stops it guessing which trial objects still exist.",
+        "8 (load, don't paste): trial harnesses are the 3.2 KB helper paste case; preludes plus `scripts()` are how general and experiment-specific sim helpers stack."
+      ],
+      "risk": "The four-picture budget and a single frame per call hide the trajectory, which is what a physics experiment is actually about; and a non-seeded simulator behind a persistent session makes the run unreproducible, so seed and body ids must be in the context block and frames rendered as strips, not frames."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The core of the pattern is a persistent session whose result depends on everything before it — the chapter lists that as a cost and explicitly excludes audit-grade APIs that must be reproducible per call. A compliance log built on a hidden session would not be auditable: a replayed program would produce different state, and 'what the session held' would be undeliverable evidence.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "The stateless eval variation is the right neighbour here: explicit inputs and outputs per call, no `mem`, so a call can be replayed from its recorded inputs alone — the reply format (cap, tables, structured refusal) can still be reused without the session.",
+        "Applicability's third 'do not use' clause is the decisive one; keep the result processor and the tool contract (note 2) as a rendering layer over stateless calls, and drop the state object, preludes and context block, which exist only to make persistence legible.",
+        "If auditors also need each regulated action separately reviewable, the many-narrow-tools variation fits better than either eval form."
+      ],
+      "risk": "Half-fitting it: keeping the eval tool and reply format but quietly retaining state (a loaded library, a cached credential, a sticky policy flag) so that recorded calls still are not replayable — the session seam must be removed, not just undocumented."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "The Solution sentence packs eight distinct mechanisms (runtime/processor split, state object, cap, tables, warnings, context block, attachments, preludes) into one run-on clause chain; a reader cannot tell which parts are essential to the pattern and which are refinements.",
+      "suggestion": "Split into four or five short sentences: the tool and session; the state object; the reply's four parts; the library loading. Move budgets and formatting details to Implementation notes."
+    },
+    {
+      "section": "Sketch (process / contextBlock)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Note 6 and the Structure say helper doc lines appear only for helpers 'new or whose source changed since the last successful call', but the sketch updates `seen[f.name]` inside `contextBlock`, which also runs for failure replies; after a failed call the docs would be marked as shown although the agent never got a successful one. Signatures are also inconsistent: `contextBlock(runtime)` takes a runtime but `warnings()` and `queue()` are called with no argument.",
+      "suggestion": "Move the `seen` update into `process()` only (a `commitContext()` step after a successful render), state that failure replies show doc lines without committing hashes, and make all runtime-derived accessors take `runtime`."
+    },
+    {
+      "section": "Implementation note 4 / Solution (warnings and context after the cap)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "'Warnings and the context block come after the cap and stay short because they are folded and incremental' is an assumption, not a guarantee: a program with many distinct warning lines, or a session with many state keys and helpers, makes the reply unbounded and can evict the value the agent asked for. There is also no total reply budget — only a value cap plus a separate context budget.",
+      "suggestion": "Give warnings their own small count/byte budget with a 'k distinct warnings, showing the first n' note, and state a total reply ceiling so the parts cannot sum past what the model can read."
+    },
+    {
+      "section": "Sketch / Implementation note 6 ('seen' hash suppresses doc lines)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Suppressing a helper's doc line once its hash is unchanged is cheap but irreversible: in a long session that doc line has long scrolled out of context, so the agent keeps only a bare signature for a helper it was told about hours ago, and there is no way to ask for the doc line back window-independently.",
+      "suggestion": "Add an explicit way to re-request a helper's doc line (a help call or a `mem.help(f)` that returns the stored doc line), and say in the reply how to get it."
+    },
+    {
+      "section": "Structure (participant responsibilities)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Ownership overlaps: Session 'applies policies', Result processor renders warnings, yet 'operations raise warnings' (Collaborations 3) and Structure's Attachment queue is listed as its own participant while the Session and processor both touch it. A reader cannot tell who owns the warning list, the attachment queue, or the policy check, which is exactly where an implementer must draw the seam.",
+      "suggestion": "State one owner per piece of per-call state (session owns queues and aborts; processor only reads and resets them) and fold Attachment queue into Session's row with its budget as an attribute, or promote it explicitly as session-owned."
+    },
+    {
+      "section": "Motivation and Implementation notes 1, 2, 4, 8, 11 (project numbers)",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Study counts and vendor names — 39 annotator agents, 374 evals, 39 pastes, 3.2 KB, 19/18 lints, goja-cv, go-go-goja, Editor lab, dust pipeline — are scattered through the normative sections, so each implementation note reads as a post-mortem of two projects; the reader cannot see which observations generalise and which were accidents of that codebase.",
+      "suggestion": "State each note as the rule first ('a lint that is usually wrong must be deleted'), then give one anecdote as evidence, and move the remaining counts into Known uses or a short 'Evidence' appendix."
+    },
+    {
+      "section": "Applicability (no sandbox) and Consequences (safety)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "'No sandbox, so do not run model-written code' and 'safety rests on the API and the sandbox' are asserted but never operationalised; the sketch shows only `policy: {timeout, readOnly}` and nothing says how read-only is enforced against a state object that exists precisely so helpers can install functions, nor does it warn that the context block prints input names, state keys and file paths — possibly credentials — into every reply.",
+      "suggestion": "Add one implementation note on policy enforcement (what the runtime can refuse: writes, network, path escape) and one line saying the context block must be redacted of secrets, with the pattern of 'named inputs' kept distinct from raw paths."
+    },
+    {
+      "section": "Applicability (many narrow tools excluded) vs Variations (structured call tool)",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "Applicability says to fall back to 'narrow structured tools' when no sandbox exists, but the Variations' 'structured call tool' is a one-tool-per-API-function design that keeps the reply format; a reader choosing between these two fallbacks gets no criterion.",
+      "suggestion": "Name the structured call tool in Applicability's no-sandbox clause and say when to prefer it over many narrow tools (large catalogue, stable argument schema, reply format already built)."
+    },
+    {
+      "section": "Rating line",
+      "kind": "other",
+      "severity": "low",
+      "note": "'Rating: ★ (a good form among several)' is unexplained inside the chapter; nothing says what the star scale measures or what would earn more, so it reads as decoration in an otherwise evidence-driven text.",
+      "suggestion": "Give a one-line gloss of the scale, or move the rating to the overview where the other chapters' ratings can be compared."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The generic/domain seam, explicit state object and honest Applicability/Variations make the pattern genuinely portable, but the run-on Solution, the overlapping participant ownership and the `seen`-hash contradiction between sketch and note 6 cost clarity."
+  }
+}

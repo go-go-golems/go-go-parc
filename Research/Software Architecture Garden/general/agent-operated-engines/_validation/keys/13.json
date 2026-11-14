@@ -1,0 +1,182 @@
+{
+  "quiz": {
+    "a": {
+      "Q1": [
+        [
+          "param",
+          "slider",
+          "delet",
+          "unused",
+          "space",
+          "198",
+          "loader",
+          "eval_file",
+          "redirect"
+        ]
+      ],
+      "Q2": [
+        [
+          "29",
+          "39",
+          "trimmed",
+          "marker"
+        ],
+        [
+          "source",
+          "test",
+          "known"
+        ]
+      ],
+      "Q3": [
+        [
+          "example",
+          "shown",
+          "useless",
+          "never"
+        ]
+      ],
+      "Q4": [
+        [
+          "noise",
+          "spread",
+          "replicate",
+          "within"
+        ]
+      ]
+    },
+    "b": {
+      "Q1": [
+        [
+          "version",
+          "commit"
+        ],
+        [
+          "model"
+        ]
+      ],
+      "Q2": [
+        [
+          "call",
+          "space",
+          "70",
+          "show",
+          "99",
+          "removed"
+        ]
+      ],
+      "Q3": [
+        [
+          "failure",
+          "fail"
+        ]
+      ],
+      "Q4": [
+        [
+          "noise",
+          "attribut",
+          "confound",
+          "cause",
+          "change"
+        ]
+      ]
+    },
+    "a2": {
+      "Q1": [
+        [
+          "param",
+          "slider",
+          "delet",
+          "unused",
+          "space",
+          "198",
+          "loader",
+          "eval_file",
+          "redirect"
+        ]
+      ],
+      "Q2": [
+        [
+          "29",
+          "39",
+          "trimmed",
+          "marker"
+        ],
+        [
+          "source",
+          "test",
+          "known"
+        ]
+      ],
+      "Q3": [
+        [
+          "example",
+          "shown",
+          "useless",
+          "never"
+        ]
+      ],
+      "Q4": [
+        [
+          "noise",
+          "spread",
+          "replicate",
+          "within"
+        ]
+      ]
+    },
+    "b2": {
+      "Q1": [
+        [
+          "version",
+          "commit"
+        ],
+        [
+          "model"
+        ]
+      ],
+      "Q2": [
+        [
+          "call",
+          "space",
+          "70",
+          "show",
+          "99",
+          "removed"
+        ]
+      ],
+      "Q3": [
+        [
+          "failure",
+          "fail"
+        ]
+      ],
+      "Q4": [
+        [
+          "noise",
+          "attribut",
+          "confound",
+          "cause",
+          "change"
+        ]
+      ]
+    }
+  },
+  "fits": {
+    "a": {
+      "T1": true,
+      "T2": false
+    },
+    "b": {
+      "T1": true,
+      "T2": false
+    },
+    "a2": {
+      "T1": true,
+      "T2": false
+    },
+    "b2": {
+      "T1": true,
+      "T2": false
+    }
+  }
+}

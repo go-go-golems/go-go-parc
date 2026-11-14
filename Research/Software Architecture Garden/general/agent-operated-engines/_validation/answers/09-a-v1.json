@@ -1,0 +1,143 @@
+{
+  "restatement": {
+    "intent": "Make one agent run a hermetic, non-interactive function of an explicit run spec: a saved, versioned prompt and a least-privilege tool mount, returning one structured answer while retaining the full event stream and transcript.",
+    "problem": "An agent run that inherits the operator's environment, keeps an open conversation and answers in free text cannot be repeated, compared across variants, audited, or retried as part of a batch.",
+    "solution": "Represent each unit of work as a RunSpec and give it a fresh run directory. Assemble and save the prompt from versioned parts, mount only read-only inputs and a private writable workspace, invoke the agent non-interactively with ambient tools and context disabled, and extract one fenced JSON answer with bounded repairs. Run variants under separate tags, skip valid completed answers, and keep events and transcripts for comparison and audit."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "So the exact input is available later: when a result is surprising, the saved prompt is the first artifact to read, and it makes the run auditable and comparable.",
+      "where": "Implementation note 2; Solution"
+    },
+    {
+      "id": "Q2",
+      "answer": "The answers and ground truth, including known control labels as mounted data. If the agent can read them, its output is contaminated and any score or comparison is invalid; items must carry blind ids and truth stays outside every mount.",
+      "where": "Implementation note 3; Solution"
+    },
+    {
+      "id": "Q3",
+      "answer": "It skips specs whose answer file already exists, so a rerun retries only failures, and it runs the rest in parallel. Variants get separate tags, answer directories and logs; comparison is then a join on item ids.",
+      "where": "Implementation note 6; Collaborations step 1; Sketch batch"
+    },
+    {
+      "id": "Q4",
+      "answer": "Models slip, so a strict parser would lose a whole run to one typo while a lenient one would accept wrong answers; extraction takes the last fenced JSON from assistant texts and applies known repairs. Dust needed a repair for a dropped key shown as `{\"q003\", …}` and for raw newlines inside strings.",
+      "where": "Implementation note 4; Sketch extract"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "This is the pattern's core case: many independent invoice units, several model and prompt variants, a mounted OCR tool, and a need to score and audit fairly. It fits if each run sees only its own scan and the labelled truth stays outside every mount.",
+      "participants": {
+        "Run spec": "One invoice id (blind), model, thinking level, prompt version, tag such as `model@promptVersion`, and a pinned OCR version.",
+        "Run directory": "`runs/<tag>/<invoiceId>/` with prompt.md, tools.json, ws/, events.jsonl, transcript.html and answer.json.",
+        "Prompt assembler": "Versioned role, how-to-work, steps, known-mistakes parts, the blind invoice descriptor and scan path, invoice-field output contract, schema example and budgets.",
+        "Tool mount": "An OCR tool allowed to read only that invoice's scan or scans, plus a private writable workspace; no labels, no shared cache, no broad directory or network access.",
+        "Agent invocation": "Non-interactive, with ambient built-ins, context files, skills and templates off; the OCR tool is the only mounted capability.",
+        "Extractor": "Take the final fenced JSON, apply known repairs, validate required invoice fields and types plus the invoice id, and write answer.json or a failure record.",
+        "Batch runner": "12,000 specs (2,000 invoices x 3 models x 2 prompt versions), parallel, skipping validated answers, with separate tag directories and logs and a join by invoice id."
+      },
+      "sketch": "value RunSpec: invoiceId, model, promptVersion, tag, ocrVersion\nrun(spec):\n  dir = fresh(runsRoot / spec.tag / spec.invoiceId)\n  write(dir/'prompt.md', assemble(spec.promptVersion, spec.invoiceId))\n  write(dir/'tools.json', mount(ocr: readOnly(scan(spec.invoiceId)), ocrVersion: spec.ocrVersion, write: dir/'ws'))\n  events = agent(cwd: dir, prompt: read(dir/'prompt.md'), model: spec.model, builtinTools: none, contextFiles: none, skills: none, templates: none, nonInteractive: true)\n  write(dir/'events.jsonl', events); exportTranscript(events, dir/'transcript.html')\n  return validate(extract(events), invoiceSchema, spec.invoiceId)\nbatch([RunSpec(i, m, p, tag: m + '@' + p) for m in models for p in prompts for i in invoices], parallel: 6)",
+      "key_notes": [
+        "Note 3, never mount the truth, decides whether the comparison is valid: invoice labels and prior extractions must sit outside the mount, and blind ids must not encode labels.",
+        "Note 1, switch everything off then mount, is essential because the only capability should be the OCR tool reading the one scan; otherwise ambient skills and context leak into runs.",
+        "Note 4, one fenced JSON with a literal schema example plus repairs, sets the output contract, but the example must not be extractable as an answer; add schema and item-id validation.",
+        "Note 6, tags and skip answered, keeps the six variants apart and makes 12,000 runs retryable; the tag should encode model and prompt version, not be a free label.",
+        "Note 7, a fresh workspace per run, prevents parallel runs sharing OCR scratch or cache; pin the OCR version and make its reads item-scoped.",
+        "Note 8, budgets in the prompt, matters for multi-page scans and image-count API limits; state max pages and images per run.",
+        "Note 5, keep events and transcript, lets you see whether poor scores came from OCR errors, tool misuse or the prompt, not just from the final fields."
+      ],
+      "risk": "The most likely failure is ground-truth leakage: mounting the invoice folder that also contains labels, or giving OCR a directory-wide read, so scores look excellent and are meaningless. A second risk is treating a repaired parse as a correct extraction without schema and item validation."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter's own do-not-use cases cover this: interactive work loses the conversation that makes it useful, and a live incident needs broad, changing access to logs and dashboards. A fixed JSON one-shot also cannot carry iterative hypotheses and follow-up questions; sealing would produce a stale, low-context answer, not incident help. A sealed run could handle a bounded side task, such as summarizing a fixed log slice after the fact, but not the interactive debugging loop.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [],
+      "risk": "Forcing the fit gives the engineer confident but ungrounded hypotheses and mistakes a clean transcript for evidence; use an interactive agent with audited tool access and logs, not a batch sealed run."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Consequences",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The plus bullet says runs are 'reproducible from their directories', but the directory records prompt, tools, events and transcript, not the exact model snapshot, decoding parameters, agent or OCR version, or seed. A routed model alias can change under the same name, so a rerun is a new experiment.",
+      "suggestion": "Record model snapshot or version, temperature/top_p/seed, agent and tool versions or hashes, and prompt and tool-config hashes in the run spec; call the result replayable and auditable unless determinism is actually enforced."
+    },
+    {
+      "section": "Sketch and Implementation note 4",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The extractor walks all assistant texts in reverse although the contract says the final message is the answer. If the final message lacks JSON, it can return an earlier schema example or intermediate block, and parse() will accept the wrong object.",
+      "suggestion": "Extract only from the final assistant message or a unique sentinel; validate required keys, types and the item id, and ignore examples embedded in the prompt."
+    },
+    {
+      "section": "Sketch and Collaborations",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Skipping any spec whose answer file exists treats a partial, empty, stale or failed answer as success; one interrupted write can make a bad run permanently skipped.",
+      "suggestion": "Write answers atomically with a temp file then rename, store a status and spec hash, and skip only validated completed answers; keep failed runs retryable."
+    },
+    {
+      "section": "Variations: Resumable runs",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "A follow-up message makes the invocation multi-turn and dependent on prior state, contradicting 'one isolated, non-interactive invocation', the fresh run directory, and the pure-function claim; like-for-like comparison across variants also breaks.",
+      "suggestion": "Model resumption as an explicit second stage with a parent run id, saved prior transcript, new stage tag and separate answer; do not call it the same run spec."
+    },
+    {
+      "section": "Applicability",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The do-not-use rule 'no way to state what a correct answer looks like' is too absolute and conflicts with the chapter's annotator and judge uses, which often lack ground truth but still produce reviewable structured judgments.",
+      "suggestion": "Distinguish no verifiable ground truth from no defined output contract; allow exploratory sealed runs with schema validation, calibration controls or human review, and state the scoring limits."
+    },
+    {
+      "section": "Forces and Implementation note 8",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Cost is a stated force, but note 8 covers only an image-count API limit; there is no per-run timeout, max turns or tokens, total batch budget, or recorded usage. Closed stdin does not stop a run waiting on a tool or a hung provider.",
+      "suggestion": "Add timeout and kill, max turns or tokens, an optional cost cap and a usage record to RunSpec and the answer; make the batch stop or report when the cap is reached."
+    },
+    {
+      "section": "Structure and Collaborations",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "No participant validates the extracted answer against the promised schema before it becomes an answer file; 'quality has to be measured' is delegated to Chapter 10, but a malformed or wrong-item answer can enter the comparison.",
+      "suggestion": "Add a validator or make the extractor return a typed Answer after schema and item-id checks; keep scoring and ground-truth joins in the separate comparison step."
+    },
+    {
+      "section": "Run spec and Implementation note 6",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The tag is caller-supplied but also the variant key. Reusing a tag after changing the model or prompt silently mixes variants and can let stale answers be skipped; tag identity is undefined.",
+      "suggestion": "Derive the directory key from a hash of model, prompt version or hash, mount config and item id; keep the human tag as a label only."
+    },
+    {
+      "section": "Implementation note 3",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'Never mount the truth' is stated but not enforced. A read-only data directory may still contain labels, an OCR tool may read sibling files, and blind ids do not prevent path escape or a shared writable cache.",
+      "suggestion": "Specify an allowlist of exact input paths per item, a separate truth store outside all mounts, no shared writable cache or network, and a leakage test."
+    },
+    {
+      "section": "Implementation notes 1 and 9",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The pi flags and MCP setup and the three shell war stories are product- and environment-specific in a general pattern; only the first shell item concerns sealing, and the rest add length without helping a reader design the pattern.",
+      "suggestion": "State the capability requirements (seal ambient config, skills and templates; non-interactive; explicit tool allowlist; immutable runner code) and move pi and zsh details to an appendix or adapter table."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core shape is clear and worth using for batch evaluation, but the reproducibility claim, extractor and skip ambiguities, and product-specific operational notes keep it from being a clean reusable pattern."
+  }
+}

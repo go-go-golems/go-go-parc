@@ -1,0 +1,156 @@
+{
+  "restatement": {
+    "intent": "Make every failure an agent can cause carry enough structure — a stable code, the failing operation path, the agent's own source line, the valid alternatives, a conceptual hint and a pasteable fix — that the next attempt can be right without reading docs. Warnings are raised the same way, at the line, and folded.",
+    "problem": "A failure that only says something went wrong forces the caller to rediscover the API, and an agent pays for each guess with a round trip and context.",
+    "solution": "One Refusal record holds code (from a closed list), message, operation path, the agent's line, a few nearest valid alternatives, a hint, and a fix written as code in the agent's own names, plus the host error's name when the failure came from the host. Unknown names are repaired by a Suggester that answers in a fixed order: same name in a namespace, mined transcript redirects with literal fixes, near spelling within a length-scaled edit budget, same name on another kind of value. Host-language failures are translated into the same record, warnings reuse the fields and are folded by (code, line, message), and whatever was produced before the failure is still delivered."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Namespace member of the same name (E_NAMESPACE) → mined transcript redirects → near spelling within an edit budget → same name on another kind of value. The order runs from certain to guessed: a structural fact, then a known answer, then a guess, then a hint about a different mistake; a confidently wrong guess costs more than silence, so the certainties are tried first.",
+      "where": "Collaborations 2, Implementation note 2, Solution"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because one edit is a large fraction of a short name, so several unrelated words sit one edit away (crop/drop); a small budget keeps short names to only the closest misspellings and avoids confidently wrong suggestions. budget = max(1, min(3, len/3)) gives one edit up to five letters.",
+      "where": "Implementation note 2"
+    },
+    {
+      "id": "Q3",
+      "answer": "The Translator matches the host message, finds the receiver in the source line (rows), and returns the same refusal shape with a hint ('rows is plain data here, awaited regions are an array, so it has no count(); its length is the count') and a fix in the agent's own name (rows.length); note 3 emphasizes the receiver is read from the source line, not templated.",
+      "where": "Collaborations 3, Implementation notes 3–4, Sketch (translate)"
+    },
+    {
+      "id": "Q4",
+      "answer": "A range warning in a loop over 500 candidates would be 500 lines that bury the line that matters and burn the agent's context; folding identical warnings by (code, line, message) into one with a count keeps the signal and still says it happened often.",
+      "where": "Implementation note 7, Solution, Force 'Precision against noise'"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It meets all three applicability tests: callers are engineers and an LLM agent that cannot read the implementation, each failed call costs a provider round trip plus context, and the namespace is large with confusable names (hundreds of subcommands, resource types, and flags one edit apart). The four failure-adjacent layers — parser, provider API, throttling, auth — also make the 'one shape, many places' force real.",
+      "participants": {
+        "Refusal": "The structured error record the CLI prints as JSON (plus exit code): code, message, path = top-level command → nested command → failing flag, where = the argv exactly as the agent typed it, valid (≤5 nearest), hint, fix (a full pasteable command line), hostName.",
+        "Code list": "Closed set shared by every layer: E_UNKNOWN_SUBCOMMAND, E_UNKNOWN_RESOURCE_TYPE, E_UNKNOWN_FLAG, E_NAMESPACE, E_BAD_VALUE, E_THROTTLED, E_ACCESS_DENIED, E_HOST.",
+        "Suggester": "Runs for any mistyped subcommand, resource type, or flag, over the command registry built from the schema, in the fixed four-step order.",
+        "Redirect table": "Mined argv→argv pairs from agent transcripts (--az → --availability-zone, instances list → instance list, --dryrun → --dry-run), each a literal command the agent can paste, with the agent's own ids kept in place.",
+        "Translator": "Wraps provider errors (ValidationError, ThrottlingException, AccessDenied) into the same record, keeping the provider's error name as hostName and its parameter name inside the fix.",
+        "Site tracker": "The command builder / script runner that records the full argv or script line the agent wrote, so 'where' is the text the agent can edit — not an internal parser frame.",
+        "Warning folder": "Folds deprecation and retry warnings per (code, line, message) with a count, so a batch loop over 200 resources yields one warning, not 200."
+      },
+      "sketch": "-- kind = subcommand | resource-type | flag; recv = the command prefix the agent already typed\nsuggest(kind, name, recv) → Suggestion | none\n  if registry.has(groupOf(name), name):            -- --instance-id belongs to `instance`, not `ami`\n    return Suggestion(E_NAMESPACE, \"it belongs to the \" ++ groupOf(name) ++ \" group\", recv ++ \" \" ++ groupOf(name) ++ \" \" ++ name ++ \" …\")\n  if redirects has (kind, name):                   -- mined from agent transcripts\n    return Suggestion(E_UNKNOWN_FLAG, redirects[kind][name].hint, redirects[kind][name].fix)   -- literal argv\n  c = closest(name, registry.names(kind), budget: max(1, min(3, len(name) / 3)))\n  if c: return Suggestion(E_UNKNOWN_FLAG, \"did you mean \" ++ c ++ \"?\", recv ++ \" \" ++ c)\n  for k in registry.kinds() where k ≠ kind and registry.has(k, name):\n    return Suggestion(E_UNKNOWN_FLAG, name ++ \" is a \" ++ k ++ \", not a \" ++ kind, crossKindFix(k, name, recv))\n  return none\n\nunknownFlag(cmd, flag, argv, path) → Refusal\n  s = suggest(flag, flag, topLevel(cmd) ++ \" \" ++ cmd)\n  return Refusal(code: s?.code ?? E_UNKNOWN_FLAG, message: cmd ++ \" has no flag \" ++ flag,\n                 path: path ++ [\"✗ \" ++ flag], where: argv,\n                 valid: s ? [] : nearestFirst(registry.flags(cmd), flag)[0:5] ++ [\"… run `cli \" ++ cmd ++ \" --help`\"],\n                 hint: s?.hint, fix: s?.fix)\n\n-- in use\ncli ec2 describe-instances --instnace-ids i-123\n  → E_UNKNOWN_FLAG, where: that argv, hint: \"--instnace-ids is not a flag; ids are selected with --instance-ids\",\n    fix: \"cli ec2 describe-instances --instance-ids i-123\"\ncli ec2 delete --id i-123\n  → E_NAMESPACE, hint: \"--id belongs to the `instance` group\", fix: \"cli ec2 instance delete --instance-ids i-123\"",
+      "key_notes": [
+        "Note 1 (mine redirects) — decisive here: no edit distance maps `--az` to `--availability-zone` or `instances list` to `instance list`, and the transcript is the only source for which wrong argv agents actually type.",
+        "Note 2 (one fixed order, stated once) — with hundreds of short flags (`--id`, `--ids`, `--ip`) the edit budget alone will confidently suggest a real but wrong flag, so namespace and mined redirects must run first.",
+        "Note 3 (fixes as code in the agent's names) — the fix must be a complete command line carrying the agent's own resource ids, not a template like `cli <group> <action> <flag>`.",
+        "Note 4 (one shape, one code list) — parser, provider API, throttling and auth errors all arrive through different clients; without the shared record the agent must learn four error formats.",
+        "Note 10 (one redirect table) — exactly the situation where scattered tables break: redirects added for a new subcommand are invisible to sibling groups.",
+        "Note 11 (test codes and fixes) — every fix can be run in `--dry-run` mode in CI and must bind; stale redirects become the most damaging output.",
+        "Notes 7 and 9 — batch commands over hundreds of resources need folded warnings and partial results before the failure."
+      ],
+      "sketch_note": "",
+      "risk": "A fix that binds but is wrong — CI would accept `cli ec2 terminate-instances` as the correction for `terminate-instance`, and the agent pastes a destructive command. Note 11 tests only that a fix binds; for an infrastructure CLI, suggestions for irreversible operations must be suppressed and replaced with a listing command plus a confirmation step."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter excludes it directly: authentication failures must refuse uniformly, because 'no such user' versus 'wrong password' leaks account existence. Worse, the proposed valid-alternatives field is other people's identities, not the API's own vocabulary, and no fix can be computed — so the Suggester, Redirect table and valid field have nothing legitimate to draw on, and the endpoint becomes a username-enumeration and credential-stuffing oracle.",
+      "participants": {
+        "Refusal": "Keep only the shell: one code, one fixed message, a server-side correlation id — the same text for unknown user and wrong password.",
+        "Code list": "Keep, but with a single outward code E_INVALID_CREDENTIALS; the real reason (E_NO_SUCH_USER / E_WRONG_PASSWORD) stays in server logs.",
+        "Site tracker": "Keep in a reduced form: log the request id and the client-side call site, never in the response.",
+        "Suggester": "Dropped for credentials. Allowed only for malformed request fields — 'did you mean the field `password`?' — because there the alternatives are the API's own schema, not user data.",
+        "Redirect table": "Dropped.",
+        "Translator": "Kept narrowly, to hide backend error text (a DB timeout must not surface as a distinct code).",
+        "Warning folder": "Dropped from this endpoint."
+      },
+      "sketch": "-- uniform refusal in the shape of the pattern's Variation, with everything suggestive removed\nauthRefuse(reason) → Refusal\n  log(level: warn, reason: reason, requestId: rid)          -- detail stays server-side\n  return Refusal(code: E_INVALID_CREDENTIALS,\n                 message: \"invalid username or password\",\n                 where: None, valid: [], hint: None, fix: None)  -- same bytes, same status, similar timing for every reason\n\n-- the only legitimate suggestion at login\ntypedField(name, schema) → Suggestion | none\n  if schema.has(name): return none\n  c = closest(name, schema.fields, budget: max(1, len(name) / 3))\n  return c ? Suggestion(E_UNKNOWN_FIELD, \"did you mean \" ++ c ++ \"?\", \"{ … \\\"\" ++ c ++ \"\\\": … }\") : none",
+      "key_notes": [
+        "The do-not-use clause 'revealing the alternatives would leak information … refuse uniformly there' is the governing note; the Variation 'Uniform refusals' is the whole answer.",
+        "Note 4's 'one closed code list so callers can branch reliably' cuts the other way here: the client must be able to branch on nothing, so a single outward code is the correct use of that note.",
+        "The valid-alternatives field's own definition — the API's valid names and options — shows why usernames cannot go in it; the schema-field suggestion above is the only place the pattern's Suggester survives."
+      ],
+      "risk": "Smuggling the oracle back in through a side channel: different response times, different body sizes, or a did-you-mean only for near-matching existing usernames all restore enumeration even if the message text is uniform."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution / Structure / Collaborations 3 / Implementation note 4 / Sketch",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The chapter gives two incompatible rules for a host-language failure's code and does not say which is the pattern. Collaborations 3 says goja-cv 'still reports the host's TypeError as the code'; note 4 calls that a defect and prescribes one code for host failures with the host name as a field; the Sketch uses `E_HOST` with `hostName`; the Structure table says 'code (from the closed list)' plus the host's name as a field. A reader implementing this cannot tell whether the closed list is closed.",
+      "suggestion": "State the rule once in the Solution ('the code is always from the closed list; the host's own name goes in hostName'), show only the conforming `E_HOST` form in the Sketch, and move 'goja-cv still emits the host's TypeError as the code' into note 4 as an explicitly labelled deviation to fix."
+    },
+    {
+      "section": "Sketch (unknownMethod) and Intent",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "`valid: s ? [] : nearestFirst(...)[0:8]` makes hint/fix and valid alternatives mutually exclusive, so the moment a suggestion exists the agent loses the alternatives list — while the Intent and Structure say every refusal carries the valid alternatives. This directly contradicts the force 'a suggestion against misdirection': one confident guess with no fallback is precisely the dangerous case.",
+      "suggestion": "Say explicitly whether the fields are cumulative or exclusive, and if exclusive, justify it and give the fallback: on a guessed (edit-distance or cross-kind) suggestion, still include the nearest 3–5 valid names, or point at the listing command; keep `valid` empty only for certain sources (namespace, mined redirect)."
+    },
+    {
+      "section": "Sketch (suggest) / Code list",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The code granularity is inconsistent across the four suggester sources: a namespace hit gets its own `E_NAMESPACE`, but a near spelling and a wrong-kind hit both return `E_UNKNOWN_METHOD`, the same code as 'no suggestion at all'. Since note 4's stated purpose of the closed list is that callers can branch reliably, three of four sources are indistinguishable to the caller.",
+      "suggestion": "Either give each source its own code (E_NAMESPACE, E_REDIRECT, E_NEAR_SPELLING, E_WRONG_KIND) or state that only namespace is distinguished for a reason (e.g. it is the only one that is a structural fact); as written, a reader cannot infer the rule."
+    },
+    {
+      "section": "Implementation note 11 / Applicability",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The test prescribed for fixes is that the fix 'binds'. Binding is necessary, not sufficient: a near-miss can bind to a semantically different or destructive operation (`crop`→`drop`, `terminate-instance`→`terminate-instances`), and the agent pastes it. Note 11 already says a wrong fix is 'the most damaging output the pattern can produce', but the chapter then offers only a syntactic test, and the do-not-use list never mentions irreversible operations.",
+      "suggestion": "Add a note: a fix must bind and be checked for intent — suppress suggestions for irreversible or destructive operations (return the listing plus a confirmation step instead), rank suggestions by argument/message similarity, and run fixes in a dry-run mode where one exists. Add 'operations that cannot be undone' to the Applicability caveats."
+    },
+    {
+      "section": "Solution / Structure (Refusal.valid)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "'At most a handful, nearest first' is stated but never operationalized, and the `[0:8]` cap exists only in the Sketch. Nothing says how `nearestFirst` ranks, what to say when a namespace holds hundreds of valid names (the CLI/registry case), or how the refusal points at the rest without dumping them.",
+      "suggestion": "Give the rule in the Solution: cap at N (say 5–8), order by score, and add one truncation sentence naming the count and the command that lists them ('40 more; `x list types`'). One line on how the nearest-first ranking is computed."
+    },
+    {
+      "section": "Solution (single paragraph)",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "The 'Therefore' is one ~120-word sentence carrying five separable rules (field list, suggestion ordering, host translation, warnings, partial delivery), and the suggestion order is then restated in Collaborations 2 and again in note 2, with the edit-budget formula appearing three times. The reader must re-parse the central statement of a pattern chapter.",
+      "suggestion": "Split into one short sentence per move, put the suggestion order in a single numbered list referenced from the other two places, and keep the budget formula only in the Sketch."
+    },
+    {
+      "section": "Collaborations 3 / Structure (Translator, Site tracker)",
+      "kind": "missing",
+      "severity": "low",
+      "note": "`translate(hostError, sourceLine)` is handed a source line, but no participant is stated to supply it — the Site tracker is described only as recording the line for 'every call'. Related: `hostError.where` is used even though a host type error has no notion of the agent's program, so it is unclear whether the host's stack location or the agent's line ends up in `where`.",
+      "suggestion": "Say the Site tracker resolves the source line for the translator too (and for host failures keyed by the receiver), and state that `where` always means the agent's line, with the host's own location kept only in the message."
+    },
+    {
+      "section": "Implementation note 9 / Implementation note 7",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'Deliver what was produced before the failure' implies a refusal aborts the whole script at the first failing call, but note 7's loop folding implies execution continues past warnings. Whether a refusal kills the program, the statement, or just the call is never stated — and it determines whether an agent gets one error or twenty per eval.",
+      "suggestion": "Add one sentence on the granularity of a refusal (abort the eval at the first refusal; collect warnings along the way) and say why — an agent repairs one call at a time."
+    },
+    {
+      "section": "Applicability (do-not-use, first bullet)",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "'The caller is code that branches on errors and never retries with different input; a code and a message suffice' is the wrong discriminator. A programmatic caller is exactly who benefits from a stable code plus valid alternatives (it can build the retry or the UI), and the marginal cost is one record. The real criterion is the cost of a failed attempt against the cost of maintaining tested hints.",
+      "suggestion": "Rephrase as: omit the suggester when a wrong answer costs nothing and the caller cannot act on a fix (internal library calls, contract-typed callers); keep the shape always."
+    },
+    {
+      "section": "Implementation note 8 / Implementation note 1",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "The numbers ('19 times in an annotator study, 18 of them on correct code', 'eight names for saving') are evidence for why the rule exists, not part of the pattern, and they sit inside a chapter that already points at Chapter 13 for measurement. They make the note longer without making the rule more reusable.",
+      "suggestion": "Keep the principle and a one-clause reason ('goja-cv deleted its unused-node lint after it fired mostly on correct code'), and move the counts to Chapter 13."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The shape (code, path, where, valid, hint, fix) is genuinely portable to compilers, CLIs and HTTP APIs, so reusability is high; clarity loses points for the unresolved host-code contradiction and for the Sketch's exclusive hint-vs-valid rule, and would_apply_it loses a point for the missing safety rule on fixes that bind but destroy."
+  }
+}

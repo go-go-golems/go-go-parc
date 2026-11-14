@@ -1,0 +1,147 @@
+{
+  "restatement": {
+    "intent": "Describe each operation of an engine exactly once, as a data record, and let every consumer — checker, help, refusals, agent context, tests — read that record instead of keeping its own copy.",
+    "problem": "When several consumers each hold their own idea of what an operation accepts and returns, they drift apart, and the caller gets silent wrong behaviour instead of a precise refusal.",
+    "solution": "Register one OpRecord per (receiver kind, name), holding arguments with type, unit, default, hard limits, usual range and redirects, plus a cross-argument hook, result kind and fields, flags, docs and an implementation or expansion. Registration validates records structurally and semantically; the binder checks calls against the record, the describer renders help from it, the diagnoser builds refusals from it, and a walker test calls every record and compares results with declared fields. Anything that cannot be a record goes on one visible exception list with its own test."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "The call binds successfully and returns the bound call carrying a Warning(RANGE, spec, usualHint); defaults never warn, only caller-supplied values. That warning must be copied into the reply the caller reads — a warning that reaches only a log is no warning.",
+      "where": "Implementation note 2 (Separate hard limits from usual ranges); Collaborations 4; the bind pseudocode"
+    },
+    {
+      "id": "Q2",
+      "answer": "The walker test (goja-cv's TestRegistryWalk plus TestSchemaProperty), reinforced by registration: if samples live in the record, registration can refuse a callable record without them; the walk then calls every record and asserts result keys ⊆ declared fields and required fields ⊆ result keys. The chapter notes goja-cv keeps samples in the test file, which is exactly why its registration cannot enforce this.",
+      "where": "Implementation note 5 (Walk the whole registry); Structure/Walker; the walker pseudocode"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because goja-cv keeps its method, help and look redirects in three tables outside the registry, so a redirect added to one is invisible to the others — which is the very drift the pattern exists to prevent. Redirects are operation knowledge and belong with the operation record.",
+      "where": "Implementation note 4 (Keep every near-miss redirect in the records)"
+    },
+    {
+      "id": "Q4",
+      "answer": "Any two of: binder (checks calls, produces warnings), describer (agent context line and full help), diagnoser (refusals with valid names, nearest name, fix), walker test, and the tool-schema renderer named in note 6.",
+      "where": "Structure table; Collaborations 2–6; Implementation note 6"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Three independent consumers (LLM tool schema, mobile control UI, hub-side validation) plus third-party plug-ins adding actions at run time is precisely the applicability case; a function signature per plug-in cannot serve the tool schema or the control layout.",
+      "participants": {
+        "Operation record": "One record per action per device kind: set_temperature(on: Thermostat), dim_lights(on: Dimmer), lock_door(on: Lock), run_scene(on: Hub), plus returns and flags.",
+        "Argument spec": "e.g. temperature: number, unit °C, min 5, max 30, usual [16, 24], valueDocs for mode enums; scene: enumeration with value docs; duration/transition in seconds.",
+        "Flags": "confirm for lock_door and any irreversible action — the host sets it and a plug-in record cannot lower it; internal for actions the voice assistant must not see; identity for no-op-friendly settings.",
+        "Registry": "The hub's action registry, populated at start-up by core and by each device plug-in, keyed by (device kind, action name).",
+        "Binder": "The hub's command validator: unknown keys, types, hard limits, cross-argument hook (target temperature vs mode), warnings.",
+        "Describer": "Two renderings: the LLM tool description (JSON-schema-ish) and the mobile control layout (a control per argument, from type + limits + valueDocs).",
+        "Diagnoser": "The refusal sent back to voice/LLM or app: valid action names, nearest name, redirects (`set_temp` → `set_temperature`), clamp fix for out-of-range temperature.",
+        "Walker": "A plug-in conformance test that binds each record with its samples against a simulated device and checks result fields."
+      },
+      "sketch": "-- core + each device plug-in, at start-up\nregistry.register(OpRecord(name: \"lock_door\", on: Lock, returns: Ack,\n    args: [ArgSpec(name: \"timeout\", type: seconds, unit: s, default: 30, min: 0, max: 300, usual: [5, 60])],\n    flags: { class: actuator, confirm: required },   -- host-owned, plug-in cannot lower\n    redirects: [{ from: \"unlock\", call: \"lock_door({ locked: false })\" }],\n    samples: { timeout: 30 }, run: plugIn.lockDoor))\nregistry.finishStartUp()   -- cross-record checks: redirect targets and confirm policy\n\nbind(Lock, \"lock_door\", raw) → BoundCall(rec, args, warnings) | Failure\n  -- same as chapter: unknown keys first, no coercion, units still as written\nexplain(failure, registry) → Refusal        -- feeds the tool reply and the app toast\ncontextLine(rec) → tool schema entry / control spec",
+      "key_notes": [
+        "Note 1: plug-ins register late, so cross-record checks (redirect targets, target actions from another plug-in) must run once registration is complete, at end of start-up — not per record.",
+        "Note 6: device plug-ins will add argument types (colour temperature, scene ids, device references) faster than the core can grow; make types pluggable with accept/check/describe before that happens, and keep the tool-schema and UI consumers as modules outside the core.",
+        "Note 2 and Chapter 2: temperature is the classic unit trap — hard limits and usual ranges must be declared in °C or °F and converted only at evaluation, never at bind time.",
+        "Flags portfolio (confirm): lock_door and unlock must be confirmable and a third-party record must not be able to clear the flag; a non-interactive voice run refuses outright.",
+        "Note 8: plug-ins rename actions; a rename needs a redirect from the old name so voice transcripts still work, and a changed default changes saved routines, so defaults are part of identity.",
+        "Note 9: whatever cannot be a record (session open, device discovery, run_scene if it bypasses the action path) belongs on one exception list with a test that every name reachable from the assistant is accounted for."
+      ],
+      "risk": "Treating plug-in records as trusted: a plug-in can declare confirm:false on an irreversible door action, invent units the binder cannot convert, or collide with a core action name, so the validated registry becomes the new source of silent wrong behaviour. The host needs an admission policy (confirm floor, allowed types/units, name namespace) enforced at registration."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter's own exclusion applies: the platform already gives you the records — protobuf plus field-constraint annotations already generate clients, docs and server-side validation. A second Go registry would be a parallel source of truth and would drift from the .proto, recreating the exact problem the pattern solves. The right move is to add consumers over the existing descriptors (a doc/help renderer, an agent tool-schema generator reading descriptors and annotations), not a new registry.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, third 'do not use it' bullet: use the typed RPC schema as the registry instead of building a parallel one.",
+        "Variations, schema-first records: if anything is missing, extend the .proto or its annotations, since that file already is the reviewable, language-neutral record.",
+        "Consequence 'generated help is flat' still applies — the gap a Go registry would seem to fill (prose help) is a Chapter 12 problem, not a registry problem."
+      ],
+      "risk": "Building it anyway 'just for help text', then discovering validation and docs disagree with the generated ones; or hand-writing the operation list in Go and letting it rot as methods are added."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The bolded Solution is one triple-nested sentence that lists the entire record shape, then the entire consumer set, then the exception rule. A reader cannot hold it after one pass, which is bad for the one paragraph meant to be remembered.",
+      "suggestion": "Split into three short paragraphs or a numbered list: (1) what the record contains, (2) who reads it, (3) the exception rule. Move the record field list to the Sketch, where it already exists."
+    },
+    {
+      "section": "Implementation note 1 vs Sketch",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The sketch lists 'redirect targets exist' and 'default within limits' as semantic checks in register(), but note 1 says goja-cv's Register does not check them and that they belong to the pattern. The chapter presents a pseudocode contract the running example does not meet without saying which one is normative.",
+      "suggestion": "State the required check set once, then say plainly: goja-cv implements the structural half only; that gap is a bug in goja-cv, not an option in the pattern. Keep the sketch as the contract."
+    },
+    {
+      "section": "Structure / Collaborations (redirects)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Two redirect mechanisms appear with no rule separating them: record-level `redirects` on OpRecord and `registry.redirectFor(on, name)` in the diagnoser, while argument specs carry option-level redirects. Note 4 says method-level ones 'live in the operation record or the registry' — 'or' is the ambiguity.",
+      "suggestion": "Say when a redirect must be on the record (it is about that operation) versus in the registry (it is about the namespace or the help system), and give one example of each."
+    },
+    {
+      "section": "Structure / Flags",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Four of the six listed flags (pixel/geometric/decoration class, `global`, identity predicate, lossless-preview hint) are named but never explained: which consumer acts on them and what it does. Only `internal` and the hypothetical `confirm` get any prose.",
+      "suggestion": "Give one line per flag: reader, meaning, effect. Drop the ones this chapter does not use, since flags without consumers are indistinguishable from decoration."
+    },
+    {
+      "section": "Structure / Operation record (fields) and Collaborations 6",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Results are described as a kind plus `fields(boundArgs) → [FieldSpec]`, but the walker only checks key presence ('nothing undeclared, nothing missing') — never a field's type, unit or nullability. Nothing says whether FieldSpec has a type at all, so the chapter's own test cannot catch a column that silently changes from count to fraction.",
+      "suggestion": "Define FieldSpec (name, type, unit, optional) and have the walker assert value kinds too; say explicitly that value-level correctness needs per-operation tests beyond the walk."
+    },
+    {
+      "section": "Structure / Argument spec, cross-argument hook",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The `validate?(args)` hook is acknowledged as where table-unfittable rules go, but nothing reconciles that with 'help is generated from records': a constraint living in a hook is invisible to the describer, the tool schema and the agent's context. The same applies to the `expand` graphs.",
+      "suggestion": "Require the hook to carry a machine-readable description (code, message, involved arg names) so the describer and diagnoser can render it, and say what the describer prints for hook-only rules."
+    },
+    {
+      "section": "Registry / Implementation notes 7 and 9",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Third-party and user-defined operations are invited (note 10, Applicability 'by users at run time'), but the chapter never states the admission rules: who wins on a (kind, name) collision between core and plug-in, whether a plug-in may lower a host-owned flag, or which argument types a plug-in may introduce. `(on, name) unique` covers the collision by failing registration, which for a late plug-in means the hub may not start.",
+      "suggestion": "Add a note on namespacing and precedence (plug-in records are namespaced and refused, not merged, on collision) and on which flags only the host may set."
+    },
+    {
+      "section": "Diagnoser sketch (ARG_RANGE fix)",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "`fix: clamp(failure.value, failure.spec)` is shown without saying whether anything applies it. Silently clamping contradicts the chapter's own 'strictness' force and 'nothing falls back to a default silently' (note 3); the reader cannot tell whether the fix is a suggestion to the caller or an automatic repair.",
+      "suggestion": "Say once that `fix` is always a suggested call for the caller to make (or re-issue), never an applied repair, and that the original value is quoted in the refusal."
+    },
+    {
+      "section": "Motivation and Implementation notes 5, 6, 9, 10",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The same two anecdotes (goja-cv v1's `cv.open` encoding bug, the Editor lab's hand-written reference) are told in Motivation and re-told in four notes. Each note also spends words on what goja-cv failed to do, so the reusable rule is buried in a defect report.",
+      "suggestion": "Tell each anecdote once in Motivation and let the notes state the rule first, with a one-clause pointer to the example; cut 'goja-cv does not do X' where the sketch already shows X."
+    },
+    {
+      "section": "Applicability",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "'Build the registry when a second independent consumer exists' is the only trigger given, with no sense of the cost being weighed — while the running example is sixty operations with five consumers and the chapter elsewhere says any new operation now touches shared code.",
+      "suggestion": "Add one clause on scale: a second consumer justifies the pattern, but the binder's type system is the cost, so keep the type set small until a real operation needs a new one."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The core shape (record → binder/describer/diagnoser/walker) is genuinely transferable and the exclusions are well judged, but the overstuffed Solution paragraph, the two-route redirect story and the undefined flags/result-field types leave real ambiguity for anyone building it."
+  }
+}

@@ -45,7 +45,10 @@ correct for the ruler's margin. Rulers help a person; a vision model localises p
 goja-cv's later versions changed what pictures are for. Candidates come from a measurement (`peaks`) as rows with
 ids and coordinates, and pictures show those same ids circled and numbered. The agent looks at a sheet of twelve
 numbered candidates, decides which are dust by looking, and reports ids, whose coordinates it already has as
-numbers. With this, pi agents located 14 and 13 of 53 gold points on a set of test tiles, against 4 and 5 before.
+numbers. In a question task (find the spots, sheet them, measure them), two pi agents with candidates as rows located
+14 and 13 of 53 gold points within 5 pixels, against 4 and 5 for two agents before, and reported 2 and 5 spots far
+from any gold point instead of 15 and 12. In longer annotator-style sessions on one tile, both versions located 9 of
+13; there the candidates had come as rows already.
 
 Pictures also cost. The model API the dust pipeline used rejects a conversation holding more than 100 images, and a
 run that crosses the limit ends with nothing; the first batch of annotator runs lost runs that way. The fix was a
@@ -127,7 +130,7 @@ Do not use it when:
 ## Sketch
 
 ```text
-value Item:   id, cx, cy, r, scores…                 -- numbers, from a measurement
+value Item:   id, cx, cy, r, scores…                 -- numbers, from a measurement; id stable across filtering
 value Sheet:  cells: [Cell(itemId, views: [View], zoom)], labels: ids
 
 candidates = measure(peaks(view(img, "speck"), snr: 1))       -- rows with ids
@@ -141,11 +144,15 @@ deliver(callPictures, budget) → (delivered, warnings)
        and session.picturesSoFar < budget.perConversation:
       delivered = delivered ++ [p]; session.picturesSoFar += 1
     else:
-      warnings = warnings ++ [Warning(LOOKS, "not delivered: " ++ p.label ++ " (line " ++ p.line ++ ")")]
+      warnings = warnings ++ [Warning(LOOKS, "not delivered: " ++ p.label ++ " (line " ++ p.line ++ ")",
+                                      fix: "fewer cells per sheet, or a smaller zoom")]
   return delivered, warnings
 
--- the agent's answer cites ids; the engine maps them to numbers
-answer = { dust: [3, 7, 11] }  →  [keep[i] for i in answer.dust]   -- exact cx, cy, r
+-- the agent's answer cites ids; the engine maps them to numbers, and refuses ids it never showed
+byId = { item.id: item for item in keep }
+for i in answer.dust:
+  if i not in byId: return refuse(E_UNKNOWN_ID, i, valid: keys(byId), hint: "cite ids from the last sheet")
+labels = [byId[i] for i in answer.dust]                          -- exact cx, cy, r
 ```
 
 ## Implementation notes
@@ -154,11 +161,12 @@ answer = { dust: [3, 7, 11] }  →  [keep[i] for i in answer.dust]   -- exact cx
    Positions read off ruler crops were off by 5 to 10 pixels; positions from rows are exact. Rulers remain useful for
    a person reading the same picture.
 2. **Ids in the picture must match ids in the rows.** goja-cv's overlays and sheets label items with the `id` field
-   of the rows they were given, so "7" in the picture is row 7 in the table. Relabelling in the picture (1 to 12 by
+   of the rows they were given, so "7" in the picture is the row whose id is 7, wherever it sits in the table. Relabelling in the picture (1 to 12 by
    position in the sheet) breaks the link the moment the agent filters the rows.
-3. **Sheets beat single zooms.** A sheet of twelve to fifteen cells costs one image; twelve zooms cost twelve.
-   goja-cv's helper caps sheets at fifteen cells so that each cell stays large enough to judge after the API
-   downscales the image.
+3. **Sheets of small magnified cells beat single zooms.** A sheet of twelve to fifteen cells costs one image; twelve
+   zooms cost twelve. Each cell is a small crop shown magnified, so the sheet is many small looks in one picture, not
+   one large overview (note 8). goja-cv's helper caps sheets at fifteen cells so that each cell stays large enough to
+   judge after the API downscales the image; the right count depends on the API's image size limit.
 4. **Put the views the decision needs side by side.** The annotators decided best with the scene and a band-pass view
    of the same cell next to each other: the scene shows what the object is, the band-pass view shows whether it
    stands out from grain.
@@ -168,11 +176,14 @@ answer = { dust: [3, 7, 11] }  →  [keep[i] for i in answer.dust]   -- exact cx
    conversations with more than 100 images and asks agents to stay under 50, preferring sheets and numbers. An agent
    cannot plan around a limit it learns about only when the run is rejected.
 7. **Deliver every picture a call created, and name the ones left out.** goja-cv v1 delivered only returned pictures
-   and silently dropped `x.look()` statements; v2 delivers all of them, returned ones first, up to four per call and
-   8 MiB, and names each omitted one by line in a `LOOKS` warning.
-8. **Several small magnified looks beat one large composite.** APIs downscale large images before the model sees them,
-   which erases three-pixel specks; the pi subagents handbook records the same finding for its judges.
-9. **Agents use what carries the work.** In the 39-agent study, `look` (223 calls), `sheet` (161) and `crop` (153) did
+   and silently dropped `x.look()` statements; v2 delivers all of them, returned ones first, up to its per-call budget
+   (four pictures and 8 MiB, goja-cv's defaults), and names each omitted one by line in a `LOOKS` warning.
+8. **Several small magnified looks beat one large overview.** APIs downscale large images before the model sees them,
+   which erases three-pixel specks; the pi subagents handbook records the same finding for its judges. A sheet is the
+   way to show several small magnified looks in one image; an uncropped overview is not.
+9. **Check ids on the way back.** An agent may cite an id it was never shown, or one from an earlier sheet. Map
+   answers through the rows of the sheet it saw, and refuse unknown ids with the valid ones.
+10. **Agents use what carries the work.** In the 39-agent study, `look` (223 calls), `sheet` (161) and `crop` (153) did
    the work; documented views and charts that were never shown in examples were never used. Put the evidence tools in
    the helpers and examples agents copy.
 

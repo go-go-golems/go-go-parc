@@ -1,0 +1,139 @@
+{
+  "restatement": {
+    "intent": "Trust agent output selectively: measure it, accept only the answers that clear a threshold you can defend, and spend scarce human review on the uncertain middle and on a blind audit of the confident answers.",
+    "problem": "Agent labels and verdicts are abundant but of unknown quality; trusting them poisons the data, checking them all defeats the purpose, and measuring them against a bad reference gives false confidence.",
+    "solution": "Filter proposals with a cheap deterministic gate calibrated on held-out labelled data, and mark what it removes as unknown rather than negative. Mix blind controls from both sides into every judging batch and score each judge and prompt version on them for ranking, accuracy and calibration, setting acceptance thresholds where controls hit the target precision. Accept what clears the thresholds, route the middle band plus a random audit sample to a person who cannot see the verdict, and have a person re-check controls that several judges confidently contradict."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Because a threshold tuned and scored on the same items overstates itself: the dust gate's iso ≥ 2.0 was picked on the same six tiles it was then scored on (75 % / 71 %), which flattered it, and the project recorded it as needing a held-out check.",
+      "where": "Implementation note 2 (and the Motivation caveat about the comparison flattering the gate)"
+    },
+    {
+      "id": "Q2",
+      "answer": "The isolation number was good at catching annotator over-keeps but was a poor judge cue: it separated the judge controls with AUC 0.63, and teaching it in the prompt dropped the judge's AUC from 0.78 to 0.71. A cue's value is stage-specific, so it must be measured on the controls of the stage that will use it.",
+      "where": "Implementation note 3"
+    },
+    {
+      "id": "Q3",
+      "answer": "The share of real items (not controls) that land beyond the acceptance thresholds at the required precision, i.e. how much work a judge actually removes from people; the best dust judge made only about 40 % usable. Ranking quality alone does not tell you this, because a well-ranking judge may be usable only at its extremes.",
+      "where": "Implementation note 6; Structure table (Scorer); Motivation"
+    },
+    {
+      "id": "Q4",
+      "answer": "Sixty controls gave AUC values with roughly ±0.06 uncertainty, so gaps smaller than that between judges are only suggestive; compare variants on identical items.",
+      "where": "Implementation note 9"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "2M images against a few thousand reviews with past expert labels available is exactly the shape: plentiful proposals, scarce reviewers, and an existing source of known answers to calibrate against.",
+      "participants": {
+        "Proposer": "the detector proposing animal boxes, plus the species-labelling agent working on kept boxes",
+        "Gate": "a deterministic box criterion calibrated on archived seasons (e.g. blur/size/edge-confidence separating junk boxes from real animals), threshold frozen",
+        "Judge": "the species-labelling agent run per crop, returning species + probability (one sealed run per chunk)",
+        "Controls": "crops from past expert-labelled images with known species, plus confirmed-empty crops, blind ids, drawn from the same cameras and seasons' crop distribution",
+        "Scorer": "per model/prompt: AUC, accuracy at 0.5, Brier, per-class thresholds at target precision, usable share",
+        "Router": "accepts species beyond the per-class thresholds, sends the middle band ranked by distance from threshold to the ecologist queue",
+        "Review queue": "ecologist UI showing the crop without the agent's species; decisions go to the lineage ledger"
+      },
+      "sketch": "-- gate: frozen on held-out archived seasons, applied to new seasons\ngate(box) → keep | unknown\n  if blur(box) > b* or box.area < a*: return unknown        -- b*, a* frozen; gate-out = unlabelled, not \"no animal\"\n  return keep\n\nbatch = shuffle(unreviewedCrops ++ sample(expertPositives, 60) ++ sample(expertNegatives, 60))\n-- controls masked as the same crop shape/size, same cameras; ids blind like real crops\nruns  = chunks(batch, 8)                                  -- one sealed agent run per chunk\nscore(verdicts, controls) → { auc, brier, hi[species], lo[species], usableShare }\n  -- one-vs-rest per species: thresholds where that species reaches target precision\nroute v:\n  if v.p ≥ hi[v.label] and no other class passes its hi: accept species\n  elif v.p between lo and hi: queue(v, showVerdict: false)  -- ranked by distance from threshold\n  else: accept absence\nsample(accepted, 0.10) → queue(showVerdict: false)          -- audit the confident\nconfident judge disagreement with an archived label → ecologist re-checks the control",
+      "key_notes": [
+        "Note 4 (blind, alike controls): archived labels from old cameras/years are trivially distinguishable from new trap images; controls must be drawn to match camera model, season and crop statistics or the scores measure the archive, not the judge.",
+        "Note 2 (calibrate on data not scored on): hold out whole seasons when freezing the gate, since the project has years of expert labels to split.",
+        "Note 7 (expect the yardstick to be wrong): old expert labels often mean 'blank' for images later found to contain an animal, and those are precisely the controls a good judge will contradict; budget ecologist time for control re-checks.",
+        "Note 3 (cues are stage-specific): box confidence or size may gate junk boxes well yet be useless or harmful as a species cue in the judge prompt.",
+        "Note 10 (rank and cap the middle band): with two ecologists, rank by distance from threshold and leave the tail unlabelled rather than accepted; also weight rare species, where precision at high thresholds is hardest.",
+        "Sketch's multi-class rule (one-vs-rest thresholds per class): essential here, since a single global threshold on a rare-species-heavy stream would accept almost nothing."
+      ],
+      "risk": "Silent recall loss: the gate and the router discard ambiguous and mid-band images as 'unknown', and the audit samples only accepted items, so missed animals are never counted — a survey can look precise while underestimating abundance. Also likely: controls drawn only from easy archived years, so the calibrated thresholds do not transfer to the current camera set."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Both do-not-use conditions hold: there are no known answers and none can be produced without someone labelling tickets, and 40 items are faster to tag by hand than to build a gate, controls and a queue for. There is nothing to calibrate, and the 'review queue' would be the whole set.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, second exclusion (no known answers, none producible) is the decisive one — without controls the Scorer has nothing to score and thresholds are arbitrary.",
+        "Applicability, third exclusion (too few items): 40 tickets is a person-hour, not a pipeline.",
+        "If the agent is used at all, the first exclusion's alternative applies: the agent assists a person on every ticket (suggested topic, human confirms blind), which is review, not triage."
+      ],
+      "risk": "Building the apparatus anyway — a 'gate' invented ad hoc and a review queue of all 40 — producing calibrated-looking numbers from zero controls and more setup time than the task deserved."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch / Collaborations",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "It never says what happens to gated-out items after the gate: the flow diagram sends them to 'unknown, not negative' and the routing loop only iterates over 'verdicts of real items', so a reader cannot tell whether gated items are judged anyway, reviewed, or silently dropped forever.",
+      "suggestion": "State the rule explicitly (gate-out = no label, no judge run, no review unless sampled) and add an audit sample of gated-out items to the audit step, so wrongly removed good items can be detected."
+    },
+    {
+      "section": "Sketch (pseudocode) and Implementation note 2",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The pseudocode hardcodes the very gate the chapter criticises — `smallSpot` and `isolation(c) < 2.0`, a threshold chosen on the same tiles it was scored on — so the canonical code embodies the mistake note 2 warns against.",
+      "suggestion": "Genericise to a criteria table with frozen, versioned thresholds and show the calibration step (fit on a held-out split, then freeze); mention in a comment that 2.0 is the flawed dust value."
+    },
+    {
+      "section": "Sketch step 3 (thresholds) / Implementation note 9",
+      "kind": "missing",
+      "severity": "high",
+      "note": "`hi`/`lo` are defined as where control precision ≥ 0.85, but with 30 positive controls the precision at extreme thresholds rests on a handful of items; the note quantifies AUC noise (±0.06) and says nothing about how unstable the resulting thresholds are, nor how many controls per class are needed.",
+      "suggestion": "Add the analogous number for thresholds (confidence interval on control precision, minimum controls on each side of the chosen p) and a rule for what to do when the required precision is unreachable with the available controls."
+    },
+    {
+      "section": "Structure table (Judge) / Scorer",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The pattern depends on judges emitting usable probabilities and scores Brier, but never says where p comes from or that it must be repaired: it notes overconfident models scored worst yet gives no remedy, so a reader can score calibration without ever fixing it.",
+      "suggestion": "Add an implementation note: elicit p from logprobs or repeated sampling rather than self-reported confidence, recalibrate (temperature/isotonic) on a held-out slice of controls, then set thresholds on the recalibrated values."
+    },
+    {
+      "section": "Implementation notes 2 and 7 / Consequences",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Note 2 says freeze the threshold; note 7 says corrected controls change the ranking and Consequences admits thresholds move with every correction. Nothing says how to hold both: when to re-calibrate, whether old accepted labels stay accepted, or how a threshold version is recorded.",
+      "suggestion": "Add a short note on threshold lifecycle: threshold versions are recorded in the ledger, re-calibration happens on a schedule or when control corrections exceed some count, and previously accepted items are re-checked only by the audit sample."
+    },
+    {
+      "section": "Applicability",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "No mention of distribution drift. All the calibration is only valid while the incoming items resemble the controls and the labelled data the gate was fitted on; a new camera, a new customer, or a new prompt silently invalidates every threshold.",
+      "suggestion": "Add drift as a do-not-use-without-care condition plus a monitoring step (e.g. track control-scored precision over time and the share of items hitting the middle band; a jump means re-calibrate)."
+    },
+    {
+      "section": "Known uses",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Snorkel is listed as an instance, but its central move is estimating labelling-function accuracies *without* gold labels, which contradicts the chapter's own exclusion ('no known answers → do not use').",
+      "suggestion": "Either drop Snorkel or present it accurately as the no-controls variation, and say what it trades away (identifiability assumptions instead of measured controls)."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "The dust numbers accumulate before the reader has the structure: iso 2–16 vs 0.9–2.3, 75/71 vs 64/70 on six tiles, plus a self-admitted caveat that the comparison flatters the gate, plus the nine-of-ten bad controls. The caveat is doing the work of implementation note 2 in the wrong place.",
+      "suggestion": "Keep one number per bullet, move the 'chosen on the same tiles' caveat entirely into note 2, and compress the three bullets to their shape (over-eager proposer, unreliable judge, wrong yardstick)."
+    },
+    {
+      "section": "Also known as",
+      "kind": "other",
+      "severity": "low",
+      "note": "The alias list mixes the whole pattern with its parts (uncertainty sampling, gold questions) and with a related but different technique (LLM-as-a-judge with calibration), so a reader cannot tell what is a synonym and what is one stage.",
+      "suggestion": "Split into 'also known as' (planted controls, gated calibration) and 'component names' (gold questions, uncertainty sampling, threshold routing)."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The three-stage shape and the implementation notes carry real experience (especially the yardstick-correction and cue-is-stage-specific notes), but the pseudocode's hardcoded dust gate, the unstated handling of gated-out items, and the missing probability-calibration and drift guidance keep it from being directly reusable."
+  }
+}

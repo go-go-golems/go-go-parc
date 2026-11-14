@@ -1,0 +1,141 @@
+{
+  "restatement": {
+    "intent": "Describe each operation once, as data, and make checking, help, refusal-building and testing all read that one description, so the four can never disagree.",
+    "problem": "When several consumers each hold their own idea of an operation's arguments and result, they drift, and callers — often agents — get silent wrong behaviour instead of a precise refusal.",
+    "solution": "Every operation is one validated record: name, receiver kind, argument specs (type, unit, default, hard limits, usual range, redirects, docs), a cross-argument hook, result kind and fields, flags, samples, docs, and an implementation or an expansion. A binder binds calls against records and returns warnings; a diagnoser turns failures into refusals; a describer renders context lines and help; a walker runs every record and compares the result with its declared fields. Registration refuses malformed records, and any list of operations outside the registry is a bug.",
+    "": ""
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "It binds normally, but the binder appends a RANGE warning carrying the spec's usualHint; only a value outside the hard min/max is refused, and only caller-supplied values warn (defaults never do).",
+      "where": "Solution/Sketch (bind loop) and Implementation note 2"
+    },
+    {
+      "id": "Q2",
+      "answer": "The walker test plus registration: registration refuses a callable record with no samples, and the walker (TestRegistryWalk / TestSchemaProperty) calls every record and asserts result keys ⊆ declared fields, with required fields present.",
+      "where": "Structure (Walker), Solution sketch (walker test), Implementation note 5"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because method, help and `look` redirects live in three tables outside the registry, so a redirect added to one is invisible to the diagnoser and the other consumers — the same drift the pattern exists to prevent.",
+      "where": "Implementation note 4"
+    },
+    {
+      "id": "Q4",
+      "answer": "Any two of: binder (checks calls, emits warnings), describer (agent context line, full help), diagnoser (valid names, nearest name, fix), walker test, a UI/tool-schema consumer.",
+      "where": "Structure table / Collaborations 2–6"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Three independent consumers (LLM tool description, app controls, hub validation) plus third-party plug-ins is exactly the stated applicability, and the hub needs side-effect confirmation, which the chapter's `confirm` flag exists for.",
+      "participants": {
+        "Operation record": "one per (device kind, action): on = Light | Thermostat | Lock | Scene, args, flags {confirm}, returns Ack, samples, doc, run supplied by the plug-in.",
+        "Argument spec": "temperature value with unit (C/F), per-device min/max from the plug-in, usual 16–28 with hint, enum options for scene names, redirects (`set_temp`, `brightness` → `level`).",
+        "Flags": "`confirm` for lock_door/run_scene (the host decides, a plug-in cannot lower it); class = plugin vs core; internal for pairing/discovery actions.",
+        "Registry": "validates and stores plug-in records at plug-in load; one per (device kind, action); cross-record checks (redirect targets, name collisions) run when a plug-in finishes loading.",
+        "Binder": "the hub's single entry point; both the voice assistant and the app send raw arguments through it.",
+        "Describer": "two renderings: a context line plus tool schema for the model, and a per-argument control (slider with min/max and usual-range marks, dropdown for enums) for the app.",
+        "Diagnoser": "turns UNKNOWN_ACTION / UNKNOWN_OPTION / ARG_RANGE into refusals that go back to the model as tool results, and to the app as field-level errors.",
+        "Walker": "run per plug-in at load/CI: call every action with the record's samples, assert the ack's fields match."
+      },
+      "sketch": "value ActionRecord: name, on: DeviceKind, args: [ArgSpec], validate?(args) → ok | Failure,\n                    returns: Ack, fields(boundArgs) → [FieldSpec], flags {confirm?, class, internal?},\n                    redirects?, samples, doc, run            -- run comes from the plug-in\n\nregistry.register(rec) → ok | refuse(E_BAD_RECORD, …)\n  -- structural at load; cross-record (redirect targets, (on,name) collisions) when the plug-in load ends\n\nbind(kind, name, raw) → BoundCall(args, warnings) | Failure   -- one binder: model and app both use it\n  match lookup(kind, name):\n    Lock  & rec.flags.confirm & not raw.confirmed → Failure(NEEDS_CONFIRM, rec)\n    Scene & rec.flags.confirm & not raw.confirmed  → Failure(NEEDS_CONFIRM, rec)\n\nschema(rec)  → JSON schema via spec.type.describe()     -- voice assistant\ncontrol(rec) → widget per arg: range(min,max) + usual markers, options → picker   -- mobile app\n\nfor rec in registry.all():                     -- per plug-in, before it is offered to either consumer\n  call = bind(rec.on, rec.name, rec.samples); v = run(call)\n  assert required(rec.fields(call.args)) ⊆ keys(v) ⊆ names(rec.fields(call.args))",
+      "key_notes": [
+        "Note 1 (validate + cross-record checks at the end of registration): plug-ins arrive after start-up, so 'end of start-up' must become 'end of plug-in load'; a dangling redirect or duplicate action name is the likely first bug from third-party authors.",
+        "Note 2 (hard limits vs usual range, in the declared unit): temperature is the whole point — declare C/F per record, warn on 14 °C rather than refuse, and check the value as written, not after unit conversion.",
+        "Note 6 (pluggable types, consumers outside the core): the tool schema and the app control are two consumers that must be thin delegates on the registry's public interface, or third parties will fork the core to add their own types.",
+        "Note 5 (samples live in the record): with third-party code you cannot keep samples in a central test file; registration must demand them so each plug-in can be walked on its own.",
+        "Note 9 (exceptions in one list): pairing/discovery and hub-level commands will not be records; one list plus a test that every agent-reachable action is in registry or list.",
+        "Structure's `confirm` flag: lock_door and run_scene are the case it was written for — the host sets it, a plug-in cannot lower it, non-interactive runs refuse outright."
+      ],
+      "risk": "Keying records by device instance (living-room lamp) instead of device kind, so the registry explodes; and letting plug-ins ship their own free-text help or validation, which reintroduces the second source of truth the pattern removes."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter's own 'do not use it when' clause applies: the platform already gives you the records (protobuf descriptors plus constraint annotations), and they already generate clients, docs and validation. A parallel Go registry would be exactly the drift the pattern prevents.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, third exclusion: use the RPC schema as the registry instead of building a parallel one — the proto files are the operation records and the annotations are the argument specs.",
+        "Variations, code-first records: annotations carry types and limits well but usual ranges, usual hints and near-miss redirects fit awkwardly, so those are the only things worth adding (in a side file keyed by full method name), not a second catalogue of methods.",
+        "Note 1's spirit: if help text must be hand-written for the few methods annotations cannot express, enumerate those in one list with a test that every method is covered by annotation or by that list."
+      ],
+      "risk": "Two catalogues that start identical and diverge on the next field rename or default change; the Go registry becomes stale help and weaker validation than the generated one, and reviewers cannot tell which is authoritative."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Implementation note 1",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The Solution paragraph says records are validated 'for consistency (defaults within limits, redirect targets that exist)', but note 1 then says goja-cv does not check either and such mistakes reach agents. The running example therefore does not do what the pattern's own solution states, without that being flagged as a known flaw.",
+      "suggestion": "Either fix the example or split the check list into 'required by the pattern' and 'goja-cv status', so a reader copying goja-cv knows which checks they are missing."
+    },
+    {
+      "section": "Structure vs Implementation note 5 (samples)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The Structure table and the record sketch put `samples` in the operation record and registration refuses records without them; note 5 then says goja-cv keeps samples in the test file. The reader cannot tell whether samples-in-record is part of the pattern or an improvement goja-cv lacks.",
+      "suggestion": "State it once: samples belong in the record because registration must require them; describe goja-cv's test-file version as the deviation, not as a peer option."
+    },
+    {
+      "section": "Structure table, Flags participant",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Flags are introduced mainly through goja-cv's vocabulary (pixel/geometric/decoration, global, internal, identity predicate, lossless-preview). Only `confirm` is given with a contract. A reader in another domain cannot tell which flags are structural and which are this example's decoration.",
+      "suggestion": "Give a small table: flag → which consumer reads it → behaviour when absent → who may set it (host vs plug-in). Keep `confirm` as the worked example and demote the pixel-class flags to a one-line 'in goja-cv also…'."
+    },
+    {
+      "section": "Structure (confirm flag) / Collaborations",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "`confirm` says the fix is 'the same call, confirmed' and that a non-interactive run refuses outright, but nothing says where that decision lives: the binder must know whether the session is interactive, and a confirmed call appears to bind twice. This is the one genuinely new flag and it is the least specified.",
+      "suggestion": "Add a short paragraph: who supplies interactivity, that the refusal carries the exact confirmed call as fix, and that confirmation is not part of the bound-call hash/cache key (or is, and why)."
+    },
+    {
+      "section": "Solution sketch, `validate?(args)` and `explain` HOOK case",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The cross-argument hook is named as the answer to the force 'some rules do not fit in a table', but its contract is never given: what it may see, what codes it may return, whether it may be impure. The explain case `HOOK → refuse(failure.code, …)` assumes a vocabulary the reader was never shown.",
+      "suggestion": "Specify the hook: pure function of bound args, returns Failure(code, why, fix) using the diagnoser's existing kinds where possible; note the consequence that hooks cannot see the input value (an argument-vs-image check needs another mechanism) and say what that mechanism is."
+    },
+    {
+      "section": "Structure (expansion) / registry.register checks",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Records may be an 'expansion (a small graph of other operations)', but the registration checks cover only implementation-vs-expansion exclusivity, duplicate args, result kind and redirect targets. Nothing validates that an expansion's graph references existing operations or is acyclic, which is the obvious failure mode of user- and plug-in-authored composites.",
+      "suggestion": "Add 'expansion graph references resolve, no cycles, argument remapping is total' to the end-of-start-up consistency pass, and say whether expansions are walked through their graph or as black boxes."
+    },
+    {
+      "section": "Solution sketch (walker assertions) vs Implementation note 5",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "The sketch asserts `keys(v) ⊆ names(declared)` plus `required(declared) ⊆ keys(v)`; note 5 describes TestSchemaProperty as requiring the keys to be 'exactly the declared fields, with only optional ones allowed to be missing'. Those are two different rules for the same test.",
+      "suggestion": "Pick one assertion and use it in both places; the sketch's two subset checks already imply the note's rule, so state that equivalence rather than restating it differently."
+    },
+    {
+      "section": "Motivation + Applicability + Known uses",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The generality of the problem is argued three times: the four goja-cv failure modes, then three other domains in the Motivation, then three Applicability bullets, then five Known uses. A reader is convinced after the first list plus PyTorch.",
+      "suggestion": "Keep the four failure modes and one non-image example in the Motivation; let Applicability carry the trigger conditions and cut either the domain list there or shorten Known uses to two lines each."
+    },
+    {
+      "section": "Chapter header rating",
+      "kind": "other",
+      "severity": "low",
+      "note": "'Rating: ★★ (close to invariant…)' borrows the overview's scale, tells the reader the pattern is nearly inevitable, and then argues for eight pages that it is worth building. It undercuts the chapter and depends on a page the reader may not have.",
+      "suggestion": "Move to a closing line under Consequences — 'this sits close to an invariant, so the value is in the argument-spec details, not the shape' — or drop it."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "Participants, forces and the 'do not use it when the platform already has the records' test transfer cleanly, but the flags, the cross-argument hook and the contradictions between sketch and running example leave real gaps at the point where a new domain has to make decisions."
+  }
+}

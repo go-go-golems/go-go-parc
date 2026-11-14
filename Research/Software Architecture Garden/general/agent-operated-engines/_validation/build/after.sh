@@ -23,3 +23,4 @@ if [ -n "$PREV" ]; then diff -rq "$PREV" "$OUT/snapshot-$ST" > "$OUT/changes-$ST
 mkdir -p "$VAL/builds"
 { echo "== $N $TAG $AG $ST"; tail -3 "$OUT/hidden-$ST.txt"; tail -3 "$OUT/hidden-$ST-extra.txt" 2>/dev/null; tail -3 "$OUT/own-tests-$ST.txt"; } > "$VAL/builds/$N-$AG-$TAG-$ST.txt"
 cp "$OUT/answer-$ST.json" "$VAL/builds/$N-$AG-$TAG-$ST.json" 2>/dev/null || true
+cp "$OUT/work/DIARY.md" "$VAL/builds/$N-$AG-$TAG-$ST-DIARY.md" 2>/dev/null || true

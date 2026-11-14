@@ -1,17 +1,186 @@
 {
   "quiz": {
     "a": {
-      "Q1": [["captur", "variable", "stale"]],
-      "Q2": [["warning"]],
-      "Q3": [["early", "stop", "cutoff", "cut-off", "unchanged"]],
-      "Q4": [["cache", "other node", "another node", "shared", "input"]]
+      "Q1": [
+        [
+          "captur",
+          "variable",
+          "stale"
+        ]
+      ],
+      "Q2": [
+        [
+          "warning"
+        ]
+      ],
+      "Q3": [
+        [
+          "early",
+          "stop",
+          "cutoff",
+          "cut-off",
+          "unchanged"
+        ]
+      ],
+      "Q4": [
+        [
+          "cache",
+          "other node",
+          "another node",
+          "shared",
+          "input"
+        ]
+      ]
     },
     "b": {
-      "Q1": [["op", "operation"], ["arg"], ["input"]],
-      "Q2": [["nearly", "share", "close", "round", "identical"]],
-      "Q3": [["opaque", "hidden", "pass-through", "pass through", "group"], ["stale", "wrong", "correct", "obligation"]],
-      "Q4": [["await"], ["delet", "remov", "noisy", "false", "fired"]]
+      "Q1": [
+        [
+          "op",
+          "operation"
+        ],
+        [
+          "arg"
+        ],
+        [
+          "input"
+        ]
+      ],
+      "Q2": [
+        [
+          "nearly",
+          "share",
+          "close",
+          "round",
+          "identical"
+        ]
+      ],
+      "Q3": [
+        [
+          "opaque",
+          "hidden",
+          "pass-through",
+          "pass through",
+          "group"
+        ],
+        [
+          "stale",
+          "wrong",
+          "correct",
+          "obligation"
+        ]
+      ],
+      "Q4": [
+        [
+          "await"
+        ],
+        [
+          "delet",
+          "remov",
+          "noisy",
+          "false",
+          "fired"
+        ]
+      ]
+    },
+    "a2": {
+      "Q1": [
+        [
+          "captur",
+          "variable",
+          "stale"
+        ]
+      ],
+      "Q2": [
+        [
+          "warning"
+        ]
+      ],
+      "Q3": [
+        [
+          "early",
+          "stop",
+          "cutoff",
+          "cut-off",
+          "unchanged"
+        ]
+      ],
+      "Q4": [
+        [
+          "cache",
+          "other node",
+          "another node",
+          "shared",
+          "input"
+        ]
+      ]
+    },
+    "b2": {
+      "Q1": [
+        [
+          "op",
+          "operation"
+        ],
+        [
+          "arg"
+        ],
+        [
+          "input"
+        ]
+      ],
+      "Q2": [
+        [
+          "nearly",
+          "share",
+          "close",
+          "round",
+          "identical"
+        ]
+      ],
+      "Q3": [
+        [
+          "opaque",
+          "hidden",
+          "pass-through",
+          "pass through",
+          "group"
+        ],
+        [
+          "stale",
+          "wrong",
+          "correct",
+          "obligation"
+        ]
+      ],
+      "Q4": [
+        [
+          "await"
+        ],
+        [
+          "delet",
+          "remov",
+          "noisy",
+          "false",
+          "fired"
+        ]
+      ]
     }
   },
-  "fits": {"a": {"T1": true, "T2": false}, "b": {"T1": true, "T2": false}}
+  "fits": {
+    "a": {
+      "T1": true,
+      "T2": false
+    },
+    "b": {
+      "T1": true,
+      "T2": false
+    },
+    "a2": {
+      "T1": true,
+      "T2": false
+    },
+    "b2": {
+      "T1": true,
+      "T2": false
+    }
+  }
 }

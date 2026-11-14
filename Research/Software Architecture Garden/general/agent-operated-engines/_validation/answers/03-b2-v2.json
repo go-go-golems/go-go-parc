@@ -1,0 +1,147 @@
+{
+  "restatement": {
+    "intent": "Let callers describe a computation as a graph of operation calls instead of running it, merge identical calls into one node, and compute a node's value only when someone asks — caching it under a key derived from the operation, its arguments and its inputs' keys.",
+    "problem": "Expensive computations recur in different words and are requested piecemeal, so recomputing wastes most of the work, while caching by name or source text silently returns stale values.",
+    "solution": "Every operation call returns an interned node (equal calls → one node); nothing is computed until a value is requested. Each value is stored under a signature: the node hash, quantised evaluation parameters, the operation's implementation version, and the input signatures, recursively. Look the signature up in a run memo, then a byte-budgeted shared cache, share in-flight work for the same signature, store warnings with the value, and never mutate a cached value. Functions passed as arguments are executed once at build time against a placeholder so their behaviour becomes graph nodes rather than hashable text."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "The node's structural hash (operation name + canonically-bound arguments + the hashes of its input nodes), the operation's implementation version, the evaluation parameters quantised (e.g. scale), and recursively the signatures of its inputs. The node is interned on its hash alone; the signature adds the evaluation.",
+      "where": "Structure (Signature row) and Solution; Collaborations step 2"
+    },
+    {
+      "id": "Q2",
+      "answer": "So nearly equal scales share cache entries and produce identical buffer sizes. Crucially the computation must then use the quantised value too: quantising only the key would store a value computed at one scale under a key that claims another.",
+      "where": "Implementation note 2"
+    },
+    {
+      "id": "Q3",
+      "answer": "An opaque fill covering the whole tile ignores the layers below it (also: a hidden layer takes the key of what is below, a full-opacity pass-through group takes its top child's key). Risk: each such rule is a correctness obligation, not an optimisation — a rule that is wrong in one case returns a stale picture in exactly that case, with nothing reporting it.",
+      "where": "Implementation note 4"
+    },
+    {
+      "id": "Q4",
+      "answer": "Values are computed on `await`, `look()` and `cv.save`, and reading a property of an unevaluated node is refused with `E_NOT_AWAITED`. The 'node built but never used' lint was written and then deleted, because it fired on legitimate code more often than on genuine mistakes.",
+      "where": "Implementation note 12"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Operations (render Markdown, apply template, resize image) are deterministic functions of files and arguments, results are expensive and recur across commits and across machines, and the chapter's known uses (Nix, Bazel) are exactly this. Caveat: a site build requests every output, so the laziness half earns little — the value is the interned graph plus the signature cache, and it must be persistent/shared to help CI.",
+      "participants": {
+        "Node": "one operation call: `render(md, template, opts)`, `resize(img, w, fmt)`, `minify(x)`",
+        "Builder": "interns the per-page and per-image calls so 500 pages sharing one hero image share one resize node",
+        "Source": "a Markdown file, template or asset — identified by content hash, not mtime/size, so local and CI agree",
+        "Signature": "node hash ⊕ quantised params (output widths, image quality, fmt) ⊕ implementation version (Markdown/template engine, image resizer, minifier) ⊕ input signatures",
+        "Evaluator": "computes a page: signature lookup, single-flight on shared images, inputs (md, template, images) evaluated in parallel",
+        "Run memo": "one build invocation; what a page's render and a component's render share inside one run",
+        "Value cache": "on-disk cache under a byte budget, shared between CI and developer machines, LRU or cost/size",
+        "In-flight group": "two pages needing the same 1200px hero image compute it once"
+      },
+      "sketch": "src(f)      = intern(source, args:{contentHash(f)}, inputs: [])   -- note 11, not mtime\nimage(f,w)  = intern(resize, args:{w: q(w), fmt: png}, inputs:[src(f)])\npage(p)     = intern(render, args:{template: h(tmpl(p)), opts: canon(opts(p))},\n                     inputs:[src(p), src(tmpl(p))] ++ [image(a,w) for a in assets(p)])\n\nsig(n)      = hash(n.hash, implVersion(op), quantize(params), [sig(i) for i in n.inputs])\nbuild():\n  parallel(for p in pages: evaluate(page(p)))     -- explicit root: nothing is lazy about 'build everything'\n  -- evaluate: memo -> shared disk cache -> single-flight -> inputs in parallel -> run -> put",
+      "key_notes": [
+        "Note 11 (source identity): the whole point is CI↔local reuse, so mtime+size is invalid — hash file contents once per file, else builds split into two caches that never hit.",
+        "Note 2 (implementation version + quantised params): a bumped Markdown engine, image resizer or minifier must change every downstream key, and output widths must be quantised *and* computed at the quantised width.",
+        "Note 10 (early cutoff): a one-line template change invalidates all 20,000 pages even where rendered HTML is identical — this is the case where verifying keys pays for themselves; input-keyed caches alone will look bad on real commit traffic.",
+        "Note 3 (key width): 20k pages plus every image variant is far more keys than goja-cv's nodes; use SHA-256, not a 52-bit key.",
+        "Note 5 (functions as arguments): if templates are closures that branch on page frontmatter (`draft ? … : …`), the placeholder scheme breaks — make templates data plus hashed arguments, or the cache will be wrong or unusable.",
+        "Note 12 (explicit evaluation roots): laziness silently drops work; a generator needs an explicit 'render all reachable pages' root, or unreferenced pages vanish from the build."
+      ],
+      "risk": "Two caches that look right and never hit: keys made of mtimes/tool versions that differ between CI and laptops, so reuse is zero; or the opposite — keys that omit the toolchain version and serve pages built by an old compiler/kernel."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is literally the chapter's do-not-use case: an unseeded RNG and a wall clock are hidden inputs, so two calls with identical arguments would get identical keys and different values — the cache would lie and silently serve the same 'random' samples. Caching steps also correlates samples within a run, biasing variance estimates, which contradicts the stated requirement that every run produce new samples.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability ('operations … depend on hidden state (time, randomness without a seed) … their keys would lie') is the governing clause, not note 2's parameter advice.",
+        "The proposal becomes sound only if the requirement changes: seed each step (seed = hash(run id, step)) and include the seed, step index and RNG algorithm version in the key — then keys are honest, but runs become reproducible rather than fresh.",
+        "Until then, keep the timestamp outside the key and out of any shared cache; it is output metadata, not an input."
+      ],
+      "risk": "The subtle version: someone 'fixes' it by hashing the RNG's seed after drawing it, or by including the timestamp in the key — restoring hits but destroying the freshness guarantee, with results that still look plausible."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (`evaluate`)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The run memo is read (`if memo has k: return memo[k]`) but never written: the sketch only does `cache.put`, so the memo-hit branch is dead code and the whole 'found without touching the shared cache' property is not demonstrated. The memo-hit path also skips `report(warnings)`, which contradicts Collaboration step 3 ('its stored warnings are reported again').",
+      "suggestion": "Write `memo[k] = v` on every computed value (and on cache hits, if the memo is meant to shadow the cache), and call `report` on the memo path too — or state explicitly that warnings are replayed once per request and only from the first hit."
+    },
+    {
+      "section": "Sketch (`withinMask`) and note 5",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The placeholder/subgraph mechanism is asserted, not specified. Nothing says how `ins[0]` is substituted for `hole` during evaluation, whether the hole's signature is part of the key or gets replaced by the real input's, or how `E_PLACEHOLDER` distinguishes 'the hole leaked into a value' from 'the hole is the bound input'.",
+      "suggestion": "Add three lines to the sketch: the hole is a distinguished input slot; `signature` hashes the real input's signature in that slot; `run` receives the real value where the hole stood; evaluating a node whose hole is still unbound refuses with `E_PLACEHOLDER`."
+    },
+    {
+      "section": "Applicability (third do-not-use bullet)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Directing the reader to 'use verifying keys with early cutoff' is not a reason not to use the pattern — it is the Variations entry, and the chapter elsewhere endorses the pattern for exactly this situation (build systems, editors). The boundary is also contradicted by note 10, which says goja-cv ignores the problem.",
+      "suggestion": "Demote it: 'use it, but expect avoidable rebuilds (note 10) and consider the verifying-key variation'. Keep only side effects/hidden state and cheap-one-shot computations as true refusals."
+    },
+    {
+      "section": "Implementation note 5",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The data-independence requirement ('it cannot branch on values it has not seen') is a hard restriction on any API taking a function — mask closures, template functions, selectors — and it can make the pattern inapplicable. It is buried as the fifth sentence of a note about hashing.",
+      "suggestion": "Surface it in Applicability ('fits only if callbacks build graphs rather than inspect values') and in Consequences, and name the workaround set: data-driven selects/thresholds as graph ops, or explicit hashed arguments."
+    },
+    {
+      "section": "Collaborations / Consequence 3 (determinism)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Failure is never handled. `refuse` is defined by the language overview but never used here: is a refusal cached? A thrown error? Are `E_PLACEHOLDER`/`E_NOT_AWAITED` reconstructed on a cache hit? An agent workflow generates failed crops routinely, and both answers (cache the failure = a wrong state persisted; don't = recompute an expensive failure every request) matter.",
+      "suggestion": "One paragraph: refusals are values and are cached as computed (with their `where`/`fix` replayed like warnings) OR explicitly never cached because they depend on caller context; state which and why, and what happens if the operation throws mid-way."
+    },
+    {
+      "section": "Structure (Node/Builder) and note 9",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Only values are budgeted. The interning table is unbounded — one entry per distinct call — and its lifetime is unstated: does it survive to 'round 2' of the motivation only because it is the same process? Without stable node hashes across restarts no persistent cache (a Variation) can ever be hit.",
+      "suggestion": "State the node table's scope (process/session) and add a note that node hashes must be process-independent (stable argument canonicalisation, no addresses, no ids) for disk/shared caches to work, plus what happens when it grows."
+    },
+    {
+      "section": "Also known as / title",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "'Content-addressed cache' and 'Content-Keyed' misdescribe the mechanism: keys are built from inputs (deep constructive traces), not from content — the chapter's own force 'structural keys against output keys' says so, and Nix's store paths are input-addressed.",
+      "suggestion": "Call it 'input-addressed' or 'trace-keyed' and note the contrast with true content addressing, which the verifying-key variation is closer to."
+    },
+    {
+      "section": "Implementation notes 3, 9, 10",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The lab's numbers (52-bit, 2 GiB, 10⁻⁴, 15–22 %, a third more brush-stroke recomputation) are presented as guidance without the rule a reader should apply to their own workload.",
+      "suggestion": "Keep one number per point as evidence, but give the reusable rule beside it: collision bound formula and '≤10⁻⁶ expected collisions'; budget = working set of the current eval × a factor; expected invalidation fan-out for early cutoff."
+    },
+    {
+      "section": "Sketch (`Entry`) / note 2",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Nothing records which quantised parameters a value was actually computed at. A caller asking for scale 1.00004 gets the 1.0000 entry and cannot tell; this is the same class of bug as quantising only the key, just observed from the caller's side.",
+      "suggestion": "Store the quantised params in the Entry and expose them on the returned value's metadata, so a caller (or a test) can see the value's true evaluation parameters."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The bullet list of 'other problems' (build system, spreadsheet, notebook) is repeated almost verbatim in Applicability and Known uses; a reader meets the same three examples three times.",
+      "suggestion": "Keep the bullets in Known uses only, compress Motivation to the film-scan story plus one sentence pointing forward."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The core shape (interned nodes + signature-keyed value cache + single-flight) is portable and the notes are unusually honest about measurement, but two high-severity gaps — the run memo that is never written and the unspecified placeholder substitution for function arguments — leave a reader unable to implement the two most distinctive parts."
+  }
+}

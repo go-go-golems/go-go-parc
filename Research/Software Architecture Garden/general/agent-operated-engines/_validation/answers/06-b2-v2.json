@@ -1,0 +1,145 @@
+{
+  "restatement": {
+    "intent": "Make every failure an agent can cause into a structured refusal that is sufficient to repair the call without documentation: stable code, message, operation path, the agent's own source line, valid alternatives, a conceptual hint, and a fix written as pasteable code. Warnings use the same fields at the causing line and repeats are folded.",
+    "problem": "A failure that only says something went wrong forces the caller to rediscover the API, and an agent pays for each guess with a round trip and part of its context.",
+    "solution": "One Refusal record for every layer: a code from a closed list, a one-sentence message, the path of operations, the line in the agent's program, a handful of valid alternatives, a hint, and a fix in the agent's own names. Unknown names go through the Suggester in a fixed order from certain to guessed: namespaced member, mined redirect, near spelling, same name on another kind. Host-language failures are Translated into the same shape, and warnings are raised the same way, folded by line, and delivered together with anything produced before the failure."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Code (from the closed list), message, path (labels of operations from source to the failing one), where (the line and its source text), valid alternatives (at most a handful, nearest first), hint, fix, and hostName — the host error's own name when the failure came from the host. Warnings carry the same fields plus a count.",
+      "where": "Structure (Refusal row), Solution, Sketch (value Refusal)"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because the near-misses that matter are conceptual, not orthographic: no edit distance maps `zoom` to `crop(...).look({zoom})`, and the budget cannot tell a typo from a different word one letter away (`crop`/`drop`). Transcripts show which wrong names agents actually type, so each becomes a redirect with a literal, tested fix.",
+      "where": "Motivation; Implementation notes 1 and 2"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because the agent did not write those conversions. The path should name only steps the agent can edit or recognize; including engine-inserted conversions points the agent at code it cannot change.",
+      "where": "Implementation note 5 (cf. note 6)"
+    },
+    {
+      "id": "Q4",
+      "answer": "It was deleted after firing 19 times in an annotator study, 18 of them on correct code. Rule: a warning that is usually wrong is worse than no warning; every warning must be measured on real transcripts before it ships.",
+      "where": "Implementation note 8"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "All three applicability conditions hold: callers are analysts plus a model that cannot read the 2,000-table catalog, a failed query round trip is expensive, and columns/functions/dialects are exactly the easy-to-confuse names the pattern targets. The only caveat is the chapter's access-control exclusion — suggestions must be scoped to what the caller may see.",
+      "participants": {
+        "Refusal": "A structured SQL diagnostic crossing into the assistant's reply: code, message, path = the clause chain the planner followed, where = line/column span in the analyst's own query text, valid = nearest legal columns or functions, hint, fix = a rewritten SQL fragment using the analyst's aliases.",
+        "Code list": "Closed vocabulary such as E_UNKNOWN_COLUMN, E_AMBIGUOUS_COLUMN, E_COLUMN_IN_OTHER_TABLE, E_DIALECT_FUNCTION, E_UNKNOWN_FUNCTION, E_TYPE_MISMATCH; documented once with a failing example each.",
+        "Suggester": "Candidate generator that first restricts to the tables named in the query's FROM/CTEs, then applies dialect redirects, then spelling.",
+        "Redirect table": "Mined from query logs: dialect near-misses with literal rewrites (`getdate()` → `now()`, `date_format(x,'%Y-%m')` → `date_trunc('month', x)`, `top 10` → `limit 10`, `nvl` → `coalesce`), plus columns agents demonstrably mistype.",
+        "Translator": "Wraps the engine's own errors (SQLSTATE, parser position) into a Refusal, keeping the SQLSTATE as hostName and mapping 42703/42883 etc. onto closed codes.",
+        "Site tracker": "Maps the engine's byte offset to a line:column span in the analyst's query string (and to file:line when the query comes from a saved model or notebook).",
+        "Warning folder": "Folds per-query warnings — implicit cast, ambiguous date literal, full scan on a partitioned table — by code and line, and keeps them when the query later fails."
+      },
+      "sketch": "value Refusal: code, message, path: [label], where?, valid: [name], hint?, fix?, hostName?\n\nsuggestColumn(name, query, caller) → Suggestion | none\n  tabs = tablesIn(query) ∩ caller.visibleTables -- scope first: 2,000 tables are not a candidate set\n  for t in tabs where catalog.has(t, name):\n    return Suggestion(E_COLUMN_IN_OTHER_TABLE,\n                      name ++ \" is in \" ++ t ++ \", not \" ++ ownTable(t), qualify(t, name))\n  if redirects has (dialect, name):                 -- mined: conceptual, not a spelling\n    return Suggestion(E_DIALECT_FUNCTION, redirects[dialect][name].hint, redirects[dialect][name].fix)\n  c = closest(name, catalog.columns(tabs), budget: max(1, min(3, len(name) / 3)))\n  if c: return Suggestion(E_UNKNOWN_COLUMN, \"did you mean \" ++ c ++ \"?\", c)\n  return Suggestion(E_UNKNOWN_COLUMN, none, none) with valid = nearest(catalog.columns(tabs), name)[0:5]\n\ntranslate(dbError, sqlText) → Refusal\n  r = Refusal(hostName: dbError.sqlstate, where: span(dbError.position, sqlText),\n              path: clauseChain(sqlText, dbError.position))\n  match dbError.sqlstate:\n    \"42703\" → copy(r, code: E_UNKNOWN_COLUMN, message: dbError.message, hint: …, fix: …)\n    \"42883\" → copy(r, code: E_UNKNOWN_FUNCTION, hint: \"this dialect spells it …\", fix: …)\n    _       → copy(r, code: E_QUERY_REJECTED)\n\n-- in use\nSELECT o.totl FROM orders o  → E_UNKNOWN_COLUMN, path: [\"FROM orders o\", \"✗ SELECT o.totl\"],\n                               valid: [o.total], fix: \"o.total\"\nSELECT date_format(ts,'%Y-%m') → E_DIALECT_FUNCTION, fix: \"date_trunc('month', ts)\"",
+      "key_notes": [
+        "Note 2 (fixed order) — but reverse its middle: with 2,000 tables, the structural fact 'this column exists on another table already in scope' is more certain than any spelling guess, so it must precede edit distance; unscoped nearest-name over a whole catalog is pure noise.",
+        "Note 1 (mine redirects from transcripts) — dialect confusion is conceptual (`date_format` is not an edit-distance neighbour of `DATE_TRUNC`), so the redirect table is the only mechanism that repairs it.",
+        "Notes 3 and 11 (fix as code, test the fix) — a dialect fix that does not parse sends the model into a new failure loop; every templated rewrite must be executed against the warehouse in a test.",
+        "Note 4 (one shape, host name as a field) — SQLSTATE goes in hostName so the assistant can branch on closed codes while humans still see the engine's own wording.",
+        "Notes 5 and 6 (path and where are the caller's) — where must be a span in the analyst's query text and path the clause chain they wrote, not the planner's internal nodes."
+      ],
+      "risk": "Unscoped suggestions: nearest-column or nearest-function results drawn from 2,000 tables (or from schemas the caller may not query) produce confident wrong answers and leak catalog structure — the pattern's own access-control exclusion. Scope candidates to visible tables in the query first, and treat 'no suggestion' as a valid outcome."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is the chapter's first explicit non-applicability case: the caller is code that branches/logs and never retries with different input, so a code and a message suffice. Hints, alternatives and pasteable fixes have no consumer, cost work per error, and drift with the API — and the whole argument for the pattern (avoiding expensive rediscovery round trips) does not apply.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "The 'Do not use it when' bullet on code callers that never retry with modified input — this is exactly that situation.",
+        "The Consequences cost that hints and fixes must be maintained and drift unless tested — pure cost here, no benefit.",
+        "What is still worth keeping is the closed code list plus a stable message and correlation id, so logs and dashboards can group failures; that is the cheap half of the pattern without the Suggester."
+      ],
+      "risk": "Half-adopting it: bolting rich, untested fixes onto machine-consumed errors, then having callers who do branch on codes see codes change when prose or redirects are edited. If the team wants anything, keep the closed code list and treat message/hint as non-API."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution / Implementation note 4 / Sketch (`translate`)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The chapter gives three different answers for a host failure's code: the Solution says translate 'with a code from the closed list'; Collaborations step 3 and note 4 say goja-cv 'still reports the host's TypeError as the code'; the Sketch sets `code: E_HOST`, and the 'in use' line says `E_HOST (hostName TypeError)`. A reader cannot tell what to build, and the note's own recommendation (one code plus hostName) is contradicted by the code it shows.",
+      "suggestion": "Choose `code: E_HOST` with `hostName` as a field everywhere, delete the sentence that says goja-cv uses TypeError as the code (or mark it explicitly as the defect being fixed), and make the example and the Collaboration step agree."
+    },
+    {
+      "section": "Sketch (`translate`)",
+      "kind": "too-specific",
+      "severity": "high",
+      "note": "The translator pseudocode hard-codes goja-cv's two special cases (`m == \"count\"`, one node-method branch). As written, the reusable mechanism looks like a pair of if-statements about arrays, and readers will copy two hacks instead of the idea: match a host failure pattern, then fill a hint and a fix template.",
+      "suggestion": "Replace the branches with a data-driven rule table — pattern (host error name, receiver kind, member) → {hint template, fix template} — and keep `count`/`length` as one row of the table in the example."
+    },
+    {
+      "section": "Structure (Refusal) vs Sketch (`unknownMethod`)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The Refusal participant and the Intent promise 'valid alternatives (at most a handful, nearest first)', but `unknownMethod` sets `valid: s ? [] : nearestFirst(...)`: whenever a suggestion exists the alternatives vanish, and the chapter never says whether `valid` and `fix` are alternatives or complements. The motivation's Editor-lab example (\"layers are L1 Sky, L2 Glow, …\") is the only place the list actually appears.",
+      "suggestion": "State the rule explicitly (e.g. `fix` when one repair is known, `valid` when the space is small and no single repair is certain; both when the fix is a choice), and add one example of each."
+    },
+    {
+      "section": "Collaborations 4 / `foldWarnings`",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Folding on `(code, line, message)` does not fold the case note 7 is about: a range warning inside a loop usually interpolates the offending value into the message, so 500 iterations yield 500 distinct messages and 500 lines. The stated goal (one warning with a count) is not achieved by the stated key.",
+      "suggestion": "Group by `(code, line)` and report the first message with a count plus the range of varying values; say what happens when the folded instances carry different values."
+    },
+    {
+      "section": "Solution / Forces (repeated refusals)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Only warnings are folded. An agent stuck resending the same call receives the full rich refusal — path, hint, fix — on every attempt, which is the largest context cost the pattern can create, and it is exactly the situation where the caller needs a different kind of help (escalation) rather than the same advice.",
+      "suggestion": "Add a short rule for repeated identical refusals: fold by (code, where) with a count and escalate after N attempts (\"this call has failed 3 times; the fix above was not applied\")."
+    },
+    {
+      "section": "Implementation note 6 / `translate`",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The site tracker is described only for engine-side calls ('first stack frame outside the engine'). `translate` takes `sourceLine` as an unexplained input and initialises `where: hostError.where`, but host errors carry no line in the agent's program — so the translator's most important field has no stated source, and no fallback is given when no frame is found.",
+      "suggestion": "Say how the call site is captured for host failures (the same tracker, called at the host boundary) and what `where` degrades to when no agent frame exists (file of the loaded script, or none, with the path carrying the location instead)."
+    },
+    {
+      "section": "Implementation note 10 / Redirect table",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Redirect lifecycle is unspecified. Nothing says what happens when a redirected name later becomes a real method (`zoom` added to the API must stop redirecting), when a stale redirect is retired after a rename, or which table wins when a mined redirect and a namespace match both fire — note 10 only says keep one table, not how to merge or expire it.",
+      "suggestion": "Add precedence and expiry rules: registry names always beat redirects; redirects are keyed by API version and deleted when the name becomes real; a redirect whose fix no longer binds is dropped by the test in note 11."
+    },
+    {
+      "section": "Forces vs Sketch size",
+      "kind": "missing",
+      "severity": "low",
+      "note": "'Precision against noise' is stated as a force but never becomes a rule: `valid: nearestFirst(...)[0:8]` offers up to eight names alongside hint and fix, with no size budget and no order for dropping fields when the reply is too long.",
+      "suggestion": "Give a concrete cap (fields, lines or bytes), a drop order (path, then valid, then hint — never the code or the where), and cut the default alternative list to three or four."
+    },
+    {
+      "section": "Motivation / Known uses",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "The evidence is almost entirely goja-cv-local and anecdotal: one captured YAML reply, an anonymous annotator study, a `.look({zoom: 8})` chain whose argument values are arbitrary. The general claims (guessing costs round trips and context) rest on unnamed transcripts, so the reader cannot judge how large the benefit is.",
+      "suggestion": "Either quantify one claim (e.g. share of failed calls repaired on the next attempt before and after redirects) or mark the numbers explicitly as one project's experience; drop the unused argument values from the example."
+    },
+    {
+      "section": "Rating line",
+      "kind": "other",
+      "severity": "low",
+      "note": "'★★ (close to invariant)' reads as a claim that every system converges on this shape, which sits badly next to an Applicability section that lists three cases where it should not be used, and next to visible design choices (suggester order, edit budget, which fields exist). It is unclear whether the star count is about the pattern's value or its certainty.",
+      "suggestion": "Say which part is invariant (one record shape, closed code list, line-of-caller) and which is a choice (suggester order, redirects, folding policy), so readers know what they must copy and what they may vary."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The shape and the certain-to-guessed ordering are easy to reuse and worth adopting, but the contradiction over a host error's code, the goja-specific branches left inside the translator pseudocode, and the unstated scope/staleness/lifecycle rules of the redirect table keep it from reading as a finished, transferable pattern."
+  }
+}

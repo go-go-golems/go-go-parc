@@ -1,0 +1,130 @@
+{
+  "restatement": {
+    "intent": "Let a vision agent look at the things it must judge while every position, size and score it reports comes from a measured row keyed by an id, and keep the number of pictures bounded and announced.",
+    "problem": "Pictures give good appearance judgements but bad numbers and an unbounded image count; numbers give exact values but no way to judge what they describe.",
+    "solution": "Compute candidates as rows with stable ids and numbers; draw pictures only to support judgement, labelling each item with the id of its row; pack many small magnified cells (optionally several views) into one sheet instead of one picture per item. Never let the model read a number off a picture — it answers by id and the engine resolves ids to the exact rows. Budget pictures per call and per conversation, state the budget in the agent's instructions, deliver what a call created up to the budget, and name each omitted picture by line."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Numbers come from computation, pictures only from looking: positions, sizes and scores are rows with ids, and a model points at things by id rather than measuring pixels. The dust project forced it — agents reading ruler crops were 5–10 px off, 24 of 32 reported positions held nothing measurable, and agents invented formulas like x = crop_x + (px − 52)/2 to correct the ruler margin.",
+      "where": "Implementation note 1 (design rule) with the evidence in Motivation"
+    },
+    {
+      "id": "Q2",
+      "answer": "A mark in the picture means \"the row whose id is that number\"; the picture is the only thing tying the agent's answer to a row. Relabelling marks 1–12 by sheet position breaks that link as soon as the agent filters or sorts the rows, so an answer of \"7\" resolves to the wrong coordinates.",
+      "where": "Implementation note 2"
+    },
+    {
+      "id": "Q3",
+      "answer": "A sheet of twelve to fifteen cells is one image where twelve zooms are twelve, so many more candidates fit the same budget; and each cell is magnified, so detail survives the API's downscaling that erases three-pixel specks in one large overview.",
+      "where": "Implementation notes 3 and 8"
+    },
+    {
+      "id": "Q4",
+      "answer": "An agent cannot plan around a limit it only meets as a rejected run: it spends pictures until the conversation dies. Stating the budget (100 hard, stay under 50, prefer sheets and numbers) lets it choose fewer and cheaper looks and stop in time.",
+      "where": "Implementation note 6, with the lost-run evidence in Motivation"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is the pattern's shape exactly: appearance decides the bug (overlap, truncation) but the report needs exact ids and boxes, and the image limit forces selection. The one participant that must change is the Sheet — magnified cells are wrong for layout defects, because a crop hides the neighbour or container edge that constitutes the bug, so the multi-item unit becomes a few whole-screen marked views.",
+      "participants": {
+        "Item rows": "Elements from each screen's accessibility/UI tree: stable element id, screenId, bounding box, text, computed font/size, z-order, plus a code-side overlap/truncation flag.",
+        "Marked view": "The full screenshot with each candidate element's id drawn in its box (no numbers read off the pixels).",
+        "Sheet": "For recurring components, a grid of cropped elements; for screen-level bugs, a screen list of whole-screen marked views, since overlap needs context.",
+        "View presets": "\"layout\" (whole screen at full width), \"zoom\" (the suspect box plus its immediate neighbours), a text/contrast view for truncation.",
+        "Budget": "Images per conversation derived from the API limit, stated in the prompt as e.g. \"at most 40 images; prefer one marked screen over many crops\".",
+        "Deliverer": "Attaches the returned marked screens to the reply, first come, and emits a LOOKS warning naming each dropped screen by line."
+      },
+      "sketch": "```text\nrows = a11y(screen) → [El(id, screenId, bbox, text, style, z)]   -- exact boxes, ids from the tree\nsuspects = overlapOrTruncated(rows)                                -- code prefilter keeps 300 → few\nkeep    = sortBy(suspects, -severity)[0:12]\nmarked(screenOf(keep), ids: keep).look(\"layout\")                   -- one image per screen\nzoom(keep[0], pad: 8 px).look(\"zoom\")                              -- neighbours kept in frame\n\ndeliver(callPictures, budget) → (delivered, warnings)              -- unchanged; names dropped screens\n\nbug = { screenId, elementIds: [...], kind: OVERLAP | TRUNCATED }\nshown = idsOn(deliveredSheets)                                     -- not keys(keep)\nfor i in bug.elementIds:\n  if i not in shown: return refuse(E_UNKNOWN_ID, i, valid: shown, hint: \"cite ids from a delivered screen\")\nboxes = [row(i).bbox for i in bug.elementIds]                      -- numbers, exact\n```",
+      "key_notes": [
+        "Note 1: the whole point — boxes and ids come from the UI tree, so the agent never estimates a bounding box from pixels.",
+        "Note 9 (and its sketch bug): with 300 screens the agent will cite ids from screens whose images were dropped, so validate against ids in delivered pictures, not against the filtered rows.",
+        "Notes 6 and 7: the per-conversation limit is the binding constraint at 300 screens; state it in the prompt and have the deliverer name every dropped screen by line so the agent can pick fewer screens rather than lose the run.",
+        "Note 3/8 caution: do not blindly sheet magnified cells here; a crop removes the neighbour and container edge that makes the bug visible — use whole-screen marked views and pad the zooms.",
+        "Note 2: element ids come from the UI tree and may look alike across screens, so ids must be scoped per screen (or sheet) before they are drawn."
+      ],
+      "risk": "Pre-filtering with a code detector makes recall the failure mode: a truncated label the detector's rule missed never becomes a candidate, so it never appears in any marked view and the agent's clean report is wrong. Keep one unnumbered whole-screen look per screen instead of trusting the detector, or accept and state the recall loss."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The judgement is purely numeric — compare two numbers — which the Applicability section says should skip pictures entirely. Numbered bars would be the exact anti-pattern note 1 forbids: the model would read a height off a picture, where a few pixels of bar error flips the answer near the target.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Implementation note 1: the chart makes the model measure, which is the failure mode the pattern exists to prevent; the table already carries the decision.",
+        "Variations, \"Numbers only\": the correct choice here — return region, sales, target, delta, and let the reply or a threshold rule decide; spend the image budget elsewhere.",
+        "Applicability, \"purely numeric judge\" exclusion: nothing about the visual form changes the verdict, so no picture adds evidence."
+      ],
+      "risk": "Rendering the chart and telling the agent to \"check against the labelled bar\" produces confident wrong verdicts on near-threshold regions, and burns images that another part of the run needs."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Motivation",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The numbers are hard to read as evidence: \"14 and 13 of 53\" is clear but \"against 4 and 5\" drops its denominator, and the annotator-style result (\"both versions located 9 of 13\") shows no gain, with no explanation of why. With two agents per condition the reader cannot tell which gaps are signal.",
+      "suggestion": "One small table: condition, hits/53, false positives, and hits/13; give every count its denominator, mark which differences are within noise at n=2, and say in one sentence why the third result is a floor effect (candidates were already rows)."
+    },
+    {
+      "section": "Sketch",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`byId` is built from `keep`, the rows the agent filtered, so ids belonging to sheets the budget dropped are still accepted — the agent can cite an id it was never shown, which is precisely what implementation note 9 claims to prevent. The note and the sketch disagree.",
+      "suggestion": "Build `byId` from the items actually present in the delivered sheets (`byId = {i: row(i) for s in delivered for i in idsOn(s)}`) and keep the refusal for anything else, including ids from an earlier sheet."
+    },
+    {
+      "section": "Structure / Collaborations",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Budget and Deliverer are delivery mechanics, not part of the id-and-picture form, and the deliver() sketch re-specifies what Chapter 5 already owns (pictures delivered in the reply). The reader cannot tell which of the six participants the pattern actually needs: rows, marked view and sheet are the core; presets, budget and deliverer are conventions around it.",
+      "suggestion": "Mark the participants \"core\" vs \"enforced at the boundary\", and replace the deliver() listing with a reference to Chapter 5 plus only the two facts that are new here (returned-first ordering, LOOKS warning naming omitted pictures by line)."
+    },
+    {
+      "section": "Implementation note 3 vs Collaborations vs note 8",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "\"Twelve\", \"twelve to fifteen\", \"caps at fifteen\" and \"cell: 40 px, zoom: 4\" are mixed, and the only rule given is \"the right count depends on the API's image size limit\" — which leaves the reader no way to compute it. Note 8 then says an overview is not a sheet without saying what a sheet is when the items are screens rather than specks.",
+      "suggestion": "State a derivable rule (a cell must still be >= N px after the API downscales the sheet, so cells = f(max side, downscale factor)) and give one worked line: max side 1568 px, 4 columns → cells ≈ 390 px. Say explicitly that a sheet of whole windows is a legitimate variant."
+    },
+    {
+      "section": "Collaborations step 2",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "\"It filters and sorts the rows in code, keeping the twelve it wants\" hides the largest open question: can the agent call sheet() on arbitrary ids from rows it never had returned, and who writes the filtering code? The Consequences admit \"things no measurement finds will not be in any sheet\" but no section says how a missed item ever gets in.",
+      "suggestion": "Add a short \"feeding the rows\" paragraph: sheet() takes an id list or a filter expression over the row table, refusals name invalid ids, and one unnumbered whole-view look per session is allowed so the agent can spot what the measurement missed and ask for it to be measured."
+    },
+    {
+      "section": "Budget / deliver()",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The warning path tells the agent a picture was dropped but never tells it the remaining allowance, and nothing defines what happens when the conversation budget reaches zero — the deliverer keeps producing LOOKS warnings while the agent keeps asking.",
+      "suggestion": "Return remaining per-call and per-conversation allowance with every reply, and define an explicit refusal at zero (kind BUDGET_EXHAUSTED, hints: \"answer from rows\"), so the loop terminates instead of degrading into warnings."
+    },
+    {
+      "section": "Variations / Applicability",
+      "kind": "missing",
+      "severity": "low",
+      "note": "\"Items have no natural identity or position … show one picture with a question, not marks\" covers the no-candidates case, but the common case of counting (how many specks on this tile) is never addressed, even though ids are the natural answer to it.",
+      "suggestion": "One sentence: when the question is how many or which ones, the sheet's ids are the answer and the count comes from the rows, so no separate counting guidance is needed."
+    },
+    {
+      "section": "Motivation and Known uses",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The Motivation tells the dust story twice (ruler crops, then the 39-agent study) and the Known uses entry for contact sheets is an analogy from photography, not a software use — it costs the reader attention without adding a design fact.",
+      "suggestion": "Compress the second pass to one sentence and drop the photography entry, or move it into \"Also known as\" where the naming analogy belongs."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core rule (numbers from rows, ids in pictures, budget announced) is memorable and the dust evidence is convincing, but the sketch's id-validation is plainly wrong, the sheet geometry is unspecified, and goja-cv values (40 px, zoom 4, 8 MiB, \"speck\" view) sit in the pattern body, so a reader elsewhere has to guess which parts are the form and which are that project's tuning."
+  }
+}

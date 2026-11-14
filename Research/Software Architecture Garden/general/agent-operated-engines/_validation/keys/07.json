@@ -1,17 +1,188 @@
 {
   "quiz": {
     "a": {
-      "Q1": [["number", "measure"], ["ruler", "5", "10", "32", "off"]],
-      "Q2": [["filter", "row", "link", "relabel", "match"]],
-      "Q3": [["one image", "budget", "count", "many", "single image"]],
-      "Q4": [["plan", "reject", "limit", "learn", "nothing", "lost"]]
+      "Q1": [
+        [
+          "number",
+          "measure"
+        ],
+        [
+          "ruler",
+          "5",
+          "10",
+          "32",
+          "off"
+        ]
+      ],
+      "Q2": [
+        [
+          "filter",
+          "row",
+          "link",
+          "relabel",
+          "match"
+        ]
+      ],
+      "Q3": [
+        [
+          "one image",
+          "budget",
+          "count",
+          "many",
+          "single image"
+        ]
+      ],
+      "Q4": [
+        [
+          "plan",
+          "reject",
+          "limit",
+          "learn",
+          "nothing",
+          "lost"
+        ]
+      ]
     },
     "b": {
-      "Q1": [["faint", "contrast", "disappear", "bright", "dim"]],
-      "Q2": [["named", "warning", "line", "looks", "not delivered"]],
-      "Q3": [["downscal", "detail", "erase", "lose", "lost"]],
-      "Q4": [["scene"], ["speck", "band", "grain", "stand"]]
+      "Q1": [
+        [
+          "faint",
+          "contrast",
+          "disappear",
+          "bright",
+          "dim"
+        ]
+      ],
+      "Q2": [
+        [
+          "named",
+          "warning",
+          "line",
+          "looks",
+          "not delivered"
+        ]
+      ],
+      "Q3": [
+        [
+          "downscal",
+          "detail",
+          "erase",
+          "lose",
+          "lost"
+        ]
+      ],
+      "Q4": [
+        [
+          "scene"
+        ],
+        [
+          "speck",
+          "band",
+          "grain",
+          "stand"
+        ]
+      ]
+    },
+    "a2": {
+      "Q1": [
+        [
+          "number",
+          "measure"
+        ],
+        [
+          "ruler",
+          "5",
+          "10",
+          "32",
+          "off"
+        ]
+      ],
+      "Q2": [
+        [
+          "filter",
+          "row",
+          "link",
+          "relabel",
+          "match"
+        ]
+      ],
+      "Q3": [
+        [
+          "one image",
+          "budget",
+          "count",
+          "many",
+          "single image"
+        ]
+      ],
+      "Q4": [
+        [
+          "plan",
+          "reject",
+          "limit",
+          "learn",
+          "nothing",
+          "lost"
+        ]
+      ]
+    },
+    "b2": {
+      "Q1": [
+        [
+          "faint",
+          "contrast",
+          "disappear",
+          "bright",
+          "dim"
+        ]
+      ],
+      "Q2": [
+        [
+          "named",
+          "warning",
+          "line",
+          "looks",
+          "not delivered"
+        ]
+      ],
+      "Q3": [
+        [
+          "downscal",
+          "detail",
+          "erase",
+          "lose",
+          "lost"
+        ]
+      ],
+      "Q4": [
+        [
+          "scene"
+        ],
+        [
+          "speck",
+          "band",
+          "grain",
+          "stand"
+        ]
+      ]
     }
   },
-  "fits": {"a": {"T1": true, "T2": false}, "b": {"T1": true, "T2": false}}
+  "fits": {
+    "a": {
+      "T1": true,
+      "T2": false
+    },
+    "b": {
+      "T1": true,
+      "T2": false
+    },
+    "a2": {
+      "T1": true,
+      "T2": false
+    },
+    "b2": {
+      "T1": true,
+      "T2": false
+    }
+  }
 }

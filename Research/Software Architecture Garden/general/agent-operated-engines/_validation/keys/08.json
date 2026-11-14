@@ -1,17 +1,168 @@
 {
   "quiz": {
     "a": {
-      "Q1": [["link", "symlink"]],
-      "Q2": [["identit", "samefile", "same file"]],
-      "Q3": [["require", "boundar", "escape", "outside"]],
-      "Q4": [["last", "silent", "writable", "privilege"]]
+      "Q1": [
+        [
+          "link",
+          "symlink"
+        ]
+      ],
+      "Q2": [
+        [
+          "identit",
+          "samefile",
+          "same file"
+        ]
+      ],
+      "Q3": [
+        [
+          "require",
+          "boundar",
+          "escape",
+          "outside"
+        ]
+      ],
+      "Q4": [
+        [
+          "last",
+          "silent",
+          "writable",
+          "privilege"
+        ]
+      ]
     },
     "b": {
-      "Q1": [["plant", "link", "predict"]],
-      "Q2": [["writable", "workspace"], ["read"]],
-      "Q3": [["load", "library", "outside"], ["probe", "boundar", "two runs", "within"]],
-      "Q4": [["install", "package", "service", "shell", "network", "whole machine", "container"]]
+      "Q1": [
+        [
+          "plant",
+          "link",
+          "predict"
+        ]
+      ],
+      "Q2": [
+        [
+          "writable",
+          "workspace"
+        ],
+        [
+          "read"
+        ]
+      ],
+      "Q3": [
+        [
+          "load",
+          "library",
+          "outside"
+        ],
+        [
+          "probe",
+          "boundar",
+          "two runs",
+          "within"
+        ]
+      ],
+      "Q4": [
+        [
+          "install",
+          "package",
+          "service",
+          "shell",
+          "network",
+          "whole machine",
+          "container"
+        ]
+      ]
+    },
+    "a2": {
+      "Q1": [
+        [
+          "link",
+          "symlink"
+        ]
+      ],
+      "Q2": [
+        [
+          "identit",
+          "samefile",
+          "same file"
+        ]
+      ],
+      "Q3": [
+        [
+          "require",
+          "boundar",
+          "escape",
+          "outside"
+        ]
+      ],
+      "Q4": [
+        [
+          "last",
+          "silent",
+          "writable",
+          "privilege"
+        ]
+      ]
+    },
+    "b2": {
+      "Q1": [
+        [
+          "plant",
+          "link",
+          "predict"
+        ]
+      ],
+      "Q2": [
+        [
+          "writable",
+          "workspace"
+        ],
+        [
+          "read"
+        ]
+      ],
+      "Q3": [
+        [
+          "load",
+          "library",
+          "outside"
+        ],
+        [
+          "probe",
+          "boundar",
+          "two runs",
+          "within"
+        ]
+      ],
+      "Q4": [
+        [
+          "install",
+          "package",
+          "service",
+          "shell",
+          "network",
+          "whole machine",
+          "container"
+        ]
+      ]
     }
   },
-  "fits": {"a": {"T1": true, "T2": false}, "b": {"T1": true, "T2": false}}
+  "fits": {
+    "a": {
+      "T1": true,
+      "T2": false
+    },
+    "b": {
+      "T1": true,
+      "T2": false
+    },
+    "a2": {
+      "T1": true,
+      "T2": false
+    },
+    "b2": {
+      "T1": true,
+      "T2": false
+    }
+  }
 }

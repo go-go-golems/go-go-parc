@@ -1,0 +1,154 @@
+{
+  "restatement": {
+    "intent": "Make every failure an agent can cause into one structured refusal — stable code, message, operation path, the caller's own source line, valid alternatives, a conceptual hint, and a fix written as pasteable code — so the next call can be corrected without documentation. Warnings use the same fields at the line that caused them and are folded.",
+    "problem": "When a failure says only that something went wrong, the caller must rediscover the API to recover, and an agent pays for every guess with a round trip and context.",
+    "solution": "Every layer — binder, evaluator, kernels, host language — emits the same Refusal record: code from a closed list, one-sentence message, path of operations, the line in the agent's program, a few nearest valid alternatives, a hint naming the concept, and a fix in the agent's own names. For an unknown name a Suggester answers in a fixed order from certain to guessed: namespaced member of the same name, mined redirect with a literal fix, near spelling within a length-scaled edit budget, then same name on another kind of value. Host-language failures are translated into the same record, keeping the host's error name as a field. Warnings carry the same shape, are folded per line with a count, and everything produced before a failure is still delivered."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Namespaced member of the same name (E_NAMESPACE) → mined redirect from transcripts with a literal fix → near spelling within an edit budget → same name on another kind of value. It runs from certain to guessed because a confident wrong suggestion costs more than silence, so the first source that answers wins.",
+      "where": "Collaborations step 2; Implementation notes 2; Sketch suggest()"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because a short name is one edit away from many unrelated words (crop/drop), so a one-edit match is often a different word rather than a typo. `max(1, min(3, len/3))` gives short names only the closest misspellings and lets long names absorb more edits.",
+      "where": "Implementation note 2"
+    },
+    {
+      "id": "Q3",
+      "answer": "The Translator matches the host TypeError, finds the receiver (`rows`) in the agent's source line, and adds the hint 'rows is plain data here (awaited regions are an array), so it has no count(); its length is the count' plus the fix `rows.length`; the host's own error name is kept (as code per Collaborations 3, as a separate `hostName` field per note 4 and the sketch).",
+      "where": "Collaborations step 3; Implementation notes 3 and 4; Sketch translate()"
+    },
+    {
+      "id": "Q4",
+      "answer": "A range warning inside a loop over 500 candidates would otherwise emit 500 lines and bury the signal; folding identical warnings by (code, line, message) into one with a count keeps the rich reply short enough to be read, which is the chapter's 'precision against noise' force.",
+      "where": "Implementation note 7; Forces; Sketch foldWarnings()"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It meets all three applicability tests: callers are humans and an LLM agent that cannot read the implementation, each failed call costs an API round trip, and the surface has hundreds of easily confused names (subcommands, resource types, flags). It fails them only in one detail — there is no agent program with source lines — which changes what `where` means, not whether the pattern applies.",
+      "participants": {
+        "Refusal": "The error object the CLI prints and the agent parses: code, message, path of subcommands/flags consumed so far, `where` (the argv index plus the whole command line, or the config-file line for file-driven input), a few nearest valid names, hint, fix — the full corrected command line.",
+        "Code list": "Closed set across arg parsing, cloud-API validation, auth, throttling and timeouts: E_UNKNOWN_SUBCOMMAND, E_UNKNOWN_RESOURCE_TYPE, E_MISSING_REQUIRED_FLAG, E_UNKNOWN_FLAG, E_INVALID_FLAG_VALUE, E_NAMESPACE, E_FORBIDDEN, E_HOST (provider error name kept as a field).",
+        "Suggester": "One suggest() parameterised by level (subcommand | resource type | flag | enum value), since each level has its own name space and its own confusion set.",
+        "Redirect table": "Mined from the ops agent's transcripts: e.g. `image list` → `vm image list`, `--instance-type` → `--machine-type`, `disk rm` → `disk delete`; each with the literal corrected argv.",
+        "Translator": "Turns provider/HTTP failures and shell-level arg-parser failures into the same record, and maps provider validation fields onto the offending flag.",
+        "Site tracker": "Degraded: assigns `where` to the argv position or config-file line, not to a caller's program.",
+        "Warning folder": "Deprecation and soon-invalid-value warnings at the offending flag, folded per (code, argv index, message) so a loop over 200 resources yields one warning with a count."
+      },
+      "sketch": "value Refusal: code, message, path: [label], where?, valid: [name], hint?, fix?, hostName?\n\n-- argv = [\"vm\",\"lst\",\"--zone\",\"eu-west\"], level from position; redirects mined per level\nsuggestArg(level, name, argv, i) → Suggestion | none\n  if namespaceOf(level, name) ≠ none:                    -- \"vm network\" lives under \"vm\" sub-resource\n    return Suggestion(E_NAMESPACE, \"it lives under \" ++ namespaceOf(level, name), argv with i replaced)\n  if redirects has (level, name):                        -- mined: agents typed `image list`\n    return Suggestion(E_UNKNOWN_FLAG, redirects[level, name].hint, redirects[level, name].argv)\n  c = closest(name, namesAt(level), budget: max(1, min(3, len(name)/3)))\n  if c: return Suggestion(E_UNKNOWN_FLAG, \"did you mean \" ++ c ++ \"?\", argv with i replaced by c)\n  if flagOfSiblingType(level, name):                     -- valid on `vm`, not on `disk`\n    return Suggestion(E_UNKNOWN_FLAG, name ++ \" applies to \" ++ sibling, argv with sibling type substituted)\n  return none\n\nrefuseParse(argv, i) → Refusal\n  s = suggestArg(levelOf(argv, i), argv[i], argv, i)\n  return Refusal(code: s ? s.code : E_UNKNOWN_FLAG,\n                 message: levelOf(argv, i) ++ \" has no \" ++ argv[i],\n                 path: argv[0..i-1] ++ [\"✗ \" ++ argv[i]],\n                 where: \"argv[\" ++ i ++ \"]: \" ++ join(argv),     -- not a source line\n                 valid: s ? [] : nearestFirst(namesAt(level), argv[i])[0:8],\n                 hint: s?.hint, fix: s?.fix)\n\n-- in use\n`vm lst --zone eu`  → E_UNKNOWN_SUBCOMMAND, fix: \"cloudctl vm list --zone eu\"\n`vm list --instancetype n2` → E_UNKNOWN_FLAG, fix: \"cloudctl vm list --machine-type n2\"\n",
+      "key_notes": [
+        "Note 1 (mine redirects from transcripts) matters most: `image list` vs `vm image list` and `--instance-type` vs `--machine-type` are conceptual near-misses no edit distance finds, and this tool has the transcript volume to mine them.",
+        "Note 2 (fixed suggestion order) matters second: on a surface with hundreds of names the levels overlap (a mistyped resource type is also a near miss of a flag name), so the order must be decided once, per level.",
+        "Note 3 (fixes are code in the caller's names) is the whole payoff: emit the corrected full argv with the caller's own resource ids and zone values, not a template with `<type>` placeholders.",
+        "Note 4 (one closed code list for every layer) is needed because arg-parser errors, provider 4xx, throttling and timeouts all reach the agent; without E_HOST plus a `hostName`/provider-code field the agent cannot branch on codes.",
+        "Note 11 (test fixes) is cheaper here than in goja-cv: parse the proposed argv in dry-run and assert it binds, so a suggested command is never itself invalid.",
+        "Note 6 is the one that must be adapted: there is no engine stack frame, so `where` becomes the argv index or config-file line and should say so explicitly."
+      ],
+      "risk": "Emitting a confident, pasteable fix for a destructive verb or with required flags missing (`disk rm` → `disk delete --force`) — the agent runs it verbatim against production. Also, listing nearest valid resource names or account ids in `valid` leaks tenants the caller may not be entitled to see; apply the chapter's uniform-refusal rule there."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is the chapter's own explicit exclusion: revealing alternatives in authentication leaks which usernames exist, and the caller is not in a position to repair its call — the 'fix' would be telling an attacker the correct account. Neither the suggestion forces nor the hint/fix fields apply; the situation calls for a uniform refusal.",
+      "participants": {
+        "Refusal": "Kept, but shrunk to a shape with no `valid`, `hint` or `fix`: one code (e.g. E_AUTH_FAILED), one message identical for every cause, a correlation id for server-side logs.",
+        "Code list": "Kept, but deliberately coarse: authentication failure is one code, never split into unknown-user versus bad-password.",
+        "Suggester": "Not used — its whole purpose (help the caller find the right name) is the vulnerability here.",
+        "Redirect table": "Not used.",
+        "Translator": "Only to the extent it maps a backend failure to the single uniform code without copying backend detail into the message.",
+        "Site tracker": "Not used; the caller has no program to point at.",
+        "Warning folder": "Not used in the response; log-side only."
+      },
+      "sketch": "",
+      "key_notes": [
+        "Applicability, 'Do not use it when': revealing the alternatives leaks information — this is the governing note, and it overrides Intent's promise of valid alternatives and a fix.",
+        "Variation 'Uniform refusals': one code and message for every reason, detail logged server-side only; keep timing and response size constant too, since a did-you-mean path is measurably slower.",
+        "Note 8 (a signal that is usually wrong is worse than none) generalises: a 'did you mean' that is right only for real accounts converts the endpoint into a username oracle, i.e. a hint that is always wrong for legitimate users and always right for attackers."
+      ],
+      "risk": "Half-applying the pattern — keeping the rich Refusal shape and adding 'did you mean' only for the username field 'to be helpful', which is exactly the account-enumeration bug."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Implementation note 4 vs Solution / Sketch / Collaborations 3",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The chapter states the rule 'a closed list needs one code for host failures with the host's name as a separate field', then says 'goja-cv still reports a host TypeError under the host's own name as its code', while Collaborations 3 says it 'still reports the host's TypeError as the code; note 4' and the sketch and 'in use' example both emit code E_HOST with hostName TypeError. A reader cannot tell whether host error names are in the closed list or not, and the note simultaneously prescribes and describes the deviation.",
+      "suggestion": "Decide: host failures always get E_HOST (or E_HOST + provider name field), host names are never codes. Report goja-cv's behaviour once, explicitly as the deviation it is, and delete the parenthetical in note 4."
+    },
+    {
+      "section": "Solution",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "The Solution is a single ~200-word paragraph that restates the intent, the record fields, the suggestion order, the host-translation rule, warnings and delivery. The one thing a reader must remember — 'one record shape, suggestions from certain to guessed, everything before the failure still delivered' — is buried.",
+      "suggestion": "Split into three short paragraphs (the record; the suggestion order; warnings and partial delivery), keeping the field list as a bulleted line."
+    },
+    {
+      "section": "Structure table and Sketch (Warning)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Warnings are promised 'with the same fields' and folded 'into one with a count', but no Warning type is ever given: the sketch defines Refusal and Suggestion only, and foldWarnings() groups on a `count` field that was never declared. Does a Warning have a path, a fix, a severity?",
+      "suggestion": "Add `value Warning: code, message, path, where, hint?, fix?, count` alongside Refusal, and show one folded warning in the 'in use' block."
+    },
+    {
+      "section": "Implementation note 3 vs Sketch (crossKindFix)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Note 3 insists a fix must be pasteable, but the sketch's cross-kind fix is `\"img.\" ++ m ++ \"(\" ++ recv ++ \", …)\"` — a literal ellipsis, i.e. not a fix at all. The 'another kind of value' branch therefore contradicts the chapter's own quality bar for fixes.",
+      "suggestion": "Either give the real template goja-cv uses (with the required node argument and its default), or downgrade that branch to a hint with no fix and say so."
+    },
+    {
+      "section": "Structure (Site tracker) and Implementation note 6",
+      "kind": "too-specific",
+      "severity": "high",
+      "note": "The pattern generalises to compilers, HTTP APIs and CLIs, but the Site tracker is defined purely as 'the first stack frame outside the engine', and `where` is defined as 'the line in the agent's program'. Any adopter without an embedded script host (a CLI, a REST API, a config-file-driven tool) has no such line, and the chapter gives no degraded form.",
+      "suggestion": "Define Site tracker as 'the smallest unit the caller can edit — a source line, an argv position, a request field, a config-file line' and note in Implementation 6 what goes in `where` when no source line exists."
+    },
+    {
+      "section": "Structure (Code list) / throughout",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The closed list is the pattern's central invariant, yet it is never shown. Only E_UNKNOWN_METHOD, E_NAMESPACE, E_HOST and E_INTERNAL appear, scattered across the Motivation, Collaborations and note 4; E_NAMESPACE's meaning is only inferable from the sketch.",
+      "suggestion": "Include a small table of the codes with a one-line meaning each (including what each suggestion branch raises), and state the rule for when a new code is warranted."
+    },
+    {
+      "section": "Implementation note 1 and note 2 ('demonstrably typed')",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'Names agents demonstrably typed' is the admission test for the redirect table, but no threshold is given: one occurrence? three runs? three distinct sessions? Without it, an adopter will either mine noise or wait forever, and the table drifts as the API changes with no stated expiry.",
+      "suggestion": "Give the rule goja-cv actually applied (e.g. 'appears in ≥3 distinct sessions and the agent recovered after the corrected form'), and add one sentence on re-mining after API changes."
+    },
+    {
+      "section": "Sketch (unknownMethod / valid field)",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "`valid: s ? [] : nearestFirst(...)[0:8]` silently drops the valid alternatives whenever a suggestion exists, although Intent promises 'the valid alternatives' on every refusal. Also unexplained: the 'at most a handful' cap is 8 here but the Structure table says 'at most a handful'.",
+      "suggestion": "State the rule in one clause — 'a suggestion replaces the alternatives list; the record stays short' — and pick one cap."
+    },
+    {
+      "section": "Sketch (notation loose ends)",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "`closest`, `receiverOf`, `crossKindFix`, `registry.has` and `nearestFirst` are used but undefined; `len(name) / 3` is written as division although the budget is an integer edit count (note 2 reads it as floor); and the cross-kind branch returns from inside a `for` that otherwise falls through to `none`, which reads like a first-match loop that checks every kind.",
+      "suggestion": "Add a two-line comment defining `closest(name, candidates, budget)` and say floor division explicitly; add `receiverOf` one-liner since it is the load-bearing part of note 3."
+    },
+    {
+      "section": "Implementation note 2 / Consequences",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "Note 2's first two sentences repeat the Solution's ordering clause almost verbatim, and the Consequences bullet 'the reply must stay short when nothing is wrong' has no implementation note telling an author how (presumably: omit empty fields, no diagnostics on success).",
+      "suggestion": "Cut the restatement from note 2 and spend the space on the success-case reply shape, which is currently only a complaint."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core moves (one record shape, certain-to-guessed suggestion order, folded warnings, partial delivery) are genuinely transferable and worth copying; clarity suffers from a run-on Solution, an undisplayed code list, an undefined Warning type, and a self-contradicting rule about host error codes, while reusability is limited by a Site tracker that assumes an embedded script host."
+  }
+}

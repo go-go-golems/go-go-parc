@@ -1,0 +1,138 @@
+{
+  "restatement": {
+    "intent": "Give an agent one tool that runs a short program against the engine's API inside a session that persists between calls, and return what the program produced in a form the agent can read and afford: capped text, tables, warnings, a context block and the pictures it made. Task-specific helper libraries load into the session in layers instead of being pasted into programs.",
+    "problem": "An agent driving a large engine one tool call per operation cannot loop, filter or combine without round trips, while an agent that sends whole programs loses state, floods its context, or silently drops what its programs produced — unless the session and the reply are designed for it.",
+    "solution": "Split the session in two: a generic runtime that runs one program at a time under a deadline and keeps the session alive, plus a domain result processor plugged into it through before/process/processFailure hooks. Whatever must survive between calls lives in one named state object that every reply's context block lists, alongside the helpers and the loadable libraries, with a helper's doc line printed only when it is new or its source hash changed. The processor caps the value with a note on how to get the rest, renders flat record lists as tables, folds warnings by line, and delivers every attachment once within a count and byte budget, naming any it had to leave out. Libraries arrive as preludes in layers, never as pasted text."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "On one named object — `mem` — which every context block lists, and which the agent prunes with `delete mem.x`. Because programs run as a function body, so top-level `const`/`let` do not survive the call (goja-cv's JS); even where the runtime keeps a namespace (a Python kernel), a named object still makes what persists visible.",
+      "where": "Solution; Structure (State object); Implementation note 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "Every call: named inputs, the state object's data keys with their kinds, helper functions with signatures, and the libraries available to load — inside its own small budget. Only when new or whose source hash changed since the last successful call: a helper's full doc line.",
+      "where": "Structure (Context block); Implementation note 6; Sketch, contextBlock"
+    },
+    {
+      "id": "Q3",
+      "answer": "They are left out of the reply but named by line (\"not delivered: line N\"), so the agent knows they exist. Deliveries are in order, returned ones first, each once, within four pictures / 8 MiB; files the program saved stay in the workspace and are named in the reply.",
+      "where": "Implementation note 7; Structure (Attachment queue); Solution"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because no one reads it — it would spend reply budget on setup noise. Only failure matters: a failing prelude stops the session from starting, and the start-up error names the file, the line and the message.",
+      "where": "Structure (Library loader); Implementation note 8"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Exploratory SQL is exactly the loop/filter/combine case, and the replica gives a state worth keeping (temp tables) behind a read-only role. But the state object is not a heap object the pattern can enumerate: it is the database session, so the context block has to be synthesised from the catalogue; and 10,000-row result sets make the cap the central design decision, not a footnote.",
+      "participants": {
+        "Eval tool": "One `sql` tool whose description states the contract: read-only role on the replica, the last statement's result set is what the agent sees, results are capped at N rows, statements run under `statement_timeout`, temp tables and session settings persist, curated views are listed by `\\dv`.",
+        "Session": "One persistent connection to the read-only replica; statements serialised naturally, `statement_timeout` as the deadline, policies = must-be-read-only and keep-alive. A dropped connection must report that state was lost.",
+        "State object": "The database session itself: `pg_temp` temp tables, session variables/`search_path`, prepared statements and open cursors. The analogue of `mem` is a naming convention plus a catalogue query — nothing is visible unless the context block asks the catalogue for it.",
+        "Result processor": "Domain part: renders a result set as a header line plus one line per row, caps rows and characters with a note (\"50 of 10,000 rows; add WHERE/aggregate\"), folds planner/notice warnings by line, lists files written by `\\copy`/`COPY TO`.",
+        "Context block": "Rebuilt per call: temp tables with column types and row counts, the session settings that change semantics (`search_path`, timeout), curated views/helper functions available to load, and doc lines only for views whose definition hash changed.",
+        "Attachment queue": "Empty on a plain replica unless the program writes a chart or a CSV; those become files in the workspace named in the reply, delivered within the count/byte budget.",
+        "Library loader": "`search_path` plus a curated schema of views/macros loaded at session start as a prelude (output discarded), and on-demand saved-query bundles; a failing prelude aborts start-up with file, line and message."
+      },
+      "sketch": "-- read-only replica, one connection, layered preludes\nsession = Session(pgClient(replica, role: \"analyst_ro\"), processor: sqlProcessor,\n                  policy: {timeout: 30s, readOnly: true},\n                  preludes: [\"schema/curated_views.sql\"])   -- output discarded\n\nsqlTool(stmt) → Reply                       -- one statement at a time\n  processor.beforeEval(session)\n  try:   rs = session.run(stmt, deadline: now() + 30s)   -- statement_timeout\n         return processor.process(session, rs)\n  catch e: return processor.processFailure(session, e)\n\nprocess(session, rs) → Reply\n  text = table(rs, maxRows: 50)             -- header + one line per row\n  text = cap(text, 9000, note: \"showing 50 of 10000 rows; add WHERE, aggregate, or raise LIMIT\")\n  text = text ++ foldByLine(warnings()) ++ contextBlock(session)\n  return Reply(text, atts: [])              -- no pictures: empty queue, same pattern\n\ncontextBlock(session) → text                 -- the mem analogue is a catalogue query\n  temp  = [name ++ \": \" ++ cols ++ \" rows=\" ++ n for t in catalog.tempTables()]\n  vars  = catalog.sessionSettings(keys: [\"search_path\", \"statement_timeout\"])\n  views = [signature(v) for v in catalog.views(schema: \"curated\")]\n  docs  = [doc(v) for v in views if seen[v] ≠ hash(def(v))]\n  return fit(temp ++ vars ++ views ++ docs ++ [\"bundles: \" ++ join(loadable())], CONTEXT_BUDGET)",
+      "key_notes": [
+        "Note 4 (cap and say how to get the rest): the forcing constraint here — 10,000 rows must never be rendered, and the note must say what to change (WHERE/aggregate/LIMIT), or the model will believe the table has 50 rows.",
+        "Note 1 (make state explicit): the pattern assumes a heap object; here state is the connection. Without the catalogue query in the context block the temp tables are invisible, and the pattern's main benefit evaporates.",
+        "Note 5 (tables for record lists): result sets are already rows; the work is the header line, row cap and per-table note, not YAML.",
+        "Note 3 (generic session vs domain processor): the generic part is \"run under a deadline, keep the connection\"; everything replica-specific (row cap, warnings, catalogue lines) belongs in the processor so a second engine can reuse the session.",
+        "Note 2 (contract in the tool description): read-only, temp tables persist, results capped — these three sentences are what keeps the model from trying `DROP` on a replica or re-reading 10,000 rows."
+      ],
+      "risk": "The cap hides the shape of the data: the model sees 50 of 10,000 rows, concludes that is the whole result, and reports a wrong count or an unrepresentative sample; closely followed by an unindexed cross join on a production replica because expressiveness was granted without a cost signal in the reply."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Two independent actions with side effects that each need the customer's confirmation are the chapter's own counter-case: narrow tools keep each action visible and reviewable, whereas an eval tool puts an arbitrary model-written program between the confirmation and the effect. There is also no state worth keeping, and the session/context/prelude machinery is pure overhead for two operations.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability's first \"do not use it when\" applies verbatim: separate, narrow tools make each action visible and reviewable, and give the confirmation step one unambiguous place to hang.",
+        "The chapter's own carve-out still transfers: keep its reply format (capped text, tables for record lists, structured refusals from Chapter 6) on the narrow `transfer` and `freezeCard` tools.",
+        "Note 10 (put the next step in the reply, not in documentation) still holds: a frozen card or a declined transfer should return the hint and the fix inline."
+      ],
+      "risk": "Accepting the proposal and gating confirmation inside the program the model wrote — the approval then depends on model-authored control flow, and a loop over two transfers can be confirmed once."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Applicability",
+      "kind": "missing",
+      "severity": "high",
+      "note": "\"There is no sandbox that can contain programs\" is the load-bearing clause for the whole pattern, and \"contain\" is never defined; Consequences then says safety rests on the API and the sandbox, so the reader is told to depend on something the chapter does not specify.",
+      "suggestion": "State the minimum containment: what the program can reach (filesystem paths, network, credentials), that the engine API is the only privileged surface, and that API operations are the place to validate — then point at Chapters 8 and 9 for the concrete forms."
+    },
+    {
+      "section": "Structure (Context block)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The context block lists inputs, `mem` data keys, helper signatures and loadable libraries, but never the API namespaces actually in scope (`img`, `cv`, `node`). With note 10 (agents read replies, not docs) and the Motivation finding that 39 agents never called `cv.help`, an agent's only route to the API surface is a failed call.",
+      "suggestion": "Add an \"API in scope\" line to the context block — namespace names with one doc line each, or a pointer to Chapter 1's generated reference — and say in one sentence how a first call is supposed to discover it."
+    },
+    {
+      "section": "Sketch (contextBlock) and Structure (State object)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`seen[f.name] = hash(source(f))` is annotated \"updated after successful calls only\", but the update sits inside `contextBlock`, which `processFailure` also renders; and keying by bare name means a task library that shadows a general helper suppresses the doc line for the new one.",
+      "suggestion": "Show the commit explicitly (e.g. `contextBlock(runtime, commit: bool)` called with `true` only from `process`), and key `seen` by (library, name) or by hash of the qualified name."
+    },
+    {
+      "section": "Structure (Attachment queue) / Sketch",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The prose promises \"returned ones first, each once\", but the sketch reduces to `budget(unique(queue()))`: neither the ordering rule nor the identity used by `unique` is visible, so a picture that was both returned and `look`ed at could be deduplicated wrongly or ordered arbitrarily.",
+      "suggestion": "Name the identity (content hash, `look` id, or output path) and spell out the two-bucket ordering in the pseudocode: returned attachments first, then created ones, deduplicated by that identity."
+    },
+    {
+      "section": "Implementation note 4",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The cap bounds only the rendered value; warnings, the context block and attachments each carry their own budget, so a call has no stated total size, and the admission that 9,000 was never measured leaves the reader no way to choose a number.",
+      "suggestion": "Give a total reply budget and its split (value ≈ ⅔, context a few hundred characters, ≤ 4 pictures / 8 MiB), plus one sentence on how to measure it (chars per reply against the model's context window, then adjust down)."
+    },
+    {
+      "section": "Implementation note 9 / Structure (Session)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The chapter covers an interrupt that leaves the runtime unusable, but never the session simply going away between calls — process restart, dropped connection, idle eviction. The state object then vanishes silently while the next context block reads as if the session were continuous.",
+      "suggestion": "Add a rule: the session either restores from a snapshot or the next reply opens with \"session restarted; mem was lost\" and an empty context block, so the agent cannot act on stale assumptions."
+    },
+    {
+      "section": "Structure (Session)",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "\"Applies policies (read-only, persistence)\" — persistence as a session policy is never defined, and elsewhere persistence is the property the state object provides, so the reader cannot tell whether this means keep-alive, snapshotting, or keyed session ids.",
+      "suggestion": "Say what the persistence policy decides (idle eviction, snapshot/restore, session keying) or drop the word and leave persistence to the State object."
+    },
+    {
+      "section": "Motivation, Implementation notes 8 and 11",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The study counts (thirty-nine agents, 3.2 KB, 374 evals, 39 pastes, 19 `UNUSED_NODE` hits of which 18 were wrong) persuade once in Motivation and are then restated in the notes, so the notes carry evidence where they should carry rules.",
+      "suggestion": "Keep the numbers in Motivation or a short evidence sidebar, and let notes 8 and 11 state the rule plus its consequence (\"helpers are documented where written\"; \"a lint that is usually wrong teaches agents to ignore warnings\")."
+    },
+    {
+      "section": "Variations (Structured call tool)",
+      "kind": "other",
+      "severity": "low",
+      "note": "`call(path, args)` is offered \"where the host forbids running code from strings\" — that is an exit condition, but it sits in Variations while Applicability's \"do not use it when\" list does not point at it, so a reader deciding applicability misses the fallback.",
+      "suggestion": "Add it as a third \"do not use it when\" item (\"the host forbids executing model-written code\") with a cross-reference to the variation, and keep the Variations entry short."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The generic-session/domain-processor split and the reply's five parts are the transferable core and are stated concretely enough to build from, but reusability suffers where the pattern assumes a mutable heap state object (SQL, shell and notebook sessions must synthesise it) and where the safety boundary stays undefined."
+  }
+}
