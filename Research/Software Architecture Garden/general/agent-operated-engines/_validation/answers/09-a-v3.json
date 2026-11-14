@@ -1,0 +1,147 @@
+{
+  "restatement": {
+    "intent": "Turn each unit of agent work into one sealed, non-interactive call whose inputs are fully saved, whose tools are explicitly mounted with least privilege, and whose single final answer is one parseable JSON object plus a kept event stream — so runs can be paralleled, retried, compared and audited.",
+    "problem": "An agent run that inherits the operator's environment, holds an open conversation and answers in free text cannot be repeated, compared or audited, and batches of such runs cannot be retried or scored.",
+    "solution": "Every run is a RunSpec (item, model, thinking, prompt version, tag). The run gets a fresh directory into which an assembler writes the prompt built from versioned parts, and a tool mount that exposes read-only data and a private writable workspace — never the answers. The agent is started non-interactively with its own configuration channels switched off, so only mounted tools exist; its final message must be one fenced JSON object, which an extractor pulls out with a fixed repair ladder and validates and writes atomically as the answer file. A batch runner then fans specs out in parallel per tag, skipping runs that already hold a valid answer, so reruns only retry failures and variants join on item ids."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Because the exact prompt is the first thing to read when a result surprises you: it makes the run reconstructible, and prompt versions are kept as separate files behind a switch rather than edited in place.",
+      "where": "Implementation note 2 (Save the assembled prompt in the run directory); also Solution and Structure/Run directory"
+    },
+    {
+      "id": "Q2",
+      "answer": "The answers (the truth/ground truth). Items carry blind ids, controls with known answers are mixed in, and the answers live outside every mount, otherwise the run could read the right answer and every score becomes meaningless.",
+      "where": "Implementation note 3 (Never mount the truth); Solution ('never mount the answers'); Sketch mount(...) comment"
+    },
+    {
+      "id": "Q3",
+      "answer": "By skipping: the todo list is only specs whose answer file is missing, or whose status is not ok, or whose recorded spec hash no longer matches — so a rerun retries failures only. Variants are kept apart by tag: each tag has its own answer directory and log, and comparing variants becomes a join on item ids.",
+      "where": "Implementation note 6; Collaboration step 1; Sketch batch(...)"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because models slip: a strict parser rejects a whole run for one typo, a lenient one accepts wrong answers, so the extractor parses the final message with a fixed ladder of known repairs and then validates against the schema. The dust project needed three: a dropped key ({\"q003\", …}), a colon after a bare id, and raw newlines inside strings — without them a run of six answers was lost to one typo.",
+      "where": "Implementation note 4; Forces (Strict contracts against model slips); Sketch extract(...)"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "This is the chapter's own document-extraction-pipeline case: thousands of homogeneous items, six model-plus-prompt variants that must be compared on the same items, and runs that must be retried and audited. The OCR tool is just a mounted tool, so it costs the pattern nothing.",
+      "participants": {
+        "Run spec": "invoiceId (blind), model (one of three), thinking level, promptVersion (v1 or v2), tag = model ++ \"/\" ++ promptVersion",
+        "Run directory": "runsRoot/<tag>/<invoiceId>/ holding prompt.md, tools.json, ws/, events.jsonl, transcript.html, answer.json",
+        "Prompt assembler": "fixed order: role (invoice field extractor) · how to work (use the OCR tool, never guess a cut-off line) · required steps · known mistakes (currency symbols, multi-page totals) · blind invoice description · output contract with a literal example of the invoice schema · reference (field definitions, allowed date/currency formats)",
+        "Tool mount": "per-run MCP config exposing only the OCR tool; scansDir and helpersDir read-only; ws/ as the only writable path; the expected-fields manifest and any invoiceImports table stay outside",
+        "Agent invocation": "pi with --no-builtin-tools --no-context-files --no-skills --no-prompt-templates, non-interactive, cwd = run directory",
+        "Extractor": "last fenced JSON in the final message, repair ladder, then validate: required keys (vendor, invoiceDate, currency, lines[], total), types, ISO dates, totals reconcile within tolerance",
+        "Batch runner": "12,000 specs (2,000 × 3 × 2), workers ~6, per-run 20 min timeout, skips status==ok answers whose spec hash matches"
+      },
+      "sketch": "value RunSpec: invoiceId, model, thinking, promptVersion, tag  -- tag = model ++ \"/\" ++ promptVersion\n\nrun(spec) → Answer | Failure\n  dir = fresh(runsRoot / spec.tag / spec.invoiceId)\n  write(dir / \"prompt.md\", assemble(spec.promptVersion, describeBlind(spec.invoiceId)))\n  write(dir / \"tools.json\", mount(tools: [ocr], read: [scansDir, helpersDir], write: dir / \"ws\"))\n  events = agent(cwd: dir, prompt: read(dir / \"prompt.md\"), model: spec.model, thinking: spec.thinking,\n                 builtinTools: none, contextFiles: none, skills: none, templates: none, nonInteractive: true)\n  write(dir / \"events.jsonl\", events); exportTranscript(events, dir / \"transcript.html\")\n  return extract(events)          -- validate invoice schema; refuse(kind, ...) on unparseable\n\nbatch([RunSpec(inv, m, \"high\", pv, tag: m ++ \"/\" ++ pv)\n       for inv in invoices for m in [\"m1\",\"m2\",\"m3\"] for pv in [\"v1\",\"v2\"]], parallel: 6)",
+      "key_notes": [
+        "Note 3 (never mount the truth): the strongest single requirement here — the field manifest / expected values must live outside scansDir and helpersDir, and scan filenames must not encode the answer.",
+        "Note 1 (switch everything off, then mount): the OCR tool must be the only tool; if builtin bash is left on, a run can read the answer key or a neighbour run's directory and the comparison dies silently.",
+        "Note 7 (own writable workspace): OCR output, page images and caches go to ws/; a shared OCR cache is exactly the parallel collision the note warns about.",
+        "Note 8 (state budgets in the prompt): chapters 7's image-count limit is the live hazard for multi-page scans — state the page budget or a long invoice ends a run with nothing.",
+        "Note 6 (tags + skip): twelve answer directories, one per tag, so the six variants join on invoiceId; and failures counted as wrong answers per variant, never dropped, or variants get compared on different subsets.",
+        "Note 4 (one fenced JSON, literal schema example): invoice JSON is nested and long, so the repair ladder and schema validation pay for themselves quickly.",
+        "Note 11 (bound every run, test the seal): a hung OCR call is the realistic failure; timeout plus canary check after every agent upgrade."
+      ],
+      "risk": "Treating failed runs as missing data: dropping timeouts and unparseable answers from the denominator makes the cheapest, sloppiest variant look best. Second most likely: leaving the expected-fields sheet inside the mounted scan directory."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter names this case in its own 'do not use' list: sealing removes the conversation that makes interactive debugging work, the task needs broad access to a live environment, and there is no fixed answer to state or score. A fixed JSON output per call would also freeze the hypotheses the engineer wants to argue with.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Note 1 is the decisive one, inverted: the seal flags do not remove environment variables, credentials in the home directory or network access — and live log/dashboard access is precisely what the engineer needs, so 'sealing' it means blocking the task.",
+        "Note 11 still applies usefully in spirit: bound any agent call used inside the incident (timeout, cost) and keep the transcript, so the postmortem has logs.",
+        "Applicability's second exclusion ('needs broad access to a live environment … auditing must come from logs instead') is the sentence to quote back to the colleague."
+      ],
+      "risk": "Forcing a partial fit: wrapping each debugging turn in a sealed run and calling the resulting JSON 'the answer' produces a slow, blind assistant that cannot see the environment it is asked about. The legitimate sealed piece is offline — e.g. a post-incident run over the saved transcript and logs to draft a postmortem or triage the alert against runbooks — and it should be described as that, not as the debugging loop."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Implementation note 1 (seal) vs Solution/Structure",
+      "kind": "too-specific",
+      "severity": "high",
+      "note": "The seal is justified entirely by one product's flags (--no-builtin-tools --no-context-files --no-skills --no-prompt-templates), yet the pattern is claimed general. A reader on another framework cannot tell what must be closed, nor check that it was.",
+      "suggestion": "Replace with a product-neutral table of leak channels — operator instruction files, skills, prompt templates, memory/history, env vars, credentials in $HOME, network, shared caches, prior runs — each with 'how to close it' and 'how the canary proves it is closed', keeping the pi flags as one column example."
+    },
+    {
+      "section": "Sketch batch(...) / Implementation note 6 (skip answered runs)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The skip condition hashes only the RunSpec (item, model name, thinking, prompt version, tag). The Consequences section itself admits a routed model name can change underneath, so after a provider upgrade a rerun silently reuses answers produced by a different model — the exact comparison the pattern exists to protect.",
+      "suggestion": "Include the resolved provider model version, decoding settings and agent version in the recorded fingerprint, and state that a change in any of them invalidates answers; the fingerprint, not the spec alone, decides 'already answered'."
+    },
+    {
+      "section": "Sketch extract(...) repair ladder / Implementation note 4",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The repair names droppedKey, bareIdColon, innerQuotes and mismatchedClosers are never shown as inputs and outputs, so the extractor — the one piece of code the reader must write — cannot be implemented from the chapter. It is also unstated what a repair may never do (invent a value, guess a truncated answer, pick between two conflicting blocks).",
+      "suggestion": "Add a small before/after table of the six repairs, and one sentence on the boundary: repairs fix syntax and recover structurally present content, and any repair that would have to supply a missing value must produce a Failure instead."
+    },
+    {
+      "section": "Missing topic: repeats and noise",
+      "kind": "missing",
+      "severity": "high",
+      "note": "RunSpec carries temperature and seed and runs are single-shot, but the chapter never says whether a variant comparison needs several runs per item, how to aggregate them, or what to do when a routed model ignores the seed. A one-run-per-item score difference of 2% across models is treated implicitly as real.",
+      "suggestion": "Add an implementation note on repeats (n runs per item per tag, agreement rate as a second signal, failure rate reported alongside accuracy) and the rule that comparisons are between runs made in the same batch window."
+    },
+    {
+      "section": "Solution / Structure table",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Collaboration step 0 introduces a seal check with a canary that runs before a batch and after every agent upgrade, but no participant owns it — it appears in neither the Structure table nor the flowchart, so a reader building from the Structure will omit it.",
+      "suggestion": "Add a 'Seal check' participant (or an explicit responsibility row on Agent invocation) with its own trigger and its failure action: refuse to start the batch."
+    },
+    {
+      "section": "Solution vs Implementation note 4 vs Structure (Extractor)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Three statements disagree: Solution says extract from the event stream, Structure says 'last fenced JSON block in the event stream', note 4 says 'extract from the final message only'. The Sketch comments earlier blocks are drafts. A reader cannot tell whether scanning the whole stream is allowed.",
+      "suggestion": "Fix one rule — final assistant message only, falling back to the stream only when the run ended abnormally — and state it in all three places."
+    },
+    {
+      "section": "Motivation (three bullets) vs Solution / Also known as",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "The three bullets (one directory per run · agent started non-interactively with builtins off · fenced JSON) restate the Solution almost verbatim two sections later, and 'write the runner once' (note 10) repeats the same ground a third time. A reader gets the shape three times before any new information.",
+      "suggestion": "Cut the Motivation bullets to the failure that forced each element (comparison broke, context leaked, one typo lost six answers) and let the Solution state the shape once."
+    },
+    {
+      "section": "Implementation note 3 / Sketch describeBlind(item)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'Blind ids' and 'controls with known answers mixed in' are load-bearing (they are the reason answers are never mounted) but the chapter never defines blind — blind to the agent only, or to the scorer too? Who holds the key, and how are control items scored and reported?",
+      "suggestion": "One short definition: what blindness means here, where the mapping lives, how many controls a batch needs, and how control results are reported next to real-item results in the comparison."
+    },
+    {
+      "section": "Rating line (★★ 'close to invariant')",
+      "kind": "other",
+      "severity": "low",
+      "note": "The self-rating is asserted without criteria, so it carries no information for a reader deciding whether to use the pattern or how much to trim it.",
+      "suggestion": "Say what makes it close to invariant (the constraints are forced by measurement, not taste) and what would move it up a star — or drop the rating from the chapter."
+    },
+    {
+      "section": "Applicability ('no way to state what a correct answer looks like')",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "Too strict as written: the dust project's own judge runs produce graded judgements, not correct answers, and Known uses (Inspect, OpenAI Evals) score subjective outputs with rubrics. Read literally the criterion excludes the chapter's own examples.",
+      "suggestion": "Change to 'no way to state a scoring rule or rubric that the same items are scored by', and note that the rule must be fixed before the batch, not after seeing answers."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The shape and the forces are clear enough to build from, but reusability is capped by the product-specific seal, the under-specified repair ladder, and a skip rule that would silently mix model versions across batches."
+  }
+}

@@ -28,7 +28,7 @@ Rating: ★★ (close to invariant: any system with this problem converges on th
 ## Intent
 
 Run an agent as one isolated, non-interactive invocation per unit of work, so that its result depends only on what
-you gave it: a prompt assembled from versioned parts and saved with the run, tools mounted with least privilege, and
+you gave it, as far as the agent's own configuration reaches (the process environment needs isolating separately): a prompt assembled from versioned parts and saved with the run, tools mounted with least privilege, and
 nothing from the operator's environment. Ask for one machine-readable answer in a fixed format, extract it
 defensively, and keep the full event stream and a readable transcript. Many runs can then go in parallel, be retried,
 be compared across models and prompt versions, and be audited later.
@@ -85,8 +85,9 @@ cannot be repeated, compared or audited, and a batch of such runs cannot be retr
 **Therefore: make each run a function call with explicit arguments: one unit of work, a model, a prompt version and a
 tag. Give each run its own directory. Assemble the prompt from versioned parts (role, how to work, required steps,
 known mistakes, the items with blind ids, the output contract, reference material) and save it there. Start the agent
-non-interactively with nothing from the operator's environment, and mount tools only through an explicit, per-run
-configuration with read-only inputs and a fresh writable workspace; never mount the answers. Require one fenced JSON
+non-interactively with none of the operator's agent configuration (built-in tools, context files, skills, templates),
+isolate the process environment (variables, credentials, network) where it matters, and mount tools only through an
+explicit, per-run configuration with read-only inputs and a fresh writable workspace; never mount the answers. Require one fenced JSON
 object as the final message, extract it from the event stream with known repairs, and keep the event stream and a
 readable transcript. Run many in parallel, each variant under its own tag, skipping runs that already have an answer.**
 
@@ -119,12 +120,16 @@ Do not use it when:
 
 ## Collaborations
 
+0. Before a batch, and after every agent upgrade, a seal check runs: a canary placed in the operator's environment
+   (a context file or skill telling the agent to mention a nonsense word) must not appear in a sealed run's output.
 1. The batch runner lists the run specs for one variant and skips those whose answer file exists.
 2. For each spec, the run directory is created fresh; the assembler writes the prompt; the tool mount is written.
 3. The agent is started inside the run directory with the prompt as its only input; its events stream to a file.
 4. When it ends, the transcript is exported and the extractor writes the answer file, or records why it could not.
 5. A comparison step scores the answers of each variant on the same items (see
-   [Chapter 10](10-gated-calibrated-triage.md)); the behaviour in the event streams explains the scores.
+   [Chapter 10](10-gated-calibrated-triage.md)); the behaviour in the event streams explains the scores. Failed runs (timeout,
+   no answer, invalid answer) are counted as wrong answers in the comparison and reported as a failure rate per
+   variant, so variants are compared on the same items.
 
 ```mermaid
 flowchart LR
@@ -141,7 +146,7 @@ flowchart LR
 ## Sketch
 
 ```text
-value RunSpec: item, model, thinking, promptVersion, tag
+value RunSpec: item, model, thinking, decoding: {temperature?, maxTokens?, seed?}, promptVersion, tag
 
 run(spec) → Answer | Failure
   dir = fresh(runsRoot / spec.tag / spec.item.id)
@@ -162,17 +167,24 @@ extract(events) → Answer | Failure
   text = finalAssistantText(events)               -- the contract says the final message; earlier blocks are drafts
   block = lastFencedJson(text)
   if not block: return Failure("no fenced JSON in the final message")
-  try: return parse(block)
-  try: return parse(repairs(block))               -- a dropped key, a colon after a bare id, raw newlines
+  applied = []
+  for repair in [none, rawNewlines, droppedKey, bareIdColon, innerQuotes, mismatchedClosers]:   -- a fixed ladder
+    block = repair(block); applied = applied ++ [repair]           -- cumulative: slips come in clusters
+    obj = tryParse(block)
+    if obj: return validate(obj, schema) with repairsApplied: applied   -- required keys, types, allowed values
   return Failure("unparseable JSON")
+  -- droppedKey: {"q003", …} → {"qid": "q003", …}; bareIdColon: {"q173": "kind": …} → {"qid": "q173", "kind": …};
+  -- innerQuotes: an unescaped " inside a string; mismatchedClosers: an object closed with ]
 
 -- answers are written atomically, with the run's status; only a valid answer counts as done
-finish(spec, result) → ok
-  writeAtomically(answerPath(spec), { status: result.ok ? "ok" : "failed", spec: hash(spec), answer: result })
+finish(spec, result) → ok                                         -- identity = what the run actually received
+  writeAtomically(answerPath(spec), { status: result.ok ? "ok" : "failed",
+                                      inputs: hash(promptText, toolMountContents, spec.model, spec.decoding),
+                                      answer: result })
 
 batch(specs, parallel: 6)
   todo = [s for s in specs if not (exists(answerPath(s)) and read(answerPath(s)).status == "ok"
-                                    and read(answerPath(s)).spec == hash(s))]
+                                    and read(answerPath(s)).inputs == hash(assemble(s), mountContents(s), s.model, s.decoding))]
   parallelMap(todo, s → finish(s, withTimeout(run(s), 20 min)), workers: parallel)   -- reruns retry failures only
 
 -- in use
@@ -181,11 +193,13 @@ batch([RunSpec(item, "deepseek-4.1-flash", "high", "v3", tag: "v3") for item in 
 
 ## Implementation notes
 
-1. **Switch everything off, then mount what the run needs.** The dust runners start pi with
+1. **Switch everything off, then mount what the run needs; know what the flags do not cover.** The dust runners start pi with
    `--no-builtin-tools --no-context-files --no-skills --no-prompt-templates` and give it tools only through a
    per-run MCP configuration. Without these flags, the operator's own instructions and skills leak into every run.
    When a run must build software, allow an explicit tool list (read, write, edit, bash) and give it its own
-   directory holding only the task.
+   directory holding only the task. These flags close the agent's own configuration channels; they do not remove
+   environment variables, credentials in the home directory or network access. Where those matter, run the agent in
+   a container or under a separate user with an empty environment.
 2. **Save the assembled prompt in the run directory.** When a result surprises you, the exact prompt is the first
    thing to read. Keep prompt versions as separate files behind a switch, never edited in place.
 3. **Never mount the truth.** Items carry blind ids; controls with known answers are mixed in; the answers live

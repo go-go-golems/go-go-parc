@@ -1,0 +1,146 @@
+{
+  "restatement": {
+    "intent": "Run each unit of agent work as an isolated, non-interactive job whose prompt, tools and output contract are explicit and saved, so results can be compared, retried and audited.",
+    "problem": "An agent run that inherits the operator's environment, stays conversational and answers in free text cannot be reproduced, compared across variants, or audited.",
+    "solution": "Give each run its own directory and a run spec. Assemble and save a versioned prompt, and mount only least-privilege tools with read-only inputs and a fresh workspace. Invoke the agent non-interactively with ambient configuration off, and require one fenced JSON answer extracted with a fixed repair ladder. Batch variants in parallel under tags, skip valid answers, and retain events and transcripts."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "`--no-builtin-tools`, `--no-context-files`, `--no-skills` and `--no-prompt-templates`: they keep out the default built-in toolset, operator/project context files, skills, and prompt templates respectively. Tools then come only from a per-run MCP configuration.",
+      "where": "Implementation notes 1, with Solution and Motivation"
+    },
+    {
+      "id": "Q2",
+      "answer": "So parallel runs never share a writable directory, cache or answer file; each run gets isolated scratch space, and a builder run gets its own subdirectory containing only its inputs.",
+      "where": "Implementation notes 7; Forces ('Parallelism against shared state'); Solution"
+    },
+    {
+      "id": "Q3",
+      "answer": "Editing a script while a batch is using it changes in-flight runs; `[ cond ] && cmd` as the last command under `set -e` aborts; and zsh does not split an unquoted variable holding several words.",
+      "where": "Implementation notes 9"
+    },
+    {
+      "id": "Q4",
+      "answer": "The dust project wrote the recipe three times with the same extraction code pasted into each script. The chapter recommends one runner driven by a run spec, with prompt parts and tool mounts as data, to remove the copies and their drift.",
+      "where": "Implementation notes 10; Motivation"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Thousands of findings are repeated, comparable units with a checkable verdict and reason; read-only code mounts and per-run isolation support parallel scoring, retries and later audit.",
+      "participants": {
+        "Run spec": "One finding at a pinned repository revision, model, thinking/decoding settings, prompt version and variant tag.",
+        "Run directory": "`runs/<tag>/<safe-run-id>/` holding the assembled prompt, tool config, workspace, event stream, transcript and answer.",
+        "Prompt assembler": "Role as security reviewer, triage criteria, required steps, known false-positive patterns, blind finding id and code pointers, output contract, and reference rules.",
+        "Tool mount": "Read-only checkout at the fixed commit, read-only code/search helpers, and a fresh empty workspace; no labels, prior triage decisions, or tests that reveal the intended verdict.",
+        "Agent invocation": "Non-interactive, with built-ins, context files, skills and templates off; only the mounted read/search tools exist.",
+        "Extractor": "Last fenced JSON object with `{finding_id, verdict: real|false_positive, reason, evidence}`, repaired through the fixed ladder and schema-validated.",
+        "Batch runner": "Runs findings in parallel, keeps variants apart by tag, skips only valid answers, retries failures, and preserves failure attempts."
+      },
+      "sketch": "spec = RunSpec(finding.id, repo@commit, model, thinking, decoding, promptVersion, tag: 'triage-v1')\n\nrun(spec) → Answer | Failure\n  dir = fresh(runsRoot / spec.tag / safe(spec.item.id))\n  write(dir / 'prompt.md', assemble(spec.promptVersion, spec.item))\n  write(dir / 'tools.json', mount(read: [checkout(spec.item.repo, spec.item.commit), helpersDir],\n                                  write: dir / 'ws'))\n  events = agent(cwd: dir, prompt: read(dir / 'prompt.md'), model: spec.model,\n                 thinking: spec.thinking, decoding: spec.decoding,\n                 builtinTools: none, contextFiles: none, skills: none, templates: none,\n                 nonInteractive: true)\n  write(dir / 'events.jsonl', events)\n  exportTranscript(events, dir / 'transcript.html')\n  return extract(events)\n\nassemble(version, item) = join([role, criteria, steps, known_fp, describeBlind(item),\n                                 contract, references])\n\nbatch(specs, workers: 8)\n  todo = [s for s in specs if not validAnswer(s)]\n  parallelMap(todo, s → finish(s, withTimeout(run(s), 15 min)), workers: 8)",
+      "key_notes": [
+        "#1: switch off built-ins, context files, skills and templates, then mount only the triage tools; a read-only checkout still exposes credentials and network unless the run is in a container or empty environment.",
+        "#3: never mount the truth. Suppression comments, issue text, prior triage notes or tests naming the bug can leak the verdict; use blind ids and keep labels outside every mount.",
+        "#4: require one fenced JSON object with a literal schema example, validate the allowed verdict values, and log every repair.",
+        "#6 and #7: separate tag directories and per-run workspaces are essential for 5,000 parallel findings; otherwise runs collide and retries are ambiguous.",
+        "#8 and #11: state the code/evidence budget in the prompt and bound every run; a hung checkout or provider must not stall the batch.",
+        "#2: save the assembled prompt with each run; a surprising verdict is only diagnosable from the exact instructions and evidence the agent saw."
+      ],
+      "risk": "The most likely error is mounting the whole repository, including issue text, suppression history or prior triage notes, which leaks the answer. A second risk is that one-finding isolation removes cross-file context needed for a fair verdict."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is an open-ended, human-in-the-loop design conversation with no fixed work item, output contract or stable correctness criterion. Sealing each turn would remove the continuity and tacit context that make the collaboration useful.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "The chapter's first do-not-use bullet applies directly: sealing removes the conversation that makes the work possible.",
+        "There is no stable run spec or comparable variant; each draft depends on the designer's previous reactions and the shared thread.",
+        "A sealed run could be used after the conversation to evaluate finished landing-page candidates against a rubric, but that is downstream evaluation, not the brainstorming session."
+      ],
+      "risk": "Forcing the pattern produces disconnected one-shot drafts and comparisons that measure prompt differences rather than design quality."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Intent / Solution / Consequences",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The chapter calls the run a pure function and says nothing from the operator's environment survives, but note 1 admits environment variables, home-directory credentials and network access do survive, and Consequences admits routed model versions change. The function also depends on model, decoding and provider version, not just prompt and tools.",
+      "suggestion": "Define 'sealed' as closing the agent's configuration channels. Require a container, empty environment and network policy for the stronger claim, and call the result reproducible from recorded inputs rather than pure."
+    },
+    {
+      "section": "Sketch (RunSpec/run)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "RunSpec contains `decoding`, but `run()` never passes it to `agent()`, and the Structure table omits decoding. As written, temperature, maxTokens and seed are not part of the invocation.",
+      "suggestion": "Pass `decoding: spec.decoding` and record the provider-reported model version, agent version and tool-config hash alongside the spec."
+    },
+    {
+      "section": "Sketch (batch/finish) / Implementation note 2",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The skip test uses `hash(spec)`, but the spec carries labels such as `promptVersion`, not the contents of the assembled prompt or tool mount. Editing a prompt part behind the same version label, or changing the tool config, leaves the hash unchanged. Two concurrent batches can also both pass the exists check.",
+      "suggestion": "Content-address the spec with hashes of the assembled prompt, tool config, agent/provider version and decoding. Claim the answer path with a lock or create-exclusive run record."
+    },
+    {
+      "section": "Collaborations step 2 / Sketch run",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "`fresh(run dir)` on a retry wipes the failed attempt's events and transcript, so the audit trail is lost exactly when a failure is being investigated.",
+      "suggestion": "Keep attempt subdirectories or append-only attempt records and point the answer at the successful attempt; do not delete failed evidence."
+    },
+    {
+      "section": "Extractor / Implementation note 4",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The repair ladder names `rawNewlines`, `droppedKey`, `bareIdColon`, `innerQuotes` and `mismatchedClosers` but never defines them or gives examples. Order matters, and a repair can turn a wrong answer into a parseable one. The pseudocode also has no Failure branch when `validate(obj, schema)` rejects the object.",
+      "suggestion": "Show before/after examples, fix the order, validate after every repair, log both raw and repaired blocks, and fail closed on ambiguity."
+    },
+    {
+      "section": "Structure (Run spec) / Sketch paths",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The run path `runsRoot / tag / item.id` assumes item ids are unique and path-safe. Two repositories can reuse a finding id, and an id containing separators can escape the directory; joins on item ids across repositories become ambiguous.",
+      "suggestion": "Use an opaque, sanitized run id and store a canonical work-item key such as repository, revision and finding id. Reject unsafe path components."
+    },
+    {
+      "section": "Collaborations step 5 / Consequences",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Counting every failed run as a wrong answer conflates task accuracy with infrastructure reliability. A variant with more provider timeouts will look less accurate even if its failure rate is also reported.",
+      "suggestion": "Report accuracy on valid completed runs and reliability separately, use paired item comparisons and confidence intervals, and do not let infrastructure failures silently change the capability ranking."
+    },
+    {
+      "section": "Applicability (Do not use)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The rule that a sealed run is unusable when there is no way to state a correct answer is too absolute. Rubric-scored summaries, pairwise preference tasks and open-ended evaluations have no single correct answer but still have stable scoring rules.",
+      "suggestion": "Replace it with 'no stable scoring or comparison rule', and distinguish evaluation runs from exploratory generation."
+    },
+    {
+      "section": "Implementation notes 1, 9, 11 / Known uses",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The operational advice is almost entirely pi-specific: the four CLI flags, MCP tool mounts, dust film tiles, `deepseek-4.1-flash` and the vault handbook. A reader using another agent product has to infer which channels to disable.",
+      "suggestion": "Keep dust as the running example but add a product-neutral checklist of channels to disable, and one short mapping for another runner."
+    },
+    {
+      "section": "Seal check / Implementation note 11",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The canary tests only instruction leakage through a context file or skill. It does not test environment variables, home-directory credentials, network access, mounted tool paths, or a model echoing the prompt's schema example.",
+      "suggestion": "Make the seal check a small suite: canaries in several channels, a credential probe, a network probe, and an assertion that no answer key is reachable from any mount."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core shape and participants are clear, but the seal is overclaimed and the operational recipe is too pi-specific; I would use it after adding content-addressed specs and real container isolation."
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "restatement": {
+    "intent": "Every artefact should answer, by itself, what made it and who decided what about it — so results can be filtered and measured by origin and corrected without erasing history.",
+    "problem": "When artefacts do not record their maker and decisions overwrite one another, no source can be measured, audited or undone without losing what came before.",
+    "solution": "Two separable halves. Stamp every artefact at creation with a provenance record (maker kind, ids, hashed inputs, version, time), enforced by making it a required constructor argument. Append every decision (accept, reject, correct, undo) as an immutable event to a log, and derive current state by folding the log in one shared function; then offer queries both ways — sourceOf(artefact) and madeBy(source) — plus aggregates by source."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A file can contain items from different makers. The dust gold files name the annotator once but stamp each point separately; only the per-point origin allowed acceptance rates to be broken down by suggestion confidence band (81/47/20 %). A per-file stamp makes mixed-origin files unattributable.",
+      "where": "Implementation note 2; Motivation bullet 'Measuring the agents'"
+    },
+    {
+      "id": "Q2",
+      "answer": "Editing or deleting a line destroys the history and breaks replay. As an event the undo is itself auditable, and the fold pops the latest decision, so accept → reject → undo leaves the item accepted — a result no in-place edit can reconstruct.",
+      "where": "Implementation note 4; Sketch fold"
+    },
+    {
+      "id": "Q3",
+      "answer": "The copies drift: the dust project folded in Go and in two scoring scripts, and three folds can disagree on edge cases (unknown decision kind, malformed line), so numbers computed by different readers no longer agree. Force: 'Readers against writers'; fix is one implementation, or one shared test suite.",
+      "where": "Implementation note 5; Forces; Participant 'Fold'"
+    },
+    {
+      "id": "Q4",
+      "answer": "When the artefact's format must not change — goja-cv's saved JSON is read as plain rows by other scripts, so provenance goes in a sidecar written atomically with the file (both to temp names, sidecar renamed first) so a file never appears without its record. Inline is preferred otherwise because it travels with the artefact.",
+      "where": "Implementation note 8; Forces 'Inline against sidecar'; Variations"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It matches all three applicability triggers: several kinds of makers (three engines plus humans) compared by source, decisions revised over rounds by several reviewers, and a later audit ('exclude the buggy engine'). Both halves are needed, not just provenance.",
+      "participants": {
+        "Provenance record": "per segment: maker kind (engine | human), engine id + version, model/prompt version, round, reviewer id, source-document hash, TM/glossary hash, time",
+        "Stamper": "one helper called by all four producer paths (three engine adapters and the human editor) — a missed adapter silently disappears from every acceptance rate",
+        "Schema": "segment id, engine and version strings, round number, what 'acceptance' counts, and whether an edit is a correction or a new proposal",
+        "Decision event": "accept | edit(newValue) | reject, with reviewer, round, time, reason; a reviewer's edit is a 'correct' event carrying newValue, not an overwrite of the segment",
+        "Decision log": "append-only, one per project/batch, ordered by seq (reviews arrive concurrently from several reviewers)",
+        "Fold": "single implementation shared by the review UI and the metrics job; otherwise the quoted acceptance rate depends on which tool computed it",
+        "Lineage queries": "acceptanceByEngine / acceptanceByEngineVersion, madeBy(engineVersion) to list and exclude a buggy engine's segments"
+      },
+      "sketch": "value SegProv:  kind (engine | human), ids: {engine, engineVersion, model, promptVersion, round, reviewer}, inputs: [(doc, sha256), (tm, sha256)], at\nvalue Seg:      id, srcSpan, text, prov\nvalue Event:    seq, segId, decision (accept | edit | reject | undo), actor, at, reason?, newValue?\n\nemit(span, text, ctx) -> Seg            -- called by each engine adapter and the human editor, never bypassed\n  return Seg(newId(), span, text, Provenance(ctx))\n\nreview(seg, decision, reviewer, reason?, newValue?)\n  decide(log, seg.id, decision, actor: reviewer, reason, newValue)   -- appended, never edits seg\n\nstate = fold(allSegs, log, foldVersion)          -- one shared impl for UI + metrics\nrate(engine) = acceptance('engine')              -- over state at a fixed fold seq snapshot\nexclude(v)   = [s.id for s in madeBy({engineVersion: v})]   -- flag, do not delete",
+      "key_notes": [
+        "Note 1 (impossible to forget): four producer paths here, and the engine adapters are the ones most likely to skip the stamper — each miss biases every acceptance rate upward or downward with no visible symptom.",
+        "Note 2 (per item, not per file): a single translated document can mix two engines and a human post-edit; document-level stamps make the whole comparison impossible.",
+        "Note 3 (keep rejections): the acceptance rate per engine only exists if rejections are logged as decisions; they also stop the same rejected segment being re-proposed.",
+        "Note 8? no — Note 9 (hash inputs): the source document and any TM are re-exported between rounds; a path-only record would attribute a segment to text it never translated.",
+        "Note 10 (corrections overlay): reviewers' edits must be 'correct' events with newValue, so the engine output stays inspectable and the edit is traceable to its reviewer.",
+        "Notes 4 and 5: rounds and concurrent reviewers need seq ordering, and the review UI and the metrics script must share one fold — this is exactly the dust three-fold failure.",
+        "Note 6 (record the actor): 'several reviewers over several rounds' is precisely the case where the dust log's missing reviewer field would be fatal."
+      ],
+      "risk": "Implementing 'exclude the buggy engine' by deleting or pre-filtering its rows: that erases the evidence, changes every denominator, and makes the exclusion itself unauditable. Exclude via a query over madeBy(engineVersion), keeping the segments and their rates in the record."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is the applicability exclusion verbatim: disposable intermediates that nothing will ever question, whose cache key already identifies their inputs. Provenance would be a second copy of the key, and eviction events would be a high-volume log nobody reads — paid on the hot path of a cache that exists to avoid work.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Note 9 is the one thing worth keeping, and it is already true: the cache key is the input hash, so nothing more needs recording.",
+        "Applicability 'volume of tiny events' clause: tile-granularity eviction events would grow the log faster than the cache they describe, and each stamped tile costs memory — the exact resource under pressure.",
+        "Note 8's sidecar follows from the same mistake: one extra file and two extra renames per tile, in the eviction path."
+      ],
+      "risk": "The stamping turns the cache into a metadata store: doubled resident size, a write per tile, and sidecar inodes under memory pressure — so the service gets slower and evicts more, while the records are never read. If a question ever does arise, the chapter's own remedy is the third exclusion clause: aggregate first (a counter per producer and cache-key prefix), then record."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch — save()",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Renaming the sidecar first means a reader can see the new provenance beside the old data — provenance that confidently describes content that is not there. That is worse than missing provenance, which at least shows up in unstamped(). The chapter claims 'a file never appears without its record' but only guarantees the wrong direction.",
+      "suggestion": "State the invariant you actually want (never a wrong record; a missing record is detectable), and either rename the data file first, or name the sidecar after the content hash so a mismatched pair cannot be read as a match, or write one combined file when the format permits."
+    },
+    {
+      "section": "Sketch — fold()",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "Three states are undefined: undo on an empty stack (pop of nothing), an unrecognised decision kind, and an event whose artefactId is not in the artefacts map. The last is not hypothetical — it happens whenever the log and the sidecar are separate stores written non-atomically, which the chapter itself recommends. Note 5 says folds 'can disagree on an edge case' without saying what the right answer is.",
+      "suggestion": "Specify each case with the chapter's own vocabulary: refuse(E_UNDO_EMPTY), an 'unknown decision' event kept and reported rather than dropped, and orphan events collected into a queryable list instead of crashing or vanishing."
+    },
+    {
+      "section": "Consequences / Fold participant",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Nothing versions the fold. Yet the Motivation quotes exact numbers (81 %, 47 %, 20 %) that are outputs of a fold; change the fold's edge-case handling and every historical acceptance rate silently changes with no way to reproduce the quoted figure. 'Write the fold once' is also unachievable in a polyglot project (Go tool, two scoring scripts), so 'once' cannot be the guarantee.",
+      "suggestion": "Stamp a foldVersion into derived state and into any quoted aggregate, and make the shareable artefact a fold specification plus a shared conformance test suite run against each implementation — say this is what 'one fold' means when more than one language is involved."
+    },
+    {
+      "section": "Forces vs Solution",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "'Completeness against weight' is raised as a tension and never resolved: the Provenance type is a map of eight ids, all looking optional, so the reader has no basis to decide what is enough and 'record everything' wins by default — the failure mode the force warns about.",
+      "suggestion": "State a minimum mandatory record (maker kind, one stable maker id, time, hashed inputs) and mark the rest domain-specific, with one line on what breaks when each is omitted."
+    },
+    {
+      "section": "Structure",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The chapter insists the two halves are separable (Applicability, first paragraph, 'Many systems need the first and not the second') but every participant table, collaboration list and sketch shows only the joined form. A reader who wants provenance alone cannot tell which four of the seven participants to drop.",
+      "suggestion": "Split the participant table into 'provenance only' and 'plus decision log', or add a second short sketch of the provenance-only system (stamp, save, sourceOf/madeBy, unstamped audit)."
+    },
+    {
+      "section": "Known uses / Variations",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Git appears twice as a ledger, but git rewrites history (rebase, force-push, amend) and attributes changes per commit, not per item. That contradicts note 4's 'never edit an event' while being presented as a known use of the pattern.",
+      "suggestion": "Keep git but add the caveat: it fits only if the history is treated as genuinely append-only, and it gives no per-item decisions — the two things the pattern's second half needs."
+    },
+    {
+      "section": "Known uses",
+      "kind": "missing",
+      "severity": "low",
+      "note": "W3C PROV and OpenLineage are named without saying what to take from them, which is the whole value of a known use. PROV in particular would sharpen a real ambiguity in the chapter: it separates entity, activity and agent, while this chapter's 'maker kind' conflates the tool and the act.",
+      "suggestion": "One sentence each: which part of this pattern PROV's model or OpenLineage's run/facet structure corresponds to, and what the reader should copy."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "The 81/47/20 % figures, `agent_pos_frac`, GCV-006, and the four field names of `meta.source` are running-example detail occupying the space where a reader most needs the general claim. The numbers convince only someone who already trusts the dust project.",
+      "suggestion": "Reduce to one illustrative pair of numbers and spend the space on a concrete serialized example — one provenance record and one event line as they sit on disk — which the chapter never shows and every implementer needs."
+    },
+    {
+      "section": "Intent / Problem / Solution",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The same two questions ('what made it', 'who decided what') are stated three times in near-identical wording before the reader reaches Structure, and Applicability restates them a fourth time.",
+      "suggestion": "Cut the Problem to its single bold sentence and let Solution carry the shape; the reader then meets the participant names once and keeps them."
+    },
+    {
+      "section": "Rating",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "The ★★ 'close to invariant: any system with this problem converges on this shape' is asserted, not argued; the Known uses (PROV, OpenLineage) are evidence of convention, not of necessity. The chapter never names the force that would make the shape unavoidable.",
+      "suggestion": "Name the convergence argument in one sentence — e.g. that immutable events plus a shared fold are the only way several independent readers can agree — or downgrade the claim."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "Participant names and the explicit 'two separable halves' make the pattern easy to carry into a new project, but the fold's undefined edge cases, the unversioned fold and the backwards atomic-write ordering are the kind of gaps that bite exactly on second use, in a system with more than one reader."
+  }
+}

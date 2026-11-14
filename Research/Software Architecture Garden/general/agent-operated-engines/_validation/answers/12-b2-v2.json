@@ -1,0 +1,147 @@
+{
+  "restatement": {
+    "intent": "Make documentation impossible to drift by turning it into tested data: every example runs in the suite and declares its expected outcome, quoted source is filled from the source, and the whole corpus is checked by rules.",
+    "problem": "Documentation that is never executed drifts from the system it describes, and readers — agents especially — act on its stale claims instead of on what is true.",
+    "solution": "Split docs into topics with titled sections that can be listed, searched and read one at a time. Fence every example with a language plus an outcome contract (clean, error=CODE, warns=CODE, artefacts=N, stdout/exit, or fragment) and run the blocks in order in one fixture-backed session per topic, plus a second pass per section so a piecewise reader's copy also works. Fill quoted source from the build, check the corpus with structural/link/vocabulary rules in the same suite, and serve the one tested text to people, agents and tools."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Good guides must show what goes wrong, but a test runner treats any failing example as a suite failure. Only an example that declares failing as its point (error=CODE) can be tested at all — and then a refusal that changes its code breaks the guide's test, so the guide is corrected.",
+      "where": "Forces ('showing failure against testing it'); Implementation notes 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "A fragment is a block that is not executed because it is only an illustration (partial expression, pattern of calls). It is explicitly marked so the runner skips it but still parses/syntax-checks it and reports the per-topic fragment count — otherwise 'don't run this' becomes the quiet way to turn a red suite green.",
+      "where": "Implementation notes 3; Solution; Structure (Contract vocab)"
+    },
+    {
+      "id": "Q3",
+      "answer": "Generated text cannot explain and hand-written text cannot stay current untested. So the operation reference is generated from the registry while guides are written by hand and tested; generated references and refusals then point readers into the tested guides.",
+      "where": "Implementation notes 6 (and Collaborations 6, Related chapters Ch. 1)"
+    },
+    {
+      "id": "Q4",
+      "answer": "Running examples proves only that the code runs, not that a reader can apply the document; conceptual claims still need review. The chapter suggests agent validation: isolated agents read the text and do tasks, their answers and builds are scored, and the text is revised from that evidence.",
+      "where": "Implementation notes 11; Variations ('Agent-validated documentation'); Consequences (−)"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "The provider's test mode is a reachable, resettable external system and declines for known test cards are deterministic, so examples can actually be run and asserted. The one new hard problem is that five languages must share one contract grammar and one reporting format.",
+      "participants": {
+        "Topic": "One tutorial per language, all with the same titled sections (create a test customer, charge, read the decline), listable and readable section by section.",
+        "Example block": "A fenced block per language (`python error=card_declined`, `js error=card_declined`, …) whose info string carries both language and contract.",
+        "Contract": "A single parser (one owner, shared by all five runners) recognising clean, error=CODE, warns=CODE, artefacts=N; here error=CODE names the SDK's decline code and artefacts=1 means one charge object returned.",
+        "Fixture": "A sandbox account, a per-run test API key, fixed test card numbers, and a cleanup step that deletes customers left by the previous run; plus named setups (needs=customer) so the decline section stands alone.",
+        "Example runner": "Five language harnesses behind one wrapper that emits identical topic/line/diff failure reports.",
+        "Quote reference": "Quotes of SDK method signatures and the decline-code enum pulled from the SDK source into the tutorials.",
+        "Corpus checker": "Links exist, plus a new rule: the five language tutorials have the same sections and the same set of contracts.",
+        "Doc server": "The docs site / in-editor help serving the same tested text per section."
+      },
+      "sketch": "```text\nparseContract(info) → Contract | refuse(E_CONTRACT, \"unknown contract \" ++ word)   -- ONE parser, used by all 5 runners\n\ntopic(lang) = sections[create-customer, charge, decline]      -- identical section set per language\n\nrunTopic(topic) → [Failure]\n  session = sandbox(lang, key = freshTestKey(), cleanup = deleteCustomers(prefix))   -- idempotent start\n  for b in blocks(topic):                        -- ordered: customer → charge → decline\n    if b.contract.fragment: syntaxCheck(b); continue\n    failures ++= b.contract.check(session.run(b.code))\n\nrunSectionAlone(section) → [Failure]             -- reader fetching only 'decline'\n  session = sandbox(lang, freshTestKey()); session.run(setupFor(section.needs))   -- needs=customer\n  return [f for b in blocks(section) if not b.contract.fragment for f in b.contract.check(session.run(b.code))]\n\nrunBlock:\n  card = \"4000000000000002\"                       -- known decline card, part of the fixture\n  code = session.run(b.code)\n  b.contract.check(o)                              -- clean | error=card_declined | warns=… | artefacts=1\n\n-- corpus rule: for each language, contract multiset(section) must be identical\n```",
+      "key_notes": [
+        "4 — 'Contracts cover what readers see, and the grammar has one owner': the single parser is the crux; five independent parsers let `eror=card_declined` pass silently in one language.",
+        "1 — 'Make failure an expected outcome': the decline tutorial exists to show an error, so error=CODE is the whole point, not a corner case.",
+        "2 — 'Run blocks in order, and make each section's starting state explicit': a reader who fetches only the decline section must not need the customer created in section 1; run each section alone from needs=customer.",
+        "3 — 'Fragments are allowed, marked, parsed and counted': SDK snippets with placeholders (your key, your amount) must not become the way to hide a broken five-way suite.",
+        "5 — 'Quote source, never copy it': signatures and the decline-code list quoted from the SDK source; otherwise six copies of a renamed parameter drift independently.",
+        "8 — 'Put a checker in the suite': extend it with cross-language parity, the rule this situation adds that goja-cv does not have."
+      ],
+      "risk": "Treating the sandbox as free and stateless: parallel CI runs on one account collide on customer creation, rate limits make decline examples flaky, and leftover test data silently changes later outcomes — so fixtures get marked `fragment` one by one and the suite goes green while proving nothing."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is exactly the chapter's do-not-use case: examples depending on live payments and production data that tests cannot reach or reset, with no recording possible because the target is live mutable production state and the steps are irreversible. Making the steps `fragment` would satisfy the letter of the pattern while testing nothing, which is the failure mode note 3 warns about.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability ('Do not use it when'): live payments/production data are named as the excluded case; the offered remedies — recorded fixtures, or mark as fragments and test the underlying calls elsewhere — do not transfer, because there is nothing to record that reproduces production.",
+        "3 — 'Fragments … counted, so it does not become the quiet way to turn a failing suite green': a runbook where every step is a fragment is a false claim of coverage.",
+        "11 — 'Documents can be validated by agents too': the only honest validation left is agent/reviewer application of the runbook, plus read-only precondition checks.",
+        "8 — 'Put a checker in the suite': keep the part that does fit — links, command names, flag spelling against the tool's own --help/registry — as corpus rules separate from execution."
+      ]
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (test-suite assertions)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`assert all(fillQuotes(t, source) is text for t in topics)` cannot work. fillQuotes returns a *new* string once any reference is replaced, so `is` fails for every topic that actually contains a quote; and it raises BuildError rather than returning, so the failure is an exception, not a False. The assertion as written would pass only on a corpus with zero quote references.",
+      "suggestion": "State the real property: `assert resolves(quotes(t), source) == []` or `assert every reference in t has source.symbol(ref)`; make the build-error path explicit (`fillQuotes → text | BuildError` and a test that unresolved refs produce a BuildError)."
+    },
+    {
+      "section": "Implementation notes 2 vs Sketch / Collaborations",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Note 2 says each section is run a second time alone, and the sketch even defines runSectionAlone — but the test-suite block asserts only `runTopic(t) == []`. The single most distinctive move in the pattern (piecewise readers' copies must work) is defined and never wired in, so an implementer following the sketch gets no coverage of it.",
+      "suggestion": "Add `assert all(runSectionAlone(s) == [] for t in topics for s in t.sections)` to the sketch and to Collaborations, and say what setupFor(needs) is allowed to contain."
+    },
+    {
+      "section": "Contract participant / Structure table",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The semantics of the clauses are undefined. Does `warns=RANGE` mean exactly RANGE, or at least RANGE, and may other warnings also appear? Must warnings be in order? Does `artefacts=2` mean two images total or two new ones this block? Does `error=` require that no warning also occurred? Without this, two implementations of the same table disagree, and the contract becomes decorative.",
+      "suggestion": "Add one short paragraph per clause: exact-match vs subset, ordering, whether counts are absolute or incremental, and whether a clean block may print to stdout."
+    },
+    {
+      "section": "Structure / Sketch (`needs=`, `setupFor`)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "`needs=open-image` and `setupFor(section.needs)` imply a registry mapping each name to setup code, but no participant owns it: who writes those setups, are they tested, and what happens when a name is unknown? The refusal for an unknown `needs` value is as important as the refusal for an unknown contract word.",
+      "suggestion": "Add a 'Named setup' line to the Structure table, say unknown needs names fail like unknown contracts, and show the setup registry being checked by the corpus checker."
+    },
+    {
+      "section": "Sketch (runTopic) / Collaborations 2",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Since blocks share one session in order, a failure at block 3 corrupts the state for blocks 4..n and the report becomes a cascade of unrelated failures. The chapter never says whether the runner aborts the topic, continues, or resets.",
+      "suggestion": "Decide and state it, e.g. abort the topic on the first non-contract failure and report one failure, then still run the section-alone pass so the damage is localised."
+    },
+    {
+      "section": "Solution / Structure ('fragment', 'artefacts=N' vs 'looks=N')",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "Terminology shifts between the intent, Solution and Structure rows, and `compile_fail` is offered in note 4 as a needed clause but is absent from the vocabulary list; Rust's `should_panic`/`no_run` are cited in Known uses without saying which clause each corresponds to.",
+      "suggestion": "Pick one name per clause for the pattern (artefacts, not also `looks`; keep the alias only in a parenthetical), and add a one-line mapping table from the vocabulary to doctest/Rust/Go equivalents."
+    },
+    {
+      "section": "Structure (participants) / whole chapter",
+      "kind": "other",
+      "severity": "medium",
+      "note": "The chapter carries at least three separable patterns: executable examples with contracts, build-time source quoting, and a rule-checked corpus — plus a fourth, the doc server, which keeps no truth and is not needed for any of them. Because they are bundled, a reader who only wants tested examples must accept a checker, a quote filler and an MCP-facing hub, which weakens the claim that this is one reusable pattern.",
+      "suggestion": "Either demote Doc server to 'Related chapters / optional' and state that quote filling and corpus checking can be adopted independently, or split the chapter and keep the contract grammar as its core."
+    },
+    {
+      "section": "Applicability ('Do not use it when')",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The exclusion for live external systems offers two escapes — recorded fixtures, or fragments with the underlying calls tested elsewhere — but there is no advice for the case where neither is available and the action is irreversible (live production changes, data migrations, one-way calls). A reader with that case is left to force the pattern or abandon it with no guidance.",
+      "suggestion": "Add the third option explicitly: contract the *checkable* layer instead — dry-run/--check output, flag spelling against the tool's registry or --help, refusal on a violated precondition read back from a query — and say plainly that the irreversible steps belong to review and agent validation, not to CI execution."
+    },
+    {
+      "section": "Motivation vs Implementation notes 9",
+      "kind": "other",
+      "severity": "medium",
+      "note": "The motivation's strongest evidence is that no agent in the study opened the guides, and note 9 repeats it. That evidence argues against the value the Intent claims for agents; the chapter answers it, but a reader finishes unsure whether to build the doc server and topics at all, or just the examples. The self-undercutting is honest but unresolved.",
+      "suggestion": "Reframe the payoff in the order the evidence supports: drift detection for humans and helper libraries first, refusals and generated references pointing into tested sections second, direct agent browsing last — and say what measurement would justify the doc server."
+    },
+    {
+      "section": "Variations ('recorded outputs') / Consequences",
+      "kind": "missing",
+      "severity": "low",
+      "note": "Nondeterminism, timeouts and flakiness are mentioned only in passing ('brittle for timestamps … unless normalised'). Any real suite of executed examples hits slow blocks, network slowness and unstable ordering, and the chapter gives no clause or policy for it.",
+      "suggestion": "Add a short note: per-block timeout, a normlisation step named in the contract (or a `stdout~=` variant), and the rule that a flaky example is a defect in the example, not a reason to add `fragment`."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core idea — every example declares its outcome, including failure — is genuinely transferable and the participants are named well, but undefined contract semantics, a broken quote-resolving assertion and an unwired section-alone pass keep it from being executable as written, and running-example detail (looks=N, the doc hub, the annotator study) plus four bundled sub-patterns blur what a new adopter must build."
+  }
+}

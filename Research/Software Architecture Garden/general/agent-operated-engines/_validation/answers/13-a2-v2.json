@@ -1,0 +1,158 @@
+{
+  "restatement": {
+    "intent": "Design and revise an agent-facing interface from evidence: mine stored session transcripts for what agents actually called, mistyped and never used, turn those counts into changes, and judge each change by rerunning fixed scenarios before and after into a shared results ledger.",
+    "problem": "Interfaces for agents built from the designer's intuition miss what agents actually do, and unmeasured changes cannot be told apart from run-to-run noise or from regressions.",
+    "solution": "Keep every transcript; mine counts per operation, option, error code, typed-but-missing name, warning and paste; read transcripts behind surprising counts before acting. Turn counts into changes (delete unused surface, move frequent overrides into the default or the data, redirect mistyped names, fix failures, add a loader for pastes). Then run a fixed, versioned scenario set several times per side with the same model and prompt, append one fully versioned row per run to the ledger, and keep the change only if its target metric moves beyond a decision rule fixed in advance while guardrail metrics do not worsen."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Deleting the zero-use interactive-slider parameter system (from 751 counted calls), and moving the image value-space override (198 uses) onto the image itself. A third: agents wanting to run files became a library loader rather than a new tool.",
+      "where": "Motivation; Implementation note 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "It detected pasted helper files only by their final marker, so it missed ten trimmed pastes and reported 29 instead of 39 — and the wrong number reached a design document. Rule: fix counts at their source and test the miner on transcripts whose answers you already know.",
+      "where": "Implementation note 2 (Fix counts at their source)"
+    },
+    {
+      "id": "Q3",
+      "answer": "A zero count only says how often, not why: the operation may be useless, or simply never shown in an example agents copied. Read the transcripts first; several documented goja-cv operations were unused only because no example used them.",
+      "where": "Forces (counts against meaning); Implementation note 3"
+    },
+    {
+      "id": "Q4",
+      "answer": "As within noise, not as improvement: replicate runs of the same version rated this pattern language within about one point of each other, so a one-point post-revision change is indistinguishable from run-to-run variation. It needs at least three runs per side, reported ranges, and a decision rule fixed before looking.",
+      "where": "Implementation note 6"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Six months of shell history plus agent transcripts give the mining half, and an error-prone command set has measurable outcomes (retries, exit codes, --help calls, time). The catch is that history supplies counts, not before-runs: the old binary must be kept runnable and run on the scenarios now.",
+      "participants": {
+        "Transcript store": "Normalised event log merging shell history (argv, cwd, agent id) and agent transcripts; exit codes and stderr must be recorded from now on, history alone lacks them.",
+        "Miner": "Scripts counting failures per subcommand and flag, zero-use flags, typed-but-missing commands and flags, repeated paste blocks, --help invocations.",
+        "Reader": "An engineer reads the transcripts behind the top failure clusters and every zero-count, and states whether the flag is useless or merely undocumented.",
+        "Decision log": "Each CLI change with its count, the transcript quote that explains it, and the ticket.",
+        "Scenario set": "Frozen core of ~10 tasks per tool that engineers really do (deploy, rotate a secret, revert a release) with observable outcomes; tail from newly discovered failures, versioned.",
+        "Runner": "Sealed agent runs plus a separate human-engineer side, never mixed into the same comparison.",
+        "Results ledger": "One row per run: binary version and commit, side, agent or human, model and prompt version, scenario, set version, run number, retries/exit codes/time.",
+        "Decision rule": "Median retries-to-success, with ≥3 runs per side, ranges reported, target metric named before the runs."
+      },
+      "sketch": "```text\nvalue Ev: kind (call|error|typed|paste), cmd, argv, exit, code, who, at\n\nmine(events) → Counts\n  failures = countBy(errors(events), e → (e.cmd, e.code))\n  typed    = countBy(unknown(events), n → n)      -- \"git swtich\", \"tool --dryrun\"\n  unused   = [f for f in flags(registry) if calls[(cmd, f)] == 0]\n\ndecide(counts) → [Change]\n  -- delete unused flags (after checking help/examples showed them); alias typed names;\n  -- put hint + literal fix in error output; keep old flag as deprecated alias\n\ncompare(change{target: retries, guardrail: exitCodes}, core, runs: 3)\n  for s in core, for side in [before, after], for r in 1..runs:\n    ledger.append(Row(system: binary(side), side, change.id, who, model, s, core.v, r,\n                      metrics: runScenario(s, binary(side))))\n  -- 'before' = old binary executed today, not replayed history\n```",
+      "key_notes": [
+        "Note 2 (fix counts at their source): shell history is lossy — no exit status, duplicates, split multi-line commands — so a miner that calls that \"failures\" is confidently wrong; test it on known transcripts.",
+        "Note 5 (same scenarios, same model, before and after): six months of history is mining evidence, not a before-side; run the scenarios on the frozen old binary before shipping.",
+        "Note 3 (a zero count needs a reason): a flag absent from --help examples is unreachable, not useless — the likely finding in a CLI fleet.",
+        "Note 6 (repeat runs, state the rule first): multi-step CLI tasks vary a lot run to run, so nominate the target metric (retries or exit code) before running.",
+        "Note 7 (measure behaviour): retries-to-success and --help calls show the change landed where accuracy alone does not.",
+        "Note 10 (frozen core, growing tail): the tail absorbs each new command failure without breaking past comparisons."
+      ],
+      "risk": "Pooling engineers and agents into one ledger, so rows differ in two things at once and an agent-friendly change that hurts humans looks like a win; also treating text-mined 'failures' as ground truth without the exit codes the history never recorded."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The message format is fixed by a standard — the chapter's own 'do not use it' case: the loop's lever (change the interface, then measure) is exactly what the team may not pull. The mistake counts are evidence about the agent-facing layer, not licence to alter the wire format. The loop fits only for that mutable layer, and it must not be described as redesigning the protocol.",
+      "participants": {
+        "Transcript store": "Agent session logs with the bytes and field values of the failing message type.",
+        "Miner": "Counts of validation errors per field per message type, plus the names/constructions agents typed that do not exist in the client library.",
+        "Reader": "Determines from transcripts whether the mistake is a documentation gap, a missing builder, or ignorance of the spec — never a format defect.",
+        "Decision log": "Changes to the SDK, error messages and examples only; the spec is out of scope, cited as frozen.",
+        "Scenario set": "Frozen tasks that must emit conformant messages of each type, checked by an independent validator against the spec.",
+        "Runner": "Sealed runs of the same agent over those scenarios.",
+        "Results ledger": "Rows keyed to SDK/docs version, never to a spec revision; conformance failures as a guardrail metric.",
+        "Decision rule": "Conformance must not decrease for any message type; the target metric is first-attempt validity for the failing type."
+      },
+      "sketch": "```text\n-- only the presentation layer is in scope; the format is a constant\nmine(tx) → Counts\n  bad = countBy(errors(tx), e → (e.msgType, e.field, e.rule))\n\ndecide(counts) → [Change] -- all of them outside the format\n  -- add builder: newMsg(fields) in the SDK; refuse(field_missing, …, fix: <example>)\n  -- put a valid full example of the failing type in the docs, since agents copy examples\n  -- do NOT widen a field, add a suffix, or accept a lenient parse\n\ncompare(change, core, runs: 3) -- metric: conformance failures per type, plus first-attempt validity\n  -- guardrail: every scenario still validates against the published spec\n```",
+      "key_notes": [
+        "Applicability 'do not use it' (interface fixed by a standard): it scopes the pattern to measurement and to redesign elsewhere — here, the SDK and docs.",
+        "Note 3 (a zero count / a mistake needs a reason): the failing type is probably never shown in a complete example agents copy, so the fix is an example and a builder, not a format change.",
+        "Note 4 (judge by true positives): the validator's complaints must be labelled — some 'mistakes' are agents editing a valid message the harness reports wrongly.",
+        "Note 1 (count before you design): counts localise the failing field, which is what makes a short doc or builder change possible.",
+        "Related Chapter 6 (repairable errors): the redirect + literal fix belongs in the client's refusal, where the format cannot move."
+      ],
+      "risk": "Reading high error counts for one message type as 'the format is wrong', then shipping a lenient parser or an extra field that passes the local scenario set and breaks interop for everyone else — the ledger will happily show the mistake rate falling while the protocol is now non-conformant."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Structure (Decision rule) vs Motivation / note 5",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The decision rule demands at least three runs per side, but the running example and note 5 use two runs per side, and the chapter's strongest result (4 and 5 -> 14 and 13 of 53) is exactly the disjoint-ranges test at n=2. A reader cannot tell whether two runs are allowed, and the retracted calls-per-run drop (31.5 -> 29) is presented as a negative example even though it was measured under a rule the chapter now forbids.",
+      "suggestion": "Make >=3 the rule, then relabel the goja-cv two-run table as a pilot that the current rule would not accept, and say what n would have been needed to trust a 2.5-call drop."
+    },
+    {
+      "section": "Sketch (compare) vs Structure (Decision rule)",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The keep rule refers to 'its target metric' and 'the other metrics', but compare(change, core, runs: 3) takes neither a target nor guardrails, so the signature cannot express the rule. 'Most core scenarios', 'no other metric gets worse beyond its range', and the second test ('medians differ by more than the larger range') are all undefined, and 'mostly', 'width', 'improves' are never given, nor is behaviour for binary/rate metrics.",
+      "suggestion": "Give the rule signature, e.g. verdict(target, guardrails, rows) -> Keep | Revise, define each metric kind's exact test (disjoint ranges, then the median-gap test) and fix 'most' as a fraction of the frozen core stated in advance."
+    },
+    {
+      "section": "Implementation note 6",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "'State the rule before looking' protects against choosing the test after the fact, but not against choosing the metric: the ledger carries many metrics over many scenarios, so an analyst can still find a metric that moved and call it the target.",
+      "suggestion": "Require every Change to declare target metric, guardrail metrics and predicted direction before the before-runs, and record that declaration in both the ledger row set and the decision log."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "One dense paragraph carries seven unrelated numbers with different denominators (751 calls, 198 overrides, 31.5 -> 29, 4/5 -> 14/13 of 53, 374 evaluations, 3.2 KB, 19 firings with one true positive). The reader must hold them all to see which illustrates deletion, which illustrates the decision rule, and which illustrates noise.",
+      "suggestion": "Keep two numbers (one deletion, one disjoint-range win) in the prose and move the rest into a small evidence table with columns change / metric / before / after / verdict, or push them into the implementation notes where each is actually used."
+    },
+    {
+      "section": "Structure (Participants)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Nobody owns the change itself: the Reader explains counts, the ledger records runs, but no participant proposes the change, names its target metric, or reverts it. 'Reader' is also unbudgeted — there is no guidance on how many outliers to read or how deep, which is where the 'evidence against effort' force bites.",
+      "suggestion": "Add a Change owner participant (proposes, declares target and guardrails, schedules before/after runs, reverts) and give the Reader a stated budget, e.g. every zero-count plus the top N error clusters."
+    },
+    {
+      "section": "Solution vs Applicability",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The Solution says to judge every change by runs; Applicability says a correctness or security fix should just be shipped and measured for side effects. Renames, typo fixes and dependency bumps sit in the same gap, so 'every change' is not operable.",
+      "suggestion": "Scope the Solution to changes that alter surface, behaviour, or text agents read, and add a one-line triage rule for pure fixes (ship, then watch the guardrail metrics only)."
+    },
+    {
+      "section": "Applicability (do not use it, first bullet)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'The interface is fixed by a standard or a contract you cannot change; measure, but redesign elsewhere' reads as if the pattern is unusable, when only one layer is frozen. The loop still applies to the mutable layers that caused the mistakes (errors, docs, examples, SDK), and the chapter's own goja-cv evidence is largely about those layers.",
+      "suggestion": "Say explicitly that the pattern applies to whichever layer is mutable, and that a frozen layer redirects mining from format toward presentation and repairable errors."
+    },
+    {
+      "section": "Structure (Miner) vs note 4",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "The Miner participant is charged with counts 'per ... warning', but a warning's true-positive rate needs a person to label firings; that is Reader work. The sketch's warnings line computes labelledTrue/labelled inside mine(), which hides the human step.",
+      "suggestion": "Split warning counting from labelling: Miner emits firings, Reader labels them under a stated protocol (label every firing until precision is clear, then a sample), and the ledger or decision log holds the label set."
+    },
+    {
+      "section": "Related chapters (classic patterns)",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "'Observer (miners watch sessions)' and 'Memento (each ledger row freezes a configuration)' are forced. A miner is a batch script that observes nothing at run time, and a ledger row is an immutable record, not a restore point — Memento's point is restoring an originator.",
+      "suggestion": "Drop both, or keep one line only if it names the property that actually transfers, e.g. the ledger lets you restore and rerun a version."
+    },
+    {
+      "section": "Variations (Offline replay) and Intent",
+      "kind": "missing",
+      "severity": "low",
+      "note": "The Intent says runs use 'the same agents' and the Variation admits agents do not replay deterministically, but nothing says what 'same' fixes: harness, prompt, tool set, temperature/seed, model version. Note 9 lists versions to record yet omits decoding settings and the harness, and the model can be silently retired mid-experiment.",
+      "suggestion": "Add decoding settings and harness version to the row fields, add 'run both sides in the same window on the same model version; if the model changes, rerun both sides', and define 'same agent' once."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The participant/ledger shape and the honest handling of noise are genuinely reusable, but the decision rule is underspecified and internally contradicts the two-run example, and several sections are heavy with goja-cv numbers that a reader must re-decode."
+  }
+}

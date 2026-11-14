@@ -1,0 +1,161 @@
+{
+  "restatement": {
+    "intent": "Design an agent-facing interface from evidence of how agents actually used it: mine recorded sessions for counts, explain the surprising counts by reading the sessions, and judge every resulting change by rerunning fixed scenarios before and after. Documentation, prompts and instructions improve by the same measured loop.",
+    "problem": "An interface designed from intuition misses what agents actually do, and a change shipped without fixed before-and-after runs cannot be told apart from noise or from a regression.",
+    "solution": "Keep every session's transcript and mine it with scripts into counts: calls per operation and option, errors per code, names typed that do not exist, warning precision, things pasted, things never used. Read the transcripts behind surprising counts, then turn counts into changes: delete the unused, move the overridden into the default or the data, redirect the mistyped, fix what fails. Run the same scenario set with the same agents and model, several runs per side, and append each run to a ledger that records every version; compare only rows that differ in the one change and treat deltas smaller than the replicate spread as noise."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Deleting the interactive-slider parameter system (zero uses in 751 counted calls) and moving the image value-space override (198 uses) onto the image itself instead of a call option; a third is a library loader instead of a new tool for the frequently pasted file.",
+      "where": "Motivation; Implementation note 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "It recognised pasted helper files only by their final marker, so it missed ten trimmed pastes and reported 29 instead of 39; the wrong number reached a design document before the script was fixed. Rule: fix counts at their source — test the miner on transcripts whose correct answers you already know.",
+      "where": "Implementation note 2 (Fix counts at their source)"
+    },
+    {
+      "id": "Q3",
+      "answer": "A zero count may mean either \"useless\" or \"never shown in an example the agent copies\"; only reading the transcripts behind the number tells you which, so read before deleting. Some unused operations were useless, others were merely undocumented.",
+      "where": "Implementation note 3; Forces (counts against meaning)"
+    },
+    {
+      "id": "Q4",
+      "answer": "As noise. Replicate runs of the same version in this language's own validation rated it within about one point of each other, so a one-point post-revision change is inside duplicate variance; you need several runs per side and medians, and only larger deltas are read as real.",
+      "where": "Implementation note 6 (Repeat runs and report spread)"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "The interface is the team's own, sessions exist for six months, and errors and usage are countable, so all three applicability conditions hold; the only weak input is shell history, which is a lossy transcript.",
+      "participants": {
+        "Transcript store": "Agent transcripts (full: calls, arguments, results, exit codes, timing) plus six months of shell history (typed lines only — no arguments, results or exit status).",
+        "Miner": "Scripts over both sources: calls per command and flag, non-zero exits per command, near-miss command and flag names typed, help invocations, repeated wrapper scripts agents paste.",
+        "Reader": "A tool owner who reads the sessions behind each outlier (why `deploy --force` keeps failing) and states the reason.",
+        "Decision log": "A changelog entry per CLI change with the count that motivated it and the link to the runs.",
+        "Scenario set": "Fixed task scripts for the error-prone commands with expected stdout and exit codes, run both by an agent and by an engineer.",
+        "Runner": "Sealed agent runs in a pinned container with the pinned CLI build, one model and one prompt per scenario set.",
+        "Results ledger": "rows.csv: cli commit, model, prompt version, scenario version, run index, calls, errors, lines of code written, task pass/fail."
+      },
+      "sketch": "value Row: system, model, variant, scenario, run, metrics: map, at, links\n\nmine(history, transcripts) → Counts\n  calls    = countBy(allCalls(transcripts), c → (c.cmd, c.flags))\n  failures = countBy(exits(transcripts), e → (e.cmd, e.code))\n  typed    = countBy(unknownNames(transcripts), n → n)      -- near-miss cmds/flags → alias + literal fix\n  helpSeen = countBy(helpInvocations(transcripts), h → h.cmd)\n  pasted   = largeRepeatedBlocks(agentCode(transcripts))    -- wrapper scripts agents rewrite\n  unused   = [c for c in cli.registry if c not in keys(calls)]\n  return Counts(calls, failures, typed, helpSeen, pasted, unused)\n\ndecide(counts) → [Change]\n  -- unused and never in any example: delete; flag overridden in most calls: move to config default;\n  -- near-miss names: alias plus a refusal that carries the fix; failing commands: refuse(kind, fix)\n\ncompare(change, scenarios, runs: 4)\n  for s in scenarios, for v in [before, after], for r in 1..runs:\n    ledger.append(Row(system: v, model: M, variant: change.id, scenario: s, run: r,\n                      metrics: runScenario(s, v)))\n  noise = spread(ledger.rows(system: before, scenario: s))\n  return [(m, median(after) − median(before), noise) for m in metrics]\n\n-- engineer runs and agent runs are ledgered separately, never pooled",
+      "key_notes": [
+        "Note 2, fix counts at their source — most important: shell history records what was typed but not the flags' arguments, results or exit codes, so every count drawn from it is wrong in a way you cannot see; validate the miner against sessions whose answers you know before any number reaches a design doc.",
+        "Note 3, a zero count needs a reason — a flag used only inside CI scripts, or never illustrated in an example, looks unused in interactive history and is the likeliest thing this team deletes by mistake.",
+        "Note 5, same scenarios, same model, before and after — engineer runs and agent runs are different experiments; keep them in separate ledger partitions and never compare a human before-run to an agent after-run.",
+        "Note 6, repeat runs and report spread — a CLI is deterministic, but agent command sequences are not, so noise must be read off repeated agent runs, not assumed to be zero.",
+        "Note 10, grow the scenario set from failures — the six months of history already contain the failures the first scenario set should encode."
+      ],
+      "risk": "Treating shell history as a complete transcript and deleting a flag that is only ever used non-interactively (scripts, CI, other engineers' aliases), while reporting the deletion as 'count-driven' because the miner said zero."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The proposed change is to a message format fixed by an external standard, which the chapter's own Applicability excludes: you may measure, but you cannot redesign there — and 'fixing' the format to suit agents breaks interoperability with every other implementation.",
+      "participants": {
+        "Transcript store": "Agent sessions against the local implementation, including the bytes sent and the peer's rejections.",
+        "Miner": "Counts per message type, per field and per decode error code; which field values agents most often get wrong.",
+        "Reader": "Someone who reads the failing sessions to separate 'the spec is awkward here' from 'our client API made it easy to get wrong'.",
+        "Decision log": "Records the finding and explicitly records 'no wire-format change' as the decision, so it is not re-proposed next quarter.",
+        "Scenario set": "Interop conformance scenarios plus the agent task set, checked against a reference peer.",
+        "Runner": "Sealed agent runs on a pinned build, same model and prompt.",
+        "Results ledger": "Rows keyed by build, model, prompt version, spec version and scenario version."
+      },
+      "sketch": "-- the loop survives; the change authority does not\nmine(transcripts) → Counts         -- message type, field, decode error code, retries\n-- allowed changes: client builder API, argument order in the builder, refuse(kind, fix)\n--   on the encoder, examples in the docs, a checked-in fixture per message type\n-- forbidden: wire format, field names, field order, required/optional in the standard\ncompare(change, scenarios ++ interopSuite, runs: 6)   -- must pass against the reference peer",
+      "key_notes": [
+        "Applicability's exclusion is the binding one here: measure, redesign elsewhere — the format is a contract, so the ledger judges changes to your client API, refusals and docs, not to the bytes.",
+        "Note 5, same scenarios, same model, before and after — the interop conformance suite must sit in the same comparison as the agent scenarios, so a client-side fix that helps agents and breaks a peer is caught in the same run.",
+        "Note 7, measure behaviour not only outcomes — track decode errors per message type and retries per session; those move even when the task pass rate does not.",
+        "Note 3, a zero count needs a reason — 'no agent uses field X' may mean the examples omit it, and here omission is precisely what causes the failure."
+      ],
+      "risk": "Doing the measurement honestly and then shipping the format change anyway, quoting the chapter's numbers as justification; the counts support a change of API inside the standard's envelope, never of the envelope."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (mine/compare)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The script does not hold together. `calls` is keyed by the pair (op, options), so `calls[op] == 0` never matches anything and the unused list is silently wrong or empty. `compare` takes `runs: 4` while Implementation note 5 states two runs per side; the `metrics` argument is never defined or threaded into the Row; and both before and after rows carry `variant: change.id` with `run` restarting at 1, so the two sides have no distinguishing key and rows are not uniquely identified.",
+      "suggestion": "Give the Row an explicit key — (system, variant, scenario, run) with variant ∈ {before, after} or a version tag — key counts by op first and options second, pass the metric list in, and pick one run count that agrees with note 5."
+    },
+    {
+      "section": "Collaborations step 4 ('Compare only rows that differ in one thing')",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "Stated as an absolute, but the chapter's own central case violates it: goja-cv's second API shipped deleted parameters, value space moved onto the image, and a loader, and the reported numbers (31.5→29, 51→39) are aggregates over all three. A reader cannot tell whether the rule forbids bundled changes or is a preference.",
+      "suggestion": "Say what to do when a change bundles edits: either one change per ledger comparison, or keep the bundle and report per-surface behaviour counts (as note 7 half does) so the aggregate is decomposable."
+    },
+    {
+      "section": "Implementation note 4 and the `truePositives(w)` call in the sketch",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Warning precision needs ground truth, but no participant, step or cost produces it. Who decides a warning was a true positive, on how large a sample, and with what agreement? The 19-firings/one-true-positive result depends entirely on this unstated labelling work.",
+      "suggestion": "Add labelling to the Reader's responsibility, with a sampling rule (e.g. label every firing until the precision estimate stabilises) and a budget, since this is usually the most expensive part of mining."
+    },
+    {
+      "section": "Structure: Transcript store / Miner",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The miner assumes full-fidelity transcripts with arguments, results, errors and timing. Most real stores are lossy — shell history, logs without arguments, telemetry without messages — and the counts silently degrade. This is the same class of failure as note 2 but at source-design level, and the chapter never talks about it.",
+      "suggestion": "Add a note on recording what the miner will need (arguments, exit status, error codes, timing) before the loop starts, and on declaring a store's fidelity level next to every count it produces."
+    },
+    {
+      "section": "Transcript store (participant table, Solution)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Real session transcripts contain credentials, customer data and proprietary code. Nothing says whether they are redacted before storage, how long they are retained, or what the miner is allowed to read — yet 'keep the transcripts of every agent session' is the pattern's first instruction.",
+      "suggestion": "One implementation note: redact at capture, keep the redaction deterministic so counts stay comparable, and state retention."
+    },
+    {
+      "section": "Applicability / Consequences",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "No stopping rule and no cadence. 'Every change measured is slower than every change shipped' names the cost but gives no way to decide when the run budget is worth paying, who owns the ledger, or how many runs a given expected effect needs. Note 6 says 'use several runs' without sizing the sample to the effect.",
+      "suggestion": "Add a rule of thumb: runs per side scaled to the smallest effect worth detecting, plus the escape hatch that correctness and security fixes skip the loop (already in Applicability) and are measured afterwards."
+    },
+    {
+      "section": "Motivation; runner column in Structure",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'The project keeps a table of agent runs per ticket' — 'ticket' is never defined, and it is unclear whether a comparable row set is per bug, per change, or per question file. 'One question file' later in note 5 is also never related to 'scenario set'.",
+      "suggestion": "Define the unit once: a comparison group is one change × one scenario set × one model; the question file is the scenario set's input."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The number density overwhelms the argument: 751 calls, 198 overrides, 31.5→29, 51→39, 45→42, 4 and 5→14 and 13 of 53, 70→0, 99→0, 374 evaluations, 29 instead of 39. A reader cannot carry these, and '39 agents / 374 evaluations / pasted / 29' reads as a contradiction on first pass (it is pastes versus agents).",
+      "suggestion": "Keep one before/after pair and one deleted-surface result in the body; move the rest to a table or the known-use note, and say explicitly that 29 was a pastes count and 39 an agent count."
+    },
+    {
+      "section": "Related chapters — 'Classic patterns: Observer …, Memento …'",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "Neither mapping holds. A miner batch-reading stored transcripts is not Observer (no runtime notification from a subject to registered dependents), and a ledger row is an immutable record, not a Memento (an encapsulated state snapshot used to restore an object). The forced links weaken an otherwise well-grounded chapter.",
+      "suggestion": "Drop both, or map Memento to something real — e.g. sealing a container image per run so a row can be re-executed."
+    },
+    {
+      "section": "Known uses",
+      "kind": "other",
+      "severity": "low",
+      "note": "MLflow and W&B supply only the results-ledger participant — parameter/metric/artefact tracking. Citing them as uses of Measured Redesign Loop overstates the pattern and invites the reading that logging experiments is the pattern.",
+      "suggestion": "Say they instantiate the ledger row only, and note the missing half: nobody mines their runs into interface decisions."
+    },
+    {
+      "section": "Implementation note 9 (every row records every version)",
+      "kind": "missing",
+      "severity": "low",
+      "note": "Version stamps make rows comparable only while the versions exist. When a model is retired or a scenario is added (note 10 grows the set), historical rows stop being re-runnable and old comparisons go stale — the chapter never says how to re-baseline.",
+      "suggestion": "Add: after any version change in the runner, a model deprecation, or a scenario-set growth, re-run the current version to establish a new baseline before comparing."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The loop and the case study are clear and convincing, but the sketch is internally inconsistent and the pattern is asserted as a hard sequencing rule while its own case bundles changes, so reusing it outside goja-cv needs the reader to invent the ledger key, the labelling step and the bundling policy."
+  }
+}

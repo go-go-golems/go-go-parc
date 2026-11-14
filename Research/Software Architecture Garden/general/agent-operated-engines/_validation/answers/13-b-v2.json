@@ -1,0 +1,155 @@
+{
+  "restatement": {
+    "intent": "Let evidence of real agent use, not designer intuition, decide what an agent-facing interface should be: mine stored transcripts into counts, read behind the surprising ones, and change the system accordingly. Then judge each change by running one fixed scenario set before and after with the same model, several runs per side, against an explicit rule.",
+    "problem": "An agent interface designed from intuition misses what agents actually do, and an unmeasured change cannot be told apart from run-to-run noise or from a regression.",
+    "solution": "Store every session. A miner turns transcripts into counts per operation, option, error code, mistyped name, warning and pasted block; a reader explains the outliers and each finding becomes a change with its evidence. Every change is run against a versioned scenario set (frozen core plus a growing tail) on the old and new version, several runs per side, one row per run in a results ledger stamped with every version. Compare only rows that differ in the change, apply a decision rule fixed in advance, keep or revert, and log the decision."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Every version stamp: system commit, model name, prompt (or chapter) version, scenario and scenario-set version — plus side (before/after), change id, run number, metrics, timestamp and links to the run.",
+      "where": "Structure (Results ledger participant); restated in Implementation note 9"
+    },
+    {
+      "id": "Q2",
+      "answer": "By counting the removed API surface in the code agents wrote: `{ space }` uses fell 70 → 0 and `show(` 99 → 0 with no errors. Median calls per run also fell (31.5→29, 51→39, 45→42) but with two runs per side that was treated as inside the noise and not offered as evidence.",
+      "where": "Motivation; re-used in Implementation note 7 (behaviour beside accuracy)"
+    },
+    {
+      "id": "Q3",
+      "answer": "From real failures: each newly found failure becomes a scenario in a versioned growing tail, while comparisons use the frozen core whose denominator never changes; the tail is reported beside it. Promoting tail scenarios into a new core version is a deliberate act that requires rerunning the baseline.",
+      "where": "Implementation note 10; also the Scenario set row in Structure"
+    },
+    {
+      "id": "Q4",
+      "answer": "So the difference can be attributed: if rows differ in model, prompt version or scenario-set version as well as the change, before and after are different experiments. A bundle of changes is therefore judged as a bundle, or taken apart by running each part alone.",
+      "where": "Solution (\"Compare only rows that differ in one thing\"); Collaborations step 4"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Transcripts and outcomes already exist in bulk, the interface (prompt + tools) is still changing weekly, and resolution outcomes plus tool calls are measurable. The only substitution is that the transcript store is a by-product they already keep rather than something to add.",
+      "participants": {
+        "Transcript store": "conversation logs: every tool call with arguments, tool errors, escalations, the model's own messages, and the resolution outcome field",
+        "Miner": "scripts counting calls per tool and per argument; tool names the model attempted that were never defined; error codes; repeated pasted policy/order blobs; tools never called",
+        "Reader": "support ops + the agent engineer, reading the ten most surprising conversations behind each count",
+        "Decision log": "one changelog/PR entry per prompt or tool version with the count or run that justified it",
+        "Scenario set": "frozen core of ~100 labelled past conversations with the correct tool sequence / gold resolution, plus a tail of newly failed conversations, versioned",
+        "Runner": "sealed replay: same conversation up to turn k, same model snapshot, CRM backend stubbed, old vs new prompt+tools",
+        "Results ledger": "one row per run: prompt version, tool-schema version, model snapshot, scenario id, set version, side, resolution, tool calls, error count, dead-end turns",
+        "Decision rule": "≥3 runs per side; keep a prompt+tool bundle only if the target metric's before/after ranges are disjoint or the medians differ by more than the larger range, and no other metric worsens by that test"
+      },
+      "sketch": "value Row: prompt, tools, side, change, model, scenario, setVersion, run, metrics, at, links\n\nmine(conversations) → Counts\n  calls    = countBy(allCalls(conversations), c → (c.tool, c.args.keys))\n  typed    = countBy(unknownToolAttempts(conversations), n → n)   -- names the model invented\n  failures = countBy(toolErrors(conversations), e → e.code)\n  pasted   = [b for b in largeRepeatedBlocks(agentMessages(conversations))]  -- policy text, ids\n  unused   = [t for t in toolRegistry if calls[t] == 0]           -- check it was ever in the prompt\n  return Counts(calls, failures, typed, pasted, unused)\n\ndecide(counts) → [Change]\n  -- unused tool: delete; invented names: add redirects with a fix; pasted policy: a tool\n\ncompare(bundle, core, runs: 3) → Verdict\n  for s in core.scenarios, for side in [before, after], for r in 1..runs:\n    ledger.append(Row(prompt: promptOf(side), tools: toolsOf(side), side, change: bundle.id,\n                      model: MODEL_SNAPSHOT, scenario: s, setVersion: core.version, run: r,\n                      metrics: replay(s.history, promptOf(side), toolsOf(side))))\n  -- then per scenario, per metric: disjoint ranges or median gap > larger range; revert rows are logged too",
+      "key_notes": [
+        "Note 9 (every row records every version): with a weekly prompt/tool cadence and a hosted model, the model snapshot must be pinned in the row or last week's rows are uncomparable.",
+        "Note 5 (same scenarios, same model, before and after): replay must reuse the same truncated conversation and stubbed backend on both sides.",
+        "Note 10 (frozen core, growing tail): essential here — traffic shifts weekly, so comparisons use the core while new failure conversations accumulate in the tail.",
+        "Note 7 (measure behaviour, not only outcomes): resolution rate is confounded by which customers wrote in this week; tool calls per turn, error counts and dead-end turns are the metrics that belong to the interface.",
+        "Note 6 (state the rule before looking): a weekly loop tempts ad-hoc judgement; fix the rule once and apply it every week.",
+        "Note 2 (test the miner): tool-call logging is usually added late and differs per tool, so counts computed from it are the first thing that lies."
+      ],
+      "risk": "Shipping the whole weekly prompt+tool bundle on one improvement and then keeping its parts by mention — the bundle gets the credit and the effect is never attributed. Second risk: trusting an auto-derived resolution label and ranking variants against a flawed key (note 8)."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter excludes exactly this case: \"the change is a correctness or security fix; ship it, then measure the side effects.\" A scenario set is a sample and cannot prove a traversal hole is closed, while the decision rule (≥3 runs per side, disjoint ranges, no other metric worse) would delay a critical fix to buy evidence that is the wrong kind of evidence.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, third do-not-use: security fix ships first — this note is the entire answer.",
+        "Note 10 still applies afterwards: the exploit becomes a scenario in the tail (and an adversarial probe in the harness), so it is never reintroduced.",
+        "Note 8 applies to the gate: an aggregate metric can stay flat while the hole is open, so no accuracy figure can substitute for a targeted regression test on ../ paths.",
+        "Notes 3/5 matter if anything: a path-validation change likely has zero effect on the mined counts, which is not evidence it was unnecessary."
+      ],
+      "risk": "Treating a flat before/after comparison as clearance to ship a fix whose benefit was never measurable — or, worse, treating the need for \"no other metric gets worse beyond its range\" as grounds to postpone the patch."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Structure (Decision rule) vs Motivation and Implementation note 5",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The normative rule says \"at least three runs per side\", but the running example, its headline numbers (4 and 5 vs 14 and 13 of 53; 31.5→29) and note 5 (\"two runs per side\") all use two. The reader cannot tell which is the rule and which is the example.",
+      "suggestion": "Make three the rule everywhere, and restate the goja-cv table explicitly as the weaker two-run practice, saying what it was and was not allowed to conclude."
+    },
+    {
+      "section": "Sketch (compare)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The verdict expression mixes and/or without parentheses; `improves(m, a, b)` appears but its direction is never defined per metric; \"range\" is used both for a value list and for its width. The sketch also writes ledger rows and returns a verdict in one function, and the measured call (`runScenario(s, side)`) is not defined anywhere else.",
+      "suggestion": "Split into `record(change, runs) → Ledger` and `judge(change, ledger) → Verdict`, define `improves(m: Metric, before, after) → Bool` with the direction per metric, parenthesise the rule, and say what `runScenario` runs."
+    },
+    {
+      "section": "Solution and Structure (Miner)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Every count the miner makes presupposes fields in the transcript, and one of them — `unknownNames`/`typed` — needs the runtime to log attempts that failed to resolve, which most runtimes do not record. Nothing tells a reader to design the recording schema before sessions run.",
+      "suggestion": "Add an implementation note: \"record attempts, not only successes\", and list the required per-event fields (op, option keys, resolved? , code, timing, agent-written code) as part of the Transcript store's responsibility."
+    },
+    {
+      "section": "Structure and Sketch (Decision rule)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "\"Its target metric improves on most core scenarios\" never quantifies \"most\", and the sketch's `mostly(...)` / `none(worse ...)` silently drops the table's \"beyond its range\" qualifier. It also never says whether a rejected change keeps its rows — it must, or the next comparison loses its baseline.",
+      "suggestion": "State the rule as: a strict majority of core scenarios whose before/after ranges are disjoint (or median gap > larger range), no other metric worsens by that test, and revert rows are logged like any other."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "About a dozen goja-cv numerals in two pages, most of them repeated later (751 in note 1, 29-vs-39 pastes in note 2, 19 lint firings in note 4, two runs per side in note 5, calls/errors/code size in note 7). The reader has to carry numbers that the Solution never uses.",
+      "suggestion": "Keep three: the 751 counted calls with its three decisions, the 39 agents / 374 evaluations finding, and the 4/5 → 14/13 accuracy jump with disjoint after-runs. Move the rest to the notes."
+    },
+    {
+      "section": "Motivation vs Implementation note 7",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "70 → 0 and 99 → 0 cannot fail once the API is deleted, so they demonstrate landing, not improvement; the Motivation lists them beside the accuracy numbers, which are a real effect. Note 7 half-corrects this but the framing stays mixed.",
+      "suggestion": "Label the removed-surface figures explicitly as \"did the change land?\" evidence and keep only the accuracy/pixels figures as \"is it better?\" evidence."
+    },
+    {
+      "section": "Solution, Collaborations, Consequences (cadence and cost)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Nothing says how often to re-mine, when to stop measuring an already-accepted change, how large the core must be for a worthwhile effect to be detectable, or how a weekly cadence is supposed to fit the cost the Consequences admit to. A practitioner planning a weekly loop has no way to size it.",
+      "suggestion": "Add a short para: mine on a trigger (every N sessions or monthly), one comparison per change bundle, a named minimum detectable effect tied to core size, and a quarterly re-baseline."
+    },
+    {
+      "section": "Structure (Decision log vs Results ledger)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The boundary between the two ledgers is never drawn; the decision log is defined only by a pointer to Chapter 11, and the verdict produced by `compare` has no participant that stores it.",
+      "suggestion": "One line each: results ledger = one row per run; decision log = one row per accepted or rejected change, carrying the change id, the verdict and a pointer to the rows it was judged from."
+    },
+    {
+      "section": "Applicability, third do-not-use",
+      "kind": "other",
+      "severity": "low",
+      "note": "\"Read every transcript instead\" is the same pattern with the Miner removed — a legitimate variation, but it is listed as a prohibition and does not appear in Variations. The \"too rare to count\" threshold is also never given a floor, though the chapter's own 19 lint firings suffice for a precise conclusion.",
+      "suggestion": "Move hand-reading into Variations (\"hand reading, no miner\") and give a rough floor, e.g. under a few dozen sessions a month."
+    },
+    {
+      "section": "Related chapters (classic patterns)",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "Observer for a miner is a stretch: the miner polls stored transcripts in a batch and is notified of nothing. Memento for a ledger row is a metaphor, not a mapping.",
+      "suggestion": "Drop Observer, or say what is actually observed (events written to a store, not calls into the miner); keep Memento only if the row is genuinely restorable into a runnable configuration."
+    },
+    {
+      "section": "Intent and Solution (\"the same agents\")",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "\"Running the same scenarios with the same agents\" reads as the same agent instances, while the comparability requirement is the same model snapshot and prompt/tool version. Hosted models update silently, so this is exactly where rows rot.",
+      "suggestion": "Say \"the same model snapshot and prompt version\", and make snapshot pinning part of note 9 rather than leaving it implicit."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The two-loop shape and the decision rule are memorable and I would use them; clarity and reusability suffer from the two-vs-three-runs contradiction, an under-specified miner schema, and a Motivation stuffed with example-specific numbers."
+  }
+}

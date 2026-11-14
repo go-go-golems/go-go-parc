@@ -1,0 +1,149 @@
+{
+  "restatement": {
+    "intent": "Make documentation true by executing it: every code example runs in the test suite and declares the outcome it must produce, and every quotation of source is filled from the source rather than copied.",
+    "problem": "Documentation that is never executed drifts from the system it describes, and readers — agents above all — act on what it says rather than on what is true.",
+    "solution": "Treat docs as data: split them into topics with a summary and named sections that can be listed and read one at a time. Every code block carries an outcome contract in its info string — clean success, success with a named warning, failure with a named error code, a stated artefact count, or `fragment` (not run) — and a runner executes the blocks in order, in one fresh session per topic, against planted fixtures. Quotes come from the source at build time, and a corpus checker enforces structure, links and vocabulary in the same suite, so a system change fails the docs' tests until the docs are updated. The same tested text is served to people, agents and tools."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Because good guides must show what goes wrong, and a test runner counts any failing example as a failure. Without a contract that says `this block must fail with code X`, you can either not document errors at all or not test the block. Pinning the code also means a refusal that changes its code breaks the doc test, forcing the guide to be updated.",
+      "where": "Forces ('Showing failure against testing it'); Implementation note 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "A fragment is a block marked `fragment` in its info string: an illustration (partial expression, pattern of calls) that the runner skips. Marking it keeps the example readable, yet keeps the exception visible to reviewers — an unmarked block that quietly never runs is invisible, unverified documentation, which is exactly the drift the pattern exists to stop.",
+      "where": "Implementation note 3; Solution; Applicability"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because generated text cannot explain and written text cannot stay current untested. A reference generated from the operation registry is mechanically accurate but cannot teach; a hand-written guide can teach but drifts unless its examples are tested. goja-cv therefore generates its operation reference and hand-writes-and-tests its guides.",
+      "where": "Implementation note 6"
+    },
+    {
+      "id": "Q4",
+      "answer": "Running the examples proves the code in the document works; it does not prove a reader can apply the document, and conceptual claims are not covered at all. The suggested remedy is agent validation: give documents to isolated agents in the pattern-validation playbook, measure what they answer and build, and revise the text from that evidence (plus human review for prose).",
+      "where": "Implementation note 11; Variations ('Agent-validated documentation'); Consequences"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "The tutorials make executable claims (create a customer, charge, see a specific decline) against a reachable, resettable sandbox in test mode with deterministic test cards, so fixtures are cheap and the decline is a natural expected-failure contract. The pattern fits, but it needs per-language runners and a cross-language parity rule the chapter does not describe.",
+      "participants": {
+        "Topic": "Each language's tutorial: title, summary, and the same named sections (create customer / charge / read the decline) in all five languages.",
+        "Example block": "Each fenced block per language with an info string naming the language and contract, e.g. ```python error=card_declined``` for the known decline test card, `clean` for the successful charge, `fragment` for client-initialisation fragments.",
+        "Fixture": "The sandbox test-mode account plus the documented test cards (the decline card) and a fresh, uniquely-keyed test customer per tutorial run, so runs do not see each other's state.",
+        "Example runner": "One doc-test harness per language, started per tutorial: it creates the customer in block 1 and the later charge block reuses it, so blocks run in order.",
+        "Quote reference": "References into each language's SDK source (client method, error class), resolved against that language's source root; one resolver, five source roots.",
+        "Corpus checker": "Parity rules across the five tutorials: identical section headings and example ids, no missing language, links resolve, stable code names not messages, banned marketing words.",
+        "Doc server": "Docs site plus in-SDK help and MCP resources serving the same tested topic text per section."
+      },
+      "sketch": "value Block:   tutorial, lang, line, contract: clean | error(code) | fragment\nvalue Outcome: ok, errorCode?, body\n\nrunTutorial(t, lang) → [Failure]\n  session = sandbox(fixture(testAccount, declineCard, freshCustomerKey(t, lang)))\n  for b in blocks(t, lang) where b.contract ≠ fragment:\n    o = session.run(b.code)                    -- py/java/go/ts/ruby client call\n    match b.contract:\n      clean    → if not o.ok:                  fail(b, topic, lang, line, \"expected clean\", o)\n      error(c) → if o.errorCode ≠ c:           fail(b, \"expected \" ++ c, o)\n  return failures\n\nassert all(runTutorial(t, l) == [] for t in tutorials for l in langs)\nassert all(fillQuotes(t, sourceOf(l)) is text for t in tutorials for l in langs)\nassert checkCorpus(tutorials) == []          -- same sections/example ids in all five languages",
+      "key_notes": [
+        "Note 1 (failure as an expected outcome) — the decline IS the lesson of the tutorial, so `error=card_declined` is the block that matters most; pin the SDK's normalised error code, never the human message.",
+        "Note 2 (in order, one session per topic) — create-customer then charge only works if blocks share a session; the fixture must still give each tutorial a fresh customer so order-coupling does not become cross-run state.",
+        "Note 5 (quote source) — five languages mean five source trees; the resolver contract must stay one thing while the source root is per language, or quotes silently resolve to nothing.",
+        "Note 8 (checker in the suite) — the chapter's checker rules are single-corpus rules; here the valuable rule is parity (same headings and example ids in all five languages), because five separate passing tutorials can still teach five different things.",
+        "Note 4 (contracts cover what readers see) — add a contract on the successful charge's observable result (status, receipt fields), not only on the decline.",
+        "Applicability's external-system clause — sandbox reachability is what makes this viable; anything flaky or shared gets recorded fixtures or `fragment`."
+      ],
+      "risk": "Treating the live sandbox as a fixture without isolating state (a shared test account, customers accumulating, rate limits) and asserting on decline messages instead of codes — then the five tutorials pass individually while drifting from each other and from production behaviour."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "As proposed, no. The chapter's own exclusion applies: examples that depend on external systems tests cannot reach or reset should be fragments, with the underlying calls tested elsewhere — and here the underlying call IS the irreversible production mutation, so there is nowhere else to test it. A CI job that runs every runbook step with an outcome contract would mutate live payment settings on every build and call that a passing test; a green suite after a destructive change is worse than no suite.",
+      "participants": {
+        "Topic": "Survives: the runbook as a topic with numbered sections and expected observations is still an improvement.",
+        "Example block": "Partly survives: every mutating command block must be `fragment` (note 3); only non-mutating blocks — `--help`, argument-shape checks, plan/`--dry-run` output — could carry `clean`/`error=` contracts.",
+        "Fixture": "No role. There is no planted input that makes a live settings change safe to repeat; replacing it with 'the production account' is the failure mode.",
+        "Example runner": "No role for the mutating blocks. A runner here only proves the commands parse, not that the runbook is sage to execute.",
+        "Quote reference": "Survives and is the most valuable part: quote flag tables, setting names and command syntax from the CLI's own definitions so renamed flags fail the build.",
+        "Corpus checker": "Survives and carries the weight: every step must have a rollback line, an expected observation, and a named approver; no step may lack a verification.",
+        "Doc server": "Survives: operators read one section at a time under pressure."
+      },
+      "sketch": "",
+      "key_notes": [
+        "Applicability 'Do not use' bullet on unreachable/unresettable external systems — the deciding note; it converts the situation from 'run the examples' to 'mark them fragments and test the underlying calls elsewhere', and the elsewhere does not exist.",
+        "Note 3 (fragments are allowed, and marked) — the only honest marking for every destructive step; an unmarked mutating block under a runner is the dangerous version.",
+        "Note 8 (checker in the suite) — what to keep: rules over the corpus (rollback present, verification present, flags exist) tested in CI, which validates the runbook's shape without performing its effects.",
+        "Note 1 in reverse — an 'expected outcome' contract for a production mutation passes only because the mutation happened; expectedness does not make a side effect repeatable.",
+        "Note 5 (quote source) — do test the command and setting names against the CLI's definitions; that is where runbooks actually rot."
+      ],
+      "risk": "Half-converting: adding contracts to the two harmless steps, letting the mutating ones slip in as 'expected to succeed', and shipping a green pipeline that silently reconfigures live payments once per commit."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Structure / Solution",
+      "kind": "too-specific",
+      "severity": "high",
+      "note": "The outcome-contract participant is defined only by goja-cv's info-string dialect (`error=`, `warns=`, `looks=`, `fragment`). A reader in Rust, Go or an HTTP API cannot tell which part is the pattern and which is one project's syntax, so the chapter reads as transferable but is only usable by copying that dialect.",
+      "suggestion": "State the generic contract vocabulary as the participant's responsibility (clean success | success with named diagnostic | failure with named code | stated count of artefacts | not run), then present `js error=E_ARG_RANGE` as one instantiation, with a second instantiation from Known uses (Rust's `should_panic`/`compile_fail`/`no_run`) side by side."
+    },
+    {
+      "section": "Implementation note 2 (one session per topic, blocks in order)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The pattern deliberately couples examples: block 7 may only work because block 3 opened an image. The chapter never says so from the reader's side, nor warns that a person or agent copying a single later block will get a failure the docs do not explain. This is a cost the pattern creates and hides.",
+      "suggestion": "Add a rule: each block must state its prerequisite in prose or an info-string marker (e.g. `needs=open-image`) even though the runner gets it from the session, and keep the chain inside a topic short; mention the copying hazard in Consequences."
+    },
+    {
+      "section": "Motivation vs Implementation note 9",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The Motivation rests on 'agents read documentation literally' and act on it, but note 9 reports that in the annotator study no agent called `cv.docs` or `cv.help`. The strongest counter-evidence to the chapter's premise is buried in the implementation notes, and the reader cannot tell what is being claimed.",
+      "suggestion": "Move the finding into Forces or Motivation and adjust the wording: docs must be executable because they are quoted by people, by generated refusals, and by agents that are pointed at them — not because agents browse docs unprompted."
+    },
+    {
+      "section": "Solution / Variations ('Recorded outputs')",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Contracts check codes, warnings and counts, never content. `looks=2` passes if the two pictures are wrong; `clean` passes on a call whose printed result in the prose is stale. The chapter raises expected-output contracts only in Variations and never resolves when to prefer them.",
+      "suggestion": "Add a one-line decision rule: use outcome contracts for control flow and normalised expected-output contracts for visible values, and say explicitly that unverified prose values remain a residual risk covered by review or agent validation."
+    },
+    {
+      "section": "Structure ('Doc server')",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The doc server is load-bearing for the 'whole documents against pieces' force, yet it is asserted rather than designed: no topic id format, no section addressing, no resource shape — only `cv.docs.read(id, { section })` in passing. A team cannot build the participant from this.",
+      "suggestion": "Give the resource shape (topic id, title, summary, ordered section ids) and one signature each for list/search/read, or state plainly that Chapter 5 owns the docs API and link to it from the table row."
+    },
+    {
+      "section": "Whole chapter (Solution, Collaborations, mermaid, Sketch)",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "The same pipeline is encoded four times: prose Solution, numbered Collaborations, the mermaid flowchart, and the sketch. The prose and the language block already carry it; the diagram adds nothing the sketch lacks.",
+      "suggestion": "Delete the mermaid diagram (or the numbered Collaborations) and let the sketch be the single executable statement of the flow."
+    },
+    {
+      "section": "Implementation notes 9–11",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Three of eleven notes are about goja-cv / Editor-lab / go-go-goja arrangements rather than about executable documentation: an agent-behaviour finding, a three-layer doc-hub architecture, and a validation study. They dilute the pattern and make it look bigger than it is.",
+      "suggestion": "Demote to a short 'Notes from the running example' subsection, or move note 10 to Related chapters and keep note 11 as a single sentence under Consequences ('tests prove the code runs, not that the text teaches')."
+    },
+    {
+      "section": "Solution / Collaborations step 4 vs Sketch",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "Quotes are filled 'at build time' and 'a missing symbol fails the build', yet the sketch asserts `fillQuotes` inside the test suite. It is unclear whether the built artefact is ever the thing that is tested, and the 21-quote test looks redundant with the build failure.",
+      "suggestion": "State the order once: resolve during build (build fails on unresolved), and have the suite re-run the same resolver over the built text so the served artefact, not the source, is what passes."
+    },
+    {
+      "section": "Rating ★★ (close to invariant)",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "The claim that 'any system with this problem converges on this shape' is not supported by the Known uses, which differ materially: doctest compares stdout, Rust adds compile_fail/no_run attributes and no fixtures or doc server, mdBook only includes files. What is invariant is a contract attached to the block, not the fixture/session/server shape.",
+      "suggestion": "Narrow the claim to the invariant actually shown: the expected outcome lives with the example. Then name the axes that vary — where the contract lives (info string, attribute, adjacent comment), what it compares, and how state is provided."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The intent, problem and forces are crisp and I would use notes 1, 2, 3, 5 and 8 tomorrow, but the contract syntax and doc server are shown only in goja-cv's dialect, and the ordered-session coupling and content-blind contracts are costs the chapter does not own up to."
+  }
+}

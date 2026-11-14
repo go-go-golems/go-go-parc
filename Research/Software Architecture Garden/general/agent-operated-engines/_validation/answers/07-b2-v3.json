@@ -1,0 +1,138 @@
+{
+  "restatement": {
+    "intent": "Let a vision-capable agent use pictures to judge appearance while never asking it to read a measurement off a picture. Every marked thing carries an id that has a matching row of numbers, many things ride in one sheet, and pictures are rationed with omissions named.",
+    "problem": "An agent that must both see and measure gets imprecise numbers and unbounded image counts from pictures alone, and cannot judge what numbers alone describe.",
+    "solution": "Compute positions, sizes and scores as rows with stable ids and deliver them as numbers; draw pictures only where judgement is needed, labelling each item with its row's id. Pack many small magnified cells — several views per item where the decision needs them — into one sheet instead of one image per item. The agent answers by id, and the engine maps ids back to exact numbers, refusing ids it never showed. Ration pictures per call and per conversation, state the budget up front, deliver everything a call created, and name the pictures left out."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Because contrast varies across items: a faint speck next to a bright one vanishes under one shared intensity stretch, so each cell gets its own (`stretch: \"cell\"`) and the faint item stays judgeable.",
+      "where": "Implementation notes 5 (\"Stretch each cell to its own range when contrast varies\")"
+    },
+    {
+      "id": "Q2",
+      "answer": "They are not silently dropped: everything a call created is delivered in order, returned pictures first, up to the per-call budget, and each picture beyond it is named individually in a `LOOKS` warning (by label and line) so the agent can retry with fewer cells or a smaller zoom.",
+      "where": "Implementation notes 7 plus the `deliver` pseudocode in the Sketch and the Deliverer row in Structure"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because APIs downscale large images before the model sees them, which erases a three-pixel speck; a sheet of small, individually magnified cells preserves detail that one big composite loses, at the cost of a single image.",
+      "where": "Implementation notes 8 (with note 3); the \"Context against detail\" force in Forces"
+    },
+    {
+      "id": "Q4",
+      "answer": "The scene view (what the object actually is) and a band-pass \"speck\" view (whether it stands out from the grain) of the same cell, placed side by side.",
+      "where": "Implementation notes 4 (\"Put the views the decision needs side by side\")"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is the same shape as the dust case: a measurement (the detector) already produces candidates with exact geometry and a score, the model must only judge appearance (nodule versus vessel, scar, noise), and 40 candidates per scan will not fit any per-call image budget one image each.",
+      "participants": {
+        "Item rows": "The detector's candidate table: id, slice index z, centroid cx/cy, diameter in mm, detector score.",
+        "Marked view": "One CT slice with each candidate circled and labelled with its row id — used mainly to show a nodule's relationship to pleura, fissures and vessels.",
+        "Sheet": "A grid of magnified per-nodule crops (typically 3-4x the nodule diameter of context each), one cell per id.",
+        "View presets": "Lung window and soft-tissue/mediastinal window side by side per cell (plus, where needed, a slab/MIP view for the vessel-versus-nodule question).",
+        "Budget": "Stated per call (e.g. 3-4 images) and per conversation; 40 candidates means the agent must filter to ~12-15 before asking.",
+        "Deliverer": "Attaches sheets to the reply in order, counts them against both budgets, and names omitted looks so the agent can request fewer cells."
+      },
+      "sketch": "cands = detect(nodules, scan)                        -- rows: id, z, cx, cy, diam, score\nkeep  = sortBy(cands, -score)[0:12]                  -- 40 -> 12; ids unchanged by filtering\nsheet(keep, views: [window(scan, \"lung\"), window(scan, \"soft\")],\n      cell: 48 px, zoom: 4).look(\"top 12 by score\")\n\ndelivered, warnings = deliver(callPictures, budget)   -- perCall 4, names the rest\nbyId = { i.id: i for s in deliveredSheets(session) for i in s.items }\nfor n in answer.nodules:\n  if n not in byId: return refuse(E_UNKNOWN_ID, n, valid: keys(byId), hint: \"cite ids from the last sheet\")\nlabels = [byId[n] for n in answer.nodules]            -- exact z, cx, cy, diam in mm",
+      "key_notes": [
+        "Note 1 (never read a number off a picture): size and position must come from the detector rows in mm, never from measuring on the crop — otherwise you inherit exactly the 5-10 pixel ruler error.",
+        "Note 2 (ids in the picture match ids in rows): the 40-to-12 filter is where relabelling 1..12 would break the link back to the detector table.",
+        "Note 3 (sheets beat single zooms): 40 candidates, 3-4 images per call — the cap of roughly 12-15 cells per sheet is the mechanism that makes the task feasible at all.",
+        "Note 5 (per-cell stretch): matters, but is the dangerous one here — apply it only to the 'is there a rounded opacity' view, see risk.",
+        "Note 6 (state the budget in instructions): the agent must know it has ~4 looks total before it decides how many candidates to sheet.",
+        "Note 9 (check ids on the way back): a nodule id from a previous scan or an earlier filtered sheet must be refused with the valid list."
+      ],
+      "risk": "Per-cell intensity stretching or per-cell window/level, applied blindly, changes apparent density and destroys the density cue (calcification, fat, ground-glass) that separates a real nodule from noise. Fix the window for the density view and use per-cell stretch only for the shape/contrast question; and keep enough surrounding lung in each cell, or an end-on vessel will look exactly like a nodule."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The property under judgement — overall colour cast — is global to the frame and has no items, positions, or identity, so a mark has nothing to point at and an id has no row of numbers behind it. Worse, the sheet's defining move (magnify crops, give each cell its own stretch) destroys precisely the whole-frame colour balance being judged.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "The Applicability 'do not use' clause applies directly: show one picture with a question, not marks.",
+        "Only the two generic participants travel, and they are worth keeping: Budget (per call and per conversation) and Deliverer (attach all created pictures, name the omitted ones) — ten photographs will still hit a cost or count limit.",
+        "The Variations entry 'numbers only' is the useful half here: report measured colour statistics (per-channel means and percentiles, grey-world/grey-edge estimate, correlated colour temperature) as rows, and one unmarked, unstretched picture per photo purely to confirm the numbers look plausible."
+      ],
+      "risk": "The likely error is forcing the fit by stamping a labelled grid on each photo so the model 'names cells' — the model still has to read a colour judgement off a picture, and the marks plus any per-cell stretching actively corrupt the quantity being judged."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Collaborations / Sketch",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "It is never stated whether the agent or the harness performs the measurement, the filtering and the delivery. Collaboration step 2 says 'it filters and sorts the rows in code', but the sketch shows `keep = sortBy(...)` and `deliver(...)` as engine-side statements, and the prose in step 4 says the deliverer attaches pictures. A reader cannot tell what to build versus what to instruct.",
+      "suggestion": "Add an explicit sentence on the assumed agent shape (code-executing agent that calls helper functions, as in goja-cv) and a short 'if the agent cannot run code' clause: the measurement tool takes sort/top_n/min_score parameters and returns the pre-filtered rows."
+    },
+    {
+      "section": "Structure / Implementation notes 7",
+      "kind": "too-specific",
+      "severity": "high",
+      "note": "Omitted pictures are 'named by line', which only makes sense when pictures came from agent-written `x.look()` statements in a code cell. For a tool-call agent there is no line, and note 7's `LOOKS` warning format cannot be produced.",
+      "suggestion": "Name by label and arguments (`sheet(\"top 12\", 15 cells)`), with the source line as an optional extra when a code cell is the origin; say that in note 7 and in the Deliverer row of Structure."
+    },
+    {
+      "section": "Solution / Implementation notes",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The chapter mandates that each item be 'drawn and labelled by its id' but says nothing about how to make labels survive the API downscale and not occlude the item. That is the whole practical difficulty: a 3-pixel speck needs a visible ring or leader line, a legible font size after downscaling, and a collision rule where ids overlap in a dense field.",
+      "suggestion": "Add a note on mark rendering: minimum labelled-mark size in the delivered (post-downscale) image, ring/leader geometry that does not cover the item, and a deterministic placement rule for overlapping labels."
+    },
+    {
+      "section": "Forces / Solution",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The force 'uniform against tailored views' and 'context against detail' are named but never resolved by the Solution, which says only 'several views side by side'. Note 8 then tells you an uncropped overview is bad, leaving no stated way to judge an item that is only interpretable in its surroundings.",
+      "suggestion": "State the rule explicitly: at least one view per cell must be a wider-context crop (a fixed multiple of the item's size), and when surroundings matter, spend one budgeted picture on a labelled overview in addition to the sheet."
+    },
+    {
+      "section": "Implementation notes 3 and 8",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "'Twelve to fifteen cells', 'cell: 40 px, zoom: 4' and 'the right count depends on the API's image size limit' leave a reader with goja-cv's numbers and no way to derive their own. The same holds for the budget's byte limit (8 MiB), which is unrelated to what the model actually pays.",
+      "suggestion": "Give the constraint as a formula rather than a constant: choose cells so that grid width x cell_px stays under the API's downscale target, and so the item subtends at least N pixels in the delivered image; express the budget in count plus post-downscale tokens, with bytes only as a transport backstop."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "Two dense paragraphs of unreconciled figures (5-10 px, 24 of 32, 2 and 5 versus 15 and 12, 14 and 13 of 53 versus 4 and 5, 9 of 13) — the 53 and 'gold point' are never defined, and the 9-of-13 result, which shows the gain came from rows rather than from this chapter's pictures, is buried inside the sentence rather than used as the argument.",
+      "suggestion": "Compress to one small table (baseline versus treatment, per metric) and one sentence drawing the conclusion: exactness comes from rows, and the picture only has to support judgement."
+    },
+    {
+      "section": "Applicability vs Variations",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The don't-use list says that when items have no natural identity you should 'show one picture with a question, not marks', but the Variations then offer a 'labelled grid instead of item marks' for exactly that case ('no candidate items yet'). Two sections give opposite instructions for the same situation, and neither says which dominates.",
+      "suggestion": "Reconcile: keep the grid as a coarse bootstrap that produces candidate cell names, ask the agent to name cells, and then convert the named cells into real item rows before any measurement is reported."
+    },
+    {
+      "section": "Consequences / Related chapters",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "The classic-pattern analogies overreach: 'Flyweight (one sheet carries many items)' is not Flyweight (shared intrinsic state across many instances), and Proxy for 'an id stands for the exact numbers' is a stretch; both read as decoration rather than mapping.",
+      "suggestion": "Drop both, or replace with a sprite-sheet/atlas comparison, which is the real mechanism, and say what each analogy is supposed to buy the reader."
+    },
+    {
+      "section": "Sketch",
+      "kind": "other",
+      "severity": "low",
+      "note": "The pseudocode mixes two call styles: `sheet(...).look(...)` is a chains-into-a-call form, while `deliver(callPictures, budget)` implies a separate transport step; and `deliver(...) → (delivered, warnings)` returns a tuple where the notation defines `f(a) → B` as a single result. There is also no note on how much budget should be reserved for the final verification look.",
+      "suggestion": "Pick one call style and use it consistently, split the tuple into two named results or a small record, and add a sentence on reserving budget across phases so early exploration cannot starve the final check."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The central rule (numbers from measurement, pictures only for judgement, ids as the join, sheets plus a stated budget) is unmistakable and worth adopting, but the split between agent code and harness, the mark-rendering procedure, and the sheet-size constants are tied to goja-cv, so a reader in another domain has to reinvent the parts that matter most."
+  }
+}

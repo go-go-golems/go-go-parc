@@ -1,0 +1,159 @@
+{
+  "restatement": {
+    "intent": "Give an agent's programs exactly the file access their task needs — one writable directory, an ordered list of read-only directories — and make the operating system, not string checks, enforce it.",
+    "problem": "When a session can name any path, one link, one repeated flag or one extra code-loading path lets it read or overwrite files it must not, and checks on path strings cannot stop that.",
+    "solution": "One writable root plus ordered read-only roots; every path is mapped by a locator to (root, name) and opened through that root's OS handle, which refuses '..' and escaping links. Writes go only to the writable root, never through a link, never over a file the session opened (compared by file identity), and always via an exclusively created random-named temp file renamed into place. Exactly one loader exists, and privilege-changing flags are given once or start-up fails."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Because a predictable temp name can be planted as a symlink before the save; exclusive creation (createExclusive / O_EXCL) fails if anything already exists there instead of following the planted link. Random names make the plant unguessable, atomic rename then replaces only the name.",
+      "where": "Implementation note 3; Motivation table row 3; Solution and sketch (`createExclusive(randomName())`)"
+    },
+    {
+      "id": "Q2",
+      "answer": "Relative names are looked up in the writable root first, then in the read roots in the given order; an absolute path must lie inside one of the roots. Either way the locator returns a root handle plus a name inside it, and only that root's handle performs the open, so the kernel refuses escapes. Writes may resolve only into the writable root.",
+      "where": "Solution; Collaborations steps 2–3; sketch `locate`; Implementation note 7 (paths on the command line resolve the same way)"
+    },
+    {
+      "id": "Q3",
+      "answer": "The agent used `require(\"/abs/path.js\")` to load its own helper library from outside the roots, within two runs of the mechanism becoming available. The episode shows that agents probe boundaries in the course of ordinary work, not as deliberate attacks, and that each extra way to load code is another boundary to defend — so the fix refused every file in `require` and left `load` as the single contained way.",
+      "where": "Motivation table row 4; Implementation note 4; Collaborations step 4"
+    },
+    {
+      "id": "Q4",
+      "answer": "When the agent needs a whole machine — installing packages, running services, a shell, or network — or when the OS offers no root-relative operations and string checks would be a false safety. Then use a container/VM (or seccomp/Capsicum/WASI-style process isolation) and apply this pattern inside it for the program's own file API.",
+      "where": "Applicability (\"Do not use it when\"); Variations (process-level isolation, capability-passing); Consequences bullet 3"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is the shape exactly: valuable read-only inputs (uploaded PDFs), scratch outputs, and a hostile neighbourhood (other customers' files on the same storage). The pattern deliberately narrows each job to its own PDFs, which is the whole point here.",
+      "participants": {
+        "Writable root": "a fresh per-job output directory (e.g. /jobs/j7/out) holding extracted JSON and thumbnails; deleted or archived after the job",
+        "Read roots": "only that job's uploaded PDFs (read-only mount) plus a shared read-only helpers/assets directory; never the customer share root and never any labels/answers directory",
+        "Locator": "maps agent-written names (`scan-01.pdf`, `out/scan-01.json`) to one of those roots and a name inside it; absolute paths must be inside a job root",
+        "Root handle": "one os.Root / openat2(RESOLVE_BENEATH) handle per root, opened on the shared storage mount",
+        "Opened set": "identities of the PDFs (and helper scripts) this job opened, so a save cannot replace a source PDF reached through an in-root link or hardlink",
+        "Writer": "exclusive random-named temp file inside out/, identity/duplicate checks, then rename over the target; refuses links",
+        "Loader": "one `load()` for the extractor helper scripts, resolved through the locator; `require`/shell-outs to pdftotext-style helpers must not exist"
+      },
+      "sketch": "startup(workspace: /jobs/j7/out, reads: [/jobs/j7/inbox, /shared/helpers])  -- exact roots, not the customer share\n\n(f, loc) = open(\"scan-01.pdf\")            -- writable root first, then inbox, then helpers; identity -> opened\njson = extract(read(f))\nsave(\"out/scan-01.json\", json)\n  loc = locate(..., forWrite: true)        -- writable root only\n  st  = root.handle.lstat(loc.rel)         -- no-follow\n  if st is link: refuse(E_ACCESS, \"saves do not follow links\")\n  if identity(st) in opened and not in written:\n      refuse(E_ACCESS, \"would replace a file this session opened\")   -- e.g. a link back to the uploaded PDF\n  tmp = root.handle.createExclusive(randomName()); write(tmp, json); rename(tmp, loc.rel)\n\nsave(\"scan-01.pdf\", ...)                  -- must REFUSE: would shadow the read root's PDF on later reads\nload(\"/shared/helpers/extract.js\")        -- single loader, absolute, at start-up\nrequire(p) -> refuse(E_ACCESS, \"files cannot be required\", fix: \"await load(name)\")",
+      "key_notes": [
+        "1 (OS-enforced root, highest priority): the neighbourhood is other paying customers; the first workspace here will be built on string checks and escaped by a planted link exactly as goja-cv's was.",
+        "9 (own writable root per parallel job; mount inputs and helpers read-only; never mount the answers): with parallel jobs on shared storage this is what keeps job A's thumbnails out of job B, and it is where the labels must be kept out of the mount set entirely.",
+        "6 (a save can shadow a read root): here a job that saves `scan-01.pdf` makes every later read of that name return its own file — for a data pipeline that silently substitutes inputs, so refuse saves whose name exists in a read root rather than merely warning.",
+        "3 (exclusive random temp names): shared storage is the one place where a predictable temp name may really be pre-planted by another tenant, not just by an unlucky agent.",
+        "2 (identities, not names): PDFs and non-JSON sidecars make accidental overwrite of an input plausible through an in-root link; the opened-set check is cheap insurance.",
+        "8 (show names as the agent should write them): JSON goes back as `out/scan-01.json`, the PDF as its absolute inbox path, so retries copy the right form."
+      ],
+      "risk": "Mounting the shared storage itself — the customer share or a per-customer directory — as a read root, or as the parent of the writable root: containment then holds perfectly while one job reads and overwrites other customers' files. Second failure: a second write path (a shell-out to an extractor binary, an image library writing a sidecar next to the source) that bypasses the locator and writer entirely."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The pattern contains only the file API the session offers. Package installation writes system paths outside any root, the database server needs a writable data directory and network ports, and a shell's own open()/system calls never pass through the locator, opened set or loader — each is an escape by design, not a hole to patch. This is the chapter's own 'agent needs a whole machine' exclusion, which points at a container or VM.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "The governing text is the Applicability exclusion 'the agent needs a whole machine (installing packages, running services)', not any implementation note: no locator, writer or opened-set rule can survive an arbitrary shell.",
+        "Its Variants/Consequences answer is the correct one: use a container or VM as the isolation, then apply notes 1 and 9 inside it (repository writable, caches and reference material mounted read-only, fresh root per run) so the program's own file API is still not an ambient one."
+      ],
+      "risk": "Accepting the proposal and believing the symlink/identity/exclusive-temp rules cover the agent: they constrain one API surface while the shell, the package manager and the DB server speak to the kernel directly. Equally wrong in the other direction is dropping the pattern once the container exists, leaving the agent's own file calls unconstrained inside the container."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution / Implementation note 6",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Shadowing is a containment hole, not an aside. Because relative reads check the writable root first, saving `labels.json` silently changes what every later read returns — for a labelled-dataset pipeline that is input corruption the invariant claims to prevent. It appears only in a note, and the offered remedy is a 'warn', which is not containment.",
+      "suggestion": "Move it into the Solution as a rule: refuse a save whose relative name also exists in a read root (E_SHADOW, fix: name the read root, or save under a directory), and keep the warn variant only as a documented relaxation."
+    },
+    {
+      "section": "Consequences vs Motivation (planted-link holes 1 and 3)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The Solution presents a boundary that 'holds even when a file planted for it tries to cross it', but Consequences then concedes the opened-set and duplicate checks 'assume no other process writes into the same root at the same time' — which is exactly the planted-symlink scenario in Motivation. The trust assumption is load-bearing and appears after the promise.",
+      "suggestion": "State the assumption in the Solution and in Applicability: the writable root must be private to the session (fresh per run); if it sits on storage other processes may write to, require process-level isolation as well, and say which of the checks then remain advisory."
+    },
+    {
+      "section": "Sketch `locate` / Collaborations step 2",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'Absolute paths must lie inside one' of the roots is the one place the locator necessarily makes a name check, and the chapter — whose Problem statement is 'checks on path strings do not stop it' — says nothing about how. A string-prefix test matches /data/goldilocks for root /data/gold, and an unclean absolute path (`/data/gold/../x`) must not be pre-normalised into something the kernel would otherwise refuse.",
+      "suggestion": "Add one line to the sketch and a note: test containment component-wise on the cleaned path, strip the root prefix to a root-relative name, hand that name to that root's handle, and let the kernel re-verify; never `Clean` a relative path before it reaches the handle."
+    },
+    {
+      "section": "Sketch `save` vs Implementation note 10",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The sketch explicitly permits rewriting a file the session wrote (`opened and identity not in written`) and records the post-rename identity, while note 10 says a second save to the same name in one call is refused with E_DUPLICATE. A reader cannot tell whether rewriting is allowed.",
+      "suggestion": "Reconcile: either put the duplicate check in the sketch (track names written in the current call and refuse a second one before the temp file is created) or drop note 10 and describe rewriting as intended."
+    },
+    {
+      "section": "Structure / Opened set, and sketch bookkeeping",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The lifetime and reach of the two sets is unstated. `open()` adds to `opened` but never consults `written`, so a `load()` of a library that lives in the writable root makes that file unwritable for the rest of the session; nothing says whether identities are ever dropped, or whether `written` survives more than one call.",
+      "suggestion": "Add a short sub-note on set semantics: per session, append-only, what `load` contributes, why a previously written file can be rewritten, and the consequence that writable-root libraries become immutable once loaded."
+    },
+    {
+      "section": "Sketch / Collaborations step 1 (refusal vocabulary)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Refusal kinds E_ACCESS, E_ARG and E_DUPLICATE appear with no list or cross-reference, and start-up returns `error(\"...\")` while Collaborations step 1 promises a start-up error 'with a fix' — so the strict-flag rule does not actually produce a structured refusal in the sketch.",
+      "suggestion": "Give the small closed set of kinds this chapter uses, point at the repairable-errors chapter for their meaning, and make `startup` return `refuse(E_ARG, …, fix: \"add --read DIR\")` so the strictness claim is visible in the code."
+    },
+    {
+      "section": "Implementation note 7",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'A symlinked read root inside the workspace resolve to its target' is the only place the two kinds of handle collide, and the sentence hides the actual rule: a path found in read root R must be opened through R's handle, not the writable root's, or containment correctly refuses it. As written, it reads like a special case to patch.",
+      "suggestion": "Rewrite as a general rule — every open uses the handle of the root that matched the name; a symlink standing in for a read root is therefore legal and needs no fix — and give the failing configuration in one line."
+    },
+    {
+      "section": "Consequences / missing bound",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The boundary controls where an agent writes but not how much: one writable root can be filled, or filled with millions of tiny files, taking down the host or the shared storage with it. No quota, size cap or file-count limit is mentioned anywhere.",
+      "suggestion": "Add a short paragraph: cap the writable root (bytes and inodes), make exceeding it a structured refusal, and begin the root empty per run so the cap is meaningful."
+    },
+    {
+      "section": "Collaborations / missing disclosure step",
+      "kind": "missing",
+      "severity": "low",
+      "note": "The chapter wants agents to learn the boundary from refusals rather than by probing, but the only channel is a refusal after a failed call. There is no participant or step that tells the session its roots and lookup order up front.",
+      "suggestion": "Add a step: the session exposes the writable root and read roots (in the tool description or a `roots()` read), with the naming convention from note 8, so the first attempt uses a legal name."
+    },
+    {
+      "section": "Implementation notes 1–5 and 11",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "Notes 1–5 retell the Motivation table almost row for row, and note 11 ('test that a regression test fails without its fix') is generic testing advice that hides the hard part — how to make the race deterministic (a hook or barrier before the rename, an injected link between lstat and rename).",
+      "suggestion": "Compress notes 1–5 to one line each referencing the table, and replace note 11 with the concrete technique plus the two failures it would have caught."
+    },
+    {
+      "section": "Applicability, third 'do not use' bullet",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "It equates the pattern with one means ('no root-relative file operations') and tells the reader to abandon it, though the Variations list capability-passing and process-level forms that satisfy the same invariant on such systems.",
+      "suggestion": "Reword: without kernel-enforced containment use the capability-passing or process-isolation form; only abandon the pattern if neither is available."
+    },
+    {
+      "section": "Rating line / Implementation note 9",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "The ★★ 'close to invariant' label undersells where the difficulty sits — the shape is uncontroversial, yet this team lost five holes in a week and twice wrote a test that passed without its fix. Separately, 'never mount the answers (the controls' truth)' and the dust-pipeline vocabulary are opaque to anyone outside that project.",
+      "suggestion": "Keep the rating but say plainly that the difficulty is entirely in the identity, exclusive-create and atomicity details; rewrite note 9's parenthetical as 'never mount the ground-truth labels or the evaluator's inputs'."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 5,
+    "comment": "The hole table and sketch make the shape immediately usable, but reusability suffers because the two rules that generalise most — shadowing and the private-writable-root assumption — are buried in notes while the Solution over-promises, and the locator's absolute-path check is left unsaid."
+  }
+}

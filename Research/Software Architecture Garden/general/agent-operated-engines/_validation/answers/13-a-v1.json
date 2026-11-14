@@ -1,0 +1,138 @@
+{
+  "restatement": {
+    "intent": "Design and revise an agent-facing system from evidence: mine recorded sessions for what agents call, mistype, break and ignore, and judge each resulting change with before/after runs over a fixed scenario set.",
+    "problem": "Interfaces designed from the designer's intuition miss how agents actually use them, and changes shipped without fixed before/after runs cannot be distinguished from run-to-run noise or from regressions.",
+    "solution": "Keep the transcripts, mine them with tested scripts into counts (calls per option, error codes, unknown names, warning precision, repeated pastes, never-used surface), and read the transcripts behind surprising counts before deciding anything. Turn counts into changes: delete unused surface, move frequent overrides into the default or the data, redirect mistyped names. Run a fixed scenario set with the same agents and model several times before and after, append every run as a version-stamped row to a results ledger, and compare only rows that differ in the one change, treating differences smaller than replicate spread as noise."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Two of: (a) the interactive-slider parameters had zero uses → the unused parameter system was deleted; (b) the image value-space override was used 198 times → the value space was moved onto the image itself; (c) agents wanted to run files → a library loader instead of a new tool.",
+      "where": "Motivation; Implementation note 1 (Count before you design)"
+    },
+    {
+      "id": "Q2",
+      "answer": "The miner recognised pasted helper files only by their final marker, so it missed ten trimmed pastes and reported 29 instead of 39; the wrong number reached a design document before the script was fixed. Rule: fix counts at their source — test the miner on transcripts whose answers you already know before trusting any number.",
+      "where": "Implementation note 2 (Fix counts at their source)"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because a zero can mean 'useless' or 'never shown in an example the agents copied'. Some documented operations were dead, others were simply never demonstrated, so deleting on the count alone would remove useful surface; the reader must state the reason from the transcripts first.",
+      "where": "Forces ('Counts against meaning'); Implementation note 3 (A zero count needs a reason); Solution"
+    },
+    {
+      "id": "Q4",
+      "answer": "As noise, not as a revision effect: replicate runs of the same version rated it within about one point of each other in the language's own validation, so a one-point change after a revision is inside replicate spread and needs several runs per side and medians before anyone claims improvement.",
+      "where": "Implementation note 6 (Repeat runs and report spread); Collaborations step 4"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "All three applicability conditions hold: the CLI surface is still changing, shell history plus agent transcripts are the recorded sessions, and error rate / retries / calls per command are measurable. The interface is theirs, not fixed by a standard.",
+      "participants": {
+        "Transcript store": "Six months of agent transcripts plus engineer shell history, normalised into one event stream (command, flags, exit code, next command).",
+        "Miner": "Scripts counting (tool, subcommand, flag) usage, non-zero exits by command, names/flags typed that do not exist, immediate self-corrections (same command retried with one token changed), and flags with zero uses.",
+        "Reader": "An engineer who opens the transcripts behind the worst commands and says why — bad default, unclear error, flag that has to be repeated every time, docs that never show the flag.",
+        "Decision log": "One entry per change: flag deleted, default folded in, error replaced by a redirect, subcommand renamed, each with the count that justified it.",
+        "Scenario set": "~20 real tasks lifted from history ('ship the service with the migration flag on'), each with a known-correct command sequence and a fixed repo/tool version.",
+        "Runner": "Sealed agent runs of those prompts against the real CLI, one before and one after each change, same repo snapshot.",
+        "Results ledger": "Row per run: CLI commit, agent model, prompt version, scenario, repo snapshot, metrics (calls, failed calls, retries, wall time, task success)."
+      },
+      "sketch": "mine(transcripts ++ shellHistory) → Counts\n  calls    = countBy(allCalls(ts), c → (c.tool, c.subcmd, c.flags))\n  failures = countBy(errors(ts), e → (e.tool, e.code))\n  typed    = countBy(unknownNames(ts), n → n)         -- `deploy --dryn-run`\n  retries  = countBy(selfCorrections(ts), c → c.tool) -- same cmd, one token changed\n  unused   = [f for f in flags(registry) if calls[f] == 0]\n  return Counts(calls, failures, typed, retries, unused)\n\ndecide(counts) → [Change]\n  -- zero uses: delete only after checking the flag was ever documented/shown\n  -- a flag passed on >80% of calls: make it the default\n  -- typed names: refuse(unknown_flag, message, hints, fix: \"--dry-run\")  -- Chapter 6\n  -- high-retry commands: rewrite the error, not the command\n\ncompare(change, scenarios, runs: 3)\n  for s in scenarios, for arm in [before, after], for r in 1..runs:\n    ledger.append(Row(arm, cliCommit(arm), model, scenario: s, run: r,\n                      metrics: runScenario(s, arm)))\n  return per-scenario median(after) - median(before), spread(before)\n",
+      "key_notes": [
+        "Note 2 (fix counts at their source) matters most: shell history is aliases, wrappers, multi-line commands and pipelines, so the miner must be validated against a hand-counted sample before any flag is deleted.",
+        "Note 3 (a zero count needs a reason): a flag used by scripts but never by agents in six months may still be public surface; read before deleting, and separate human use from agent use in the miner.",
+        "Notes 5–6 (same scenarios, same model, several runs, medians): pick scenarios and pin the repo snapshot and CLI commit, otherwise 'before' and 'after' are different tasks.",
+        "Note 9 (every row records every version): repo snapshot and prompt version, not just CLI commit — the failure mode here is the snapshot drifting between arms.",
+        "Note 7 (measure behaviour as well as outcomes): calls, failed calls and retries per task are the sensitive signal; task success alone is too coarse for a CLI."
+      ],
+      "risk": "Mining aliases and wrappers into wrong counts and then deleting a flag that scripts depend on — or, symmetrically, treating shell-history counts gathered from engineers as if they described agent behaviour."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The pattern's Applicability explicitly excludes interfaces fixed by a standard or contract you cannot change: 'measure, but redesign elsewhere'. Changing the wire format to suit agents breaks interoperability and makes the before/after comparison meaningless, because the 'after' system speaks a protocol nobody else implements.",
+      "participants": {
+        "Miner": "Still useful, on the implementation's own layer: which message type fails, which field agents get wrong, which validation errors fire.",
+        "Reader": "Reads the failing transcripts to find which field, ordering or encoding agents misread, and whether the cause is documentation, examples or error text.",
+        "Decision log": "Records the agent-facing fixes (redirects, examples, helper builders), not wire-format changes.",
+        "Scenario set / Runner / Results ledger": "Frozen encode/decode conformance cases as the yardstick, plus agent tasks measured before and after the agent-facing change."
+      },
+      "sketch": "",
+      "key_notes": [
+        "Applicability (Do not use it when) is the deciding note: a standard-defined format is measured but not redesigned from transcript counts.",
+        "Note 3 and Chapter 6's redirects: the change belongs in the repair surface — validation failures that name the offending field, a literal corrected message, and a helper that builds that message type correctly.",
+        "Note 8 (check the yardstick when results surprise): conformance tests against the published standard are the reference key; if agent failures 'contradict' it, suspect the guidance, not the spec.",
+        "Notes 5–6 still apply to whatever agent-facing layer is changed: same tasks, same model, several runs, medians.",
+        "Variation 'Document variants' is the right lane here: the loop can measure guides, examples and error texts for this message type without touching the format."
+      ],
+      "risk": "Forcing the fit: reading frequent agent mistakes as evidence that the message format is wrong, changing it, and passing local agent runs while breaking every other implementation — measured 'improvement' against a yardstick the team itself just rewrote."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch · compare()",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The pseudocode conflates the trial arm with the system version: it loops `for v in [before, after]` and stores `Row(system: v, ...)`, but the Structure table defines `system` as the system version. `noise` is computed from `ledger.rows(system: before, scenario: s)` inside a loop that never uses `s`, and `runs: 4` sits on the signature while the loop runs 1..runs per arm (8 rows), so the reader cannot tell whether 4 means total or per side.",
+      "suggestion": "Use separate fields `arm: before|after`, `systemCommit`, `runIndex`; move `noise` out as a per-(scenario, metric) replicate spread; write `runs: 2 per side` explicitly."
+    },
+    {
+      "section": "Implementation notes 10 vs 9",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Note 10 tells the team to grow the scenario set from every new failure, while note 9 and the whole ledger argument depend on rows being comparable. Adding scenarios changes the denominator of every median, so a later change compared against old rows is not comparing the same experiment — the pattern never says how this is handled, and Consequences only warns about drift from real use.",
+      "suggestion": "Split the set into a frozen core and a growing tail; report cross-change comparisons on the core only, and store scenario-set version per row so mixed-version medians are visibly refused."
+    },
+    {
+      "section": "Implementation notes 5–6, Collaborations step 4",
+      "kind": "missing",
+      "severity": "high",
+      "note": "'Differences smaller than the spread between repeated runs are treated as noise' is the decision rule of the whole pattern, yet no statistic is named (min–max? IQR? sd?) and no minimum run count is given. Consequences admits small effects drown, but offers no guidance on what to do when a change's real effect is smaller than that spread.",
+      "suggestion": "State a concrete rule — e.g. three runs per side, report min–max, call a change real only if medians differ by more than the larger within-arm spread — plus the fallback: pool scenarios, use a paired per-scenario difference, or accept the change on a mechanism argument recorded in the decision log."
+    },
+    {
+      "section": "Structure / Collaborations (Decision log, Results ledger, run table)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Three record-keeping artefacts appear — the project's 'run table', the results ledger, and the decision log — and the decision log is delegated to Chapter 11's lineage ledger, which by note 9 also owns version stamps. A reader cannot tell whether these are one file with two tables or separate artefacts with different keys, and step 5 ('accepted changes and their numbers go into the decision log') implies duplication.",
+      "suggestion": "Say explicitly: results ledger = one row per run, decision log = one row per accepted change keyed by the run rows that justified it; state whether they are two tables of one file."
+    },
+    {
+      "section": "Solution, Structure (Reader)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'Read the transcripts behind surprising counts' has no trigger and no sampling rule: what makes a count surprising, how many transcripts, and who signs off. The Reader is the only participant whose output is a judgement rather than a measurement, so leaving its procedure undefined leaves the pattern's main defence against deleting good surface unenforceable.",
+      "suggestion": "Add a sampling rule (read every session behind a zero-use operation; N random sessions per anomalous error code) and require the reader's stated reason to be stored next to the count in the decision log."
+    },
+    {
+      "section": "Solution / Applicability / Consequences",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "'Keep the transcripts of every agent session' with no privacy, retention or redaction guidance. Real sessions carry secrets, customer data and internal URLs, and the pattern routes them into a shared ledger and decision documents; Consequences lists only time as a cost.",
+      "suggestion": "Add an implementation note on redaction before storage, retention limits, and what may be quoted in a decision log; mention who can read raw transcripts."
+    },
+    {
+      "section": "Motivation, Implementation notes 1, 5, 7",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The reusable steps are buried under goja-cv numbers: 751 calls, 31.5→29, 51→39, 45→42, 198 uses, 70→0, 99→0, 4 and 5→14 and 13 of 53, 374 evaluations, 19 lint fires with one true positive. A reader from another project has to strip the example to find the instruction, and the numbers make notes 1, 5 and 7 read as a project report.",
+      "suggestion": "Consolidate the numbers into one worked-example subsection; rewrite notes 1, 5 and 7 as instructions with the figure only as a parenthetical illustration."
+    },
+    {
+      "section": "Also known as / Related chapters",
+      "kind": "other",
+      "severity": "low",
+      "note": "The four aliases name three different things: 'transcript-driven API design' is this pattern, 'before-and-after evaluation' is a method, 'experiment ledger' is an artefact, 'agent-computer interface design' is a whole field. Readers looking for A/B testing or experiment tracking will land here wrongly, and the Memento/Observer classic-pattern mapping at the end is decorative — a results ledger is not a Memento (it does not restore state).",
+      "suggestion": "Keep one or two aliases and move the rest to Variations; either drop the classic-pattern line or replace Memento with an honest analogue such as Experiment Log / Versioned Record."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The loop and its counters are clear enough to copy, but the noise rule, the scenario-set versioning contradiction and the goja-cv number density limit how directly another project can lift it."
+  }
+}

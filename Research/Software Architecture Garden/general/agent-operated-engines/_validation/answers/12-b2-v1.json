@@ -1,0 +1,148 @@
+{
+  "restatement": {
+    "intent": "Make documentation impossible to drift from the system: every runnable example carries a declared expected outcome and runs in the test suite, quoted source is filled from the running code at build time, and the document itself is structured data (topics, sections) with rules checked mechanically. The same tested text is served to people, agents and tools.",
+    "problem": "Documentation that is never executed quietly drifts from the system it describes, and its readers — agents above all — act on what it says instead of what is true.",
+    "solution": "Treat docs as executable data. Split them into topics with a summary and named sections that can be listed, searched and read one section at a time. Run every example block in the suite, in order inside one fresh session per topic, against fixtures, and compare it with the outcome contract in its info string: clean success, named warning, named error code, number of artefacts, or an explicit `fragment` that is not run. Fill quoted source from the source at build time and enforce corpus rules (structure, links, numbering, vocabulary) in the same suite, so a system change fails CI until the guide is updated."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Because a good guide must be able to teach what goes wrong, and a test runner counts any failing example as a failure unless the example declares that failing is its point. `js error=E_CODE` passes only if it fails with exactly that code, so a guide that explains an error proves the error exists with that code — and a changed refusal code breaks the guide's test until the guide is updated.",
+      "where": "Implementation notes 1 (Make failure an expected outcome); Forces ('Showing failure against testing it')"
+    },
+    {
+      "id": "Q2",
+      "answer": "A fragment is a block marked `fragment` in its info string — a partial expression or a pattern of calls that is illustration only and is not run. Marking it keeps the exception visible to reviewers (and countable), instead of an unmarked block that looks tested but is silently skipped or, worse, breaks the suite.",
+      "where": "Implementation notes 3 (Fragments are allowed, and marked); Structure, Example block"
+    },
+    {
+      "id": "Q3",
+      "answer": "Generated text cannot explain and hand-written text cannot stay current untested. So the operation reference is generated from the registry (always true, never pedagogical), while guides are written by hand and pinned by tests (pedagogical, always checked).",
+      "where": "Implementation notes 6 (Generate references, write guides)"
+    },
+    {
+      "id": "Q4",
+      "answer": "Running examples proves the code in a document still runs and behaves as declared; it does not prove a reader can apply the document, and conceptual claims remain unproven. The chapter suggests agent-validated documentation: give the document to isolated agents, measure what they answer and build, and revise the text from that evidence.",
+      "where": "Implementation notes 11; Variations ('Agent-validated documentation'); Consequences"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "The tutorials make executable claims against a sandbox that can be seeded and reset (test-mode customer, known decline card), which is exactly the fixture the pattern needs; and the decline block is a failure that must be shown, which is the case the outcome contract exists for. The real hazard is not fit but fan-out: five near-identical corpora that can drift from each other.",
+      "participants": {
+        "Topic": "one tutorial per language, with identical section names (setup, charge, decline) so they can be read and compared piecewise",
+        "Example block": "each fenced snippet with an info string: `clean` for create-customer, `looks=1` (one receipt/artefact) for the charge, `error=card_declined` for the decline case",
+        "Fixture": "sandbox test-mode account, seeded test customer, the known decline test card; a fresh session per language topic, blocks sharing it in order",
+        "Example runner": "the CI job that runs one language's blocks in order and compares each against its contract",
+        "Quote reference": "`{{src:Client.charge}}`-style placeholders filled from each language's generated SDK source, so a renamed parameter breaks the build in all five tutorials",
+        "Corpus checker": "rules over all five tutorials: same section headings, same set of block contracts per section (parity), links resolve, banned words",
+        "Doc server": "the docs site plus MCP/IDE resources serving the same tested sections to people and agents"
+      },
+      "sketch": "value Block: lang, line, contract: clean | error(code) | artefacts(n) | fragment, code\n\nFixture = sandboxAccount ++ seededTestCustomer ++ declineCard\n\nrunTopic(lang) → [Failure]\n  session = freshSession(Fixture)            -- one per language\n  for b in blocks(Topic(lang)) where b.contract ≠ fragment:\n    o = session.run(b.code)\n    match b.contract:\n      clean        → if not o.ok or o.warnings: fail(b)\n      artefacts(n) → if o.artefacts ≠ n:         fail(b)\n      error(c)     → if o.errorCode ≠ c:         fail(b)\n\n-- corpus checker, the rule that carries this situation\ncontractsOf(topic, section) → multiset of contracts\nassert all(contractsOf(T, s) == contractsOf(T0, s) for T, T0 in pairs(tutorials), s in sections)",
+      "key_notes": [
+        "Note 1 (failure is an expected outcome): the decline tutorial exists to show a failure; without `error=card_declined` its central claim is untested, and a changed decline code must break the test.",
+        "Note 2 (in order, one session per topic): create-customer then charge must share a session; one session per language also keeps the five tutorials independent of each other's fixtures.",
+        "Notes 5 and 6 (quote source; generate references, write guides): with five languages, copied signatures are guaranteed to drift — quote each SDK's real source and generate the per-language API reference from the SDK registry.",
+        "Note 8 (checker in the suite): the checker is what keeps five parallel corpora honest — its parity rule is the highest-value rule in this situation, because the drift you will actually get is language-to-language, not system-to-doc.",
+        "Note 3 (fragments marked): snippets that show a partial call without a full setup must be marked, otherwise they will be quietly unrun in one language and reviewers will not see it."
+      ],
+      "risk": "Five tutorials diverge: one language's block gets re-marked `fragment` (or its contract relaxes to `warns=`) to make CI green after an SDK change, so the guide stays green while the tutorial for that language is wrong. A parity rule plus a cap on fragments per topic is the guard; a second risk is sandbox flakiness or rate limits being read as contract failures, which argues for normalisation or recorded fixtures."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The pattern's guarantee comes entirely from executing examples against a Fixture, and here no fixture can exist: no test system, no recording, production settings only. Every block would have to be `fragment`, so the Example runner would run nothing while the chapter still claims 'documentation cannot silently drift' — a runner that proves nothing is worse than no runner, because it buys false confidence. Running it in CI also puts production payment settings within one misconfiguration of a test job.",
+      "participants": {
+        "Topic": "still fits: the runbook split into ordered sections, readable one step at a time",
+        "Example block": "only the steps that can be checked without production: `--dry-run` invocations, schema validation, and steps that must be REFUSED without an approval token (contract `error=NEEDS_APPROVAL`)",
+        "Fixture": "does not exist — this is why the pattern does not fit",
+        "Example runner": "does not exist for the production steps; they cannot carry contracts",
+        "Quote reference": "fits well: commands and flag names filled from the CLI's own help/registry, so a renamed flag fails the build",
+        "Corpus checker": "fits well: structure, numbering, links, command names that exist, banned words, 'every irreversible step names its approval gate'",
+        "Doc server": "unchanged; serving the runbook is independent of testing it"
+      },
+      "sketch": "",
+      "key_notes": [
+        "Applicability 'do not use it when examples depend on external systems tests cannot reach or reset' is the governing clause here: the proposed CI job contradicts it, and marking everything a fragment satisfies the letter of the syntax while voiding the guarantee.",
+        "Note 5 (quote source, never copy) still applies and is the most valuable part: pull the command text and flags from the CLI source so renames break the build.",
+        "Note 8 (checker in the suite) carries what machine checking is left: structure, links, and rules like 'every destructive step is preceded by a dry-run step and an approval gate'.",
+        "Note 11 (agents validate documents) is the substitute for execed examples: isolated agents attempt the runbook's decision path, and their answers are scored against the intended outcome.",
+        "Note 3 (fragments marked) applies only if a residual runner still exists for the dry-run blocks; if nothing is runnable, drop the runner rather than keeping an empty one."
+      ],
+      "risk": "Accepting the proposal because the syntax is available: blocks get contracts that 'pass' as fragments, the team believes the runbook is tested, and the first real drift is discovered during an incident. The honest answer is partial adoption (quote references, corpus rules, agent validation) plus a dry-run contract for steps that have one — not a runner over production steps."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Structure / Sketch",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Nobody owns the contract grammar. The info string is the pattern's actual interface (the chapter calls it Interpreter), yet no participant parses or validates it, and `match b.contract` in the sketch has no default case. A typo — `err=E_X`, `looks 2`, `fragmnet` — either crashes the runner or (more likely) makes the block unchecked, which silently removes the guarantee the chapter sells.",
+      "suggestion": "Add a participant `Contract`: `parse(infoString) → Contract | refuse(kind: 'unknown_contract', …)`. Give the sketch's match a default arm that fails the suite with topic and line, and add a corpus rule: every block has a known language and a known contract key."
+    },
+    {
+      "section": "Solution / Structure / Sketch",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The contract vocabulary changes name mid-chapter: the Solution, Motivation and note 4 say `looks=N`, while the Structure table and the sketch say `artefacts(n)`. A reader cannot tell whether these are the same contract or two different ones, and someone implementing will probably build both.",
+      "suggestion": "Pick one name (`artefacts=N`) and list the full vocabulary once in a table: key, meaning, example. Mention `looks=` only as goja-cv's image-specific spelling of the same contract."
+    },
+    {
+      "section": "Sketch",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The contracts do not pin behaviour as tightly as claimed. `warns(c)` passes when extra, undescribed warnings are also present (`c ∉ o.warnings`); `artefacts(n)` never checks `o.ok` or `o.errorCode`, so a failed run that still emitted n artefacts passes; `error(c)` says nothing about warnings or partial output. A block can therefore pass while the behaviour the guide describes has changed — contrary to the Consequences claim.",
+      "suggestion": "Define exactness per kind: `clean` = ok and no warnings; `warns(c)` = ok and warnings == [c] (or add an explicit `warns_any(c)` for the loose form); `artefacts(n)` = ok and artefacts == n. State it in the Structure table so writers know what they are promising."
+    },
+    {
+      "section": "Implementation notes 3 / Consequences",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Fragments are neither run nor parsed, and the chapter gives them no cost: no limit, no justification field, no syntax check. That makes `fragment` the cheapest way to turn a red suite green, and it directly contradicts the consequence 'Documentation cannot silently drift' — a renamed API inside a fragment drifts exactly as silently as before.",
+      "suggestion": "Require at least a parse/type-check pass for fragments (Rust's `ignore` vs `compile_fail` distinction is the precedent), let the marker carry a reason (`fragment: partial expression`), and add a corpus rule that fails when fragments per topic exceed a stated cap."
+    },
+    {
+      "section": "Fixtures / Collaborations",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Nondeterminism is unaddressed for outcome contracts even though Variations raises it for recorded outputs. Nothing says whether warning order matters, how floating point or timestamps in artefacts are handled, or how mutable shared session state (block 1 opens, block 5 crops) interacts with reordering or partial runs. Fixtures are also never declared: 'a planted test image' and `freshSession(fixtures)` hide the whole design decision.",
+      "suggestion": "Add a rule that contracts compare sets, not orders, plus a normalisation step for values that legitimately vary; and show the fixture declaration as data (name, setup, teardown) next to the block that uses it."
+    },
+    {
+      "section": "Rating line",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "'Close to invariant: any system with this problem converges on this shape' is overstated and, read literally, false. doctest, Rust and Go converge on runnable examples with declared outcomes — that part is near-invariant — but they converge on none of topics-with-sections, quote filling, corpus checker rules or a doc server; those are this chapter's choices.",
+      "suggestion": "Name the invariant precisely ('examples-with-declared-outcomes is near-invariant; the topic/quote/checker apparatus is a composite choice'), so the rating line does not promise reuse of machinery the known uses do not share."
+    },
+    {
+      "section": "Intent vs Implementation notes 9",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The Intent sells the doc server as how agents read the tested text, but note 9 reports that in the annotator study no agent called `cv.docs` or `cv.help`. The chapter keeps the participant and the claim, and leaves the reader to draw the contradiction. A reader applying the pattern may build a docs API on the strength of a benefit the chapter's own evidence denies.",
+      "suggestion": "State plainly that the doc server serves people and tools (help, MCP resources) and that agents mostly learn from replies and refusals pointing into topics; then mark note 9's consequence — tested guides pay off through people, generated references and helper libraries — as the honest rationale."
+    },
+    {
+      "section": "Implementation notes 10 and 11 / Variations",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "Two extra patterns are bundled in: 'one corpus, many readers' is a documentation-hub architecture decision, and 'agent-validated documentation' is a validation method that duplicates the Variations entry. Neither is needed to make executable documentation work, and together they inflate the chapter past what a reader must remember.",
+      "suggestion": "Compress each to one sentence under Related chapters ('pair it with a hub; test comprehension with agent validation'), and keep the chapter's own core to topics, blocks, fixtures, runner, quotes, checker."
+    },
+    {
+      "section": "Consequences",
+      "kind": "other",
+      "severity": "low",
+      "note": "'Writing an example becomes writing a test, so examples get written' is not supported and is probably backwards: the chapter's own costs (a fixture per example, contract syntax, checker rules) raise the price of an example, which usually means fewer examples, not more.",
+      "suggestion": "Either drop the bullet or restate it as the real effect — examples that exist stop rotting, so the marginal example is worth writing for people who already intended to write one."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core idea and contract vocabulary are clear and immediately usable, but inconsistent contract names, unstated exactness of each contract, and no owner for validating the info string keep it from being a clean spec; the heavy goja-cv/Editor-lab detail and two bundled side-patterns dilute reuse."
+  }
+}

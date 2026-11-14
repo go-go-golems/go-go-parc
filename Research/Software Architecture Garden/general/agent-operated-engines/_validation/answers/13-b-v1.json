@@ -1,0 +1,147 @@
+{
+  "restatement": {
+    "intent": "Design and revise an agent-facing interface from evidence: counts mined out of recorded sessions, explained by reading the transcripts, and judged by rerunning a fixed scenario set with the same model before and after each change.",
+    "problem": "Interfaces for agents designed from designer intuition miss what agents actually do, and changes without fixed before-and-after runs cannot be told apart from run-to-run noise or from regressions.",
+    "solution": "Keep every session's transcript; mine them into counts per operation, option, error code, mistyped name, warning precision and pasted block; read the transcripts behind surprising counts to get the reason. Turn counts into one-thing changes (delete unused surface, move heavy overrides into the data or default, redirect mistyped names, fix or delete low-precision warnings, add a loader for repeated pastes). Judge each change with the same scenarios and the same model, several runs per side, appending every run as a version-stamped row to a results ledger, and keep the change only if it beats the replicate spread. Accepted changes and their numbers go to a decision log; each real failure becomes a new scenario."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Everything that produced the row: configuration (system version/commit, model name, prompt or chapter version, change/variant id, scenario and its version, run number), the metrics, a timestamp, and links to the run. \"A row that cannot say what produced it cannot be compared later.\"",
+      "where": "Structure (Results ledger) and Implementation notes 9; Row type in the Sketch"
+    },
+    {
+      "id": "Q2",
+      "answer": "By counting the removed surface in the code agents wrote: `{ space }` fell from 70 uses to 0 and `show(` from 99 to 0, with no errors. Calls and errors and code size are ledger metrics beside accuracy: behaviour, not only outcomes.",
+      "where": "Motivation (second paragraph) and Implementation notes 7"
+    },
+    {
+      "id": "Q3",
+      "answer": "From real failures: each new failure found in real use becomes a scenario, so the next change is checked against it — this is also what keeps the fixed scenario set from drifting away from real use.",
+      "where": "Implementation notes 10; Collaborations step 5; Consequences"
+    },
+    {
+      "id": "Q4",
+      "answer": "So the difference between rows can be attributed to the change. If system, model, prompt, scenario version or run conditions differ, before and after are different experiments and the comparison says nothing.",
+      "where": "Solution (last sentence) and Implementation notes 5 and 9"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Every precondition holds: the interface (prompt + tool schema) is still changing, thousands of recorded conversations exist with replayable tool calls, and resolution outcome plus calls/turns are measurable. Weekly cadence is exactly where the loop pays off, provided one change is measured per week.",
+      "participants": {
+        "Transcript store": "the support platform's conversation logs: per-turn messages, tool calls with arguments, tool results, refusals/escalations, timing, and the prompt/tool versions active in that session",
+        "Miner": "scripts over those logs: calls per tool and per argument, refusal and escalation reasons by code, tool names the model attempted that do not exist, tool results the model pasted back into its reply, policy text copy-pasted every time, tools with zero calls",
+        "Reader": "a support-ops or agent engineer who reads the sessions behind the outliers (e.g. 200 zero-use lookups that were never in the prompt's examples)",
+        "Decision log": "the weekly change record: prompt/tool diff, the counts that motivated it, links to the ledger rows that judged it",
+        "Scenario set": "a frozen sample of real tickets with known resolutions plus hand-written regression tickets for past failures; versioned, never edited mid-comparison",
+        "Runner": "sealed runs of the assistant over the scenario tickets: fixed model and model version, fixed tools, no live customer, captured transcript per run",
+        "Results ledger": "one row per (prompt version, tool version, model, scenario, run) with resolution rate, turns, tool calls, escalations, cost, links to the run"
+      },
+      "sketch": "counts = mine(conversations)\n  calls    = countBy(toolCalls(conversations), c → (c.tool, c.args))\n  fails    = countBy(refusalsAndEscalations(conversations), e → e.reason)\n  typed    = countBy(unknownToolNames(conversations), n → n)\n  pasted   = largeRepeatedBlocks(agentReplies(conversations))   -- policy text, saved macros\n  unused   = [t for t in tools if calls[t] == 0 and t in promptExamples]  -- note 3: check it was shown\n\n-- one change per week: prompt edit XOR tool edit, never both (differ in one thing)\ncompare(change, scenarios, runs: 4)\n  for s in scenarios, for v in [before, after], for r in 1..runs:\n    ledger.append(Row(prompt: v.prompt, tools: v.tools, model: M, scenario: s, run: r,\n                      metrics: runScenario(s, v), links: runUrl))   -- sealed, same model\n  noise = spread(ledger.rows(v=before, s))                -- replicate spread, note 6\n  return [(m, median(after, m) - median(before, m), noise[m]) for m in metrics]\n\n-- keep only if resolved improves beyond noise and turns/tool_calls do not regress\n-- non-resolutions that trace to a missing tool become scenarios next week (note 10)",
+      "key_notes": [
+        "5 (same scenarios, same model, before and after): the biggest failure mode here is a prompt edit plus a model upgrade in the same week, which destroys attribution.",
+        "6 (repeat runs and report spread): resolution is a coarse binomial outcome per ticket; with 2 runs per side a real 3-point gain is invisible, so use more scenarios and report medians and spread.",
+        "9 (every row records every version): prompt version and tool-schema version are separate artifacts that change independently — both must be stamped, or rows cannot be paired later.",
+        "10 (grow the scenario set from failures): support has a long tail of intents; the set must absorb each new real-world escalation or it drifts.",
+        "3 (a zero count needs a reason): a tool missing from the prompt's examples is an instruction bug, not dead surface; deleting it would be a self-inflicted regression.",
+        "8 (check the yardstick when results surprise): 'resolved' is often self-declared by the agent or by a ticket-closed heuristic; validate the label before trusting the resolution metric."
+      ],
+      "risk": "Treating 'resolved' as ground truth and measuring one run per version, so a noisy label plus weekly changes produces confident decisions about noise; and shipping prompt and tool changes together so nothing is attributable."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter's own Applicability list excludes it: \"the change is a correctness or security fix; ship it, then measure the side effects.\" A path-traversal fix is a known defect with a decidable test, not a design uncertainty; gating it behind repeated before-and-after agent runs leaves the hole open while medians and spreads accumulate, and the comparison cannot outvote a proof.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, second bullet: security fix → ship, then measure side effects. This is the governing rule, not a judgement call.",
+        "10 (grow the scenario set from failures): the correct place for this is after shipping — add `../` and encoded-traversal requests across nested paths as permanent scenarios so the fix cannot silently regress.",
+        "7 (measure behaviour, not only outcomes) and 8 (check the yardstick): use the loop afterwards to check the *side effect* — agents that legitimately request nested paths now get refusals, so run the old scenario set and watch refusal counts and retry loops, not whether to fix.",
+        "4 (judge a warning by its true positives): a lint or guard rule emitted on every rejected path is measured for precision here, once the fix is already in."
+      ],
+      "risk": "Using the loop as a gate at all — a 'no significant difference yet, let's keep gathering runs' verdict while the API is exploitable. The reversal to avoid: also assuming shipping first means never measuring; the fix needs its regression scenario added the same day."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (`compare`)",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The pseudocode is not well-formed: `noise` and the `return` sit outside the `for s in scenarios` loop but reference `s` as a free variable, so it is unclear whether one comparison is returned per scenario or a pooled one. `runs: 4` is also ambiguous — the loop makes it 4 per side (8 per scenario), while the Motivation and note 5 use two per side.",
+      "suggestion": "Make the scope explicit: a `perScenario` block returning `[s, noise, delta]` and a stated convention that `runs` means runs *per side*; align the default with note 5 or state both and why they differ."
+    },
+    {
+      "section": "Collaborations step 4 / Implementation note 6",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The decision rule is stated only qualitatively — \"differences smaller than the spread between repeated runs are treated as noise\". With two runs per side a spread is not estimable, and nothing says what to do when metrics disagree (e.g. accuracy up, calls up). Different readers will make opposite calls on the same ledger.",
+      "suggestion": "Add one explicit rule, e.g. 'a change is kept if after's range (min–max over ≥3 runs) is disjoint from before's on the primary metric and no secondary metric regresses beyond the before-range'; name the primary metric per change before running, and who arbitrates trade-offs."
+    },
+    {
+      "section": "Structure (Decision log) vs Results ledger",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Both participants claim version stamps and both point at Chapter 11, and Chapter 11 is named 'Lineage Ledger' in Related chapters but described as 'the decision log' — a reader cannot tell whether the per-run rows and the accepted change are one artifact or two, nor what links them.",
+      "suggestion": "Say plainly: results ledger = per-run facts, decision log = accepted change keyed to a set of row ids; show the join field, and stop describing Chapter 11 two ways."
+    },
+    {
+      "section": "Motivation vs Implementation note 1",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "The same three goja-cv decisions (delete the unused parameter system, value space on the image, loader not tool) are told twice almost verbatim, and the raw project numbers (751 calls, 374 evaluations, 19 lint fires, 70→0, 99→0, 31.5→29, 39 vs 29) are spread across Motivation, notes 1–4 and Consequences. Only one of them — the miner reporting 29 instead of 39 — teaches a general lesson.",
+      "suggestion": "Keep the three decisions in Motivation once; leave a single number where it carries a lesson (29 vs 39 for note 2), and move the rest to a short 'evidence from goja-cv' box or cut."
+    },
+    {
+      "section": "Known uses",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "MLflow and Weights & Biases implement only the Results ledger participant — they have no transcript store, no miner, no scenario set and no reader. Listing them as uses of the whole pattern overstates it. (The dust `runs/results.csv` has the same issue: it is a training ledger, not a transcript-driven redesign loop.)",
+      "suggestion": "Move them to a 'tooling for the ledger participant' line under the Results ledger role, and keep Known uses for cases that actually mine transcripts and rerun scenarios."
+    },
+    {
+      "section": "Structure / Collaborations",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The Reader is a person-or-agent role with no output artifact beyond a proposal, so nothing stops a count from being 'explained' by a guess. This is exactly the failure the count-vs-meaning force warns about, yet the pattern has no mechanism for the reason.",
+      "suggestion": "Require one written sentence per outlier, stored beside the count and cited in the decision log (`reason: text, evidence: [transcript ids]`), so an explanation can be audited like a metric."
+    },
+    {
+      "section": "Applicability / Missing sizing guidance",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The chapter says usage can be 'too rare to count' and that 'few runs' hide small effects, but gives no order of magnitude: how many sessions before counting is meaningful, how many scenarios, what a run costs. A team cannot tell whether their situation qualifies.",
+      "suggestion": "Add one sentence of sizing: e.g. 'counting pays off from a few hundred sessions; a scenario set of 20–50 tasks with 3–5 runs per side detects effects of roughly X%' — even a rough, explicitly hedged figure."
+    },
+    {
+      "section": "Consequences / Sketch (`decide`)",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "`decide` is the step from counts to design and is compressed into comments (delete / move / redirect / fix / loader), with no rule for the hard cases the notes themselves raise: an operation used rarely but correctly, an option overridden 50% of the time, a low-precision warning that catches a real bug.",
+      "suggestion": "Give the count→decision table one line per finding type with its threshold and its exception, and cross-reference note 3 for the zero-count case rather than restating it."
+    },
+    {
+      "section": "Motivation (run table numbers)",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "\"Median calls per run fell (31.5 to 29, 51 to 39, 45 to 42)\" — three before/after pairs with no statement of what the three groups are (three tickets? three runs? three metrics?). The ledger schema has no ticket/batch key, so the paired-per-ticket comparison the motivation describes cannot be reconstructed from it.",
+      "suggestion": "Label the three groups and add the batching key to the Row type (e.g. `ticket` or `batch`), or state that the numbers are per-ticket paired comparisons."
+    },
+    {
+      "section": "Variations (offline replay)",
+      "kind": "other",
+      "severity": "low",
+      "note": "\"agents do not replay deterministically\" undercuts the chapter's own premise that sealed scenario runs are a comparison instrument; a reader is left unsure whether the recommended comparison is deterministic or statistical.",
+      "suggestion": "Say that scenario runs are non-deterministic *by design* and are compared statistically (hence note 6), while replay is only for deterministic sub-behaviours such as tool-call sequences or error paths."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The loop itself is the right shape and I would run it, but the sketch is scoped incorrectly, the noise rule is not decidable, and the goja-cv numbers crowd out the reusable parts, so a reader cannot yet port it without inventing the decision rule."
+  }
+}

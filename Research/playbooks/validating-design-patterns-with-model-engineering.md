@@ -163,14 +163,27 @@ executions without a file path. Diff the work-directory snapshots between stages
   chapters.
 - Fold builders' feedback into the chapter: it comes from people who tried to use it, not only to read it.
 
-**Stop rule:** a chapter is done when, across all runs of its latest version, quiz and fit verdicts are correct,
-clarity and reusability are 4 or more, no high-severity "wrong" note remains, and its builds pass their hidden tests.
-Reviewers always find something more; after the stop rule, remaining notes go to a list for the next revision cycle.
+**Read consensus, not counts.** Reviewers asked for at least five notes, without flattery, rate two or three of them
+high in every run, whatever the version: in the first language validated this way, high notes per run stayed between
+2 and 3 across every revision. A single high note is weak evidence. A section flagged high by two or more independent
+runs of the same version is a consensus defect, and those are the revision list (`consensus.py NN TAG`). In practice
+they were real every time: a contradiction between the decision rule and the running example that all four runs
+found, a line of sketch that could not work, two vocabularies for one idea.
+
+**Revise by cutting as well as adding.** Answering every note with more text makes chapters longer and lowers clarity
+(one chapter grew a third over five versions). For each consensus defect, prefer the fix that removes or replaces a
+sentence; move detail into implementation notes; keep the template's limit of eleven notes.
+
+**Stop rule:** a chapter is done when, across four or more runs of its latest version, quiz answers (read by hand
+where the key missed) and fit verdicts are correct, no consensus defect remains, median clarity and reusability are at
+least 3 and not lower than the previous version's, and its builds pass their hidden tests. Remaining single-run notes
+go to a list for the next revision cycle.
 
 ## Pitfalls met in the first run
 
-- **Keyword keys produce false negatives.** "None of the agents ever called it" failed a key that expected "never".
-  Check every miss by hand before trusting it, and widen the key.
+- **Keyword keys produce false negatives, and break when the chapter changes.** "None of the agents ever called it"
+  failed a key that expected "never"; after a revision reworded a note, a correct answer no longer used the key's
+  words. Keys catch gross misunderstanding only; read every miss by hand, and widen the key when the answer is right.
 - **An unstated interface detail produces false failures.** A builder named a warning `W_RANGE` where the hidden test
   expected `RANGE`; the task had not said. State it, or test a property instead of a spelling.
 - **Truncated, missing or malformed answers happen.** A run returned a JSON object without its transfer section;

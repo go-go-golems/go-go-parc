@@ -1,0 +1,131 @@
+{
+  "restatement": {
+    "intent": "Give an agent session exactly one directory it may write and an explicit ordered list it may only read, and let the operating system — not path-string code — enforce that boundary, while making every write atomic and refusing anything that would touch a file the session read.",
+    "problem": "Once an agent's programs can name any path, a single second route in — a link, a repeated flag, an extra loader — lets them read or overwrite files they must not, and checks on path strings do not stop it.",
+    "solution": "One writable root plus ordered read-only roots. Every path an agent writes resolves through an OS root handle (os.Root, openat2 RESOLVE_BENEATH) that refuses `..`, links and escapes; absolute paths must lie inside a root; relative names are looked up in the writable root first, then the read roots. Writes go only to the writable root, never through a link, never over a file the session opened (compared by file identity, not name), always via an exclusively created random-named temporary file renamed into place. Exactly one way to load code, resolving through the locator, and privilege-changing flags are accepted once or start-up fails with a fix."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A path string can be innocent while the file it names is not: a dangling symlink inside the output root made a save create a file outside it, and an in-root symlink pointed a save at an opened input. Normalising or prefix-checking strings never resolves links or compares file identity, and links are resolved by the kernel at open time, so only root-relative kernel operations actually hold the boundary.",
+      "where": "Problem; Motivation table (holes 1–2); Forces (name checks vs identity checks); Implementation note 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "The session records the file identity of every file it opens; a save lstats the target without following links and refuses if that identity is in the opened set and not in the written set (compared with os.SameFile). Identity rather than name, because a link inside the root has a different name but the same file, so a name comparison passes vacuously.",
+      "where": "Solution; Structure (Opened set); Sketch save(); Implementation note 2"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because every additional loading mechanism is a separate boundary to defend, and the boundary is only as strong as its weakest route in. goja-cv's `require` loaded any file on disk and an agent used it within two runs to load a library from outside the roots; removing it and keeping `load`, which resolves through the locator, makes code loading subject to exactly the same containment and refusals as reads.",
+      "where": "Forces (many ways in against one); Motivation row 4; Solution; Implementation note 4; Sketch require/load"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because last-value-wins turns an old or mistaken configuration into a silent privilege change: a repeated `--root` made the gold-data folder writable with no error at all. Accepting the flag once, or failing at start-up with a fix that names the read flag, converts that silent widening into a refusal the operator must see.",
+      "where": "Forces (flexible configuration vs strict flags); Collaborations 1; Implementation note 5; Sketch startup()"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It fits the file-API layer exactly: valuable shared inputs (the vendored cache), a scratch/working area, and neighbours (other teams' repos, the user's home) that must stay untouched. But an editing agent also runs git, builds and a shell, which the file API does not cover, so this pattern must sit inside process-level isolation (the Variations entry), not replace it.",
+      "participants": {
+        "Writable root": "the agent's own git checkout, one fresh copy per agent run",
+        "Read roots": "the shared read-only vendored-library cache (plus any reference tree); explicitly not the server's other repositories and not $HOME",
+        "Locator": "relative names resolve in the checkout first, then the cache; absolute names must lie inside one of them; anything else refuses with the roots and the fix",
+        "Root handle": "os.Root (or openat2 with RESOLVE_BENEATH) opened per root at start-up, so a checked-in symlink like `ln -s /etc/passwd docs/x` or `ln -s ../otherteam/y` is refused by the kernel, not by string code",
+        "Opened set": "identities of the cache files and repository files opened as reference material, so a save cannot replace them through an in-checkout link",
+        "Writer": "exclusive random-named temp inside the checkout, then rename into place; refuses links, directories and protected files",
+        "Loader": "the single code-loading path for the agent's helper modules; libraries from the cache are loaded by absolute path at start-up, before agent code runs"
+      },
+      "sketch": "startup(--root /work/run-17/checkout --read /cache/vendor)   -- each flag once; a second --root is a start-up error\nopen(\"src/a.js\")            -- locate in checkout, root handle open, identity joins opened\nopen(\"lib/util.js\")         -- miss in checkout, served from /cache/vendor\nsave(\"src/a.js\", bytes)     -- lstat: not link, not dir; see risk: opened-and-edited case\n                            -- tmp = createExclusive(random); write; rename over name\nsave(\"../../otherteam/x\")  -- kernel refuses the escape; refuse(E_ACCESS, roots, fix)\ndelete/shell/git            -- outside the file API: must be contained by the process sandbox\nload(\"/cache/vendor/lib/parse.js\")  -- start-up only, absolute, through the locator",
+      "key_notes": [
+        "Note 1 (let the OS enforce the root) — decisive here: a git checkout can contain committed symlinks pointing anywhere on the build server, so string checks are exactly the hole this deployment would hit.",
+        "Note 9 (own writable root per run) — many agents a day on one server: a fresh checkout per run is what makes \"parallel runs cannot interfere\" true; never hand two agents the same root or mount other teams' repos as read roots.",
+        "Note 6 (lookup order allows shadowing) — the agent will save files whose names collide with cache files; since the writable root is searched first, a saved `lib/util.js` silently shadows the vendored one for later reads. Load trusted libraries by absolute path and warn on shadowed reads.",
+        "Note 5 (strict flags) — an old launch configuration carrying two `--root` values is the realistic accident when a platform grows; refusing it is why the gold-data-style mistake cannot recur.",
+        "Note 7 (same resolution everywhere) — the prelude, the repo path and paths inside the agent's scripts must resolve identically, or the agent learns the boundary from inconsistent refusals.",
+        "Note 11 (test fails without its fix) — worth copying for a platform: a containment test that passes against the pre-fix code is worse than none."
+      ],
+      "risk": "Assuming the file API is the boundary when the agent also needs git, builds and a shell: unless the run is sandboxed at process level with the other repositories and $HOME unmounted, an agent escapes through the shell and the whole pattern is decoration. The second, subtler risk is applying the opened-set rule unchanged — an editing agent must read and then overwrite the same file, which the chapter's rule forbids (see review notes)."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter's own Applicability says not to use it when there is no filesystem access at all: there is nothing to contain, since weather and calculator tools expose no writable directory and no code-loading route. Adding a workspace would create the exact surface the pattern has to defend — writable names, links, a loader — while providing no benefit; safety here comes from not having file access.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, third 'do not use' bullet — the decisive one; the proposal is ceremony, not containment.",
+        "If the real goal is persistence (conversation notes, cached results), that is a new capability to design and contain, and then notes 1 and 4 would matter most: open a root handle and keep a single storage pathway rather than handing the model raw paths."
+      ],
+      "risk": "Treating 'we have a sandboxed workspace' as evidence of safety while widening the assistant's capability, so the next feature (read the user's uploaded files by path) arrives inside an already-trusted boundary."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Motivation table vs Implementation notes 1–5",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "Each of the five holes is told twice in nearly the same words: the table gives hole/found-by/fix, then notes 1–5 retell the same history before stating the rule. A reader reaches note 3 already knowing the temp-file story.",
+      "suggestion": "Keep the table (it is the chapter's best evidence) and reduce notes 1–5 to the rule plus at most one clause of history — or drop the table's Fix column and let the notes carry the fixes."
+    },
+    {
+      "section": "Solution / Implementation note 2 (opened set)",
+      "kind": "too-specific",
+      "severity": "high",
+      "note": "As written, a session can never save a file it opened unless it already wrote that file earlier — so read-then-modify-in-place is impossible. That is fine for goja-cv (open an input, save a different output) but breaks the chapter's own first motivating case, the double: a coding agent whose whole job is open `src/a.js`, edit, save it.",
+      "suggestion": "Distinguish intent at open time: files opened as inputs join the protected set; a file opened (or explicitly claimed) as an editing target may be replaced. Show the claim call in the sketch, and say what happens if the claim is made on a file in a read root (refuse)."
+    },
+    {
+      "section": "Implementation note 7 (symlinked read root)",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "\"A later fix had to make a symlinked read root inside the workspace resolve to its target, or the workspace's own containment refused it\" quietly weakens note 1, which promises the kernel refuses in-root links that leave the root. As written, a reader cannot tell whether a link from the writable root into a read root, or to /etc, is refused or followed.",
+      "suggestion": "Say explicitly that root paths are canonicalised once at start-up by the operator-controlled configuration (before any agent code runs), that links created afterwards by the agent are always refused, and what happens when a configured root's target lies outside every configured root."
+    },
+    {
+      "section": "Sketch — save(): `written = written ++ [identity(lstat(loc.rel))]`",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Taking the identity by name after the rename is a TOCTOU read: another writer could have replaced the name in between, and the recorded identity would be someone else's file. It also silently relies on the \"no other process writes into the root\" assumption for bookkeeping, not only for the opened-set check.",
+      "suggestion": "fstat the still-open temporary file handle before the rename and record that identity; rename preserves inode identity, so the record cannot be raced. State the assumption once, in the sketch, next to the check it protects."
+    },
+    {
+      "section": "Whole chapter — the file API surface",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Only open, save and load are specified. Nothing says how list, stat, mkdir, append, rename and — most important — delete behave. Delete is the obvious escape: removing a read-only input, or deleting a file the session opened, needs the same identity and link checks, and `removeAll` through the root handle will happily empty the writable root including files this session only read.",
+      "suggestion": "Give the Writer responsibility for every write-like operation, add one refusal example for delete of an opened file, and state that read-like operations (list, stat) also go through the root handle."
+    },
+    {
+      "section": "Consequences (+ Implementation note 3)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Atomic rename-into-place is sold as atomicity alone. It also replaces the file: mode bits, ownership and the executable bit are lost, hard links are broken, and inode-watching tools (editors, watchers, git index caches) see a brand-new file. For the coding-agent case, and for saving a script the session must then run, that is a behavioural change no other section mentions.",
+      "suggestion": "Add a consequence: saves replace inodes, so copy the replaced file's mode onto the temporary file before the rename, and say when in-place writing is acceptable (target not protected, no link involved)."
+    },
+    {
+      "section": "Known uses — Deno",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "Deno's `--allow-read`/`--allow-write` are path allow-lists checked by the runtime, which is the name/prefix model Implementation note 1 calls wrong under links; it also has none of the identity, opened-set or atomic-write rules. Listing it as a known use undercuts the chapter's own argument.",
+      "suggestion": "Either drop Deno or keep it as an explicit contrast: what a path-permission model gives you, and which two properties of this pattern it does not."
+    },
+    {
+      "section": "Sketch startup() / Collaborations, plus notes 3–5",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "goja-cv vocabulary (`--root`, `--read`, `require`, `load`, E_* kinds, \"cv.load\") leaks into the Solution, the Collaborations and the notes, so a plugin host or CI job has to translate. The generic rule is stated once (\"strict flags\") and then buried under one CLI's syntax.",
+      "suggestion": "Keep one example refusal string and one flag pair as illustration, and phrase the Collaborations in participant terms (the second writable root is a start-up error naming the read roots), noting that the same rule applies to config keys and API fields."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The shape is clear and the sketch is directly usable, but the opened-set rule as stated forbids in-place editing, the file API stops at save/load, and the symlinked-root exception is left unexplained — all of which limit reuse outside the running example."
+  }
+}

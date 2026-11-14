@@ -38,10 +38,12 @@ Doc tests, literate testing, runnable examples, living documentation.
 
 ## Motivation
 
-Agents read documentation literally. When goja-cv's predecessors were compared, a recurring failure was documentation
-that promised what did not exist: first-turn guides advertised error types and functions nobody had built, and agents
-called them. Examples drift the same way: an option renamed in the engine leaves the guide's example silently wrong,
-and an agent copies it.
+Documentation reaches agents mostly second-hand. In goja-cv's annotator study, no agent opened the guides; they
+learned from helper libraries written from the guides' examples, from refusals that quote the documented codes, and
+from the generated reference. So documentation errors travel: when goja-cv's predecessors were compared, a recurring
+failure was documentation that promised what did not exist (error types and functions nobody had built), and agents
+called them through code copied from it. An option renamed in the engine leaves an example silently wrong, and every
+helper copied from it inherits the mistake.
 
 goja-cv's agent topics answer this with outcome contracts on code blocks. A block fenced as `js` must run without
 warnings; `js error=E_ARG_RANGE` must fail with exactly that code; `js warns=RANGE` must succeed with that warning;
@@ -108,7 +110,8 @@ Do not use it when:
 | Participant | Responsibility |
 | --- | --- |
 | **Topic** | A document with a title, a summary paragraph and named sections; listable, searchable, readable section by section. |
-| **Example block** | A code block with an info string: the language and an outcome contract (`error=CODE`, `warns=CODE`, `looks=N`, `fragment`). |
+| **Example block** | A code block with an info string: the language, its contract clauses, and a machine-readable `needs=` list naming the setup it assumes. |
+| **Contract** | Owns the contract grammar. Each project declares its clauses (goja-cv's: clean, `error=CODE`, `warns=CODE`, `looks=N`, `fragment`; other projects add `stdout=…`, `exit=N`, `compile_fail`); the parser accepts exactly those, refuses any other word, and checks an outcome against every clause of a block. |
 | **Fixture** | What examples run against: a planted test input, a fresh session per topic. |
 | **Example runner** | Part of the test suite: runs blocks in order, checks each against its contract, reports topic, line and difference. |
 | **Quote reference** | A placeholder naming a source symbol or range, filled at build time; a test checks that each resolves. |
@@ -142,20 +145,24 @@ flowchart LR
 ## Sketch
 
 ```text
-value Block:    topic, line, lang, contract: clean | error(code) | warns(code) | artefacts(n) | fragment, code
-value Outcome:  ok, errorCode?, warnings: [code], artefacts: n
+value Block:    topic, section, line, lang, contract: Contract, needs: [setupName], code
+value Outcome:  ok, errorCode?, warnings: [code], looks: n
+
+parseContract(infoString, project.clauses) → Contract | refuse(E_CONTRACT, "unknown clause " ++ word)
+  -- the project's clause list is closed at any moment and extended deliberately; a typo such as eror= fails
 
 runTopic(topic) → [Failure]
   session = freshSession(fixtures)                          -- one per topic; blocks share it in order
   failures = []
-  for b in blocks(topic) where b.contract ≠ fragment:
+  for b in blocks(topic):
+    if b.contract.fragment: failures ++= syntaxCheck(b); continue   -- not run, but still parsed
     o = session.run(b.code)
-    match b.contract:
-      clean        → if not o.ok or o.warnings: failures ++= [Failure(b, "expected clean", o)]
-      error(c)     → if o.errorCode ≠ c:             failures ++= [Failure(b, "expected error " ++ c, o)]
-      warns(c)     → if not o.ok or c ∉ o.warnings:   failures ++= [Failure(b, "expected warning " ++ c, o)]
-      artefacts(n) → if o.artefacts ≠ n:              failures ++= [Failure(b, "expected " ++ n ++ " artefacts", o)]
+    failures ++= b.contract.check(o)                       -- every clause: clean, error, warns, looks
   return failures
+
+runSectionAlone(section) → [Failure]                        -- piecewise readers start here
+  session = freshSession(fixtures); session.run(setupFor(section.needs))
+  return [f for b in blocks(section) if not b.contract.fragment for f in b.contract.check(session.run(b.code))]
 
 fillQuotes(text, source) → text | BuildError
   for ref in references(text):                              -- {{src:TileCache.prototype.evict}}
@@ -165,7 +172,8 @@ fillQuotes(text, source) → text | BuildError
 
 -- in the test suite
 assert all(runTopic(t) == [] for t in topics)
-assert all(fillQuotes(t, source) is text for t in topics)
+assert all(runSectionAlone(sec) == [] for t in topics for sec in sections(t))
+assert all(fillQuotes(t, source) is not BuildError for t in topics)
 assert checkCorpus(topics) == []
 ```
 
@@ -174,12 +182,20 @@ assert checkCorpus(topics) == []
 1. **Make failure an expected outcome.** A guide that explains an error must be able to show it. goja-cv's
    `js error=E_CODE` blocks pass only if they fail with that code; a refusal that changes its code breaks the guide's
    test, so the guide is updated with the code.
-2. **Run blocks in order, in one session per topic.** Examples build on each other (open an image, then crop it); one
-   session per topic lets them, and a fresh session per topic keeps topics independent.
-3. **Fragments are allowed, and marked.** Some blocks are illustrations (a partial expression, a pattern of calls).
-   Marking them `fragment` keeps them readable and out of the runner, and makes the exception visible to reviewers.
-4. **Contracts cover what readers see.** For an agent-facing engine that includes warnings and pictures, not only
-   errors: `warns=RANGE` and `looks=2` check that the guide's explanation of a warning or a picture is still true.
+2. **Run blocks in order, and make each section's starting state explicit.** Examples build on each other (open an
+   image, then crop it), so goja-cv runs a topic's blocks in order in one session. But a reader who fetches only
+   section 4 (as `cv.docs.read(id, { section })` invites) cannot see that its first block relies on an image opened
+   in section 1. Mark what a section needs with a machine-readable `needs=` list, say it in prose too, and run each
+   section a second time alone, from its declared setup, so a piecewise reader's copy works.
+3. **Fragments are allowed, marked, parsed and counted.** Some blocks are illustrations (a partial expression, a
+   pattern of calls). Marking them `fragment` keeps them out of the runner and visible to reviewers. A fragment is
+   still parsed (Rust distinguishes `ignore` from `compile_fail` for the same reason), and the count of fragments per
+   topic is reported, so `fragment` does not become the quiet way to turn a failing suite green.
+4. **Contracts cover what readers see, and the grammar has one owner.** For an agent-facing engine that includes
+   warnings and pictures, not only errors: `warns=RANGE` and `looks=2` check that the guide's explanation of a warning
+   or a picture is still true. Each project declares its own clauses (printed output, exit codes, compile failure in
+   other domains); one parser accepts exactly those and refuses any other word, so `eror=E_RANGE` fails loudly instead
+   of running as a plain example.
 5. **Quote source, never copy it.** The lab's book fills code quotes from the running page at build time and has a test
    that all 21 quotes resolve. A copied function in a guide is wrong the day after a refactor.
 6. **Generate references, write guides.** goja-cv's operation reference is generated from its registry (see

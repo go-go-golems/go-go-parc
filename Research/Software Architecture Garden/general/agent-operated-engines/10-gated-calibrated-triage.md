@@ -90,8 +90,9 @@ calibrate it on labelled data and apply it as a deterministic gate; what it remo
 Mix controls with known answers into every judging batch, with every item given a blind id, and score each judge,
 model and prompt version on the same controls: ranking quality, accuracy and calibration. Set acceptance thresholds
 where the controls reach the precision you need; accept answers beyond them, and send the middle band, plus a random
-audit sample of the accepted ones, to a person who sees the item but not the verdict. When judges agree confidently
-against a control, have a person check the control.**
+audit sample of the accepted ones, to a person who sees the item but not the verdict. When judges agree confidently against a control,
+have a person check the control. Size the middle band to the people available: review the most uncertain items first
+and leave the rest unknown, never accepted by default.**
 
 ## Applicability
 
@@ -106,6 +107,8 @@ Do not use it when:
 - every item must be checked by a person anyway (legal or safety requirements); the agent is then an assistant to
   each review, not a triage stage;
 - no known answers exist and none can be produced; without controls there is nothing to calibrate against;
+- the expected middle band is far larger than review capacity and no better judge is in sight; triage would then
+  mostly leave items unknown, so improve the judge first;
 - the items are so few that a person can label them faster than the pipeline can be built.
 
 ## Structure
@@ -151,8 +154,8 @@ flowchart LR
 ```text
 value Item:     id (blind), payload, truth?                    -- truth only for controls, never shown
 value Verdict:  itemId, label, p                               -- p = the judge's probability
--- several classes: score and threshold each class one-versus-rest on its own controls; route an item when its top
--- class passes its threshold and no other class does
+-- several classes: score each class one-versus-rest on its own controls, with its own hi_c and lo_c; accept class c
+-- for an item only if p_c ≥ hi_c and every other class is at or below its lo; otherwise the item goes to review
 
 -- 1. gate: calibrated on labelled data, applied deterministically
 gate(c) → keep | unknown
@@ -164,9 +167,11 @@ batch = shuffle(realItems ++ sample(controlsPositive, 30) ++ sample(controlsNega
 runs  = chunks(batch, 6)                                       -- one sealed run per chunk (Chapter 9)
 
 -- 3. score each variant on the controls
-score(verdicts, controls) → { auc, accuracyAt05, brier, hi, lo, usableShare }
-  hi = lowest p where precision(label = yes | p ≥ hi) on controls ≥ 0.85
-  lo = highest p where precision(label = no | p ≤ lo) on controls ≥ 0.85
+score(verdicts, controls) → { auc, accuracyAt05, brier, hi, lo, precisionHi, precisionLo, usableShare }
+  fit, check = stratifiedHalves(controls)                       -- choose on one half, report on the other
+  hi = min { t in sorted(p of fit) : precision(fit items with p ≥ t are yes) ≥ 0.85 }   -- none if never reached
+  lo = max { t in sorted(p of fit) : precision(fit items with p ≤ t are no)  ≥ 0.85 }
+  precisionHi, precisionLo = the same precisions measured on check, with their counts
 
 -- 4. route
 for v in verdicts of real items:
@@ -190,18 +195,28 @@ for c in controls where agreeCount(judges, against: c.truth, p > 0.8) ≥ 2:
 3. **A cue that helps one stage may not help another.** The isolation number gated annotator over-keeps well, but as
    a cue for judges it separated the judge controls poorly (AUC 0.63), and a prompt that taught it lowered the
    judge's AUC from 0.78 to 0.71. Measure every cue on the controls of the stage that will use it.
-4. **Controls must be blind and alike.** Controls get the same kind of blind ids as real items and come from the same
-   source (detections of the same detector), or judges learn to tell them apart and the scores measure that instead.
-5. **Score calibration, not only ranking.** AUC says whether a judge ranks well; the Brier score and accuracy at 0.5 say
-   whether its probabilities can be used as thresholds. Overconfident models scored worst on calibration.
+4. **Controls must be blind, alike and built deliberately.** Controls get the same kind of blind ids as real items
+   and come from the same distribution (the dust judges' controls were detections of the same detector), or judges
+   learn to tell them apart and the scores measure that instead. Stratify them across classes, balance the two sides,
+   and keep enough beyond each threshold to estimate precision there: with thirty controls a side, the precision at an
+   extreme threshold rests on a handful of items. When the only known answers are older labels from a different
+   source, treat them as a weaker yardstick and check a sample by hand.
+5. **Score calibration, not only ranking, and get probabilities from somewhere real.** AUC says whether a judge ranks
+   well; the Brier score and accuracy at 0.5 say whether its probabilities can be used as thresholds. Overconfident
+   models scored worst on calibration. A model's stated confidence is a weak probability; repeated sampling (the share
+   of runs that say yes) or a calibration fitted on the controls gives a better one.
 6. **The usable share is the number that saves people time.** A judge's value is how many real items fall beyond the
    thresholds at the required precision; in the dust project the best judge made about 40 % usable.
 7. **Expect the yardstick to be wrong, and check it.** Nine of the first ten "not dust" controls a person checked were
    unlabelled dust; judges that disagreed with them had been right. When several judges disagree confidently with a
-   control, a person checks the control.
+   control, a person checks the control; a corrected control reruns the scorer, and items accepted under thresholds
+   that moved go back through the router.
 8. **Review blind, and audit the confident.** The review queue shows the item, not the agent's verdict, so the review
    measures the agent rather than echoing it; a random sample of accepted items goes to review too, or the accepted
    band is never checked.
+   The audit sample of accepted items measures the accepted band's real precision;
+   when it falls below the target, withdraw the threshold and send the band back to review, rather than only
+   recording the number.
 9. **Small control sets are noisy.** Sixty controls gave AUC values with an uncertainty of about ±0.06; differences
    smaller than that between judges are suggestive at best. Compare variants on identical items.
 10. **Rank review queues by uncertainty, and size them to the reviewers.** The project's review queue for detector
@@ -215,7 +230,8 @@ for c in controls where agreeCount(judges, against: c.truth, p > 0.8) ≥ 2:
 ## Variations
 
 - **Validator stage instead of a gate.** A second agent reviews the first agent's proposals. More context-aware and
-  more expensive; in the dust project a single annotator plus a deterministic gate beat it.
+  more expensive; in the dust project a single annotator plus a deterministic gate scored better on the gate's own
+  calibration tiles, which needs a held-out check before it counts.
 - **Consensus of judges.** Several models or prompts judge each item; agreement raises confidence. Costs a multiple of
   the runs and still needs controls to know whether the consensus is right.
 - **Active learning loop.** Reviewed items retrain the proposer; the next batch's uncertain middle moves. Suits

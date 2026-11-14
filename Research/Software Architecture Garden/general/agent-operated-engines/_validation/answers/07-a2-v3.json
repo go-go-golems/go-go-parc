@@ -1,0 +1,130 @@
+{
+  "restatement": {
+    "intent": "Let a vision-capable agent see pictures for judgement while every position, size and score comes to it as a number in a row with a stable id, packed many-per-image and rationed against a stated budget.",
+    "problem": "When an agent must both see and measure, pictures give it imprecise numbers and an unbounded image count, while numbers alone leave it unable to judge what they describe.",
+    "solution": "Compute candidates as rows with stable ids and exact numbers, and return those numbers. Draw pictures only where judgement needs them: mark each item with its row id, pack many items into one sheet of small magnified cells (several views per item where the decision needs them). Deliver every picture a call created within a per-call and per-conversation budget stated up front, name the omitted ones as warnings, and map the agent's id answers back through the rows it was actually shown, refusing ids it never saw."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Never make the model read a number off a picture: compute positions, sizes and scores as rows with ids and return them as numbers; pictures exist only to support judgement, and an agent that must point points by id. The dust annotators forced it — positions read off 2x-magnified ruler crops were 5–10 px off, 24 of 32 reported positions held nothing measurable, and agents invented correction formulas like `x = crop_x + (px − 52) / 2`.",
+      "where": "Intent; Motivation; Implementation note 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because the agent filters and sorts rows in code first, so a picture relabelled 1..12 by sheet position stops standing for the row it shows the moment the order changes. Only stable row ids let an answer by id map back to exact coordinates, and let the engine refuse invented or stale ids.",
+      "where": "Implementation note 2; Collaborations 2–5; Sketch (`byId`)"
+    },
+    {
+      "id": "Q3",
+      "answer": "Two reasons at once: cost — a twelve-cell sheet is one image against a hard budget while twelve zooms are twelve; and detail — APIs downscale large images, which erases three-pixel specks, whereas small magnified cells stay legible. A sheet is many small looks in one picture; an uncropped overview is not.",
+      "where": "Implementation notes 3 and 8"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because a limit enforced only by the transport is discovered when the run is already rejected — the first annotator batches died with nothing at >100 images. Told in the instructions, the agent can plan around it (prefer sheets and numbers, stay under 50); told only at rejection, it learns too late to change the plan.",
+      "where": "Implementation note 6; Motivation"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Element ids and bounding boxes come from the view hierarchy, an exact measurement that belongs in rows, and 300 screens cannot each cost an image. Pictures are still needed for the part that is genuinely visual: whether the overlap or truncation actually looks broken.",
+      "participants": {
+        "Item rows": "the view-hierarchy dump: stable element id, screen id, bbox, z-order, text, truncation/overlap flag, suspicion score",
+        "Marked view": "one full-screen screenshot per reviewed screen, each suspect element outlined and labelled with its hierarchy element id",
+        "Sheet": "grid of cells, each a magnified crop around one suspect element (bbox plus padding), labelled by element id; second view with ~48 px context so layout is visible",
+        "View presets": "screen (full context), element detail (tight crop), element-in-context (wide crop)",
+        "Budget": "per call e.g. 1 marked screen + up to 3 sheets; per conversation a stated fraction of the API's image limit, e.g. 50 of 100, since 300 screens cannot all be shown",
+        "Deliverer": "attaches the marked screen and sheets for a batch of ~20–40 screens, names each omitted picture by line in a `LOOKS` warning"
+      },
+      "sketch": "value Element: eid, screenId, bbox, text, zIndex, truncFlag, overlapScore\n\nsus = overlapOrTruncated(hierarchy(screen))          -- rows from the hierarchy, never from pixels\nkeep = sortBy(sus, -overlapScore)[0:12]\nlook(marked(shot, keep))                              -- one full screen keeps layout context\nsheet(keep, views: [crop(shot, bbox, pad: 6), crop(shot, bbox, pad: 48)], cell: 48 px, zoom: 3).look(\"batch 3 suspects\")\n\nfor b in answer.bugs:\n  if b.eid not in byId: return refuse(E_UNKNOWN_ID, b.eid, valid: keys(byId), hint: \"cite element ids from the last screen or sheet\")\nreport = [(byId[b.eid].eid, byId[b.eid].bbox, b.kind) for b in answer.bugs]",
+      "key_notes": [
+        "2 — the labels in the overlay must be hierarchy element ids, not 1..12 by cell position; sorting by suspicion reorders rows immediately",
+        "1 — bounding boxes come from the rows; if the agent reads a box off the screenshot the exactness benefit is gone",
+        "9 — refusing unknown ids matters doubly here: across 300 screens, citing an id from an earlier screen is near-certain",
+        "6 — 300 screens is the whole reason the budget must be in the prompt; the agent has to plan batching before it starts looking",
+        "3 and 8 — cap cells (~12–15) so truncated text and 1-px overlaps stay legible after downscaling, and mirror note 8 by using the marked full screen for layout context and sheets for detail",
+        "7 — name omitted pictures by line: a silently dropped sheet here is a missed bug the agent never knew existed"
+      ],
+      "risk": "Treating one screenshot per screen as the natural unit, so the conversation limit kills the run partway through with nothing reported; and reading box coordinates off the screenshot instead of the hierarchy rows."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The decision is exact arithmetic (`sales ≥ target`), which the chapter explicitly excludes: pure numeric judgement should skip pictures entirely. Numbered bars add context cost and image-budget pressure to a decision that never depends on appearance, and they invite exactly the failure note 1 forbids — reading a height as a number.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "None of the implementation notes apply; note 1 is the reason not to do this",
+        "If the charts exist for a human reader, render them in the report, not as evidence handed to the agent — that is the 'numbers only' variation, not this pattern"
+      ],
+      "risk": "An agent misjudging a bar height or a truncated axis and reporting a wrong pass/fail that a one-line comparison would have produced exactly, while spending the image budget that genuinely visual work needs."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Motivation",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The evidence is given as a wall of paired figures (2 and 5 vs 15 and 12; 14 and 13 of 53 vs 4 and 5; 9 of 13) with the caveat 'two runs per side' buried inside the paragraph, so the reader cannot tell how strong the result is or what exactly was measured.",
+      "suggestion": "Put the figures in a small two-column before/after table with sample sizes, and keep one sentence of prose: positions off by 5–10 px and 24/32 empty before, zero ruler readings after."
+    },
+    {
+      "section": "Structure and Collaborations",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "It is never stated who invokes what. The sketch shows the agent calling `sheet(...).look(\"top 12\")`, while Collaboration 3–4 say the agent 'asks for a sheet' and 'the deliverer attaches the sheet to the reply'. Whether sheets are agent-level tool calls or engine-rendered replies changes the whole implementation.",
+      "suggestion": "Add three lines: this is the agent's expression (`sheet(rows, views: …).look(label)`), this is what the reply carries, and this is what the deliverer does to it — matching the sketch exactly."
+    },
+    {
+      "section": "Sketch and Collaborations 5",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "`byId` is built over every delivered sheet of the session ('only what the agent actually saw'), yet the refusal hint says 'cite ids from the last sheet'. Those disagree, and under the sketch an id from a sheet three calls ago is accepted silently — the stale-id case note 9 warns about.",
+      "suggestion": "Either scope `byId` to the current call's sheets, or accept session-wide ids deliberately and drop the 'last sheet' hint; note 9 should say which."
+    },
+    {
+      "section": "Budget participant and implementation note 7",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The reader is given four unrelated-looking numbers — 100 (API limit), 50 (prompt), 4 pictures and 8 MiB (per call), 15 cells per sheet — with no rule deriving any of them, so a reader cannot size a budget for a new API. Worse, the sketch emits one `LOOKS` warning for both a per-call trim and a spent conversation budget, although only the first is fixable by acting on the hint.",
+      "suggestion": "Give the derivation (`perCall ≈ min(bytes/API size limit, cells that stay legible after downscale)`, `perConversation ≈ a stated fraction of the hard limit leaving room for the answer`) and split the warning kinds: 'fewer cells per sheet' for a per-call trim, 'budget spent — answer from rows now' for a conversation limit."
+    },
+    {
+      "section": "Implementation notes 3 and 8 vs Structure (Marked view)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "'Sheets ... beat single zooms' and 'several small magnified looks beat one large overview' are stated as general rankings, but Marked view is a separate participant and is the only thing that shows layout or global context — exactly the judgement a UI or overlap task needs. The chapter ranks a complement rather than saying which job each does.",
+      "suggestion": "Say it as division of labour: one marked full picture per scene for context, sheets for detail; the two claims then become 'many small looks fit a fixed budget' and 'a sheet is not an overview'."
+    },
+    {
+      "section": "Applicability",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Making 'more candidates than the image budget allows one at a time' a use-when condition narrows the pattern wrongly: the exactness benefit applies with three candidates too — the 24-of-32 failure happened on a single tile — and a reader with a small candidate set would conclude the pattern is not for them.",
+      "suggestion": "Demote it to an 'especially when' clause and keep only the mixed see-and-measure condition as the trigger."
+    },
+    {
+      "section": "Implementation notes (all) and Motivation",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "goja-cv configuration is interleaved with the rules — 40 px cells, zoom 4, fifteen-cell cap, 8 MiB, `peaks` with `snr: 1`, 1,024-pixel tiles, `stretch: \"cell\"`, the 39-agent usage counts. A reader cannot tell which numbers are the pattern and which are one project's defaults.",
+      "suggestion": "Move them into a single boxed 'example configuration (goja-cv v2)' and keep the notes as rules: cells must stay legible after the API's downscale; per-cell stretch when contrast varies."
+    },
+    {
+      "section": "Missing: budget feedback",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Note 6 says state the budget in the instructions, but nothing tells the agent how much of it remains, and the deliverer's reply carries no running count. An agent that cannot see its remaining pictures cannot plan, which is the stated point of putting the budget in the prompt.",
+      "suggestion": "Require each reply to carry `pictures: 12 of 50 used` (or the same in the warnings) and add it to the Budget participant's responsibility."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core rule and the LOOKS-warning machinery are genuinely transferable and worth stealing, but the chapter leaves the calling convention and budget sizing underspecified and over-ranks sheets against the marked overview a layout task actually needs."
+  }
+}

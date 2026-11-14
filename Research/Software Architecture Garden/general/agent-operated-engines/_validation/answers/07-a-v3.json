@@ -1,0 +1,136 @@
+{
+  "restatement": {
+    "intent": "Let a vision-capable agent see what it is judging without ever asking it to measure what it sees: every pictured item carries the id of a numeric row delivered beside it, many items share one sheet, and pictures are rationed and accounted for.",
+    "problem": "An agent that must both see and measure gets imprecise numbers from pictures and an unbounded image count, while numbers alone leave it unable to judge what they describe.",
+    "solution": "Compute candidates as rows of numbers with stable ids; draw pictures only for judgement, labelling each mark with the row's id and packing many magnified cells (and several views) into one sheet. The agent answers by id, and the engine maps ids back to exact numbers and refuses ids the agent was never shown. Pictures are rationed per call and per conversation, the budget is stated in the instructions, and every picture a call created is either delivered or named in a warning."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Never make a model read a number off a picture: positions come from measurement rows, pictures only support judgement. Forced by the dust runs where ruler-cropped, 2x-magnified reads were 5-10 px off, 24 of 32 reported positions held nothing, and agents invented margin-correction formulas like x = crop_x + (px - 52)/2.",
+      "where": "Implementation notes 1 and 2; Motivation"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because the picture label is the only link between what the agent looked at and the numbers it will report. Relabelling cells 1..12 by position destroys that link as soon as the agent filters or re-sorts the rows, so '7' in the sheet would name the wrong item. Matching ids also make answers checkable and let the engine refuse ids it never showed.",
+      "where": "Implementation notes 2 and 9; Sketch (byId)"
+    },
+    {
+      "id": "Q3",
+      "answer": "A sheet of 12-15 magnified cells costs one image where 12 zooms cost 12, so the same budget buys far more looks. Each cell is a small crop blown up, so detail survives; a single large overview is downscaled by the API and loses three-pixel specks.",
+      "where": "Implementation notes 3 and 8"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because an agent cannot plan around a limit it only meets as a rejected run: the dust runs that crossed 100 images ended with nothing. Telling it 'stay under 50, prefer sheets and numbers' lets it choose what to look at while there is still budget left, rather than after the call has already failed.",
+      "where": "Implementation notes 6; Motivation (image-cost paragraph)"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "The agent must judge appearance (does this text look clipped, do these two buttons overlap) while reporting exact ids and boxes, and 300 screens vastly exceed any per-conversation image budget. Element identity and geometry already exist in the view hierarchy, so rows come free.",
+      "participants": {
+        "Item rows": "Elements from the view hierarchy, keyed by a stable element id, with bounding box, z-order, text length vs rendered width, and an issue score.",
+        "Marked view": "One full screenshot per screen with suspect elements boxed and labelled by element id (and any pair drawn with both ids).",
+        "Sheet": "A grid of magnified crops around suspect elements (with a context margin so the neighbour that overlaps is visible), one cell per row, labelled by id.",
+        "View presets": "Layout view (whole screen), element crop, overflow/clipping view where the text edge is highlighted.",
+        "Budget": "Per call count+bytes (e.g. 4 images / 8 MiB) and a per-conversation cap well under the API limit, stated in the prompt along with '300 screens, so filter in code first'.",
+        "Deliverer": "Attaches the current call's crops in order up to the cap and names the rest by line in a LOOKS warning."
+      },
+      "sketch": "value Element: id, bbox, zOrder, textLen, renderedW, score   -- numbers, from the view hierarchy\n\nsuspects = detectLayoutIssues(hierarchy(screen))   -- bbox overlap, text clipped, zero-size\nkeep = sortBy(suspects, -severity)[0:12]\nsheet(keep, views: [screen, crop(screen, bbox ⊕ 24px), view(crop, \"overflow\")], cell: 64 px, zoom: 2)\n  .look(\"screen 412, 12 layout suspects\")\n\ndeliver(callPictures, budget) → (delivered, warnings)      -- note 7, note 6\nbyId = { e.id: e for s in deliveredSheets(session) for e in s.items }   -- only what was shown\nfor bug in answer.bugs:\n  if bug.id not in byId: return refuse(E_UNKNOWN_ID, bug.id, valid: keys(byId))\nboxes = [byId[b.id].bbox for b in answer.bugs]            -- exact, never read off the crop",
+      "key_notes": [
+        "Note 1 with note 9: the bounding box must come from byId, not from what the agent thinks it sees; with 300 screens the temptation to 'estimate from the screenshot' is the whole failure mode.",
+        "Note 3 and note 8: 300 screens is untenable without sheets, but a sheet of *whole screens* is just a downscaled overview; the cells must be magnified crops, so crop-with-margin is mandatory here.",
+        "Note 2: element ids from the hierarchy, never 1..12 by cell position, because triage will be done per screen and across screens.",
+        "Note 6: at 300 screens the per-conversation budget must be in the prompt (how many screens may be looked at at all), not discovered at rejection; the agent should triage numerically first.",
+        "Note 7: a screen that produced four crops and got two delivered must have the others named, or the agent answers confidently from pictures it never saw."
+      ],
+      "risk": "Cropping tightly around a single element hides its overlap partner — the bug is a relation between two elements, so cells need a context margin and the marked full-screen view should carry candidate pair ids. Secondary risk: candidate generation misses bugs no measurement flags (e.g. a colour-contrast or spacing problem), and those never reach any sheet."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The decision is a pure comparison of two numbers already in the table; the chapter's own exclusions say to skip pictures entirely when the judgement is numeric (a threshold on a measured value). Rendering numbered bars adds cost, adds a budget problem, and opens a channel for reading a length imprecisely — exactly the error the pattern exists to prevent.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Note 1 ('never make a model read a number off a picture') is the note the proposal violates: a numbered bar asks it to compare lengths visually when actual, target and delta are already rows.",
+        "The usable half is the Variation 'Numbers only': return rows with region id, actual, target, delta and ratio, do the comparison in code, and reserve any picture for a genuinely visual question (e.g. 'is this dashboard blank?')."
+      ],
+      "risk": "Accepting the proposal because 'charts are easier to read' — then getting misses on near-target regions where the bar lengths differ by a pixel or two, and spending image budget on a judgement that needed no eyes."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Motivation",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The evidence only supports the numbers half of the pattern. The 5-10 px ruler error, the 24-of-32 empty positions and the 2/5 vs 15/12 result all come from replacing ruler readings with candidate rows. The longer annotator sessions then show both versions at 9 of 13 'because the helper library there already supplied candidates as rows' — i.e. sheets changed nothing. Nothing in the chapter measures whether sheets, multiple views or view presets improve a judgement.",
+      "suggestion": "Split the claim: mark the ids-and-rows rule as measured and the sheet/budget rules as cost engineering plus anecdote. Either cite a sheet-on vs rows-only comparison, or say plainly that the sheet's benefit is image count, not accuracy."
+    },
+    {
+      "section": "Solution vs Implementation note 7",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The Solution says 'deliver every picture a call creates within the budget, and name the ones left out', and note 7 headlines the same. These contradict: goja-cv v2 delivers four per call and drops the rest. 'Deliver every picture it creates' is impossible once a per-call cap exists, and the wording leaves a reader unable to tell which rule binds.",
+      "suggestion": "Say: deliver the pictures a call created in creation order, up to the per-call cap, and name each one not delivered by line in a warning. Drop 'every' from both places."
+    },
+    {
+      "section": "Sketch (byId / refuse)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "byId is built only from delivered sheets. When the budget drops every picture (or the agent is text-only per the Applicability exclusion, or the run is at its per-conversation cap), byId is empty and every id the agent cites is refused as E_UNKNOWN_ID, with an empty 'valid' list — the agent is locked out with no path forward. The chapter advertises 'budget failures become warnings the agent can act on' but the sketch has no answer path for that case.",
+      "suggestion": "Add a case: if nothing was delivered, accept ids from the measured rows it was told about (or from the numbers-only reply) and answer from numbers, warning that no picture was confirmed seen. State whether refusing unknown ids outranks answering."
+    },
+    {
+      "section": "Implementation notes (mark drawing)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The pattern's whole point is judging three-pixel specks, yet nothing says how the id mark is drawn. A filled disc or an opaque label the size of a legible digit will cover the speck it names, and any label must survive the API's downscaling along with the cell. Note 3 tunes cell size and note 5 tunes stretch, but the mark itself is untuned.",
+      "suggestion": "Add a note: draw marks as thin outlines with an offset label outside the item's box (goja-cv circles), keep empty margin around each item for the label, and size labels for the post-downscale image, not the source."
+    },
+    {
+      "section": "Budget / Implementation note 6",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Two absolute numbers are given (per-call 4 images / 8 MiB; prompt says stay under 50 against an API limit of 100) with no rule for deriving them. A reader cannot tell whether 50 is a fixed headroom factor, a token-cost choice, or specific to that model — and the per-conversation bytes dimension is absent from the Budget participant entirely, though the sketch's session counter only counts images.",
+      "suggestion": "State the derivation: cap = API limit minus room for images the harness itself injects, then adjust for token cost; and say explicitly which dimensions are enforced per call vs per conversation."
+    },
+    {
+      "section": "Sketch (deliver) and Implementation note 7",
+      "kind": "other",
+      "severity": "low",
+      "note": "The loop is greedy in creation order ('returnedFirst'), so one oversized returned picture can silently evict several later small ones that would have fitted. That may be intended, but the sketch presents it as neutral bookkeeping, and the resulting LOOKS warnings would blame cell size rather than the eviction.",
+      "suggestion": "Say whether the order is deliberate (returned pictures have priority) and, if so, make the warning name the culprit picture and the bytes that were short."
+    },
+    {
+      "section": "Motivation",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The measurement paragraph is a wall of unlabelled figures — 'two runs per side', '2 and 5 spots far from any gold point, against 15 and 12', '14 and 13 of 53, against 4 and 5'. The reader cannot tell which pair is the ruler version and which the rows version, nor what 'runs per side' counts, so the only quantitative support for the pattern has to be reverse-engineered.",
+      "suggestion": "Name the two conditions in each comparison ('rows: 2 and 5; rulers: 15 and 12') or move the numbers to a small table with a caption."
+    },
+    {
+      "section": "Sketch (tool names)",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "The sketch mixes three evidence calls — `look`, `sheet`, `crop`, plus `view(img, \"speck\")` — without defining them, and then writes `sheet(...).look(\"top 12\")`, which reads as a sheet that is also a look. Note 10 leans on exactly these names when it argues agents use what the examples show.",
+      "suggestion": "Define the three calls once (crop = one window, sheet = many cells, look = deliver-and-label) and make the sketch use only those, so `sheet(...).look(label)` is obviously 'build a sheet, then look at it'."
+    },
+    {
+      "section": "Applicability (Do not use when)",
+      "kind": "missing",
+      "severity": "low",
+      "note": "The exclusions switch off the whole pattern, including the budget, when the judgement is numeric or the items are unnumberable. But an agent asking for 300 pictures still needs rationing and named omissions even if no marks are drawn; as written a reader can justify ignoring the budget.",
+      "suggestion": "Say which parts survive each exclusion: numbers-only still needs the Budget and Deliverer; a global-colour-cast question needs one picture and a cap."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The one rule that must survive — ids and numbers, never measurements read off a picture — is stated sharply and transfers everywhere; the sheet and budget halves are cost engineering whose benefit the chapter never measures, are tied to goja-cv's specific defaults, and are muddied by a delivery rule that contradicts itself."
+  }
+}

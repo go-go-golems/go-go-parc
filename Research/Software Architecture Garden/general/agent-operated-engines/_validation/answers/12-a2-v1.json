@@ -1,0 +1,151 @@
+{
+  "restatement": {
+    "intent": "Keep documentation true by running every code example as a test in which the example declares its own expected outcome, and by filling quoted source from the running source instead of copying it.",
+    "problem": "Documentation that nothing executes drifts from the system, and its readers — agents above all — act on what it says rather than on what is true.",
+    "solution": "Split the docs into topics with title, summary and sections that can be listed, searched and read one at a time. Run every code block in the test suite, in order, one fresh session per topic, against fixed fixtures. Each block's info string carries an outcome contract — clean success, success with a named warning, failure with a named error code, a stated number of artefacts, or `fragment` (not run) — and a mismatch fails the suite with topic, line and difference. Pull code quotes from source at build time and run structural rules over the whole corpus, so a system change breaks the docs' tests until the docs are updated."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "`js` (default: runs cleanly, no warnings); `js error=E_CODE` (must fail with exactly that error code); `js warns=CODE` (must succeed and emit that warning); `js looks=N` (must succeed and deliver N pictures/artefacts); `js fragment` (not run at all, just an illustration). The sketch adds an explicit `clean` contract for the first case.",
+      "where": "Motivation (the paragraph listing the fences) and Structure table / Sketch `match b.contract`"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because examples in a topic build on each other — open an image, then crop it — so one session per topic lets later blocks use what earlier ones built, while starting a fresh session for each topic keeps topics independent of each other.",
+      "where": "Implementation note 2; Collaborations step 2"
+    },
+    {
+      "id": "Q3",
+      "answer": "Quotes in prose are written as references such as `{{src:TileCache.prototype.evict}}` and filled from the running page/source when the book is built, so a quoted function cannot diverge from the one that runs; a missing symbol fails the build and a test checks that all quotes (21 in the lab) resolve.",
+      "where": "Motivation (Editor lab paragraph) and Implementation note 5"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because people still read the guides, generated references and refusal messages point into them, and their examples become the helper libraries agents do use; the annotator study only shows that agents do not spontaneously call `cv.docs`/`cv.help`, so the essentials must also appear in replies (Chapter 6).",
+      "where": "Implementation note 9"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "This is almost exactly the chapter's own runbook case: shell examples that users copy, an explicitly documented failure surface, and flags churning every few weeks faster than anyone rereads the guide — so unexecuted examples are guaranteed to be wrong.",
+      "participants": {
+        "Topic": "each user-guide chapter (title, summary, named sections) — e.g. 'create an instance', listable via `dbctl help` and served an MCP resource per section",
+        "Example block": "```sh blocks with info-string contracts: `sh` (clean), `sh error=E_AUTH`, `sh warns=DEPRECATED_FLAG`, `sh rows=2` (a list command returning two rows), `sh fragment` for illustrative pipelines",
+        "Fixture": "a local cloud-API emulator or recorded HTTP fixtures plus a throwaway config dir/credentials per topic; a distinct database name prefix per topic so a fresh session is truly fresh",
+        "Example runner": "CI job that runs each chapter's blocks in order in one shell session and compares exit status, structured error code from stderr, warnings and row counts",
+        "Quote reference": "`{{src:flags/create.json}}` — the flag table and usage line pulled from the command's flag registry at build time, not retyped in the guide",
+        "Corpus checker": "links/anchors exist, sections numbered, and every `--flag` mentioned in prose exists in the flag registry",
+        "Doc server": "`dbctl help <topic>` subcommands, `--help` output, man pages, and one MCP resource per section"
+      },
+      "sketch": "value Block: topic, line, lang, contract: clean | error(code) | warns(code) | artefacts(n) | fragment, code\n\nrunTopic(topic) → [Failure]\n  home = freshTempConfig()                       -- no real account, no stored secrets\n  cli  = session(emulatedCloud, home)            -- fixture: emulator or recorded responses\n  for b in blocks(topic) where b.contract ≠ fragment:\n    r = cli.run(\"sh\", b.code)                    -- ordered: create db, then describe it\n    match b.contract:\n      clean          → if r.exit ≠ 0 or r.stderr ≠ \"\": fail(b, \"expected clean\", r)\n      error(c)       → if r.exit = 0 or code(r) ≠ c:    fail(b, \"expected \" ++ c, r)\n      warns(c)       → if r.exit ≠ 0 or c ∉ r.warnings: fail(b, \"expected warning \" ++ c, r)\n      artefacts(n)   → if r.exit ≠ 0 or r.rows ≠ n:      fail(b, \"expected \" ++ n ++ \" rows\", r)\n\n-- flags churn: the reference is generated, never copied\nbuildReference(registry) → md\nassert resolveQuotes(guide, registry) = []       -- a removed flag breaks the build\nassert checkCorpus(guide) = []                    -- links, numbering, banned words",
+      "key_notes": [
+        "Note 1 (make failure an expected outcome) — the guide's most valuable content is the errors users hit; `error=E_*` blocks are the whole point, so exit codes alone are too coarse: pin the structured error code, not the exit number.",
+        "Note 2 (ordered blocks, one session per topic) — shell examples build state (create, then inspect, then drop); this is what makes a 60-page guide testable at all, but see the risk about the per-topic fixture.",
+        "Note 5 (quote source, never copy) — with flags changing every few weeks, a flag table or usage line typed into prose is stale within a release; generate it from the flag registry and let the build fail on a removed flag.",
+        "Note 6 (generate references, write guides) — generate the command/flag reference from the CLI's own registry; hand-write only the prose that explains why."
+      ],
+      "risk": "Letting examples reach a real cloud account: tests become slow, flaky, expensive and destructive, so everything gets marked `fragment` and the guide is tested in name only. The fixture must be an emulator or recorded exchanges, and error examples must be produced by the emulator's own injected faults rather than by whatever the live service happens to say."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The pattern's mechanism is a code block plus an outcome contract; an essay of history and philosophy has no executable claims, so there is nothing to run and no contract to attach — forcing it would produce a suite that asserts nothing.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability's explicit exclusion applies: conceptual documentation with no executable claims should be checked by review instead.",
+        "What does transfer is the non-executable half: Topic/section structure for piecewise reading (note 7) and the Corpus checker for links, numbering and banned words (note 8).",
+        "Note 11 (agent validation) is the right instrument here — give the essay to isolated agents, measure what they can explain or build from it, and revise from that evidence."
+      ],
+      "risk": "Stretching 'executable' to mean 'checked by a linter' or adding fake `fragment` blocks, which gains the appearance of rigour while testing nothing, and misleads the next author into thinking the essay's claims are verified."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch / Structure table",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The contract syntax has two names for one thing: `looks=N` in the info string, `artefacts(n)` in the sketch, 'number of artefacts' in the table and 'pictures' in the prose. There is also no rule for combining contracts — a block that warns and returns 3 rows, or fails with a code and emits a warning, cannot be expressed.",
+      "suggestion": "Give one grammar and one set of names, e.g. `js clean | error=C | warns=C | n=2` plus `fragment`, and state whether keys compose (e.g. all declared keys must hold, undeclared ones are unconstrained)."
+    },
+    {
+      "section": "Sketch (runTopic)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The three contracts are not symmetric: `clean` fails on any warning, `warns(c)` passes with any number of other warnings and ignores artefacts, and `error(c)` checks only `o.errorCode` — not that the block actually failed (`o.ok`) nor that the failure is a structured refusal with a message and a fix. A block that returns an error code while succeeding would pass.",
+      "suggestion": "State each contract's invariant explicitly and tighten `error(c)` to `not o.ok and o.errorCode = c`; say whether extra warnings are allowed under `warns(c)` and whether error contracts should also check the refusal kind."
+    },
+    {
+      "section": "Sketch (test suite) and fillQuotes",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "`assert all(fillQuotes(t, source) is text for t in topics)` does not typecheck: `text` is unbound, and `t` names a topic in this line but text in the previous one. As written it reads as 'fillQuotes(t) == t', which is only true when a document contains no references at all.",
+      "suggestion": "Assert the thing you mean: `assert all(fillQuotes(t, source) ≠ BuildError for t in topics)`, or make fillQuotes return the list of unresolved references and assert it is empty."
+    },
+    {
+      "section": "Implementation notes 2 and 7",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Ordered sharing inside a topic creates hidden state coupling that contradicts piecewise reading: a block in section 4 may depend on an image opened in section 1, so an agent that fetches only section 4 through `cv.docs.read` cannot reproduce the example, and inserting or reordering one example silently breaks unrelated later blocks. When a later block fails, the diff often comes from the earlier block.",
+      "suggestion": "Make state dependencies explicit (each section states its required starting state, or blocks declare setup), and say in the note that 'read one section at a time' and 'blocks share a session' pull against each other so topics should be built so that each section starts from a named state."
+    },
+    {
+      "section": "Consequences / Applicability",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "'Every example needs a fixture' contradicts note 2 and the Applicability clause 'the cost of a fixture per example exceeds the value of the example' — the pattern has one fixture/session per topic, not per example, and block-level fixtures appear only in Passing.",
+      "suggestion": "Say the real cost: one deterministic fixture per topic plus any per-block inputs, and name the actual burdens (keeping fixtures small, seeding state, cleaning up side effects) instead of a per-example count."
+    },
+    {
+      "section": "Motivation vs Sketch",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Motivation says a block fenced `js` must run without warnings, implying the default contract, while the Sketch requires an explicit `clean` and `blocks(topic) where b.contract ≠ fragment`. A writer cannot tell whether a bare fence is clean or unconstrained, or why the default is strict.",
+      "suggestion": "One sentence: a bare fence means `clean` (strict by default), and unmarked runs are the reason old examples get discovered as broken."
+    },
+    {
+      "section": "Solution / Contracts",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Contracts check shape, not content: `looks=2` passes with two wrong pictures, and `error=E_ARG_RANGE` passes when the refusal's message, hints and fix are unusable. The Consequences hint at this ('can only prove what they run') but the Solution never bounds the guarantee, so a reader may over-trust it.",
+      "suggestion": "State the limit where the contracts are introduced, and point at the recorded-output variation or golden hashing as the extension when content matters."
+    },
+    {
+      "section": "Variations (recorded outputs) / Implementation note 11",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "Two structural problems in the tail of the chapter. First, expected printed output — what a guide reader mostly reads — is relegated to a variation, and the pattern never says whether output is shown inline beside the block. Second, agent-validated documentation is described twice, as note 11 and as a Variation, citing a playbook that is not a chapter of this language.",
+      "suggestion": "Promote normalised expected output to a named contract (or state why it is deliberately excluded), and cut one of the two agent-validation passages to a single sentence plus the link."
+    },
+    {
+      "section": "Structure table / Implementation note 10",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The chapter bundles two patterns: executable examples, and a structured documentation corpus with a server. `Doc server` is listed as a participant without being marked optional, though for a CLI `--help` or an SDK with no server it may not exist at all, and note 10's go-go-goja hub with providers is running-example detail rather than pattern.",
+      "suggestion": "Mark Doc server as optional in the table and say what an adopter gets without it (examples still tested, no piecewise serving); shorten note 10 to the general point that one hub should serve the tested text."
+    },
+    {
+      "section": "Related chapters (classic patterns)",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "'Interpreter (contracts in info strings)' and 'Template Method (the runner's fixed sequence)' are stretches: the contract parser is a small parser, not the Interpreter pattern, and the runner is a table-driven loop dispatching on each block's contract — Strategy or a switch, not an inherited template.",
+      "suggestion": "Drop both, or relabel as 'a small parser for the info string' and 'table-driven dispatch per block'."
+    },
+    {
+      "section": "Rating line",
+      "kind": "other",
+      "severity": "low",
+      "note": "'Close to invariant: any system with this problem converges on this shape' is asserted, not argued — the Known uses show that doctest, Rust, Go and Elixir converged on *running* examples, which is a weaker claim than converging on outcome contracts in the info string (Rust's attributes are the closest, and they differ in detail).",
+      "suggestion": "Either give the convergence argument in two sentences (which sub-shape recurs, which parts are goja-cv's choice) or drop the parenthetical and let the Known uses list speak."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The prose and participant table are clear enough to reuse tomorrow, but the mechanical core — the contract grammar, the per-contract invariants, the quote assertion, and the session-versus-section tension — is specified loosely enough that two implementers would build different patterns."
+  }
+}

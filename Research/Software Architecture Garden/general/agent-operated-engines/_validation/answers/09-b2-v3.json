@@ -1,0 +1,142 @@
+{
+  "restatement": {
+    "intent": "Run each unit of agent work as one non-interactive, sealed invocation whose result depends only on a saved prompt and an explicit tool mount, so runs can be parallelised, retried, compared and audited.",
+    "problem": "An agent run that inherits the operator's environment, holds an open conversation and answers in free text cannot be repeated, compared or audited, and a batch of such runs cannot be retried or scored.",
+    "solution": "One run spec (item, model, thinking, prompt version, tag) drives a fresh run directory. Assemble the prompt from versioned parts and save it there; write a per-run tool mount with read-only inputs, a fresh workspace and never the answers; start the agent non-interactively with built-in tools, context files, skills and templates off. Demand one fenced JSON object as the final message, extract it from the event stream with a fixed repair ladder, keep events plus transcript, and let a batch runner fan out by tag, skipping runs that already hold a valid answer."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "`--no-builtin-tools --no-context-files --no-skills --no-prompt-templates`; together they keep out the agent's built-in tools and the operator's own context/instruction files, skills and prompt templates (otherwise the operator's instructions leak into every run). The chapter adds that these flags do not remove environment variables, home-directory credentials or network access.",
+      "where": "Implementation notes 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "So parallel runs never share a writable directory (no collisions on a shared dir, cache or answer file), each run's failures stay contained in its own directory, and a builder run can be given a subdirectory holding only its inputs.",
+      "where": "Implementation note 7; Forces ('Parallelism against shared state'); Consequences"
+    },
+    {
+      "id": "Q3",
+      "answer": "Any two of: editing a script while a batch is using it changes in-flight runs; `[ cond ] && cmd` as the last command under `set -e` aborts the script; in zsh an unquoted variable holding several words is not word-split.",
+      "where": "Implementation notes 9"
+    },
+    {
+      "id": "Q4",
+      "answer": "It is recorded as a mistake: the annotator, validator and judge scripts each got the same recipe and the same extraction code pasted in, which drifts. The fix is one runner driven by a run spec, with prompt parts and tool mounts as data.",
+      "where": "Implementation note 10; Motivation"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Many near-identical units of work, quality must be measured on a labelled sample, results must be compared across models/prompt versions, and failures must be reprocessable one finding at a time — every applicability bullet, and the task needs no live environment or dialogue.",
+      "participants": {
+        "Run spec": "finding id (blind), repo pin (commit sha), rule id, model, thinking, decoding, promptVersion, tag = variant name (e.g. 'triage-v3-flash').",
+        "Run directory": "runs/<tag>/<findingId>/ holding prompt.md, tools.json, ws/, events.jsonl, transcript.html, answer.json.",
+        "Prompt assembler": "role = security reviewer; how to work; required steps (open the cited file, read surrounding code, check call sites); known mistakes (flagging test fixtures, logging strings, dead code); blind finding + code snippet; output contract; reference taxonomy of false-positive classes.",
+        "Tool mount": "read-only mount of the pinned repo checkout (no .git, no CI configs, no secrets) plus the finding record; fresh writable ws; no network.",
+        "Agent invocation": "non-interactive pi per finding, built-in tools/context files/skills/templates off, stdin closed.",
+        "Extractor": "last fenced JSON in the final message; expect the rawNewlines repair because `reason` is prose.",
+        "Batch runner": "5,000 specs, ~6 workers, per-variant tag, timeout per run, skip findings whose answer.json is ok and matches the spec hash.",
+        "not in chapter (scoring)": "human-labelled calibration set + per-variant scoring belongs to Chapter 10, joined on blind ids."
+      },
+      "sketch": "```text\nvalue RunSpec: finding, pin, model, thinking, decoding, promptVersion, tag\n\ntriage(spec) → Answer | Failure\n  dir = fresh(runs / spec.tag / spec.finding.id)\n  snippet = slice(repoAt(spec.pin), spec.finding.file, spec.finding.line, context: 40)\n  write(dir/\"prompt.md\", assemble(spec.promptVersion,\n        { blindId: spec.finding.id, rule: spec.finding.ruleId, snippet, taxonomy }))\n  write(dir/\"tools.json\", mount(read: [repoAt(spec.pin), findingRecord],   -- pinned, .git stripped\n                                 write: dir/\"ws\", net: none))\n  events = agent(cwd: dir, prompt: read(dir/\"prompt.md\"), model: spec.model,\n                 builtinTools: none, contextFiles: none, skills: none,\n                 templates: none, nonInteractive: true)\n  write(dir/\"events.jsonl\", events); exportTranscript(events, dir/\"transcript.html\")\n  return extract(events)\n\n-- answer contract: { blindId, verdict: \"real\" | \"false_positive\", reason, evidence: [\"file:line\"] }\n-- human labels for the calibration sample live outside runsRoot; ch.10 joins on blindId\n```",
+      "key_notes": [
+        "Note 1 — the opening sentence is a trap in a security org: the flags do not stop env vars, home-directory credentials or network egress, so this is the one place to actually use the container/separate-user variation.",
+        "Note 3 — never mount the truth, and here the truth is partly in the repo: a checkout with full git history lets the agent read the commit that fixed the finding.",
+        "Note 7 — every finding gets its own ws so 6+ workers never collide; a 'build a proof-of-concept' run gets its own subdirectory.",
+        "Note 4 — insist on a literal schema example; the prose `reason` field is exactly what produced the rawNewlines failure and needs that repair.",
+        "Note 4/11 — log repairsApplied per run and compare repair rates across variants, otherwise a lenient parse silently inflates one variant's score.",
+        "Note 6 — the tag is the variant key; comparing 'flash vs. pro' and 'v2 vs. v3' is then a join on blind ids with reruns retrying only failures.",
+        "Note 8 — 5,000 runs punish a whole-file prompt: state the context budget (lines, images not applicable) in the prompt.",
+        "Note 2 — when a verdict looks wrong, prompt.md is the first file to read; it tells you whether the snippet was truncated."
+      ],
+      "risk": "A seal that is only nominal: the pinned repo still ships git history, CI configs and credentials reachable from the run's cwd/env, so the agent can read the fix commit or a lookup table and reproduce labels instead of judging code — and the canary check passes anyway because it only tests context files and skills."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The value of the afternoon is the accumulating shared context and the designer steering each turn; sealing removes precisely that (first 'do not use' bullet), each sealed run would have to re-inject the whole history and gain nothing, and there is no statable correct answer or model/prompt comparison to score (third bullet).",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Only salvageable sub-step: a sealed 'single-call evaluation without tools' variation to generate N landing-page copy drafts from one fixed brief, run in parallel, which the designer then critiques in the live session.",
+        "If a 'critique a draft' step ever needs comparing across prompt versions, seal that step alone as a resumable second stage, not the whole conversation.",
+        "Notes 1, 7 and 11 do not buy anything here; note 2 (saved prompt) is the only habit worth carrying over — save the brief you gave the drafts."
+      ],
+      "risk": "Forcing the pattern would replace a productive dialogue with a pipeline of stateless runs and lose the designer's mid-course corrections — the thing that was producing the quality."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Rating ★★ (header)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Claims the shape is near-invariant ('any system with this problem converges on this shape') but the chapter's own parts are not invariants — a fixed prompt-part order, a repair ladder, an answer file with a spec hash are local choices; SWE-bench, Inspect and OpenAI Evals converge only on sandbox + fixed start state + per-sample scorer.",
+      "suggestion": "Either argue the invariant from the forces (every force is 'the run must be a pure function of recorded inputs') and say which parts are invariant vs. optional, or drop the claim and the star."
+    },
+    {
+      "section": "Sketch · extract()",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The repair ladder is unusable as written: `droppedKey`, `bareIdColon`, `innerQuotes`, `mismatchedClosers` are one-word names with no example, it is unclear whether repairs are alternatives (tried one at a time from `none`) or cumulative, and `validate(obj, schema) with repairsApplied: [repair]` never says what happens when JSON parses but fails the schema — does it fall through to the next repair or return a Failure?",
+      "suggestion": "Give a two-column table of input → output for each repair, state explicitly that they are tried in order and that schema validation failure falls through to the next repair, and say what a validated-but-repaired object means for trust."
+    },
+    {
+      "section": "Sketch · batch() / finish()",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Skip logic compares `read(answerPath(s)).spec == hash(spec)`, but the spec carries only a promptVersion *label*. Editing a prompt file in place — which note 2 forbids but nothing enforces — keeps the same hash and every answer is silently reused with a stale prompt.",
+      "suggestion": "Hash the resolved prompt text (or a digest of the prompt parts) plus model, decoding and tool-mount config, and say so in note 2; that makes the skip rule enforce what note 2 asks for."
+    },
+    {
+      "section": "Collaborations 2 vs. Variations (Resumable runs)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Step 2 says 'the run directory is created fresh' and `run()` calls `fresh(...)`, yet the Variations section offers resuming a run with a follow-up message; one reader will overwrite the first stage's evidence, another will resume in place and lose the stage boundary.",
+      "suggestion": "Say that a resumed stage is a new subdirectory (stage-2) with its own spec field and events file, and that `fresh()` applies only to stage 1."
+    },
+    {
+      "section": "Sketch · extract() / Implementation note 4",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The extractor reads the final assistant message only, but the chapter never says what happens when the model's last message is prose ('Done.') and the fenced block sits one message earlier — a very common failure, and no repair or fallback is specified.",
+      "suggestion": "State the rule: fall back to the last fenced block in the last assistant message that contains one, record `fallbackUsed` in the answer, and count the rate per variant."
+    },
+    {
+      "section": "Sketch · batch() (withTimeout) / Implementation note 11",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Timeouts are bounded but their handling is not: whether a killed run keeps its partial events.jsonl and transcript, whether the extractor still runs on a partial stream, and what 'a quick finish is not a failure' is warning against are all left implicit.",
+      "suggestion": "Add a timeout sentence to the failure kinds (timeout / no answer / invalid answer) and say partial events are kept and the transcript exported before the run is marked failed."
+    },
+    {
+      "section": "Solution / Sketch · assemble() order",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The seven prompt parts and their 'fixed order' are presented as the pattern, but nothing justifies the order (why 'known mistakes' before the items, output contract after them) and nothing says these parts are per-project; a reader will copy the list and think the pattern is unmet without it.",
+      "suggestion": "Mark the order as one workable arrangement with its reason (contract last so it is the freshest instruction), and demote the part names to suggested slots."
+    },
+    {
+      "section": "Implementation note 4 / Motivation",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "Model-specific trivia — three named repairs (a dropped key `{\"q003\", …}`, a bare-id colon, raw newlines), 'a whole run of six answers', '360 judgements per variant' — is repeated between Motivation, note 4 and the sketch, and reads as dust-project history rather than transferable guidance.",
+      "suggestion": "Keep one line of evidence in Motivation and move the repair catalogue, with input/output examples, into the extractor's structure section."
+    },
+    {
+      "section": "Collaborations 0 / Implementation note 11 (seal check)",
+      "kind": "missing",
+      "severity": "low",
+      "note": "The canary only tests the agent's own configuration channels (context file, skill). Note 1 admits env vars, home-directory credentials and network remain open, but no check covers those, so the seal check can pass on a run that is not sealed.",
+      "suggestion": "Add canaries for the other channels: a token in the environment and a file under the home directory that must never appear in output, and record the tool list observed at startup in the run directory to assert it equals the mount."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The participant table and collaborators sequence are clear and T1 maps onto them almost mechanically, but the extractor sketch, the skip-hash rule and the fresh-dir-vs-resume tension are underspecified enough to be got wrong; I would apply the shape, not the prompt-order and repair-ladder details."
+  }
+}

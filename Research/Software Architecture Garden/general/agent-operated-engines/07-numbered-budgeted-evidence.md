@@ -45,10 +45,11 @@ correct for the ruler's margin. Rulers help a person; a vision model localises p
 goja-cv's later versions changed what pictures are for. Candidates come from a measurement (`peaks`) as rows with
 ids and coordinates, and pictures show those same ids circled and numbered. The agent looks at a sheet of twelve
 numbered candidates, decides which are dust by looking, and reports ids, whose coordinates it already has as
-numbers. In a question task (find the spots, sheet them, measure them), two pi agents with candidates as rows located
-14 and 13 of 53 gold points within 5 pixels, against 4 and 5 for two agents before, and reported 2 and 5 spots far
-from any gold point instead of 15 and 12. In longer annotator-style sessions on one tile, both versions located 9 of
-13; there the candidates had come as rows already.
+numbers. The evidence is small (two runs per side) but consistent. In a question task (find the spots, sheet them,
+measure them), the agents with candidates as rows reported far fewer positions that held nothing (2 and 5 spots far
+from any gold point, against 15 and 12) and located more gold points within 5 pixels (14 and 13 of 53, against 4 and
+5). In longer annotator-style sessions on one tile, both versions located 9 of 13, because the helper library there
+already supplied candidates as rows: the gain comes from numbers instead of ruler readings, wherever it is applied.
 
 Pictures also cost. The model API the dust pipeline used rejects a conversation holding more than 100 images, and a
 run that crosses the limit ends with nothing; the first batch of annotator runs lost runs that way. The fix was a
@@ -118,8 +119,10 @@ Do not use it when:
 
 ## Collaborations
 
-1. The agent asks a measurement for candidates; it receives rows with ids, positions and scores.
-2. It filters and sorts the rows in code, keeping the twelve it wants to judge.
+1. The agent's program asks the engine for a measurement of candidates; the engine returns rows with ids, positions
+   and scores. (The agent writes programs and decides; the engine measures, draws and delivers.)
+2. The program filters and sorts the rows, keeping the twelve to judge first; the others stay in the rows, so a
+   later sheet can show them.
 3. It asks for a sheet of those rows, with two views per item (the scene and the speck view); each cell is magnified
    and labelled with the row's id.
 4. The deliverer attaches the sheet to the reply and counts it against the call and conversation budgets.
@@ -149,7 +152,7 @@ deliver(callPictures, budget) → (delivered, warnings)
   return delivered, warnings
 
 -- the agent's answer cites ids; the engine maps them to numbers, and refuses ids it never showed
-byId = { item.id: item for item in keep }
+byId = { i.id: i for s in deliveredSheets(session) for i in s.items }   -- only what the agent actually saw
 for i in answer.dust:
   if i not in byId: return refuse(E_UNKNOWN_ID, i, valid: keys(byId), hint: "cite ids from the last sheet")
 labels = [byId[i] for i in answer.dust]                          -- exact cx, cy, r
@@ -172,17 +175,20 @@ labels = [byId[i] for i in answer.dust]                          -- exact cx, cy
    stands out from grain.
 5. **Stretch each cell to its own range when contrast varies.** A faint speck next to a bright one disappears under one
    shared stretch; goja-cv's sheet option `stretch: "cell"` gives each cell its own.
-6. **State the budget in the instructions, not only in the transport.** The dust runners' prompt says the API rejects
-   conversations with more than 100 images and asks agents to stay under 50, preferring sheets and numbers. An agent
-   cannot plan around a limit it learns about only when the run is rejected.
+6. **Derive the budgets from the transport, and state them in the instructions.** The conversation budget comes from
+   the API's hard limit, with a margin (the dust runners' API rejects conversations with more than 100 images; the
+   prompt asks for at most 50); the per-call budget from what one reply should carry; the cells per sheet from the
+   image size the API keeps after downscaling, divided by the size a cell needs to stay judgeable. An agent cannot
+   plan around a limit it learns about only when the run is rejected.
 7. **Deliver every picture a call created, and name the ones left out.** goja-cv v1 delivered only returned pictures
    and silently dropped `x.look()` statements; v2 delivers all of them, returned ones first, up to its per-call budget
    (four pictures and 8 MiB, goja-cv's defaults), and names each omitted one by line in a `LOOKS` warning.
 8. **Several small magnified looks beat one large overview.** APIs downscale large images before the model sees them,
    which erases three-pixel specks; the pi subagents handbook records the same finding for its judges. A sheet is the
    way to show several small magnified looks in one image; an uncropped overview is not.
-9. **Check ids on the way back.** An agent may cite an id it was never shown, or one from an earlier sheet. Map
-   answers through the rows of the sheet it saw, and refuse unknown ids with the valid ones.
+9. **Check ids on the way back.** An agent may cite an id it was never shown: one it invented, or one from a sheet
+   the budget dropped. Map answers through the items of the sheets actually delivered, and refuse other ids with the
+   valid ones. Ids stay stable across sheets, so an id from an earlier delivered sheet is fine.
 10. **Agents use what carries the work.** In the 39-agent study, `look` (223 calls), `sheet` (161) and `crop` (153) did
    the work; documented views and charts that were never shown in examples were never used. Put the evidence tools in
    the helpers and examples agents copy.

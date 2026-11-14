@@ -1,0 +1,144 @@
+{
+  "restatement": {
+    "intent": "Design an agent-facing interface from how agents really use it: mine stored session transcripts into counts, read the transcripts behind surprising counts to learn why, and let the counts decide what changes.",
+    "problem": "An interface designed from the designer's intuition misses what agents actually do, and a change shipped without fixed before-and-after runs cannot be told apart from noise or from a regression.",
+    "solution": "Keep every session's transcript. A miner turns them into counts per operation, option, error code, mistyped name, warning precision and pasted block; a reader explains the outliers; each finding becomes one change with its evidence. Before and after that change, run the same fixed scenario set with the same model several times per side, append every run as a fully version-stamped row to a results ledger, and compare only rows that differ in the one thing you changed, treating deltas smaller than the replicate spread as noise."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Its configuration: system version/commit, model name, prompt-or-chapter version, scenario version, metrics, and links to the run.",
+      "where": "Structure table (Results ledger); Implementation note 9; the `Row` type in the Sketch"
+    },
+    {
+      "id": "Q2",
+      "answer": "By behavioural counts in the code agents wrote: the removed surface disappeared without errors (`{ space }` 70 uses to 0, `show(` 99 to 0), alongside calls, errors and code size.",
+      "where": "Motivation; Implementation note 7 (measure behaviour, not only outcomes)"
+    },
+    {
+      "id": "Q3",
+      "answer": "Each new failure found in real use becomes a scenario, so the next change is checked against it.",
+      "where": "Implementation note 10; Collaborations step 5"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because a difference can only be attributed to the change if nothing else differs; otherwise before and after are different experiments. Differences smaller than the spread between repeated runs count as noise.",
+      "where": "Solution (\"Compare only rows that differ in one thing\"); Implementation note 5; Collaborations step 4"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Thousands of recorded conversations with tool calls, errors and resolution outcomes give both the transcripts to mine and the measurable outcomes the pattern needs, and the interface (prompt + tools) is still changing weekly.",
+      "participants": {
+        "Transcript store": "Every support conversation: user turns, agent turns, each tool call with its arguments and result, error codes, turns, escalation flag, final resolution.",
+        "Miner": "Scripts counting calls per tool and argument shape, error codes, hallucinated tool names, escalations per policy topic, repeated pasted boilerplate, and tools never called.",
+        "Reader": "A person reading the transcripts behind the top outliers (e.g. why refunds escalate) and writing the reason, not just the count.",
+        "Decision log": "Each prompt or tool edit with the count that motivated it and the later ledger numbers.",
+        "Scenario set": "A frozen, held-out slice of tickets with known correct resolutions plus the replayable cases grown from real failures.",
+        "Runner": "Sealed runs of the same support agent (same model, temperature, tool set) over the frozen slice, before and after a release.",
+        "Results ledger": "One row per run: prompt version, tool-schema version, model, scenario version, then resolution rate, turns, tool calls, tool errors, escalation rate, cost."
+      },
+      "sketch": "value Row: case_id, prompt_ver, tools_ver, model, scenario_ver, run, metrics: map, at, link\n\nmine(transcripts) → Counts\n  calls   = countBy(allCalls(transcripts), c → (c.tool, shape(c.args)))\n  typed   = countBy(unknownNames(transcripts), n → n)          -- hallucinated tool names → redirects\n  errors  = countBy(errors(transcripts), e → e.code)\n  pasted  = largeRepeatedBlocks(agentText(transcripts))        -- repeated policy boilerplate\n  unused  = [t for t in toolRegistry if calls[t] == 0]         -- after checking it was ever shown\n  esc     = countBy(transcripts, t → t.topic, where: t.outcome == escalated)\n  return Counts(calls, typed, errors, pasted, unused, esc)\n\n-- reader reads the escalated and high-count cases, states the reason\ndecide(counts, reasons) → [Change]      -- one change per release, not five\n\ncompare(change, frozenTickets, runs: 4)\n  for t in frozenTickets, for v in [before, after], for r in 1..runs:\n    ledger.append(Row(case_id: t, prompt_ver: v, tools_ver: T, model: M,\n                      scenario_ver: S, run: r, metrics: runSupport(t, v)))\n  return [(t, metric, median(after) - median(before), spread(before rows for t))\n          for t in frozenTickets, metric in metrics]",
+      "key_notes": [
+        "#1 Count before you design: the weekly prompt and tool edits should come from tool-call, hallucinated-name and escalation counts, not from team intuition.",
+        "#5 Same scenarios, same model: freeze a held-out ticket slice; if you mine and grade on the same conversations you measure leakage, not improvement.",
+        "#2 Fix counts at their source: support logs must record tool name, arguments and error code, and retries must not be double-counted; test the miner on a batch whose counts you already know.",
+        "#6 and #9: replicate runs and stamp every row — with a weekly release cadence the prompt/tool/model versions are the only way rows stay comparable a month later.",
+        "#7 Measure behaviour beside outcome: resolution rate alone hides the mechanism; calls, turns, tool errors and escalations show whether the change actually landed."
+      ],
+      "risk": "Two failures: grading on the same conversations you mined (overfitting to the past), and shipping a bundle of prompt, tool and model changes per week so no two rows differ in one thing and nothing can be attributed. Mitigate with a frozen held-out slice and one change per release — or switch to the chapter's A/B-with-real-users variation, which fits high traffic better."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter's Applicability excludes exactly this case: a security or correctness fix should be shipped and its side effects measured afterwards. A scenario set built from ordinary use probably contains no traversal payload, so a clean before/after comparison would prove nothing about the vulnerability while the hole stays open.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, \"Do not use it when\": the change is a correctness or security fix — ship it, then measure the side effects.",
+        "Implementation note 10 applies only after shipping: add the traversal payload as a scenario so the loop guards against reintroduction."
+      ],
+      "risk": "Turning the ledger into a release gate: the delay is itself the exposure, and a passing row gives false assurance because the fixed scenario set was never designed to probe adversarial input."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Motivation and Implementation note 6",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The call-count deltas (31.5 to 29, 51 to 39, 45 to 42) are quoted as effects without the replicate spread that note 6 says decides whether a difference is real; a 2.5-call drop is plausibly noise, and the chapter is demanding precisely this test of its readers.",
+      "suggestion": "Put the per-ticket spread (or min–max of the repeats) next to every delta, and mark which deltas exceed it."
+    },
+    {
+      "section": "Sketch, `compare`",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The pseudocode computes `noise` from before-rows of one scenario but returns one delta per metric over all scenarios; every row is tagged `variant: change.id` with no before/after field beyond `system`, and the default `runs: 4` contradicts the \"two runs per side\" the running example uses. `runs: 4` is also not a valid signature under the language's notation.",
+      "suggestion": "Group by (scenario, metric), add an explicit before/after field on `Row`, compute spread per scenario, and make `runs` a required argument."
+    },
+    {
+      "section": "Solution, Collaborations step 4, flowchart node \"better beyond noise?\"",
+      "kind": "missing",
+      "severity": "high",
+      "note": "There is no decision rule. Nothing says whether to require delta greater than spread, non-overlapping medians, or consistent sign across scenarios, nor how to decide when calls fall but accuracy is flat or slightly worse.",
+      "suggestion": "State one rule (e.g. keep if the delta exceeds the replicate spread on most scenarios and no other metric regresses beyond its spread), and say what a mixed result means."
+    },
+    {
+      "section": "Structure (Transcript store) and Implementation notes",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Nothing says what a transcript must contain or that the interface has to log it; the miner can only count events that were recorded. There is also no mention of redaction or retention, though the pattern tells you to keep every real user's session.",
+      "suggestion": "Add a note on the event schema (operation, arguments, result, error code, timing, version) and a short note on redaction, retention and consent."
+    },
+    {
+      "section": "Forces / Implementation notes 5 and 6",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The chapter never says how many runs are enough. Its own example uses two per side, the forces admit two hide small effects, and the sketch hardcodes four — the reader is left to guess.",
+      "suggestion": "Give a minimum tied to the effect you need to see, or distinguish behavioural metrics that can go to zero (two runs may do) from noisy accuracy metrics (more)."
+    },
+    {
+      "section": "Solution / Implementation note 5",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Run order is unspecified. Running all befores then all afters confounds the change with time (provider drift, model updates, weekday traffic), and nothing requires the judge to be blind to which version produced a run.",
+      "suggestion": "Add a note to interleave or randomize before/after order within a scenario, and to keep the scorer unaware of version."
+    },
+    {
+      "section": "Related chapters, \"Classic patterns\" line",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Observer and Memento do not fit: the miner is a batch script with no notification dependency on the sessions, and a ledger row is a record, not internal state you restore to undo.",
+      "suggestion": "Drop the line or name accurate relatives: characterization/golden-master tests for the scenario set, Repository for the ledger, experiment tracking for the rows."
+    },
+    {
+      "section": "Applicability / Implementation note 5",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The ledger is meant to stay comparable for months, but \"same model per ticket\" only holds within one exercise; a model upgrade silently invalidates older rows. Nothing says the model change is itself a change to be measured, or how to split the ledger when it happens.",
+      "suggestion": "Add a note: treat a model or toolset upgrade as a variant with its own before/after, and never compare rows across a model boundary without saying so."
+    },
+    {
+      "section": "Motivation and Implementation notes 1–4",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "goja-cv numbers crowd the chapter (751 calls, 198 overrides, 3.2 KB paste, 39 agents and 374 evaluations, 19 warnings with one true positive, `{ space }` 70 to 0). Several mean nothing outside that project, and the reader has to carry them to reach the rule.",
+      "suggestion": "Keep two or three that teach a distinct lesson (a zero-use deletion, an override that belongs in the data, a low-precision warning deleted) and compress the rest to \"the removed option vanished from agents' code\"."
+    },
+    {
+      "section": "Also known as",
+      "kind": "other",
+      "severity": "low",
+      "note": "\"agent-computer interface design\" names a research field, not this pattern; readers arriving by that name get a chapter narrower than what they asked for.",
+      "suggestion": "Keep transcript-driven API design, before-and-after evaluation, experiment ledger; drop the field name."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The loop and its participants are clear and the case against intuition-driven design is convincing, but the muddled `compare` sketch, the missing noise/decision rule and the overloading of goja-cv numbers leave a reader to invent the parts that decide whether a change ships."
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "restatement": {
+    "intent": "Keep a guide true by running it: every code example in a topic executes in the test suite and declares, in its info string, what it must produce — a clean success, a named warning, a named error code, N artefacts, or nothing because it is only a fragment. Quotes of source are filled from the running source at build time, and the corpus is linted for structure, links and vocabulary.",
+    "problem": "Documentation that is never executed drifts from the system it describes, and its readers — agents above all — act on what it says instead of on what is true.",
+    "solution": "Split the docs into topics (title, summary, named sections) that can be listed, searched and read one section at a time. Run every example block in the suite, in order within its topic, against fixed fixtures, and check each against its outcome contract, with one parser owning the grammar and refusing unknown words. Fill source quotations from the source at build time, lint the whole corpus with the same suite, and serve that same tested text to people, agents and tools. A change that breaks an example fails the suite until the guide is updated."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A good guide shows what goes wrong, but a test runner counts any failing example as a failure. Declaring `error=E_CODE` makes the failure the expectation, so the suite proves the documented error code still exists — the motivating bug was docs promising error types nobody had built — and keeps proving it after a rename.",
+      "where": "Implementation note 1 ('Make failure an expected outcome'); Forces ('Showing failure against testing it'); Motivation"
+    },
+    {
+      "id": "Q2",
+      "answer": "A fragment is a block marked `fragment`: a partial expression or pattern of calls that is parsed and syntax-checked but never run. Marking keeps it out of the runner yet visible to reviewers, and the per-topic fragment count is reported so `fragment` cannot become the quiet way to turn a red suite green.",
+      "where": "Implementation note 3 ('Fragments are allowed, marked, parsed and counted'); Solution"
+    },
+    {
+      "id": "Q3",
+      "answer": "Generated text cannot explain and written text cannot stay current untested. The registry-generated operation reference (Ch 1) carries exhaustive, always-current facts; hand-written guides carry the explanation, and their outcome contracts keep the explanation honest.",
+      "where": "Implementation note 6 ('Generate references, write guides')"
+    },
+    {
+      "id": "Q4",
+      "answer": "Running examples proves the code in the document, not that a reader can apply the document; conceptual claims, implied ordering and unstated assumptions survive a green suite. The chapter proposes agent validation: isolated agents read the text and do tasks, their answers and builds are scored, and the text is revised from that evidence.",
+      "where": "Implementation note 11 ('Documents can be validated by agents too'); Variations ('Agent-validated documentation'); Consequences, last bullet"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Test mode is exactly a reachable, resettable fixture, and 'the known test card produces this decline' is a named-error outcome, so examples can be real tests rather than fragments. Five language tutorials are five topics sharing one contract grammar, which is also where the drift risk lives.",
+      "participants": {
+        "Topic": "one tutorial per language (py, js, java, go, ruby), with identical section ids and step order: create customer → charge test card → observe decline",
+        "Example block": "each fenced block tagged with its language plus contract, e.g. ```python error=CARD_DECLINED or ```js warns=DEPRECATION",
+        "Contract": "one grammar with five language bindings; `error=`, `warns=`, `artefacts=`, `fragment`; refuses unknown words so `eror=` fails loudly; the decline code is the code the guide claims",
+        "Fixture": "sandbox merchant credentials, a fresh (uniquely named) test customer per topic, and the documented always-declining test card number",
+        "Example runner": "each language SDK's suite runs its tutorial's blocks in order in one client session; failure names topic, line and diff",
+        "Quote reference": "`{{src:Charge.create}}` filled from that language's SDK source at build; unresolved symbol fails the build",
+        "Corpus checker": "section ids, numbering and links exist; the five tutorials agree on step order and on the error code they quote; banned words",
+        "Doc server": "docs site plus an in-session `docs.search`/`docs.read({section})` returning one section, serving the same tested text"
+      },
+      "sketch": "-- one Topic per language L\nrunTopic(tutorial[L]) → [Failure]\n  session = client(key = SANDBOX_KEY, customer = newTestCustomer(uniqueId))\n  for b in blocks(tutorial[L]):                 -- in order: customer, charge, decline\n    match b.contract:\n      fragment → syntaxCheck(b); continue\n      c        → c.check(session.run(b.code))    -- error=CARD_DECLINED must fail with that code\n\nrunSectionAlone(section) → [Failure]             -- a reader copying section 3 only\n  session = client(key = SANDBOX_KEY, customer = newTestCustomer(uniqueId))\n  session.run(setupFor(section.needs))            -- needs=open-customer\n  return failing(blocks(section))\n\n-- suite\nassert all(runTopic(tutorial[L]) == [] for L in langs)\nassert all(not buildError(fillQuotes(tutorial[L].body, sdkSource[L])) for L in langs)\nassert checkCorpus(tutorials) == []",
+      "key_notes": [
+        "1 (failure as expected outcome): the decline is the whole point of the tutorial, so `error=CARD_DECLINED` must be a passing example, not a skipped one.",
+        "2 (order plus declared starting state): create → charge → decline chain across sections, so each section must be rerun alone from `needs=`, or a reader copying section 3 gets 'customer not found'.",
+        "4 (one owner for the grammar): five bindings must not grow five dialects; extend the vocabulary (artefacts, exit) in one parser or the five tutorials drift apart.",
+        "5 (quote source, never copy): five copies of the signing/charge snippet guarantee five independent drifts.",
+        "3 (fragments): placeholders like 'your own key' legitimately become fragments, but watch the per-language fragment count."
+      ],
+      "risk": "One language gets the runner and stays honest while the other four rot; or the sandbox fixture leaks (customer buildup, rate limits, non-deterministic decline reasons) until the suite is flaky and everyone marks blocks `fragment`."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter's own Applicability excludes examples depending on external systems tests cannot reach or reset, and allows recordings only where the underlying call can be replayed without the live effect. Here the example's claim is the live effect itself: pointed at production the runner mutates it, pointed at a stub it proves only the stub. There is no fresh fixture and no reset, so the 'one session per topic' assumption collapses.",
+      "participants": {
+        "Corpus checker": "the only participant that honestly applies: links, numbering, flags cross-checked against the CLI's real `--help`/registry, setting names validated against the read-only live schema",
+        "Example block": "every step must be marked `fragment`; with note 3's reporting this yields 'N of N fragments', which is the honest signal",
+        "Everything else (runner, Contract, Fixture, Doc server as a tested-text guarantee)": "no role: the suite would be testing a mock and issuing a guarantee the chapter says such a mock cannot give"
+      },
+      "sketch": "",
+      "key_notes": [
+        "Applicability 'do not use' bullet: the disqualifier, stated by the chapter itself.",
+        "3 (fragments, parsed and counted): the correct disposition is to mark all steps fragments and let the count advertise that nothing here is executed.",
+        "8 (corpus checker): where the value actually is — flag names, setting names, links, ordering — read-only checks against the real CLI and schema.",
+        "5 (quote source): quote the config schema and flag list rather than copying them into prose.",
+        "2 (declared starting state) is unattainable here, and that is the diagnosis: when the starting state is production, no `needs=` line can state it safely."
+      ],
+      "risk": "The CI run goes green against a mocked payments API, so the runbook now carries a false badge of being tested — worse than untested, because an operator (or agent) trusts it further."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Structure, Collaborations, Consequences (whole chapter)",
+      "kind": "other",
+      "severity": "high",
+      "note": "Four separable patterns are bundled under one title: runnable examples with outcome contracts (the title), source quoting (note 5), corpus linting (note 8), and a piecewise doc server/API (notes 7, 10, Doc server participant). Only the first produces 'documentation fails its tests'. The Consequences mix unrelated costs — 'every example needs a fixture' belongs to contracts, 'writers must learn the checker's rules' to the linter — and a reader applying the chapter to, say, a runbook takes all four at once (as T2 shows).",
+      "suggestion": "Name a core (topics + example blocks + contracts + runner + fixture) and list quoting, linting and serving explicitly as optional extras with their own costs, or split the chapter. Rewrite Consequences as separate bullets per part."
+    },
+    {
+      "section": "Structure ('Contract'), Implementation note 4, Sketch",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The grammar contradicts itself. Structure says 'the vocabulary is open' (clean, error, warns, artefacts, stdout, exit, fragment) while note 4 demands 'one parser owns the grammar and refuses unknown words'; an open vocabulary and a closed word list cannot both be true, and the chapter never says who extends the parser or how a domain adds a clause. Naming also drifts: `artefacts=N` in Structure, `artefacts: n` in the Outcome value, `looks=2` in the Motivation and Structure — no canonical spelling. `stdout=` and `exit=N` appear in the vocabulary and in `Outcome` but no block, note or sketch ever produces them, so their mechanism (does the session capture stdout? where does an exit code come from in an in-session engine?) is unknown.",
+      "suggestion": "Declare a closed core vocabulary plus a documented extension point ('a domain registers clause name → check'), pick `artefacts` as canonical and show `looks=` once as goja-cv's alias, and either drop `stdout`/`exit` or add one sentence on how the session captures them."
+    },
+    {
+      "section": "Implementation note 2 and Sketch (`needs`, `runSectionAlone`)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`needs` moves between levels: per block in the Example-block participant ('optionally what it needs (`needs=open-image`)') but per section in `runSectionAlone(section)`, which calls `setupFor(section.needs)` — a Topic has no `needs` field anywhere. Note 2 also permits declaring the need 'in prose or a `needs=` marker', but prose cannot be executed, so half the recommended practice cannot be automated and the second run silently has no setup — the exact failure it is meant to catch.",
+      "suggestion": "Fix the level (section-level `needs`, or block-level joined), and say that a prose-only need is unverified: require a machine-readable `needs=` for anything `runSectionAlone` is to check."
+    },
+    {
+      "section": "Sketch (`fillQuotes`), Implementation note 5",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "`assert all(fillQuotes(t, source) is text for t in topics)` is not checkable pseudocode: it compares against a variable `text` that does not exist in the comprehension, uses identity (`is`) on a freshly built string, and ignores that `fillQuotes` returns `text | BuildError`, so the real question is whether a BuildError occurred. Separately, note 5 oversells: resolving `{{src:TileCache.prototype.evict}}` proves the symbol name still exists, not that the sentence around it, or the function's behaviour, is still what the prose claims.",
+      "suggestion": "Write `assert all(not isBuildError(fillQuotes(t.body, source)) for t in topics)`; and add that quote resolution is a syntactic check, so any behavioural claim in prose needs a runnable example, not a quote."
+    },
+    {
+      "section": "Doc server participant, Collaborations step 6, Implementation note 10",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The doc server is asserted to serve 'the same tested text', but nothing keeps that true. A server reading a cached corpus, a stale build artefact or a differently preprocessed copy silently serves text the suite never ran — the exact drift the pattern exists to prevent, reintroduced one layer out. Note 10 ('One corpus, many readers') is about this but is written as an inventory of the project's three layers and a sibling toolkit's hub, without stating the invariant.",
+      "suggestion": "Add one line: serve by build id/hash from the same artefact the suite validated, and fail the server (or the build) when the served corpus hash differs from the tested one. Restate note 10 as that rule and cut the layer inventory."
+    },
+    {
+      "section": "Motivation and Implementation note 9",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The annotator-study opening ('no agent opened the guides') is the chapter's most useful finding, but it undercuts the Intent ('agents above all') and note 9's only prescription is 'put the essentials in replies'. Nothing says how the docs then get read: no mechanism for a refusal or a generated reference to cite a topic id and section id, which would be the cheap way to convert second-hand use into first-hand use. As written, note 9 reads as an admission rather than a design instruction.",
+      "suggestion": "Keep the study, and add the follow-through: every refusal and generated reference carries `topic`/`section` identifiers, and one test asserts those ids resolve — turning note 9 into a checkable link in the same suite."
+    },
+    {
+      "section": "Motivation (first paragraph), Implementation note 10",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The goja-cv/Editor-lab/go-go-goja specifics recur in three places and delay the pattern; note 10 in particular names projects and a 'documentation hub with providers' that a reader outside the project cannot picture and does not need.",
+      "suggestion": "Compress the Motivation to two sentences on drift travel (three paragraphs of project history belong in the case study), and keep note 10 to the one rule it is trying to state."
+    },
+    {
+      "section": "Applicability (third 'do not use' bullet), Consequences",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "'The cost of a fixture per example exceeds the value of the example' gives no way to judge the trade, and the chapter never treats versioned docs: a corpus documenting v1 and v2 of an API has two correct answers per example, and the pattern's single-runner shape has no story for that. This is where doc drift most often bites, and where a naive adopter will get stuck first (see T1's five tutorials).",
+      "suggestion": "Add a short bullet: run one suite per supported version against that version's fixtures, or pin every topic to a version and refuse to serve a topic whose version has no green suite. Give one sentence of sizing guidance for the fixture-cost bullet (e.g. per-example setup over a few seconds is a fragment candidate)."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core idea and the contract sketch are clear and I would adopt them, but the chapter bundles four patterns, contradicts itself on an open vs. closed contract vocabulary, and leaves `needs`, the doc server and quote resolution weaker than its confident tone implies."
+  }
+}

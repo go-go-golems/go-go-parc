@@ -1,0 +1,149 @@
+{
+  "restatement": {
+    "intent": "Every artefact should carry, on its own, the record of what produced it; every decision about it should be an appended event, so that state is derived rather than overwritten.",
+    "problem": "When artefacts do not say what made them and decisions overwrite earlier ones, no one can measure a source, filter by origin, audit a result, or undo a decision without destroying history.",
+    "solution": "Stamp each artefact at creation with a provenance record: maker kind and ids, inputs with hashes, code/model version, time. Append every decision (accept, reject, correct, undo) to a log as an event with actor, time and reason; never edit events, and express undo as an event too. Derive current state with one shared fold function, and offer lineage queries in both directions — what made this artefact, and what did this source make."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "What made it (its maker: program and line, agent run and step, preset, person, model version, plus the inputs it read) and who decided what about it.",
+      "where": "Intent"
+    },
+    {
+      "id": "Q2",
+      "answer": "A rejection is information: without it the acceptance rate of a source cannot be computed, and the same suggestion may be offered again.",
+      "where": "Implementation note 3, \"Keep rejected suggestions as decisions\""
+    },
+    {
+      "id": "Q3",
+      "answer": "The review events record item, decision and time but not the reviewer — enough with one reviewer, not enough with two; the actor must be added before it is needed.",
+      "where": "Implementation note 6, \"Record who decided, unless policy forbids it\""
+    },
+    {
+      "id": "Q4",
+      "answer": "Corrections were written as decisions in a separate review log, and the scoring scripts fold that log over the gold labels at scoring time; the gold files and the original labels stay intact, and each correction is itself traceable.",
+      "where": "Motivation (\"Correcting the yardstick\") and Implementation note 10, \"Corrections overlay; they do not rewrite\""
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Artefacts (committed lines) come from several kinds of source (agent session, person, script) and must be filtered, weighted and blamed per source, and decisions (revert, force-push back to an older state) are revised over time — both halves apply, though stamping granularity must be per hunk/line, not per commit.",
+      "participants": {
+        "Provenance record": "commit trailers per hunk: kind (person | agent | program), session id, model, prompt version, prompt/input hashes, code version, time.",
+        "Stamper": "the single commit path — a server-side hook (plus a client template) that refuses a commit from an agent/session lacking the required trailers; pre-pattern history gets kind: unknown.",
+        "Schema": "trailer names, value formats, and whether prompt text is named by path or by content hash.",
+        "Decision event": "revert, partial revert, cherry-pick-back, force-revert, with actor, time, reason, and the commit/line range affected.",
+        "Decision log": "the repository history itself (or a ledger branch / ref) — a revert is a new commit, never a rewrite.",
+        "Fold": "one shared function that walks commits and reverts in topological/sequence order and returns, per surviving line range, the live provenance.",
+        "Lineage queries": "sourceOf(line), madeBy(promptVersion) → commits and line ranges, revertRate(source), and unknownCount for audit."
+      },
+      "sketch": "```text\nvalue Provenance: kind, ids {session, model, promptVersion, commit}, inputs [(path, hash)], version, at\n\nstamp(hunks, ctx) → ok                       -- one path; hook refuses if missing\n  refuse(E_PROVENANCE, \"agent commit has no session/prompt trailer\", fix: stamp(ctx)) if ctx.kind == agent and ctx.session == none\n  for h in hunks: appendTrailer(h, {Agent-Session, Model, Prompt, Inputs})\n\ndecide(log, commitId, revert | partialRevert, actor, reason, lines?) → ok  -- appended as a new commit\n\nfold(commits, decisions) → map lineRange → ItemState   -- replay in commit order, apply reverts\n  -- revert marks the range's provenance as rejected-by-revert; the original commit event stays\n\nmadeBy(promptVersion) → [(commit, lineRange)]\nrevertRate(source) → reverted lines by source / lines by source   -- per line, not per commit\nunknownCount() → lines with kind unknown\n```",
+      "key_notes": [
+        "Note 2 (origin per item, not per file): the whole point here is per-line blame; a commit-level stamp conflates a 40-hunk agent commit reverted one hunk at a time.",
+        "Note 1 (make stamping impossible to forget): enforcement must be in the commit path (server hook/CI), because agents commit through many CLIs, and history predating the pattern must be counted as kind: unknown rather than vanish from revert rates.",
+        "Note 9 (hash inputs that may change): record the prompt text/version by content hash and the branch head at commit time, or a moving branch makes replay and attribution wrong.",
+        "Note 4 (undo as event, order by sequence): a revert is a new event; keep it in topological commit order, not author timestamp, or parallel agent branches reorder.",
+        "Note 5 (write the fold once): revert rates in dashboards and in CI must run the one fold, or \"reverted by \" will differ between reports.",
+        "Note 8 in reverse: prefer inline (trailers/metadata) over a sidecar here, since the monorepo's history is the natural ledger; a sidecar can be lost by any tool that copies files without it."
+      ],
+      "risk": "Attributing at commit granularity and computing revert rate per commit, so squash/merge commits drop trailers and a partial revert of an agent commit is counted as either 0 % or 100 %; the metric then blames the wrong prompt version."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "As proposed it does not fit: the Decision event participant requires an actor on every decision and the pattern's primary queries (acceptance by source, madeBy(actor)) are exactly the forbidden join — chapter's own Applicability says not to use it where privacy rules forbid recording who did what. Only a stripped variant survives: stamp the review artefact (read id, guideline version, tool version, time), append accept/reject/correct/undo events with role or a per-review non-linkable token, and give up attribution queries.",
+      "participants": {
+        "Provenance record": "which read, guideline version, tool and model version, time — no radiologist identity.",
+        "Stamper": "the review tool's single save path; a review cannot be saved without the read id and guideline version.",
+        "Schema": "must state that actor is recorded as role or a per-review random token, and that no stable reviewer key exists.",
+        "Decision event": "accept / reject / correct / undo with role only — actor identity is dropped, so \"who\" in the participant table is not satisfiable.",
+        "Decision log": "per review-period log, held under the review office's control.",
+        "Fold": "shared, so the read's current disposition is computed the same way everywhere.",
+        "Lineage queries": "only sourceOf(review); madeBy(actor) and acceptance-by-reviewer are not implementable and must be refused at the query layer, not quietly approximated."
+      },
+      "sketch": "```text\n-- admissible subset only; the actor-bearing half is removed\nvalue Provenance: kind (reviewer-role | tool | program), ids {readId, guidelineVersion, toolVersion}, inputs [(path, hash)], at\nvalue Event: seq, reviewId, decision (accept | reject | correct | undo), actorRole, at, reason?, newValue?\n\ndecide(log, reviewId, decision, actorRole, …) → ok\n  refuse(E_ANON, \"reviewer identity is not recordable\", fix: pass a role or per-review token\") if actorRole is a personId\n\nmadeBy(reviewer) → refuse(E_POLICY, \"attribution queries are disabled by the anonymity policy\")   -- not a silent empty list\n```",
+      "key_notes": [
+        "Applicability's third \"do not use\" case governs the whole design: privacy forbids it, so record only what the rules allow and say so in the schema.",
+        "Note 6 matters but only in its constrained form (role or pseudonym). A pseudonym that is stable across reviews is a re-identification key, so it must be per-review and stored nowhere that can be joined.",
+        "Note 10 (corrections overlay) still applies and is valuable: disputed reviews can be corrected and re-scored without rewriting the original.",
+        "Note 1 still applies to the non-identifying half: unknown counts keep unstamped reviews visible without naming anyone.",
+        "The lineage queries participant is the dangerous one: it must refuse attribute-by-actor queries explicitly rather than return empty results, or a developer will later reconstruct the link from timestamps."
+      ],
+      "risk": "Keeping a stable pseudonymous reviewer id \"for internal quality\" in a second table, which reconstructs the forbidden link by join; or keeping the timestamp plus shift roster, which does the same without any actor field at all."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch, the `fold` function",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`s.current = (last and last.decision == correct) ? last.newValue : s.original` makes `current` depend only on the top of one stack, so a `reject` or `accept` appended after a `correct` silently throws the corrected value away and reverts `current` to `original` although the correction was never undone; conversely undoing a `reject` resurrects the correction. Status and value live in two different stacks but share one pop.",
+      "suggestion": "Keep separate stacks, or filter: `corrections = [e in s.decisions where e.decision == correct]`, `current` = last non-undone correction else `original`, `status` from the last accept/reject. Add a worked trace of accept→correct→reject→undo to the sketch."
+    },
+    {
+      "section": "Solution / Structure",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "Applicability says the two halves are separable and many systems need only the first, yet Solution, Structure and Consequences present one pattern whose participants and notes mix them, and `Schema` is listed as a participant that never appears in Collaborations. A reader who needs only stamping cannot tell which rows and which of notes 1–10 they may skip.",
+      "suggestion": "Split into two named halves (Provenance Stamp / Decision Ledger) or tag every participant and note with S or L; demote `Schema` from a participant to a cross-reference note."
+    },
+    {
+      "section": "Sketch, `save` with sidecar",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The comment claims \"both or neither\", but the procedure only guarantees the weaker invariant: a crash between the two renames leaves a sidecar with no data file, temp files are never cleaned or fsynced, and there is no behaviour when `renameIntoPlace` fails.",
+      "suggestion": "State the invariant actually achieved (a file never appears without its record; an orphan sidecar must be treated as \"no artefact\" by readers), and add fsync, temp cleanup, and a `refuse` path for a failed rename."
+    },
+    {
+      "section": "Sketch, `value Provenance` and `create`",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "`ids` is hard-wired to the agent shape (session, eval, line, run, model, promptVersion) even though `kind` may be person, preset or detector. A person's label or a preset-applied layer fills those keys with nulls, so `matches` and `acceptance(field)` cannot distinguish \"not applicable\" from \"not recorded\".",
+      "suggestion": "Make `ids` depend on `kind` (a small variant type), or state that absent ids are refused; then `matches` can require the fields it needs instead of silently matching nulls."
+    },
+    {
+      "section": "Sketch, `fold` and lineage queries",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The fold indexes `state[e.artefactId]` with no guard for orphan events, and neither the Solution nor note 5 says what the one shared fold must do with an unknown decision kind or a malformed line — although note 5 names exactly those two cases as the reason three copies disagree. Similarly `matches(a.provenance, source)` is never defined (exact id? any subset? prefix?).",
+      "suggestion": "Specify the fold as a total function: orphan events and unknown decisions are quarantined and counted (or refused), never dropped; define `matches` as subset-containment over `ids`. Note that this contract, not \"run one implementation\", is what makes copies safe."
+    },
+    {
+      "section": "Sketch, `acceptance(field)`",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "Counting `corrected` as accepted is a domain choice; for an original label \"corrected\" often means the source was wrong, so the same query can be read as measuring the opposite thing. The chapter gives no companion query for error by source, which is one of the promised aggregates in the Structure table.",
+      "suggestion": "Give both variants (accepted-only, accepted+corrected) with one sentence on when each is right, and add `errorBy(source)` to the sketch."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Project numbers and names arrive undefined: `agent_pos_frac`, \"confidence band\", the \"not dust\" controls, \"a fitted radius, about twice the speck's own\", GCV-006, \"the Editor lab's preset\". An outside reader cannot verify or reuse them, and they carry the argument more than the general claim does.",
+      "suggestion": "Define each in one clause at first use (the radius one in particular is the strongest example in the chapter and is wasted undefined), or move the numeric illustration to a compact side note."
+    },
+    {
+      "section": "Consequences",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "\"Logs grow; folds must be fast, and old logs archived\" contradicts the chapter's own \"never edit an event\" and replay-by-fold: no snapshot or compaction story is given, so a reader who follows the Consequences has no way to shrink the log without breaking history.",
+      "suggestion": "Add a variation: a fold snapshot plus the events after it, with the snapshot's own provenance recorded and replay defined as snapshot-then-tail."
+    },
+    {
+      "section": "Implementation note 6 / `decide`",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "`policy.anonymous` appears once in the pseudocode and is never defined, and the recommended \"pseudonymous reviewer id or role\" has no slot in the Event schema, so nothing in the chapter tells a reader whether such a pseudonym may be stable across reviews — the difference between anonymity and a re-identification key.",
+      "suggestion": "Give Event an `actor: person | pseudonym | role` field, state whether pseudonyms are per-artefact or stable, and say which queries a policy disables."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The two-part shape is right and reusable, but the states-versus-values conflation in the fold, the undefined `matches`/orphan-event behaviour, and heavy unexplained dust/goja-cv specifics keep a reader from implementing it without guesswork."
+  }
+}

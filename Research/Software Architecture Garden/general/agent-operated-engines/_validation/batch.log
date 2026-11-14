@@ -144,3 +144,73 @@
 17:52:54 start 12 a v1
 17:52:56 end 10 b2 v2 exit 0
 17:52:56 start 12 a2 v1
+17:53:01 end 09 a v2 exit 0
+17:53:01 start 12 b v1
+17:53:41 end 11 b2 v1 exit 0
+17:53:41 start 12 b2 v1
+17:54:06 end 12 a2 v1 exit 0
+17:54:06 start 13 a v1
+17:54:08 end 12 a v1 exit 0
+17:54:08 start 13 a2 v1
+17:54:47 end 08 b2 v2 exit 0
+17:54:47 start 13 b v1
+17:55:09 end 11 a2 v1 exit 0
+17:55:09 start 13 b2 v1
+17:55:15 end 08 a2 v2 exit 0
+17:55:41 end 13 a2 v1 exit 0
+17:56:20 end 13 b2 v1 exit 0
+17:57:00 end 13 a v1 exit 0
+17:57:05 end 11 a v1 exit 0
+17:57:41 end 11 b v1 exit 0
+17:57:41 end 13 b v1 exit 0
+17:58:58 end 12 b v1 exit 0
+17:59:04 end 12 b2 v1 exit 0
+18:02:29 end 08 b v2 exit 0
+18:05:22 start 07 a v3
+18:05:22 start 07 a2 v3
+18:05:22 start 07 b v3
+18:05:22 start 07 b2 v3
+18:05:22 start 09 a v3
+18:05:22 start 09 a2 v3
+18:06:00 end 07 b2 v3 exit 0
+18:06:00 start 09 b v3
+18:06:10 end 07 a2 v3 exit 0
+18:06:10 start 09 b2 v3
+18:06:17 end 09 a v3 exit 0
+18:06:17 start 10 a v3
+18:07:01 end 09 b2 v3 exit 0
+18:07:01 start 10 a2 v3
+18:07:20 end 10 a v3 exit 0
+18:07:20 start 10 b v3
+18:07:40 end 09 b v3 exit 0
+18:07:40 start 10 b2 v3
+18:07:51 end 10 a2 v3 exit 0
+18:07:51 start 11 a v2
+18:08:37 end 07 b v3 exit 0
+18:08:37 start 11 a2 v2
+18:08:41 end 10 b2 v3 exit 0
+18:08:41 start 11 b v2
+18:08:47 end 11 a v2 exit 0
+18:08:47 start 11 b2 v2
+18:09:26 end 11 a2 v2 exit 0
+18:09:26 start 12 a v2
+18:10:01 end 11 b v2 exit 0
+18:10:01 start 12 a2 v2
+18:10:04 end 11 b2 v2 exit 0
+18:10:04 start 12 b v2
+18:10:17 end 09 a2 v3 exit 0
+18:10:17 start 12 b2 v2
+18:10:42 end 07 a v3 exit 0
+18:10:42 start 13 a v2
+18:11:09 end 12 b v2 exit 0
+18:11:09 start 13 a2 v2
+18:11:37 end 12 a2 v2 exit 0
+18:11:37 start 13 b v2
+18:12:10 end 12 b2 v2 exit 0
+18:12:10 start 13 b2 v2
+18:12:26 end 10 b v3 exit 0
+18:12:30 end 13 a2 v2 exit 0
+18:12:44 end 13 b v2 exit 0
+18:14:53 end 12 a v2 exit 0
+18:14:57 end 13 b2 v2 exit 0
+18:16:19 end 13 a v2 exit 0

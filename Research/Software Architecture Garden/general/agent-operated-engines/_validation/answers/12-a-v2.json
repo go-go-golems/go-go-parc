@@ -1,0 +1,132 @@
+{
+  "restatement": {
+    "intent": "Make a guide's examples part of the test suite: each example declares in its info string what it must produce, prose quotes are filled from the running source, and the whole corpus is checked by rules, so documentation fails its tests when the system changes.",
+    "problem": "Documentation that nobody executes drifts from the system it describes, and its readers — agents above all — act on what it says rather than on what is true.",
+    "solution": "Split documentation into topics (title, summary, named sections) that can be listed, searched and read one section at a time. Every code block carries an outcome contract — clean, error=CODE, warns=CODE, artefacts=N, stdout/exit, or fragment; a runner executes a topic's blocks in order in one session against fixtures, and runs each section again alone from its declared setup. Source quotes are filled at build time, a corpus checker enforces structure/link/vocabulary rules, and one doc server serves the same tested text to people, agents and tools."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Bare `js` = runs without warnings; `js error=E_ARG_RANGE` = must fail with exactly that code; `js warns=RANGE` = must succeed but emit that warning; `js looks=2` = must deliver two pictures (the general clause is `artefacts=N`); `js fragment` = not run, but still parsed. The wider vocabulary adds `stdout=…` and `exit=N`, and clauses combine (`warns=RANGE artefacts=1`); a block may also declare what it needs (`needs=open-image`).",
+      "where": "Motivation (the fence grammar), Structure → Contract, Implementation note 4"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because examples build on each other (open an image, then crop it), so later blocks may use state earlier blocks created; one fresh session per topic, blocks in file order. The chapter pairs this with running each section again alone from its declared setup, so a reader who fetches only section 4 can still copy its block.",
+      "where": "Collaborations steps 2–3; Implementation note 2; Sketch runTopic vs runSectionAlone"
+    },
+    {
+      "id": "Q3",
+      "answer": "Code quotes in the book are written as placeholders like `{{src:TileCache.prototype.evict}}` and filled from the running page at build time; a missing symbol fails the build, and a test asserts that all 21 quotes resolve. Copied code cannot drift because it is never copied.",
+      "where": "Motivation (Editor lab paragraph); Implementation note 5; Sketch fillQuotes"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because people read them, generated references and refusals point into them, and their examples become the helper libraries agents do use — so tested guides still carry truth to agents indirectly. The chapter adds the caveat that the essentials must also be in replies (Chapter 6), not only in the guide.",
+      "where": "Implementation note 9"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "The guide is full of copyable shell invocations whose flags churn every few weeks, and it deliberately documents error cases — exactly the two forces the pattern answers (drift, and showing failure that a test runner would otherwise treat as a failure).",
+      "participants": {
+        "Topic": "each page of the 60-page guide: title line, summary paragraph, named sections ('create', 'failover', 'common errors'), served one section at a time to agents",
+        "Example block": "each fenced `sh` block with an info string, e.g. `` ```sh exit=0 ``, `` ```sh exit=2 stderr=E_UNKNOWN_FLAG ``, `` ```sh needs=seeded-db ``, `` ```sh fragment ``",
+        "Contract": "one parser owning the CLI grammar: exit=N, stderr=E_CODE, stdout=…, fragment; refuses unknown words so a typo `exi=2` fails the suite instead of running as a plain example",
+        "Fixture": "a throwaway database (container/local process) seeded with a known dataset, fixed fake credentials, isolated network, fresh instance per topic",
+        "Example runner": "the CI suite: starts the fixture, runs a topic's blocks in order, compares exit code and structured error code, reports guide page, line and diff",
+        "Quote reference": "placeholders filled from the CLI's flag registry / generated --help, so a documented flag list is emitted from the parser rather than typed",
+        "Corpus checker": "rules: every command's flags exist in the flag registry, section numbering, links resolve, error codes mentioned exist in the error catalogue, banned words",
+        "Doc server": "`tool help <topic>` plus one MCP resource per topic/section, so an agent can read just the failover section"
+      },
+      "sketch": "value Block: topic, section, line, lang=\"sh\", contract: Contract, needs: [setup], code\n\nparseContract(info) → Contract | refuse(E_CONTRACT, \"unknown contract \" ++ word)\n\nrunTopic(topic) → [Failure]\n  env = freshFixture(seededDb, fakeCreds)          -- one per topic\n  for b in blocks(topic):                          -- file order\n    if b.contract.fragment: failures ++= shellParse(b); continue\n    o = env.sh(b.code)                             -- stdout, stderr, exit\n    failures ++= b.contract.check(o)               -- exit, stderr code, stdout\n  return failures\n\nrunSectionAlone(section) → [Failure]               -- agent reads one section\n  env = freshFixture(seededDb, fakeCreds)\n  env.run(setupFor(section.needs))                 -- needs=seeded-db\n  return check every non-fragment block against its contract\n\n-- corpus\nassert all(fillQuotes(t, cliRegistry) == filled)   -- unresolved quote = BuildError\nassert checkCorpus(topics) == []",
+      "key_notes": [
+        "1 — failure as an expected outcome: the 'errors users hit' half of the guide is the valuable half; `exit=2 stderr=E_UNKNOWN_FLAG` makes those examples pass only while the error really exists, which is what keeps the error section honest as flags churn.",
+        "4 — one grammar owner with domain clauses: exit codes and stderr codes here, not pictures. The parser must reject `eror=`; and prefer stable error codes over stderr message text, which changes far more often than the code.",
+        "2 — explicit per-section setup (`needs=seeded-db`, `setupFor`): a reader copying only the 'drop database' section has none of the earlier state; without the section-alone run that copy fails silently.",
+        "3 — fragments marked, parsed and counted: with flags changing every few weeks, `fragment` is the easy way to turn a red suite green; report the fragment count per topic and let it fail review.",
+        "5/6 — quote the flag table from the registry and generate the reference; hand-write only the prose, so `--max-connections` cannot be quoted at its old name."
+      ],
+      "risk": "Marking the churning examples `fragment` (or matching on stderr prose instead of codes) until the suite is green while the guide still teaches the old flags — the pattern's exact failure mode, now with a passing build hiding it."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The essay makes no executable claims: there is nothing to run, no outcome to contract for, and no fixture that could differ from truth. The chapter's own Applicability says to check conceptual documentation by review instead — forcing contracts here produces theatre (empty blocks, tautological contracts) that proves nothing about the prose.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability → 'do not use it when the documentation is conceptual, with no executable claims'.",
+        "Corpus checker is the one part that still earns its place: links, section numbering, banned words, reference resolution. That is a rule check over prose, not outcome contracts.",
+        "Implementation note 11 / the 'Agent-validated documentation' variation is the right tool: isolated agents read the essay, answer and build, and the text is revised from the evidence — it tests whether the document teaches, which is the essay's actual claim."
+      ],
+      "risk": "Declaring a rhetorical or historical claim 'contractual' and freezing it, so the essay cannot be rewritten when the reasoning behind the architecture changes — the docs would be tested against an outcome that has no operational meaning."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (last line: `assert all(fillQuotes(t, source) is text ...)`)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The assertion is vacuous. `fillQuotes` returns text on success and `refuse`/`BuildError` on failure, so `is text` is true whenever it returns at all; the quote test as written can never fail, which undercuts the very guarantee the Motivation advertises ('a test checks that every quote resolves').",
+      "suggestion": "Make the failure explicit: `fillQuotes(text, source) → text | BuildError` and `assert all(try fillQuotes(t, source) for t in topics)` — i.e. assert no BuildError — or have fillQuotes return `(text, [unresolved])` and assert the list is empty."
+    },
+    {
+      "section": "Structure → Contract ('The vocabulary is open') vs Implementation note 4 ('One parser owns the grammar and refuses unknown words')",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "Direct contradiction: if the vocabulary is open, an unknown word like `eror=E_RANGE` is a new clause, not an error; if unknown words are refused, the vocabulary is closed and an extension requires editing the parser. A reader cannot tell which behaviour to build, and this is the single most important mechanism (a silent typo manufactures a test that never checks anything).",
+      "suggestion": "State the rule precisely: closed grammar per domain with an explicit extension point (register clause parsers; unknown clause = refuse). Say who may add a clause and what the refusal says."
+    },
+    {
+      "section": "Whole chapter — Contract matching semantics",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The chapter never says how an outcome is compared with a contract. Is `warns=RANGE` satisfied by one warning among many or must the warning set match exactly? Is `stdout=…` exact, substring, or regex? How are timings, paths, ids normalised (Variations only mutters 'brittle … unless normalised')? Without this, implementers build exact-match runners that are brittle and get disabled, or loose ones that pass on anything.",
+      "suggestion": "Add one implementation note or a small table of matching rules: exact vs substring vs regex, whether warnings are a set or a multiset requirement, and a stated normalisation step (scrub timestamps, tmp paths, ids) owned by the Fixture."
+    },
+    {
+      "section": "Sketch / Implementation note 2 — `needs=` and `setupFor`",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`setupFor(section.needs)` is load-bearing (it is what makes piecewise reading safe) but undefined: `needs=open-image` appears once in Structure, and nothing says who writes setup scripts, whether they are themselves tested, or what happens to a block that depends on earlier state but declares nothing — presumably it fails in the section-alone run, but that is inference, not text.",
+      "suggestion": "Define the `needs` vocabulary as a registry of named setups with owners, and state the diagnostic: a section-alone failure means the block or its section is missing a `needs=` marker."
+    },
+    {
+      "section": "Collaborations",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Collaboration steps 1–6 never mention running each section alone from its declared setup, although Implementation note 2 argues this is what makes piecewise reading (the chapter's core promise for agents) actually work. A reader who implements from Collaborations alone gets a runner that passes while `docs.read(id, {section})` serves uncopyable blocks.",
+      "suggestion": "Insert a step after step 2: 'each section is also run alone from its declared setup; a section whose blocks fail alone is missing `needs=`'."
+    },
+    {
+      "section": "Motivation, Structure, Implementation notes 1/3/7 — `looks=`",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The running example's picture-count syntax leaks into the abstract grammar in four places (motivation, Structure, notes 1 and 4), while the same chapter calls the general clause `artefacts=N`. A reader building an SDK guide or a CLI guide has to translate the pattern's stated vocabulary before using it, and may conclude the pattern is about image engines.",
+      "suggestion": "Use `artefacts=N` (or `outputs=N`) everywhere in the abstract text and keep `goja-cv spells this looks=N` as one parenthetical in Motivation; move the picture discussion into an example box."
+    },
+    {
+      "section": "Implementation note 9 vs Structure/Collaborations",
+      "kind": "other",
+      "severity": "medium",
+      "note": "Note 9 concedes that no agent opened the guides and then reassures the reader that testing is still worth it. That is honest but structurally misplaced: the whole agent-facing claim depends on refusals and generated references pointing into topics, yet that linkage appears as a footnote, not as a participant or collaboration step, so an implementer can build the tested corpus and never wire the entry points.",
+      "suggestion": "Promote the link: add a participant or collaboration ('refusals and generated references cite topic ids that the corpus checker verifies exist'), and shorten note 9 to a one-line consequence."
+    },
+    {
+      "section": "Motivation and Consequences",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The Motivation's four 'problem appears wherever' bullets (SDK tutorial, API reference, runbook) and the three Consequences '+' lines restate the Problem and the Intent nearly verbatim; Known uses' five entries also repeat Variations (doc tests, recorded output). A reader has already been convinced by the goja-cv numbers (renamed options, promised-but-missing error types).",
+      "suggestion": "Cut the four bullets to one clause inside the Problem, and drop the '+' Consequences that repeat the Intent — keep only the costs and the limits of what execution proves."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The contract-in-the-info-string idea and the section-alone run are crisply stated and immediately usable, but the open-vs-closed grammar contradiction, the undefined `needs`/`setupFor` mechanism and the missing matching semantics leave the two hardest implementation decisions unanswerable, and the image-engine `looks=` syntax keeps intruding on what is otherwise a transferable pattern."
+  }
+}

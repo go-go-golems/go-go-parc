@@ -9,7 +9,10 @@ unset CDPATH
 N=$1; AG=$2; TAG=$3; MODEL=${4:-lunaroute/deepseek-4.1-flash}; THINK=${5:-high}
 HERE=$(cd "$(dirname "$0")" && pwd); VAL=$(cd "$HERE/.." && pwd)
 OUT=~/pattern-validation/builds/$N/$TAG/$AG; rm -rf "$OUT"; mkdir -p "$OUT/work" "$OUT/session"
-awk 'NR==1 && /^---$/ {fm=1; next} fm && /^---$/ {fm=0; next} !fm' "$VAL/versions/$N-$TAG.md" > "$OUT/work/CHAPTER.md"
+V="$VAL/versions/$N-$TAG.md"
+if [ ! -f "$V" ]; then cp "$(ls "$VAL/.."/"$N"-*.md | head -1)" "$V"; fi
+awk 'NR==1 && /^---$/ {fm=1; next} fm && /^---$/ {fm=0; next} !fm' "$V" > "$OUT/work/CHAPTER.md"
+if [ ! -s "$OUT/work/CHAPTER.md" ]; then echo "empty chapter for $N $TAG" >&2; exit 1; fi
 cp "$HERE/tasks/$N-TASK.md" "$OUT/work/TASK.md"
 cp "$HERE/DIARY-FORMAT.md" "$OUT/work/DIARY-FORMAT.md"
 cat > "$OUT/prompt.md" <<PROMPT

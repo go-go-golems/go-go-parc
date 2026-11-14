@@ -102,3 +102,27 @@ executions without a file path; `after.sh` now snapshots the work directory per 
 | 05 | v1 | 4/4, 4/4 | 2/2, 2/2 | 4, 4 | 4, 3 | (key fixed: "None … ever called" is correct) timeout, contract specimen, prelude failure, helpers vs state |
 | 05 | v2 | 4/4, 4/4 | 2/2, 2/2 | 3, 4 | 2, 3 | regression: pictures as a first-class participant, pasted tool description → v3 generalises |
 | 06 | v1 | 4/4, 4/4 | 2/2, 2/2 | 3, 3 | 3, 3 | suggestion order stated three ways; a false example (crop/drop); open host codes; undefined sketch helpers |
+
+## Step 7 — replicates, chapters 07–13, more builds, diaries, playbooks
+
+- **Replicates** (`a2`, `b2` = the same scenarios with fresh agents; `multi.sh` pools runs across chapters). Across 22
+  replicate runs of chapters 01–06, every fit verdict was right and one quiz answer was scored wrong — by the key, not
+  the agent (chapter 04 a2: "margin positions lie outside the window" is correct; key widened). Ratings of the same
+  version differ by about one point between replicates: judge by medians of four or more runs.
+- **Extractor repairs**: two answers had a `]` closing an object and unescaped quotes inside strings; `extract.py` now
+  reads only the final message and repairs both (rebalancing closers, escaping inner quotes); both runs recovered.
+- **Chapters 07–10 v2** from notes: 07 (ids checked on return; sheets vs overviews clarified; the 14/13 of 53 figure
+  defined, and the annotator sessions where both versions found 9 of 13); 08 (shadowing by save, identity after rename,
+  TOCTOU claim softened, parents created inside the root); 09 (extract from the final message only, atomic answers with
+  status, run timeouts, a canary test of the seal, reproducible → reconstructible); 10 (headline comparison flagged as
+  tuned on its own tiles, multi-class thresholds, review capacity).
+- **Chapters 11–13 v1** written and validated (stage A with replicates).
+- **Stage B builds**: tasks, hidden tests and references for 03 (`gridflow`, 17 tests), 04 (`stencilpipe`, 9 tests:
+  exactness and economy by counted cells), 06 (`shopcli`, 16), 08 (`jailfs`, 18: symlinks, dangling links, identity,
+  shadowing), 11 (`labelbook`, 9); every reference passes its tests. Three builders per chapter; builders now keep
+  `DIARY.md` in the diary skill's format (`build/DIARY-FORMAT.md`), copied to `builds/` after each stage.
+- **Load**: with ~25 concurrent pi processes, lunaroute queues requests; some builders sat on their first request for
+  minutes. Not a failure; keep concurrent builders to about a dozen.
+- **Playbooks** in `Research/playbooks/`: `validating-design-patterns-with-model-engineering.md` (this method) and
+  `extracting-pattern-languages-from-codebases.md` (the pattern-extraction skill adapted to the vault, with this
+  validation built into Part 2).

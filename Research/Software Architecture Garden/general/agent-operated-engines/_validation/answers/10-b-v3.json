@@ -1,0 +1,134 @@
+{
+  "restatement": {
+    "intent": "Use agents to produce or judge many items, then decide from measurement — not hope — which of their answers may be accepted without a person looking.",
+    "problem": "Agent output is abundant and of unknown quality; trusting it all ruins the data, checking it all wastes the people it was meant to save, and measuring it against bad reference answers misleads on both counts.",
+    "solution": "Stage the work. Apply a cheap deterministic gate where one exists and what it rejects becomes 'unknown', never 'no'. Put blind, known-answer controls in every judging batch, score each judge/prompt version on them (ranking, calibration, precision), and set acceptance thresholds where those controls show the precision you need. Accept only beyond the thresholds, send the uncertain middle plus a random audit sample of the accepted band to a person who cannot see the agent's verdict, and expect the controls themselves to be partly wrong."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Because a threshold tuned on the same items it is then scored on reports its tuning, not its performance — it is fit to those items' noise too. The dust gate's iso 2.0 was chosen on the same six tiles used for the 75/71 vs 64/70 comparison, so the project recorded the win as flattering and needing a held-out check.",
+      "where": "Implementation note 2; Motivation (first bullet)"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because a cue's value is stage-specific, and must be measured on the controls of the stage that will use it. The isolation number gated annotator over-keeps well, but as a judge cue it separated the judge controls poorly (AUC 0.63), and teaching it in the prompt dropped judge AUC from 0.78 to 0.71. The chapter states the effect but does not explain the mechanism — the plausible reading is that an explicit single-feature threshold made judges substitute a number for the contextual evidence that was actually working.",
+      "where": "Implementation note 3"
+    },
+    {
+      "id": "Q3",
+      "answer": "The fraction of real items that fall beyond a judge's thresholds at the required precision — i.e. how much work the judge takes off people's hands. It matters because AUC and accuracy are rankings of quality, while usable share is the only number that converts into reviewer hours saved; even the best dust judge made only ~40% of items usable.",
+      "where": "Implementation note 6; Motivation (second bullet)"
+    },
+    {
+      "id": "Q4",
+      "answer": "AUC from 60 controls carried roughly ±0.06 uncertainty, so differences smaller than that between judges are suggestive at best. Conclusion: compare variants on identical items (paired comparison), and do not read small AUC gaps as a ranking.",
+      "where": "Implementation note 9 (with note 4 on 30-per-side control counts)"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is the dust project with different nouns: items far outnumber reviewers, past expert labels can serve as controls, and wrong species labels poison both the dataset and the detector's training. One caveat from the chapter's own do-not-use list: 2M items versus two ecologists means the honest outcome is a sampled, uncertainty-ranked review and a large 'unknown' pool, not full coverage.",
+      "participants": {
+        "Proposer": "the animal detector, emitting candidate boxes; also the first-stage blank/blur proposal decision",
+        "Gate": "frozen deterministic checks on a box: detector score, box area, focus/blur, time-of-day plausibility — rejects become 'unknown', not 'no animal'",
+        "Judge": "the species-labelling agent, sealed runs on numbered blind images, one verdict + probability per box",
+        "Controls": "images from past expert labelling campaigns, drawn from the same cameras and seasons, stratified per species, mixed blind with matching ids",
+        "Scorer": "per-species one-vs-rest AUC, accuracy at 0.5, Brier, the hi threshold at target precision, and usable share per species",
+        "Router": "accepts boxes whose top species clears its threshold with a margin over the runner-up; everything else goes to review ranked by distance from threshold; 5–10% of accepted boxes audited",
+        "Review queue": "the two ecologists, shown the image and not the agent's species",
+        "Lineage ledger (ch. 11)": "records which labels were agent-accepted, human-reviewed, or left unknown, per camera and year"
+      },
+      "sketch": "value Box:     id (blind), camera, season, payload, speciesTruth?   -- truth only on controls\nvalue Verdict: boxId, species, p                    -- p = share of k sealed runs naming that species\n\ngate(b) → keep | unknown\n  if b.detectorScore < 0.4 or blur(b) > bMax: return unknown   -- frozen thresholds, held-out years\n  return keep\n\nbatch = shuffle(realBoxes ++ perSpecies(controls, 30 ++ 30))   -- same cameras, both sides\nruns  = chunks(batch, 6)                                      -- one sealed run per chunk (ch. 9)\n\nscore(v) → { auc[s], acc05, brier, hi[s], usableShare[s] }     -- one-vs-rest per species; no `lo`\n\nfor v in verdicts of real boxes:\n  match v:\n    v.pTop ≥ hi[v.top] and v.pTop − v.pSecond ≥ margin: accept(v.boxId, v.top)\n    else: review.enqueue(v.boxId, rank: hi[v.top] − v.pTop, showVerdict: false)\nreview.enqueue(sample(accepted, 0.05), showVerdict: false)      -- the audit\nif middle.size > ecologistCapacity: review top-k of ranking; rest → unknown, never accepted",
+      "key_notes": [
+        "Note 5 first: the chapter's hi/lo bilateral scheme is a yes/no scheme. Species is open-set multi-class, so drop `lo` and accept only on a confident top class with a margin — otherwise 'confidently not this species' has no meaning.",
+        "Note 4: controls must come from the same cameras and distribution, stratified per species. Past-year labels from other sites or seasons are a weaker yardstick and need a hand-checked sample; rare species will supply far fewer than 30 controls a side.",
+        "Note 9 with note 4: with a long-tailed species list, per-class control counts collapse, so ±0.06 becomes far worse and per-species thresholds for rare classes are noise. Pool confusable species or refuse to accept them at all.",
+        "Notes 6 and 10: 'usable share' and band sizing are the whole design here. Two ecologists against 2M images means ranking the middle by uncertainty, reviewing the top, and leaving the rest unknown — the chapter's 'never accepted by default' is the load-bearing sentence.",
+        "Note 1: gate rejects (blanks, blurs) must not be written as 'no animal' in training data.",
+        "Note 2 with note 11: freeze the gate thresholds on held-out years, and keep a single implementation of the gate metric — the same metric will otherwise exist in the detector repo, a notebook, and the agent's prompt.",
+        "Note 7: expect some past expert labels to be wrong; a judge that confidently contradicts a control is a hypothesis about the control, not a failure."
+      ],
+      "risk": "Quietly accepting the volume: thresholds fitted on a handful of rare-species controls, review capacity spent entirely on the most common species, and the long tail either auto-accepted or silently dropped into 'unknown' — so the pipeline reports good precision on the species that were never in doubt."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Two of the chapter's own do-not-use conditions apply directly: the items are so few that a person can label them faster than the pipeline can be built, and no known answers exist to build controls from. Forty one-off tickets cannot supply 30 controls a side, and any control set would consume a large share of the very items being labelled.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, do-not-use 4 ('so few that a person can label them faster than the pipeline can be built') settles it — a gate, scorer, router and audit sample are strictly more work than the task.",
+        "Applicability, do-not-use 2 plus implementation note 9: controls would be ~60 of 40 items and, at that size, carry more noise than signal.",
+        "If an agent is involved at all, it plays the chapter's first do-not-use case — assistant to each of the 40 reviews, human confirms every ticket — which is not this pattern."
+      ],
+      "risk": "Building it anyway, then hand-labelling a dozen tickets as 'gold', setting a threshold from them, and calling the result calibrated — spending more effort to be less certain than simply tagging the forty."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch / Solution (thresholds from controls)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Implementation note 2 makes held-out calibration a principle for the gate, but the Scorer sets `hi` and `lo` on the same controls it then reports as the judge's precision and usable share. That is the same overfitting the chapter condemns, applied where it matters more, because thresholds are chosen to maximise a statistic on a small set.",
+      "suggestion": "Split the controls (or cross-fit): one half sets the thresholds, the other half reports precision and usable share. Say plainly that a judge's quoted precision must come from controls that did not set its threshold."
+    },
+    {
+      "section": "Applicability vs. Implementation note 9",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "'Some items with known answers exist or can be made' is the fit criterion, but note 9 says 60 controls give ±0.06 AUC and note 4 says 30 a side leaves a handful beyond an extreme threshold. The chapter never states the minimum control budget, so a reader with 20 known answers will believe they qualify.",
+      "suggestion": "Put a number in Applicability: state the controls needed per class and per side to estimate precision at the target, and say that below it the pattern degrades to 'use the agent as an assistant', not to triage."
+    },
+    {
+      "section": "Collaborations / Implementation notes 7–8",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Both correction paths stop at 'update the scores' and 'withdraw the threshold'. Nothing says that corrected controls change the thresholds, that changed thresholds re-route already-accepted items, or who owns that rollback. Items accepted under a refuted yardstick presumably stay in the training data.",
+      "suggestion": "Add a step and a participant responsibility: when a control is corrected or the audit misses the target, the affected acceptances are named by the ledger and re-enqueued for blind review; give the ledger the query that finds them."
+    },
+    {
+      "section": "Sketch, step 5",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`agreeCount(judges, against: c.truth, p > 0.8) ≥ 2` cannot be read: 'against' the truth sounds like disagreement, and the `p > 0.8` floats outside the count so it is unclear whether it qualifies the judges, the control, or the agreement. The reader cannot reproduce the doubt trigger.",
+      "suggestion": "Write it as `count(j in judges where j.verdict ≠ c.truth and j.p > 0.8) ≥ 2`, and say whether disagreement across judges or raw confidence is the actual signal."
+    },
+    {
+      "section": "Sketch, `hi` / `lo` definitions",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`hi = lowest p where precision(...) ≥ 0.85` assumes the precision-versus-threshold curve is monotone, which it is not on real controls, so 'lowest' is a sweep with undefined ties and possible empty sets. It also does not say what happens when no threshold reaches 0.85, which is the common case for a weak judge.",
+      "suggestion": "Define the sweep explicitly on a sorted control list (or via isotonic/monotone fit), state the tie rule (prefer the threshold nearest the middle), and add the `refuse(kind, …)` branch for 'no threshold reaches target — judge unusable'."
+    },
+    {
+      "section": "Structure table",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "'unknown' is a first-class outcome in Solution and note 1, but no participant owns it: nothing says where unknown items are stored, who may promote them later, or how they appear in downstream training. Only the gate produces it and only the ledger is mentioned in passing.",
+      "suggestion": "Add either an 'Unknown pool' participant, or a sentence in the Gate and Review queue rows saying unknown items are recorded with reason and remain eligible for later review or a better judge."
+    },
+    {
+      "section": "Implementation notes 1, 2, 3, 11",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Four notes open with several sentences of dust project narrative (iso values, six tiles, AUC 0.63, three copies of a Python/JS metric) before the transferable rule appears, and readers of another domain must strip the story themselves. The rules are good; the ordering buries them.",
+      "suggestion": "Lead each note with the imperative rule in bold, then one example sentence with the numbers. Move the fuller dust chronology into the Motivation, where it already exists."
+    },
+    {
+      "section": "Also known as / Related chapters",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "The aliases mix whole patterns and half of one: 'uncertainty sampling' names only the Router's ranking, and appears again as a Variation and a Known use, while leaving out the controls and scorer that distinguish this pattern. Likewise Snorkel's labelling functions are not calibrated deterministic gates (its label model estimates accuracies without labels), and Chain of Responsibility describes a different thing than a gate→judge→person pipeline.",
+      "suggestion": "Keep aliases that name the whole pattern (gold questions, planted controls, calibrated LLM-as-judge), demote uncertainty sampling to 'one stage of this pattern', and describe Snorkel as programmatic labelling functions combined with an accuracy model."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core shape (gate → blind controls → scorer → thresholds → blind review of the middle) is memorable and genuinely portable, but the thresholds-on-scored-controls inconsistency, unreadable sketch lines, and the dust narrative crowding out the rules make it harder to reuse than its structure deserves."
+  }
+}

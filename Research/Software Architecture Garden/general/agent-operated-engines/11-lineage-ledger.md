@@ -93,6 +93,11 @@ shared function. Offer the queries both ways: what made this, and what did this 
 
 ## Applicability
 
+The two halves are separable. Stamp provenance whenever artefacts come from more than one kind of source; add the
+decision log when decisions are revised over time or several people decide. Many systems need the first and not the
+second.
+
+
 Use it when:
 
 - artefacts come from several kinds of sources (people, agents, detectors, programs) and will be compared, filtered
@@ -145,55 +150,83 @@ flowchart LR
 ## Sketch
 
 ```text
-value Provenance: kind (person | agent | program | preset | detector), ids: map, inputs: [(path, hash)],
+value Provenance: kind (person | agent | program | preset | detector | unknown), ids: map, inputs: [(path, hash)],
                   version, at
-value Event:      itemId, decision (accept | reject | correct | undo), actor, at, reason?
+value Artefact:   id, item, value, provenance                    -- no constructor without provenance
+value Event:      seq, artefactId, decision (accept | reject | correct | undo), actor, at, reason?, newValue?
+value ItemState:  origin: Provenance, original, current, status (pending | accepted | rejected | corrected),
+                  decisions: [Event]                             -- the stack an undo pops
 
--- stamping at creation, in every creating path
-save(path, data, ctx) → ok
-  write(path, data)
-  write(path ++ ".provenance.json", Provenance(kind: ctx.kind, ids: {session: ctx.session, eval: ctx.evalNo,
-        line: ctx.line, run: ctx.runId, model: ctx.model, prompt: ctx.promptVersion},
-        inputs: [(i.path, i.hash) for i in ctx.inputsRead], version: codeVersion(), at: now()))
+-- stamping at creation: an artefact cannot be built without its provenance
+create(item, value, ctx) → Artefact
+  return Artefact(newId(), item, value, Provenance(kind: ctx.kind, ids: {session: ctx.session, eval: ctx.evalNo,
+                  line: ctx.line, run: ctx.runId, model: ctx.model, prompt: ctx.promptVersion},
+                  inputs: [(i.path, i.hash) for i in ctx.inputsRead], version: codeVersion(), at: now()))
 
--- decisions are appended, never edited
-decide(log, itemId, decision, actor, reason?) → ok
-  append(log, Event(itemId, decision, actor, now(), reason))
+-- saving with a sidecar that names the exact content it describes
+save(path, data, prov) → ok
+  atomicWrite(path, data)
+  atomicWrite(path ++ ".provenance.json", prov ⊕ {contentHash: hash(data)})
+-- a reader treats a file whose sidecar is missing or names another hash as unstamped (kind: unknown)
 
--- the one fold, shared by every reader
-fold(events) → map itemId → Event
-  state = {}
-  for e in events:
-    if e.decision == undo: delete state[e.itemId]
-    else:                  state[e.itemId] = e
+-- decisions are appended, never edited; seq orders them, not the clock
+decide(log, artefactId, decision, actor, reason?, newValue?) → ok
+  if actor is none and not policy.anonymous: refuse(E_ACTOR, "a decision needs an actor")
+  append(log, Event(seq: log.next(), artefactId, decision, actor, now(), reason, newValue))
+
+-- the one fold, shared by every reader: artefacts and events in, state per artefact out; it has a version
+fold(artefacts, events) → map artefactId → ItemState                 -- FOLD_VERSION = 2
+  state = { a.id: ItemState(a.provenance, a.value, a.value, pending, []) for a in artefacts }
+  for e in sortBy(events, seq):
+    s = state[e.artefactId]
+    if e.decision == undo:
+      d = lastWhere(s.decisions, not undone)
+      if d is none: report("undo with nothing to undo", e); continue
+      d.undone = true                                               -- history keeps it, marked
+    else:
+      push(s.decisions, e)
+    live = lastWhere(s.decisions, not undone)
+    s.status  = live ? statusOf(live.decision) : pending
+    s.current = (live and live.decision == correct) ? live.newValue : s.original
   return state
 
 -- lineage queries
-madeBy(source) → [a for a in artefacts if matches(a.provenance, source)]
-acceptance(bySource) → { band: count(accepted) / count(decided) for band in confidenceBands(bySource) }
+madeBy(source) → [a.id for a in artefacts if matches(a.provenance, source)]
+acceptance(field) → for each value v of provenance[field]:
+  decided = [s for s in fold(…) if s.origin[field] == v and s.status ≠ pending]
+  count(s in decided where s.status in (accepted, corrected)) / count(decided)
+unstamped() → count(a for a in artefacts if a.provenance.kind == unknown)   -- audit: legacy and missed paths
 ```
 
 ## Implementation notes
 
-1. **Stamp in every creating path, not in one.** The Editor lab stamps layers added by presets, programs, scripts and
-   the agent through one helper called from each path; a path that forgets to stamp produces artefacts with no
-   origin, which every later query silently drops.
+1. **Make stamping impossible to forget.** The Editor lab stamps layers added by presets, programs, scripts and the
+   agent through one helper called from each path; a path that forgets to call it produces artefacts with no origin,
+   which every later query silently drops, biasing every rate computed from the rest. Make provenance a required
+   argument of the constructor, give artefacts made before the pattern existed `kind: unknown`, and count unknowns in
+   an audit query, so a gap shows as a number instead of disappearing.
 2. **Record origin per item, not only per file.** The gold files record the annotator once and the origin of each
    point separately; only the per-point origin allowed acceptance rates by suggestion confidence.
 3. **Keep rejected suggestions as decisions.** A rejection is information: without it, the acceptance rate of a
    source cannot be computed and the same suggestion may be offered again.
-4. **Undo is an event.** The dust review log records `undo` as an event that the fold applies; editing or deleting a
-   line would lose the history and break replay.
+4. **Undo is an event, and order is a sequence number.** The dust review log records `undo` as an event that the
+   fold applies; editing or deleting a line would lose the history and break replay. An undo pops the latest decision
+   on that artefact (marking it undone, so history keeps it), so an accept, then a reject, then an undo leaves it
+   accepted; an undo with nothing to undo is reported, not ignored. Order events by a sequence number
+   from the log, not by wall-clock time: clocks on two machines reorder concurrent decisions.
 5. **Write the fold once.** The dust project folds its review log in the review tool (Go) and again in two scoring
    scripts that copied the same function. Three folds can disagree on an edge case (an unknown decision, a malformed
-   line); one shared implementation, or one test suite run against all of them, prevents it.
-6. **Record who decided.** The dust review events record the item, the decision and the time, but not the reviewer;
-   with one reviewer that is enough, with two it is not. Add the actor before it is needed.
+   line); one shared implementation, or one test suite run against all of them, prevents it. Version the fold, and record
+   the version with every number derived from it: the acceptance rates quoted above are outputs of one fold.
+6. **Record who decided, unless policy forbids it.** The dust review events record the item, the decision and the
+   time, but not the reviewer; with one reviewer that is enough, with two it is not. Add the actor before it is needed.
+   Where privacy rules forbid naming reviewers, record a pseudonymous reviewer id or a role, and say so in the schema.
 7. **Put definitions and units in the schema.** A stored radius that is a fitted radius, not the object's radius, is
    a lineage failure of the data itself (see [Chapter 2](02-units-travel-with-values.md)).
-8. **Use a sidecar when the artefact's format must not change.** GCV-006 proposes a provenance sidecar beside every
-   file goja-cv saves, because the saved JSON is read as plain rows by other scripts; the sidecar adds lineage without
-   breaking readers.
+8. **Prefer inline provenance; use a sidecar when the format must not change, and bind it to the content.** GCV-006
+   proposes a provenance sidecar beside every file goja-cv saves, because the saved JSON is read as plain rows by
+   other scripts. Two separate writes can leave a file without its sidecar, or with a stale one; recording the hash of
+   the content in the sidecar makes both cases detectable, and readers treat them as unstamped.
 9. **Hash inputs that may change.** A provenance record that names a file by path alone is wrong after the file is
    re-exported; record a content hash, or at least size and modification time, as goja-cv already does for its cache
    keys.

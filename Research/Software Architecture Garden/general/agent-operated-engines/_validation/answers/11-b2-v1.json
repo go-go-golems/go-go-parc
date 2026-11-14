@@ -1,0 +1,139 @@
+{
+  "restatement": {
+    "intent": "Every artefact an agent, program or person produces carries, from the moment it is created, a record of what made it and what it read; every judgement passed on it is appended, never edited, and current state is derived by folding that log.",
+    "problem": "When artefacts do not record their maker and decisions overwrite one another, no source can be measured, filtered, audited or undone without destroying the evidence.",
+    "solution": "Split into two halves that are usually adopted together but are separable. (1) A stamper on every creating path attaches a provenance record to each artefact: maker kind and ids, inputs with hashes, code/model version, time — inline or as a sidecar. (2) Every decision about an artefact is an appended event (accept, reject, correct, undo) with actor, time and reason; one shared fold function turns the log (overlaid on the artefacts) into current state, and queries run both ways: what made this, and what did this source make."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "What made it (maker kind plus identifiers, inputs with hashes, version, time) and who decided what about it (the appended decision events).",
+      "where": "Intent; Solution"
+    },
+    {
+      "id": "Q2",
+      "answer": "A rejection is information: without it the acceptance rate of a source cannot be computed, and the same rejected suggestion may be offered again.",
+      "where": "Implementation notes, note 3"
+    },
+    {
+      "id": "Q3",
+      "answer": "Review events record item, decision and time but not the reviewer — enough with one reviewer, not with two. The chapter's advice is to add the actor before it is needed.",
+      "where": "Implementation notes, note 6"
+    },
+    {
+      "id": "Q4",
+      "answer": "The corrections went into a review log of decisions; scoring scripts fold that log over the gold labels at scoring time, so the original labels stay intact and the correction is itself traceable.",
+      "where": "Motivation; Implementation notes, note 10"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Two maker kinds (people, agent sessions) produce the same kind of artefact, results must be measured per source (revert rates) and one faulty source version must be listable wholesale — exactly the applicability conditions. The hard part is granularity: 'which lines' needs per-item origin, not per-commit origin.",
+      "participants": {
+        "Provenance record": "commit (ideally hunk) stamp: kind person|agent, ids {session, model, promptVersion, step}, inputs = files read plus lockfile hashes, base revision, time",
+        "Stamper": "one helper called from every commit path: agent commit tool, human CLI wrapper, merge bot, cherry-pick/rebase automation",
+        "Schema": "fixed trailer keys and definitions (what counts as model version, prompt version, 'line authored by'), so the three queries agree on units",
+        "Decision event": "revert, force-push correction, review approval; itemId = commit sha",
+        "Decision log": "append-only table or notes ref keyed by sha, written by the revert bot and reviewers, not by the authors",
+        "Fold": "single function mapping sha → current decision plus surviving line ranges, shared by the revert dashboard, blame/blame-like view and CI",
+        "Lineage queries": "madeBy(promptVersion) → all commits and lines from that prompt; sourceOf(line); revertRate(source)"
+      },
+      "sketch": "value Provenance: kind (person | agent), ids: {session, model, prompt, step},\n                  inputs: [(path, hash)], base, at\n\ncommit(repo, diff, ctx) → sha\n  sha = git.commit(diff, msg ++ trailer(Provenance(ctx.kind, {session: ctx.run, model: ctx.model,\n            prompt: ctx.promptVersion, step: ctx.step},\n            inputs: [(f, hash(f)) for f in ctx.readFiles] ++ [(lockfile, hash(lockfile))],\n            base: head(repo), at: now())))\n  write(notes/lineage, sha, provenance)      -- sidecar, commit format unchanged\n\nrevert(sha, actor, reason) → ok\n  append(log, Event(sha, revert, actor, now(), reason))\n\nfold(events) → map sha → Event            -- the one function\n  state = {}\n  for e in events sorted by log sequence:  -- not by wall clock\n    match e.decision:\n      undo → state = minus(state, e.itemId)\n      _    → state = state ⊕ {e.itemId: e}\n  return state\n\nmadeBy(prompt) → [c for c in commits if c.provenance.ids.prompt == prompt]\nrevertRate(source) → count(revert, source) / count(decided, source)",
+      "key_notes": [
+        "Note 2 (origin per item) matters most: commit-level stamps decay to file or repo level after squash merges and rebases, so 'which agent session wrote which lines' requires hunk/line records, not just a commit trailer.",
+        "Note 1 (stamp in every creating path): the paths here are numerous — agent tool, human CLI, merge bot, cherry-pick, automated formatting commits — and an unstamped commit is silently dropped by madeBy and undercounts revert rates.",
+        "Note 5 (write the fold once): three consumers already exist (revert dashboard, blame view, CI), which is precisely the dust three-folds situation.",
+        "Note 9 (hash inputs that may change): prompt files and dependency lockfiles must be hashed, otherwise 'prompt version 3' names a file that no longer exists.",
+        "Note 8 (sidecar when the format must not change): a commit trailer plus a notes ref keeps `git log` readable by existing tooling."
+      ],
+      "risk": "Provenance collapsing at merge time: one squashed or rebased commit turns a hundred agent-authored lines into a single human-authored commit, so the revert-rate-by-source number silently becomes wrong rather than unavailable."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The proposed version fails the chapter's own do-not-use clause: the actor on every decision is the exact field the legal rule forbids, and several of the pattern's payoff queries (acceptance by source, error by source, madeBy a reviewer) are defined in terms of it. Only a reduced form fits.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, third do-not-use bullet ('privacy rules forbid recording who did what; record only what the rules allow, and say so') is the governing clause; the reduced pattern records study, protocol version, AI triage model version and inputs as provenance, and appends decisions with the actor field absent or a per-session blind token that cannot be re-linked.",
+        "Note 6 ('add the actor before it is needed') is explicitly the wrong advice here and should not be applied.",
+        "Note 7 (definitions and units in the schema) still carries weight: the audit will ask what 'peer review complete' means.",
+        "Note 10 (corrections overlay, never rewrite) still applies to corrected reads, but the correction event must also be actor-free, and coarse timestamps are needed because wall-clock time plus a duty roster re-identifies the radiologist."
+      ],
+      "risk": "Recording time, study and reviewer 'pseudonymously' and calling it anonymous: in a department of thirty with a published roster, timestamp plus pseudonym re-identifies, so the pattern quietly violates the requirement it was meant to satisfy."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution / Structure",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "Two patterns are welded together: cheap creation-time provenance stamping, and the much heavier append-only decision log with a shared fold. They have different costs and different do-not-use conditions, so a reader cannot tell which half to adopt, and the do-not-use list answers only for a mix of both.",
+      "suggestion": "State explicitly that the two halves are separable, and give each its own trigger: stamp always when artefacts have multiple maker kinds; add the log only when decisions get revised and must be undone."
+    },
+    {
+      "section": "Sketch (fold, acceptance)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The sketch does not implement the chapter's own solution. `fold(events) → map itemId → Event` takes only events, but note 10's overlay folds the review log over the gold labels, so artefacts are a second input. `undo` as `delete state[itemId]` makes the pre-undo state unreachable and contradicts 'never lose history'. And `acceptance(bySource)` divides accepted by decided per confidence band, but nothing joins an event to a suggestion's confidence band — that lives on the suggestion's provenance, not on the Event.",
+      "suggestion": "Write `fold(events, artefacts) → State` with an explicit as-of parameter, keep undo as an entry in the state (a view, not a deletion), and show the join that attaches confidence band to each decided item."
+    },
+    {
+      "section": "Sketch (save) and Implementation note 1",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "`save` writes the artefact and then writes the provenance sidecar; a crash between the two leaves a permanently unstamped artefact, which is the exact failure note 1 warns about, and `path ++ \".provenance.json\"` silently collides when many small artefacts land in one directory.",
+      "suggestion": "Stamp to a temp file and rename both, or write the provenance record first and let the artefact reference it; use a hashed sidecar path or a single directory-level index."
+    },
+    {
+      "section": "Implementation note 5 / fold ordering",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Note 5 worries about folds disagreeing on an unknown decision or a malformed line, but the far likelier disagreement is order: events carry only `at: now()`, and wall clocks across machines reorder concurrent appends, so two folds can produce different state from the same log.",
+      "suggestion": "Give events a monotonic sequence number (log offset or Lamport clock) and have the shared fold sort by it; demote `at` to a display field."
+    },
+    {
+      "section": "Applicability vs Implementation note 6",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The Applicability list says to drop actor when privacy rules forbid it, while note 6 states unconditionally 'Add the actor before it is needed.' The advice contradicts itself with no cross-reference, and note 6 is the one a reader will follow.",
+      "suggestion": "Qualify note 6 with the privacy exception and say what to record instead (pseudonymous actor, coarse time, actor held in a separately access-controlled store)."
+    },
+    {
+      "section": "Implementation notes (notes 5, 7, 8, 9)",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Four of ten notes open with project specifics (dust's Go scripts, the fitted radius, GCV-006, goja-cv cache keys); note 7 duplicates Chapter 2 and does not really belong here. The general rule gets buried and the chapter reads longer than the pattern needs.",
+      "suggestion": "Lead each note with the rule, keep one clause of evidence, and cut note 7 to a cross-reference."
+    },
+    {
+      "section": "Problem / Solution / Structure / Collaborations",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "The same content — stamp at creation, append decisions, fold once, query both ways — is stated four times in near-identical wording before the Sketch, so a reader covers the same ground four times to reach the mechanics.",
+      "suggestion": "Keep Solution as the single statement and reduce Structure to the participant table; drop the repeated enumerations in Collaborations to the parts that add mechanics (the join for confidence bands, the undo path)."
+    },
+    {
+      "section": "Applicability (do-not-use list)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Append-only logs cannot honour an erasure request: there is no way to remove a person's decisions from a log whose whole value is that it is never edited. The chapter mentions only 'record only what the rules allow'.",
+      "suggestion": "Add the escape hatches: tombstoning the payload while keeping the sequence position, or cryptographic erasure with per-subject keys."
+    },
+    {
+      "section": "Solution / Implementation note 9",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Reproducibility is claimed as a consequence, but the record lists inputs and code version only. A fold over a log reproduces state; reproducing the artefact also needs seeds, environment and dependency versions, none of which the provenance record names.",
+      "suggestion": "Add seeds, dependency lockfile hash and environment id to the recommended record, or narrow the consequence claim to 'audit and partially reproduce'."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The provenance half is broadly and cheaply applicable and well argued; clarity and reusability are held back by merging it with the decision-log half, by a fold sketch that contradicts the text, and by advice that contradicts itself on recording the actor."
+  }
+}

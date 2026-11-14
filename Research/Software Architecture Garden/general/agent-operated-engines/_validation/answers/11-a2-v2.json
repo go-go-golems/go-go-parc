@@ -1,0 +1,168 @@
+{
+  "restatement": {
+    "intent": "Every artefact carries, from the moment of creation, a record of what made it and from what inputs; every decision about it is an appended, never-edited event, so that any label, layer or result can be traced to its origin and corrected without losing history.",
+    "problem": "When artefacts do not record their maker and inputs, and decisions overwrite one another in place, no one can measure a source, filter by origin, audit a result, or undo a decision without destroying what came before.",
+    "solution": "A Provenance record (maker kind, ids, input paths with hashes, code/model version, time) is a required argument of every creation path, so nothing can be built without it. A Schema fixes field names, definitions and units. Decisions (accept, reject, correct, undo) go into an append-only log with actor, time, reason and a sequence number; one shared fold turns artefacts plus log into current state. Two query directions — sourceOf(artefact) and madeBy(source) — plus per-source aggregates are then free."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A file-level annotator tells you who touched the file, not who produced each point; only per-item origin lets you join each accepted point to the suggestion it came from and compute acceptance by suggestion confidence (81/47/20 %). File-level origin also cannot support drawing a per-class training mix such as agent_pos_frac.",
+      "where": "Implementation notes 2 (and Motivation, 'Measuring the agents')"
+    },
+    {
+      "id": "Q2",
+      "answer": "Editing or deleting a line destroys the record of what was decided and makes replay impossible; recording undo as an event means the fold reproduces the same state from the same log, and the undone decision stays visible. Undo pops the latest decision on that artefact, and events are ordered by a log sequence number because clocks on two machines reorder concurrent decisions.",
+      "where": "Implementation note 4; Sketch (decide/fold)"
+    },
+    {
+      "id": "Q3",
+      "answer": "The folds drift: three copies can disagree on edge cases (an unknown decision, a malformed line), so training, scoring and review see different states and per-source rates no longer match. The chapter's remedy is one shared implementation, or one test suite run against all copies.",
+      "where": "Forces ('Readers against writers'); Implementation note 5"
+    },
+    {
+      "id": "Q4",
+      "answer": "When the artefact's format must not change because other programs read it as plain rows (goja-cv's saved JSON). The sidecar must be written atomically with the file: both to temporary names, then rename the sidecar first, so a file never appears without its record.",
+      "where": "Implementation note 8; Forces ('Inline against sidecar'); Variations"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Exactly the two halves the chapter separates: artefacts from several kinds of source (three engines, humans) that must be compared and weighted by source, and decisions (accept/edit/reject) revised over rounds by several reviewers. Both halves are needed, not just the first.",
+      "participants": {
+        "Provenance record": "Per translated segment: kind (engine | person), engine name, engine version, prompt/model version, document id, segment id, hash of the source text, pipeline code version, timestamp.",
+        "Stamper": "The one helper called by each engine adapter and by the human-editing path when a candidate translation is written; a segment written without it must fail construction.",
+        "Schema": "Segment record fields and units: what 'edit distance' or 'quality score' means, and whether an edited segment counts as accepted or as corrected.",
+        "Decision event": "Reviewer action per segment: accept | edit (with newValue = edited text) | reject | undo, plus actor, round, reason.",
+        "Decision log": "One append-only review log per project/batch, spanning rounds; sequence-numbered inside the log.",
+        "Fold": "One function, used by the acceptance dashboard, the engine report and the export to training, producing per-segment current state and status.",
+        "Lineage queries": "sourceOf(segment), madeBy(engine+version), acceptance(engine), edit rate by engine, unstamped() for segments arriving by paste or legacy round."
+      },
+      "sketch": "```text\nvalue Prov: kind (engine | person), ids {engine, modelVersion, promptVersion, doc, segment},\n            inputs [(srcText, hash)], version, at\nvalue Event: seq, segmentId, decision (accept | edit | reject | undo), actor, round, at, reason?, newValue?\n\n-- every engine adapter and the human path go through the same stamper\ntranslate(doc) -> [Artefact]\n  for seg in doc.segments, eng in engines:\n    create(seg, eng.output, ctx{kind: engine, ids: {engine: eng.name, engineVer: eng.version,\n                            prompt: eng.promptVer, doc: doc.id, segment: seg.id},\n                            inputs: [(srcText(seg), hash(srcText(seg)))], version: pipelineVersion()})\n\n-- a round of review: one event per segment per reviewer action\ndecide(log, segmentId, accept | edit | reject, actor, round, reason?, newValue?)\n\n-- single shared fold over all rounds\nfold(artefacts, events) -> map segmentId -> ItemState\n\n-- questions\nmadeBy(engine: \"eng-B\", engineVer: \"3.1\")            -- find everything to re-review after the bug\nacceptance(engine) -> rate over decided segments      -- definition of 'decided' stated in the schema\neditRate(engine)\nunstamped() -> count(kind == unknown)                 -- translations pasted in by hand\n```",
+      "key_notes": [
+        "Note 2 (origin per item, not per file): stamp per segment; per-document provenance makes per-engine acceptance impossible and it cannot be recovered later.",
+        "Note 6 (record the actor): several reviewers over several rounds is precisely the case the chapter says one-reviewer dust data could not handle; use an actor id or a stated pseudonym, and say which in the schema.",
+        "Note 4 (undo is an event, order by seq not clock): rounds mean concurrent reviewers on the same segment; wall-clock order will interleave decisions differently on each replay.",
+        "Note 3 (keep rejected suggestions): rejections are the denominator for engine acceptance; also needed so a rejected engine segment is not re-offered next round.",
+        "Note 7 (definitions and units in the schema): 'edited' must be defined as accepted-with-correction or rejected-before-edit, otherwise the four engines' rates are not comparable — this is the metric the team actually asked for.",
+        "Note 1 + Note 9 (make stamping unmissable; hash inputs that may change): the source text is re-exported between rounds, so a path-only input record is wrong by round three; and any segment not produced by the pipeline must show up in unstamped() rather than vanish."
+      ],
+      "risk": "Letting 'edited' count as accepted (or dropping edited segments from the denominator) without stating it in the schema, so engine acceptance rates flatter the engines; the second risk is folding the log separately inside each engine's report script, which produces four different tables for the same question and breaks the exclusion after the bug."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is the chapter's own exclusion: cached tiles are disposable intermediates that nothing will ever question, and the cache key already identifies them (a hash of their inputs is the provenance). Stamping every tile makes the provenance record a required constructor argument on the hottest path, and logging every eviction adds exactly the volume of tiny events the Applicability section says costs more than the questions answered.",
+      "participants": {
+        "Provenance record": "Nothing new — the cache key already is the input hash; a per-tile record duplicates it and can go stale.",
+        "Stamper": "Not applicable to tiles. Only if a tile is ever promoted to a durable output (published frame, exported asset) should the promoting code call the stamper on that output.",
+        "Schema": "Only the cache key formula needs defining and documenting (what is hashed, in what order).",
+        "Decision event": "Not applicable; an eviction under memory pressure is a cache policy outcome, not a decision anyone will audit.",
+        "Decision log": "Not applicable.",
+        "Fold": "Not applicable — the tile is its own value, computed from the key.",
+        "Lineage queries": "None for tiles. If promotion happens, sourceOf(publishedAsset) is worth having at the promotion boundary only."
+      },
+      "sketch": "",
+      "key_notes": [
+        "Applicability 'Do not use it when' — disposable intermediates and volume of tiny events: both exclusions apply directly here.",
+        "Note 8 (inline vs sidecar, atomic writes): even if provenance is wanted, writing a sidecar per tile doubles the write rate and the crash surface; make the key self-describing instead (version the hash formula) rather than adding a second file.",
+        "Note 1 (make stamping impossible to forget): the cheapest correct move is not to require it at all on the tile path, so a future tile writer cannot forget it."
+      ],
+      "risk": "Adopting it partially: adding provenance only to the cache write but not to the promotion step, so the durable outputs — the ones anybody will actually question — remain unstamped while the cost is paid where nobody looks."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (fold, undo)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`undo` pops the latest decision off `s.decisions`, so the log and the derived state stop corresponding: no reader can see that anything was undone, and a second undo pops a second real decision instead of removing the first undo. Popping an empty list after several undos is also undefined.",
+      "suggestion": "Keep `s.decisions` as the full ordered trace, and compute status/current from an explicit stack derived during the fold; make undo-of-undo either an error (refuse(E_UNDO_NOTHING, …)) or a defined negation. State which, since replay must be total."
+    },
+    {
+      "section": "Sketch (fold, corrections)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`s.current = last.decision == correct ? last.newValue : s.original` discards an earlier correction as soon as any later accept/reject/review event arrives; corrections are supposed to overlay, not be lost. The dust control corrections in note 10 would revert if a reviewer later touched the same item.",
+      "suggestion": "Carry the current value forward: fold each event into (value, status), where `correct` replaces the value and other decisions leave it alone; make that explicit in the sketch."
+    },
+    {
+      "section": "Sketch (acceptance query)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`acceptance(field)` counts over the folded stack, so a suggestion that was accepted and then undone leaves no decision and drops out of the denominator instead of counting against the source; and `corrected` is counted as a success even when the correction rewrote the value entirely. The measured rate therefore depends on later review activity, not on the source.",
+      "suggestion": "Define the metric over events (e.g. the outcome of the first decision per artefact, with undo recorded as its own outcome) and state in the schema how `correct` contributes; do not let undo silently remove a sample."
+    },
+    {
+      "section": "Solution / Problem",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The 'Therefore:' bundles two separable mechanisms (stamping provenance, event-sourcing decisions) into one imperative, while Applicability, Forces and the participant table all treat them as halves that systems choose between. A reader deciding whether to apply the pattern cannot see where the mandatory core ends.",
+      "suggestion": "Split the Solution into 'stamp' (always) and 'log + fold' (only when decisions are revised), and say in one line what you lose by taking only the first."
+    },
+    {
+      "section": "Consequences / Implementation notes",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Consequences says logs grow and 'old logs archived', but the fold is defined as replaying the whole event list from artefact origin; archiving as described either makes the archive unreadable by the fold or silently changes historical status. There is no snapshot or checkpoint concept anywhere.",
+      "suggestion": "Add a note on compaction: write a snapshot of state plus a high-water sequence number, and require the fold to accept (snapshot, events>snapshot) — the same shape many event stores use."
+    },
+    {
+      "section": "Solution / Structure / Lineage queries",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "'Both ways' means maker↔artefact only. The other direction that note 9's scenario needs — this input file was re-exported or found corrupt, what was derived from it? — has no query, and T1-style exclusion usually needs it transitively (engine output → reviewed segments → training batches).",
+      "suggestion": "Add `derivedFrom(inputPath | inputHash)` to Lineage queries, and say whether transitivity across artefacts is the fold's job or the caller's."
+    },
+    {
+      "section": "Implementation note 1",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "`kind: unknown` is used both for legitimate legacy artefacts and for a new path that forgot to stamp, so the audit count the note promises mixes a data-migration fact with a bug and can never be driven to zero honestly.",
+      "suggestion": "Add a second field (e.g. `unknownReason: legacy | missed | unrecordable`) so `unstamped()` can report the gap and the legacy backlog as separate numbers."
+    },
+    {
+      "section": "Implementation note 8 (sidecar atomicity)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Two renames are not one transaction: renaming the sidecar first guarantees a sidecar can exist with no file (harmless) but not that a reader never sees a new file with the previous sidecar, nor that the pair matches after a crash or on a network filesystem. The comment says 'both or neither'; the code achieves something weaker.",
+      "suggestion": "Put the artefact's content hash inside the sidecar and have the loader verify it, refusing or re-fetching on mismatch; state that orphan sidecars are ignored by readers."
+    },
+    {
+      "section": "Applicability ('Do not use it when')",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "The privacy case is not a reason not to use the pattern — it is a reason to use it with reduced fields (pseudonymous id, role). Listing it under 'do not use' tells a reader facing a privacy constraint to skip a pattern that note 6 says to apply carefully.",
+      "suggestion": "Move it into 'Use it when', as a variant: record a pseudonymous actor or role and say so in the schema."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The dust passage leans on unexplained project vocabulary (`agent_pos_frac`, 'controls', 'tiles', 'the speck's own', confidence bands) and a second example (goja-cv, GCV-006) arrives before the reader knows what the pattern is; the 81/47/20 numbers are convincing only if the reader already knows what a confidence band is here.",
+      "suggestion": "Gloss the two or three terms that carry weight, keep one example in Motivation, and move goja-cv to note 8 where it is actually used."
+    },
+    {
+      "section": "Motivation / Collaborations / Implementation notes 2, 4, 5, 6, 10",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The same dust material is narrated three times (the gold-label origin story, the review-log correction, the three-folds anecdote), which inflates the chapter and lets the reader skim the middle without missing anything.",
+      "suggestion": "Tell each example once, in the section where its lesson is load-bearing, and cross-reference rather than retell."
+    },
+    {
+      "section": "Structure (Stamper) vs Sketch (create)",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "The participant table promises a 'Stamper' called by every creating path, but the sketch builds the Provenance inline inside `create` and never shows the helper; a reader cannot tell whether the Stamper is a function, a required constructor argument, a decorator, or a convention.",
+      "suggestion": "Show the Stamper as an explicit function that `create` calls, and show one path that cannot reach creation without it."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The participant set and the two query directions are immediately reusable, but the sketch's fold (undo by popping, corrections dropped by later events) and the acceptance metric are wrong enough to mislead an implementer, and the chapter bundles two separable patterns under one rating."
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "restatement": {
+    "intent": "Run an agent as one isolated, non-interactive invocation per unit of work, so its result depends only on what you gave it: a prompt assembled from versioned parts and saved with the run, tools mounted with least privilege, and nothing from the operator's environment. Ask for one machine-readable answer in a fixed format, extract it defensively, and keep the full event stream and a readable transcript.",
+    "problem": "An agent run that inherits the operator's environment, holds an open conversation and answers in free text cannot be repeated, compared or audited, and a batch of such runs cannot be retried or scored.",
+    "solution": "Make the run a function call with explicit arguments (item, model, thinking, prompt version, tag) and give it its own directory. Assemble the prompt from versioned parts and save it there; write a per-run tool mount with read-only inputs, a fresh writable workspace and never the answers; start the agent non-interactively with built-in tools, context files, skills and templates switched off. Require one fenced JSON object in the final message, extract it from the event stream with a fixed ladder of known repairs plus schema validation, keep events and a transcript, and let a batch runner run variants under tags in parallel, skipping runs that already have a valid answer."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "So that a surprising result can be explained: the exact prompt is the first thing to read, and the run directory must show what the run was actually given. Prompt versions are kept as separate files behind a switch, never edited in place, so an old run still points at the text it saw.",
+      "where": "Implementation notes §2; Consequences ('reconstructible from their directories')"
+    },
+    {
+      "id": "Q2",
+      "answer": "The answers — the ground truth. Items are mounted under blind ids, controls with known answers are mixed in, and the answer key lives outside every mount, so no run can read its own marking scheme and score itself.",
+      "where": "Solution; Implementation notes §3 ('Never mount the truth')"
+    },
+    {
+      "id": "Q3",
+      "answer": "Cheap reruns: the batch lists the specs and drops any whose answer file exists with status ok AND a matching spec hash, so a rerun retries only failures and missing runs; the rest go through a parallel map. Variants stay apart by tag — each tag has its own answer directory and log, and comparing variants is a join on item ids.",
+      "where": "Solution; Collaborations 1–2, 5; Implementation notes §6; Sketch batch()"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because the contract is strict while models slip: a strict parser loses a whole run to one typo, a lenient one accepts wrong answers. So it extracts only from the final message, takes the last fenced JSON block, tries a fixed ladder of repairs in order, then validates the object (required keys, types, allowed values). Dust needed three repairs: a dropped key (`{\"q003\", …}` — the key without its colon), a colon after a bare id, and raw newlines inside JSON strings; without them a run of six answers was lost.",
+      "where": "Forces ('strict contracts against model slips'); Implementation notes §4; Sketch extract()"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "This is the pattern's home case: thousands of independent units, a result that must be compared across three models and two prompt versions, and retries/audits afterwards — 12,000 sealed runs is exactly what the batch runner is for. The one added wrinkle is that the OCR tool is itself a source of variance, so it must be the same tool on the same input for every variant.",
+      "participants": {
+        "Run spec": "one invoice (blind id) + model + thinking level + decoding + promptVersion + tag such as \"modelB-v2\", so 3 models × 2 versions × 2,000 invoices = 12,000 specs",
+        "Run directory": "runsRoot/<tag>/<invoiceId>/ holding prompt.md, tools.json, ws/, events.jsonl, transcript.html, answer.json",
+        "Prompt assembler": "role + how to work + required steps + known mistakes (e.g. per-line vs invoice total, date formats) + blind invoice id + the OCR'd text or the pointer to it + field list + output contract with a literal JSON example (vendor, invoice_no, date, currency, net, tax, total)",
+        "Tool mount": "per-run MCP config exposing the OCR tool over exactly this invoice's scan (read-only) and nothing else; write access limited to dir/ws; never the corpus directory and never invoice_labels/",
+        "Agent invocation": "non-interactive, builtin tools / context files / skills / prompt templates off; the prompt file is the only input",
+        "Extractor": "last fenced JSON block of the final message, repair ladder, validate against the field schema — types, allowed currency codes, and that the returned invoice id is the blind id that was mounted",
+        "Batch runner": "12,000 specs, ~6 parallel, tag per (model, version), skips ok+hash-matched answers, counts timeout / no answer / invalid answer as a wrong answer and reports a failure rate per tag"
+      },
+      "sketch": "specs = [RunSpec(inv.id, m, \"medium\", pv, tag: m.short ++ \"-\" ++ pv)\n         for m in [modelA, modelB, modelC] for pv in [\"v2\", \"v3\"] for inv in invoices]\nbatch(specs, parallel: 6)\n\nrun(spec) → Answer | Failure\n  dir = fresh(root / spec.tag / spec.item)\n  write(dir / \"prompt.md\", assemble(spec.promptVersion, blind(invoice(spec.item))))\n  write(dir / \"tools.json\", mount(ocr: readOnly(scan(spec.item)), write: dir / \"ws\"))  -- not the corpus, not the labels\n  events = agent(cwd: dir, prompt: read(dir / \"prompt.md\"), model: spec.model, thinking: spec.thinking,\n                 builtinTools: none, contextFiles: none, skills: none, templates: none, nonInteractive: true)\n  write(dir / \"events.jsonl\", events); exportTranscript(events, dir / \"transcript.html\")\n  return extract(events)   -- final message only, last fenced JSON, fixed repair ladder, schema + blind-id check",
+      "key_notes": [
+        "§3 and §1 first: the corpus directory must not be mounted — scans carry the answer in filenames, embedded PDF text or neighbouring label files, and one mounted corpus also makes 12,000 runs share state. Mount one invoice and the OCR tool, nothing else.",
+        "§1: the flags close the agent's own configuration channels, not the environment — 12,000 runs touching a provider key, a home-directory config or the network repeat any leak 12,000 times; a container per run (Variations) is worth the startup cost at this batch size.",
+        "§4 and the repair policy: invoices produce long strings (vendor names, addresses) where raw newlines and inner quotes are the common slips, so validation must check the schema and the returned blind id, and every repaired answer should be recorded so a repaired variant is not silently scored as clean.",
+        "§6: tags carry (model, promptVersion); the comparison is a join on the blind invoice id, and failures must be scored as wrong answers per tag or a model that answers only easy invoices looks better.",
+        "§2 and §9: the OCR wrapper script is a helper dir mounted read-only — read-only for the agent is not frozen for the operator; hash or copy the OCR wrapper into the run directory, or a mid-batch edit silently gives v2 and v3 different tools.",
+        "§11: OCR is slow and flaky — a timeout and a per-tag budget are not optional, and a batch of 12,000 will otherwise be half-finished at dawn."
+      ],
+      "risk": "Mounting the whole scan corpus (or a shared OCR cache keyed by filename) and letting either labels or cached text leak in, so the six variants are no longer compared on the same inputs and the accuracy table means nothing."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is the chapter's own explicit do-not-use case: the task needs broad access to a live environment and a person in the loop, and sealing removes both the live logs/dashboards and the conversation that makes the work useful. Each sealed call would also start from zero, so the engineer's 'no, look at the 14:02 deploy' turn — the whole value of the session — has nowhere to go; the resumable-runs variation does not rescue it, because the engineer's turns are the context, not a follow-up brief.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "None of the sealing notes apply: notes 1 and 3 (mount least privilege, never mount the truth) are exactly backwards here — the run needs the truth (live state) to say anything, and a read-only slice of it goes stale in seconds.",
+        "Only §11 survives, and only partly: bound each agent call and watch for a hung tool. The canary half is irrelevant in a session a human is already reading.",
+        "§5 (keep the event stream and a transcript) is worth borrowing for the audit trail, but note that the chapter says auditing for live incidents must come from logs, not from runs — so the log is the record, and the agent transcript is a supplement.",
+        "Legitimate hybrid: keep the interactive session, and use sealed runs only for the reproducible sub-tasks it spawns (e.g. triage 200 log slices into a fixed JSON shape), each with its own directory and tag."
+      ],
+      "risk": "Forcing the fit: the agent gets sealed into a directory with a stale log excerpt, returns a schema-valid JSON 'hypothesis' with no evidence behind it, and the engineer spends the incident reading a plausible answer instead of debugging."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch — extract()",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The ladder is a list of single repairs and the result records `repairsApplied: [repair]` — only the last one tried. Real blocks cluster: a dropped key plus raw newlines, or an inner quote plus a mismatched closer, needs two repairs at once, so the ladder as written misses them, and when it does succeed the answer file records at most one repair, so a repaired answer is indistinguishable from a clean one in scoring.",
+      "suggestion": "Apply repairs as an accumulating set (try each repair, then pairs or a repair-until-stable loop), and write the full applied set into the answer file. Decide the policy explicitly: repaired answers are accepted but flagged and reported as a separate rate per tag, or are re-asked rather than accepted."
+    },
+    {
+      "section": "Solution vs Sketch (answer contract)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The prose asks for 'one fenced JSON object as the final message', but extract() takes `finalAssistantText(events)` and then `lastFencedJson(text)` — which happily accepts a final message with prose, or several blocks, or an explanation after the answer. Note 4 says 'extract from the final message only' as if that settles it. A reader cannot tell whether trailing prose is a failure or is tolerated.",
+      "suggestion": "State one rule and make Intent, Solution, note 4 and the sketch agree — e.g. 'the answer must be the last fenced block of the final message; anything model-written after it means Failure(\"prose after answer\")'. Say why the rule is that one (tolerance vs. catchable self-correction)."
+    },
+    {
+      "section": "Sketch mount() and Consequences",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The mount records paths (`read: [dataDir, helpersDir]`), not contents or versions, yet Consequences claims runs are 'reconstructible from their directories (exactly what each was given)'. Note 9 admits editing a script mid-batch changes in-flight runs, but the chapter never turns that observation into a requirement: a run directory cannot tell you which version of the helper or the input it ran against.",
+      "suggestion": "Add a rule: the run directory records a content hash (or a copy) of every mounted read-only input and of the agent version, and the batch refuses to compare two tags whose input hashes differ. Note 9 then becomes the symptom this rule prevents."
+    },
+    {
+      "section": "Forces vs Solution/extract()",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "'Strict contracts against model slips' is posed as a force but never resolved: the answer is a lenient repair ladder plus schema validation, which is precisely the 'accepts wrong answers' horn. Nothing says which slips are repairable (syntax) and which must fail (a missing field, an id that was not mounted, a total that does not add up). `validate(obj, schema)` checks keys, types and allowed values only — an answer about the wrong invoice passes.",
+      "suggestion": "Add a repair policy line: repair syntax only; validate against the run's own inputs (the blind ids in the answer must be the ids that were mounted, row counts must match) and fail everything else. This also stops a hallucinated id from being scored as an answer."
+    },
+    {
+      "section": "Sketch batch() and Structure/Batch runner",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Note 11 says 'give the batch a budget' and the Batch runner row says it 'logs start and end', but `batch(specs, parallel: 6)` has no budget parameter and no start log, and the answer status has only ok/failed. So two batch invocations on the same tag double-run every unfinished item, and a killed batch leaves no record that a run was in flight.",
+      "suggestion": "Give the spec state machine a `started` marker (lock file or run id) so concurrent batches exclude each other, add `maxCost` / `maxRuns` and a per-tag cap to batch(), and put the start/end log line in the sketch. Distinguish transient failures (timeout, provider 5xx) from systematic ones (unparseable, invalid) and cap retries on the latter."
+    },
+    {
+      "section": "Implementation notes §1",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The pattern is written agent-agnostically, but the only place that tells you how to seal any agent is pi-specific: `--no-builtin-tools --no-context-files --no-skills --no-prompt-templates`, a per-run MCP config, 6 workers, a 20-minute timeout, transcript.html. The general rule (close configuration channels, allowlist tools, one directory) is stated but buried under the flags, and 'the flags differ per agent product' is the only general sentence.",
+      "suggestion": "Front-load the general rule as a three-item checklist, then keep pi as an explicitly labelled example box; add one line each for the two other shapes the Consequences and Variations already assume (a fresh container, a plain API call with no tools)."
+    },
+    {
+      "section": "Problem/Solution — 'one unit of work'",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The unit of work is presented as one item (answerPath is per tag/item, skip is per item), but note 4's evidence is 'a whole run of six answers was lost', so a single run sometimes answers six items. Then retry granularity, failure-rate-per-item and the join on item ids all become ambiguous — a failed six-item run counts as one failure or six?",
+      "suggestion": "Define the unit once: either one item per run (and rewrite note 4's example) or say a run may batch k items, with the answer file holding k rows keyed by blind id and failures counted per missing row. Say what you actually did in dust."
+    },
+    {
+      "section": "Motivation and Consequences",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The three Motivation bullets restate what Solution then says at length (run directory contents, switched-off flags, fenced JSON + extraction), and the dust evidence ('360 judgements per variant', 'explained every accuracy difference between models') appears three times: Motivation, note 5, and Consequences. The reader pays for the same material twice before reaching the pattern.",
+      "suggestion": "Cut Motivation to the failure story plus the general problem (which is the part that generalises), keep the 360-judgement evidence once in note 5 or Consequences, and let Solution be the only place the shape is described."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The participant list, collaborations and do-not-use cases make it genuinely reusable, but the answer contract is stated two different ways, the extraction sketch mis-records repairs, and sealing/reproducibility rules are argued in idioms (pi flags, path-only mounts) rather than stated generally."
+  }
+}

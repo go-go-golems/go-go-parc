@@ -1,0 +1,140 @@
+{
+  "restatement": {
+    "intent": "Give a program session exactly one directory it may write, an ordered list of directories it may only read, and no other file access, enforced by the operating system rather than by path-string checks.",
+    "problem": "When an agent's programs may name any path, one unexpected path — a link, a repeated flag, a second code-loading mechanism — defeats path-string checks and lets them read or overwrite data they must not touch.",
+    "solution": "Hold an OS root handle for each root (os.Root, openat2/RESOLVE_BENEATH) and resolve every path through it: relative names in the writable root then the read roots in order, absolute names only if inside a root. Writes go only to the writable root, never through a link and never over a file the session opened (compared by file identity), via an exclusively created random temporary file renamed into place. Expose exactly one code loader and make privilege-bearing flags single-use."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A predictable temporary name can be planted as a symlink before the save; exclusive creation fails when something already exists instead of following the planted link, so the write cannot land outside the root.",
+      "where": "Implementation notes 3 (and Forces, 'Atomic writes against simplicity'; Motivation hole 3)"
+    },
+    {
+      "id": "Q2",
+      "answer": "Relative paths name files in the writable root first, then in each read root in lookup order; absolute paths must lie inside one of the roots. Writes resolve against the writable root only, and command-line paths and load() names use the same rule.",
+      "where": "Solution; Collaborations 2–3; Implementation note 7"
+    },
+    {
+      "id": "Q3",
+      "answer": "It called require(\"/abs/path.js\") to load its helper library from outside the roots. It shows agents probe for a second loading mechanism as part of doing their task, not as an attack, and will find one quickly — hence require refuses all files and load is the single contained way.",
+      "where": "Motivation table (hole 4); Implementation note 4"
+    },
+    {
+      "id": "Q4",
+      "answer": "When the agent needs a whole machine — installing packages, running services, shells or network access — or when the OS has no root-relative file operations; use a container/VM (or process-level isolation) and apply this pattern inside it for the program's own file API.",
+      "where": "Applicability ('Do not use it when'); Variations, 'Process-level isolation'; Consequences, last bullet"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is the same shape: valuable read-only inputs, scratch outputs, parallel jobs, and shared storage holding other tenants' data. The pattern fits provided each job gets its own writable root and only that job's PDFs are exposed as read roots.",
+      "participants": {
+        "Writable root": "a fresh per-job scratch directory holding extract/ and thumbs/",
+        "Read roots": "only the directories of this job's uploaded PDFs, mounted read-only; never the shared customer storage as a whole",
+        "Locator": "maps 'extract/doc1.json' or an absolute read-root name to a root plus a name inside it, and refuses anything else",
+        "Root handle": "one OS root handle per job scratch dir and per upload dir; all opens and lstats go through them",
+        "Opened set": "identities of the PDFs (and any prior outputs) the job read, so a save cannot overwrite an input",
+        "Writer": "exclusive random temp file + rename inside the job's scratch dir",
+        "Loader": "one load(name) for extraction helpers, resolved through the locator"
+      },
+      "sketch": "startup(job) → Session\n  writable = root(\"/scratch/jobs/\" ++ job.id)     -- fresh, not shared between jobs\n  reads    = [root(\"/uploads/\" ++ job.id)]        -- this job's PDFs only\n\nopen(pdf) → (File, Location)\n  loc = locate(pdf, forWrite: false)              -- writable first, then reads\n  f = loc.root.handle.open(loc.rel); opened ++ [identity(f)]\n\nsave(\"extract/doc1.json\", bytes) → ok | Refusal\n  loc = locate(..., forWrite: true)               -- writable root only\n  -- lstat: not link, not directory, identity ∉ opened (unless in written)\n  tmp = createExclusive(randomName()); write(tmp, bytes); rename(tmp, loc.rel)\n\nload(\"helpers/ocr.js\") → loader resolves through locate; require(path) refuses",
+      "key_notes": [
+        "Note 9 — one fresh writable root per job, inputs mounted read-only; with parallel jobs on shared storage this is the whole isolation argument, not an optional nicety.",
+        "Note 6 — a save can shadow a read-only file; if the job writes extract/doc1.json while some read root also has doc1.json, later reads silently return the job's copy. Here that means output/input confusion across runs, so refuse shadowing saves.",
+        "Note 2 — uploads are often content-addressed (symlinks or hardlinks), exactly the case where name comparison fails; compare identities with SameFile.",
+        "Note 1 — one OS root handle per exposed directory is what stops '..' and links from reaching other tenants' paths.",
+        "Note 3 — random exclusive temp names matter more on shared/network storage, where another job may already have written at a predictable name.",
+        "Note 8 — show upload names in the form the agent should copy back (absolute read-root names, relative output names)."
+      ],
+      "risk": "Exposing the whole shared customer storage as a read root (so any job can read any tenant's PDFs) or giving all parallel jobs one shared writable root; a secondary version is relying on name checks for uploads that are actually symlinks into a content store."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The pattern contains only the program's file API. Package installation, a database server and arbitrary shell commands run outside that API, write to system paths, listen on sockets and spawn processes; the chapter itself says a whole-machine agent needs a container or VM and that a shell or network access is outside this boundary. Used as the only isolation, it would defend nothing while looking safe.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability 'Do not use it when' — installing packages and running services is the stated non-fit; use a container/VM.",
+        "Variations, 'Process-level isolation' — containers/seccomp contain shells and network; apply the contained workspace only inside that container for the agent's own file API, if it still needs narrowing.",
+        "Consequences, last bullet — the boundary covers only the session's file API; shell has its own paths.",
+        "Note 5 (strict flags) still applies inside the container if the agent's program has a --root flag, but it is not a substitute for the container."
+      ],
+      "risk": "Forcing the fit by declaring the package prefix the writable root and treating 'the agent can only write there' as isolation, while the shell still reads, executes and networks anywhere."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Consequences vs. Implementation note 6",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "'Inputs cannot be modified by a session' is contradicted by note 6: because relative reads prefer the writable root, a session can save labels.json and thereafter reads of labels.json return its own file — input substitution, which is as damaging as modification and is exactly what the running example's dataset cares about.",
+      "suggestion": "Make the read order part of the Solution, with a default (refuse a save whose name exists in a read root), and soften the consequence to 'inputs are never overwritten; give up shadowing by default'."
+    },
+    {
+      "section": "Solution / Structure / Sketch",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The Intent says saves may not replace 'files the session read', but the sketch exempts identities in a `written` set, so a session may re-save its own earlier output. `written` appears in no participant row, and the common case (rewriting out/labels.json twice) is invisible in prose — a reader cannot tell whether re-saving is allowed.",
+      "suggestion": "Add `Written set` to the Structure table, state the exemption in the Solution ('not a file it read; its own earlier output is replaceable'), and use the same word in the Intent."
+    },
+    {
+      "section": "Structure / Implementation note 8",
+      "kind": "missing",
+      "severity": "high",
+      "note": "There is no listing operation anywhere, yet the pattern is aimed at agents who must find files. Note 8 says how names are shown, implying they can be seen, but nothing says which roots are listable or whether listing a read root reveals the names of files the session must not read (the shared-tenant case in T1).",
+      "suggestion": "Add a `list(prefix)` operation through the locator with an explicit rule: writable root always listable, read roots listable or not per root, and note the filename-leak consequence."
+    },
+    {
+      "section": "Implementation notes 4, 6 and 7",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'One way to load code' conflicts with 'load trusted libraries by absolute path at start-up' — is start-up loading a second path-taking mechanism that bypasses the locator? Note 7 then admits a symlinked read root had to 'resolve to its target' for the workspace's own containment, but states neither the rule nor why the exception does not weaken os.Root.",
+      "suggestion": "Say explicitly that start-up preludes resolve through the locator like everything else, and give the read-root symlink rule in one sentence (resolve roots to their target once at start-up, then open the target)."
+    },
+    {
+      "section": "Collaborations 3 / Sketch `save`",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The sketch reads as if the checks make the save race-free, but lstat, makeParents and the identity read after rename are not atomic; the only caveat ('assume no other process writes into the same root') is buried in Consequences and elsewhere note 9 says to use a fresh workspace per run. Readers will take more safety from the pseudocode than it delivers.",
+      "suggestion": "State the precondition where the pattern is defined: the writable root must be private to the run; and note the identity-after-rename read is only valid under that precondition."
+    },
+    {
+      "section": "Implementation note 10",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Refusing two saves to one name in one program (E_DUPLICATE) is a language-convenience rule, not containment, and it forbids legitimate code (a loop that writes out/latest.json each iteration). It is asserted as 'almost always a mistake', appears nowhere in the Solution or Sketch, but is presented as part of the pattern.",
+      "suggestion": "Drop it or move it to the chapter on the eval/session API, and if kept, say it is a warning rather than a refusal, or scope it to the same call."
+    },
+    {
+      "section": "Applicability ('cannot add root-relative operations') and Known uses",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "A reader on an older OS or a runtime without os.Root/openat2 is told only 'isolate at the process level'. The portable technique — walk path components with openat + O_NOFOLLOW and fstat each step, comparing identities — is exactly what such readers need, and hardlink-based escapes are never distinguished from symlink ones.",
+      "suggestion": "Add a Variation: 'manual root walk' (component-wise openat, no symlink following, identity check per component), and one sentence on hardlinks and why SameFile covers them."
+    },
+    {
+      "section": "Implementation notes 9–11",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Note 9 names the dust runners and the subagents handbook, note 11 reports two testing anecdotes; these are project history and test practice, not reusable design rules, and they lengthen the notes without telling a reuser what to do differently.",
+      "suggestion": "Keep the actionable half ('fresh writable root per run', 'verify a security test fails without its fix') as rules and move the goja-cv incidents to a short 'experience' paragraph or the running example."
+    },
+    {
+      "section": "Intent / Rating",
+      "kind": "other",
+      "severity": "low",
+      "note": "The Intent bundles four separable decisions — containment, atomic writes, a single loader and strict flags — under a ★★ 'close to invariant' rating that only really covers the root-relative resolution. Readers cannot tell which parts are the pattern and which are goja-cv's local choices, which weakens reusability judgements.",
+      "suggestion": "Mark the core (one writable root, ordered read roots, kernel-enforced resolution) as invariant and label atomic writes, single loader and strict flags as 'additional rules this design adds', so a reuser can drop one deliberately."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "Participant names, pseudocode and kernel-level implementation notes make it immediately usable, but the shadowing hole, the unlisted written-set exemption and the missing listing operation are gaps a reuser would hit in the first week."
+  }
+}

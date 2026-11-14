@@ -48,9 +48,13 @@ which became redirects with literal fixes (see [Chapter 6](06-repairable-errors.
 
 Every change was then judged by runs. The project keeps a table of agent runs per ticket: the same question file, the
 same model, two runs before and two after, with calls, errors, size of the code agents wrote, and results against
-gold labels. After the second API landed, median calls per run fell (31.5 to 29, 51 to 39, 45 to 42), and the removed
-surface simply disappeared from agents' code (`{ space }` 70 uses to 0, `show(` 99 to 0) without errors. After the
-peak-finding change, gold points located within 5 pixels rose from 4 and 5 to 14 and 13 of 53.
+gold labels. After the second API landed, the removed surface disappeared from agents' code (`{ space }` 70 uses to
+0, `show(` 99 to 0) without errors, a difference far beyond run-to-run variation. Median calls per run also fell
+(31.5 to 29, 51 to 39, 45 to 42), but with two runs per side, a drop of a few calls is within the variation and was
+not taken as evidence. After the peak-finding change, gold points located within 5 pixels rose from 4 and 5 to 14 and
+13 of 53: with two runs per side the ranges (4–5 and 13–14) do not overlap, so this counts even under the decision
+rule below. The second API was a bundle of changes; its numbers judge the
+bundle, not each part.
 
 The loop also found what reading code never would. Thirty-nine annotator agents' 374 evaluations showed that every
 one of them pasted the same 3.2 KB helper file, that no agent ever opened the documentation, and that a lint fired 19
@@ -110,9 +114,10 @@ Do not use it when:
 | **Miner** | Scripts that turn transcripts into counts per operation, option, code, typed name, warning and paste. |
 | **Reader** | A person (or agent) who reads the transcripts behind surprising counts and states the reason. |
 | **Decision log** | Each count-driven change with its evidence (see [Chapter 11](11-lineage-ledger.md)). |
-| **Scenario set** | Fixed tasks with known answers or measurable outcomes, run before and after every change. |
+| **Scenario set** | Fixed tasks with known answers or measurable outcomes, run before and after every change: a frozen core used for every comparison over time, and a growing tail of scenarios added from new failures, versioned. |
 | **Runner** | Sealed agent runs over the scenario set (see [Chapter 9](09-sealed-agent-run.md)). |
-| **Results ledger** | One row per run: configuration (system version, model, prompt or chapter version, scenario), metrics, links to the run. |
+| **Results ledger** | One row per run: system version, side (before or after), model, prompt or chapter version, scenario and scenario-set version, run number, metrics, links to the run. |
+| **Decision rule** | Fixed before looking. Each metric has a direction (fewer calls is better, more gold points located is better). A metric improves on a scenario when every after-run beats every before-run (the ranges do not overlap); two runs per side can show large effects only, so use more runs for small ones. A change is kept when its target metric improves on most core scenarios and no guardrail metric gets worse by the same test. |
 
 ## Collaborations
 
@@ -120,8 +125,8 @@ Do not use it when:
 2. The miner counts; the reader explains the outliers; each finding becomes a proposed change with its evidence.
 3. Before the change ships, the runner runs the scenario set on the current version; after, on the new one. Each run
    appends a row to the ledger.
-4. The comparison uses only rows that differ in the change; differences smaller than the spread between repeated runs
-   are treated as noise.
+4. The comparison uses only rows that differ in the change, scenario by scenario, and applies the decision rule; a
+   bundle of changes is judged as a bundle, or taken apart by running each part alone.
 5. Accepted changes and their numbers go into the decision log; the scenario set grows when a new failure is found.
 
 ```mermaid
@@ -142,13 +147,14 @@ flowchart LR
 ## Sketch
 
 ```text
-value Row: system, model, variant, scenario, run, metrics: map, at, links
+value Row: system, side (before | after), change, model, scenario, setVersion, run, metrics: map, at, links
 
 mine(transcripts) → Counts
-  calls    = countBy(allCalls(transcripts), c → (c.op, c.options))
+  calls    = countBy(allCalls(transcripts), c → c.op)
+  options  = countBy(allCalls(transcripts), c → (c.op, c.options))
   failures = countBy(errors(transcripts), e → e.code)
   typed    = countBy(unknownNames(transcripts), n → n)            -- candidates for redirects
-  warnings = [(w.code, truePositives(w) / count(w)) for w in warningsByCode(transcripts)]
+  warnings = [(w.code, labelledTrue(w) / labelled(w)) for w in warningsByCode(transcripts)]   -- a person labels firings
   pasted   = [b for b in largeRepeatedBlocks(agentCode(transcripts))]
   unused   = [op for op in registry if calls[op] == 0]
   return Counts(calls, failures, typed, warnings, pasted, unused)
@@ -157,11 +163,19 @@ decide(counts) → [Change]
   -- zero uses: delete (after checking it was ever shown); heavy overrides: move into the default or the data;
   -- repeated typed names: redirect with a fix; warnings with low precision: fix or delete; pastes: a loader
 
-compare(change, scenarios, runs: 4)
-  for s in scenarios, for v in [before, after], for r in 1..runs:
-    ledger.append(Row(system: v, model: M, variant: change.id, scenario: s, run: r, metrics: runScenario(s, v)))
-  noise = spread(ledger.rows(system: before, scenario: s))          -- replicate variance
-  return [ (metric, median(after) - median(before), noise) for metric in metrics ]
+value Metric: name, direction (lower | higher)
+
+improved(m, before, after) → bool                         -- every after-run beats every before-run
+  return m.direction == lower ? max(after) < min(before) : min(after) > max(before)
+
+compare(change, core, target: Metric, guards: [Metric], runs) → keep | revise
+  for s in core, for side in [before, after], for r in 1..runs:
+    ledger.append(Row(system: version(side), side, change: change.id, model: M, scenario: s, setVersion: core.version,
+                      run: r, metrics: runScenario(s, side)))
+  values(s, m, side) = [row.metrics[m.name] for row in ledger.rows(change, s, side)]
+  wins  = count(s in core where improved(target, values(s, target, before), values(s, target, after)))
+  harms = count(s in core, g in guards where improved(g, values(s, g, after), values(s, g, before)))   -- reversed
+  return (wins > len(core) / 2 and harms == 0) ? keep : revise
 ```
 
 ## Implementation notes
@@ -174,13 +188,17 @@ compare(change, scenarios, runs: 4)
    fixed. Test the miner on transcripts whose answers you know.
 3. **A zero count needs a reason.** Agents never used several documented operations; some were useless, others were
    simply never shown in an example they copied. Read before deleting.
-4. **Judge a warning by its true positives.** The unused-node lint fired 19 times in the annotator study with one true
-   positive; it was deleted. Every warning's precision on real transcripts is a number worth knowing.
+4. **Judge a warning by its true positives, and label them.** The unused-node lint fired 19 times in the annotator
+   study; each firing was read and classified, and one was a true positive; it was deleted. Precision needs those labels: label
+   every firing of a new warning until its precision is clear, then a sample.
 5. **Same scenarios, same model, before and after.** goja-cv's run table uses one question file and one model per
    ticket, two runs per side. Without a fixed scenario set, before and after are different experiments.
-6. **Repeat runs and report spread.** In this pattern language's own validation, replicate runs of the same version
-   rated it within about one point of each other; a one-point change after a revision is within noise. Use several
-   runs per side and medians.
+6. **Repeat runs, report ranges, and state the rule before looking.** In this pattern language's own validation,
+   replicate runs of the same version rated it within about one point of each other. goja-cv's run table used two
+   runs per side, enough for the large effects it reported (removed surface going to zero; gold points 4–5 against
+   13–14) and not for the few-call differences, which the decision rule does not count. Report the range beside every
+   median, use more runs where effects are small, and fix the rule in advance: a rule chosen after seeing the numbers
+   finds whatever it is looking for.
 7. **Measure behaviour, not only outcomes.** The ledger rows for goja-cv record calls, errors and code size beside
    accuracy; the counts of removed surface going to zero showed the change landed, independently of accuracy.
 8. **Check the yardstick when results surprise.** Judges that "failed" planted controls were right in nine of ten
@@ -188,8 +206,10 @@ compare(change, scenarios, runs: 4)
    against a flawed key ranks variants wrongly.
 9. **Every row records every version.** System commit, model name, prompt or chapter version, scenario version. A row
    that cannot say what produced it cannot be compared later.
-10. **Grow the scenario set from failures.** Each new failure found in real use becomes a scenario, so the next change
-    is checked against it.
+10. **Grow the scenario set from failures, without breaking comparisons.** Each new failure found in real use becomes
+    a scenario in a growing tail, versioned; comparisons across time use the frozen core, whose denominator never
+    changes, and the tail is reported beside it. Promote tail scenarios into a new core version deliberately, and
+    rerun the baseline when you do.
 
 ## Variations
 

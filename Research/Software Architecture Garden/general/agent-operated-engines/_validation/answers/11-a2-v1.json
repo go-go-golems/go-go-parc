@@ -1,0 +1,132 @@
+{
+  "restatement": {
+    "intent": "Every artefact should carry, at creation, a record of the maker and the inputs that produced it; every decision made about an artefact should be an appended, never-edited event. Current state is then derived by folding the log, so any label, layer or saved result can be traced to its origin, filtered by source, measured per source, and corrected without erasing history.",
+    "problem": "When artefacts do not record what produced them and decisions overwrite one another, no one can measure a source, filter by origin, audit a result, or undo a decision without losing what came before.",
+    "solution": "A stamper called from every creating path attaches a provenance record (maker kind, identifiers, hashed inputs, version, time) to each artefact, inline or as a sidecar. Decisions about artefacts (accept, reject, correct, undo) are appended to an immutable per-dataset log with actor, time and reason. Exactly one shared fold function turns that log into current state, and all readers — training, scoring, review — go through it. Queries run both ways: what made this artefact, and what did this source make."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A file-level record says only who last touched the file; it cannot say whether a given point was drawn by hand or accepted from which suggestion. Only per-item origin allowed acceptance to be computed per suggestion confidence band (81/47/20 %) and let the training mix draw a configured share of agent-labelled tiles.",
+      "where": "Motivation ('Measuring the agents', 'Controlling the training mix'); Implementation note 2"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because the fold applies undo like any other event, so replay reproduces the same state and the fact that a decision was made and then withdrawn survives. Editing or deleting a line destroys the history needed for audit and replay.",
+      "where": "Implementation notes 4 and 10; Sketch (fold handles undo by delete)"
+    },
+    {
+      "id": "Q3",
+      "answer": "The copies drift and disagree on edge cases — an unknown decision kind, a malformed line — so different readers compute different current states from the same log. Dust folded its review log in the Go review tool plus two scoring scripts; the chapter's remedy is one shared implementation, or one test suite run against all of them.",
+      "where": "Forces ('Readers against writers'); Implementation note 5"
+    },
+    {
+      "id": "Q4",
+      "answer": "When the artefact's format must not change because other readers already parse it — goja-cv's saved JSON is read as plain rows by other scripts, so a provenance sidecar beside each file adds lineage without breaking those readers.",
+      "where": "Forces ('Inline against sidecar'); Implementation note 8"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Artefacts (translated segments) come from heterogeneous sources (three engines, humans), are compared and weighted by source, and are revised over several rounds by several reviewers — exactly the three applicability conditions. It also needs the audit/exclusion move that madeBy(source) exists for.",
+      "participants": {
+        "Provenance record": "Per segment: source made by (engine id + engine version, or human translator id), source segment hash, document and segment id, round, time.",
+        "Stamper": "Called from each engine adapter and from the human editor's save; one helper, four call sites, so no path produces an unstamped segment.",
+        "Schema": "Segment id, engine id, engine version, round, decision vocabulary, and definitions: what counts as 'accept' vs 'edit' (any change? a threshold on edit distance?), what unit the acceptance rate is per segment not per token.",
+        "Decision event": "accept | edit | reject per segment, with reviewer id, round, time, reason, and a hash or pointer to the edited text.",
+        "Decision log": "One append-only review log per job, shared across rounds; the log outlives the round files.",
+        "Fold": "Single shared function used by the reviewer UI, the quality dashboard and the evaluation scripts — one implementation, not three.",
+        "Lineage queries": "acceptance(byEngine) per round and per confidence band; madeBy(engine@version) returns every segment that engine produced, for re-check or exclusion."
+      },
+      "sketch": "value SegProv: maker (engineId, engineVersion) | human, round, docId, segId,\n                 srcHash, at\nvalue Event:  segId, decision (accept | edit | reject), actor, round, at, reason?, outHash?\n\n-- stamping in every creating path: each adapter + the human editor\nstamp(seg, ctx) → ok\n  write(seg)\n  write(\"segs/\" ++ seg.id ++ \".prov.json\",\n        SegProv(maker: ctx.maker, round: ctx.round, docId: ctx.docId,\n                srcHash: hash(ctx.sourceSegment), at: now()))\n\n-- decisions append; nothing is overwritten\nreview(log, segId, decision, actor, reason?) → ok\n  append(log, Event(segId, decision, actor, currentRound(), now(), reason))\n\n-- the one fold; keeps first and current decision so rates stay computable\nfold(events) → map segId → (first: Event, current: Event, historyLength)\n\nacceptance(byEngine) →\n  { e.maker: count(accept) / count(decided) for e in fold(log) where isSuggestion(e) }\n\n-- a bug in one engine: exclude, never delete\nexclude(engineAtVersion, log) → ok\n  for s in madeBy(engineAtVersion):\n    append(log, Event(s.id, correct, auditor, now(), \"engine bug: see ticket\"))\n  -- readers apply the exclusion through the same fold",
+      "key_notes": [
+        "Note 2 (origin per item, not per file) is the load-bearing one: acceptance rate per engine is impossible if a document carries one stamp, because reviewers mix engines inside a document.",
+        "Note 6 (record who decided) stops being optional here on day one — several reviewers over several rounds, so an event without an actor cannot be audited or reconciled.",
+        "Note 3 (keep rejections) is what makes the denominator; without rejected segments every engine looks perfect.",
+        "Note 5 (write the fold once) matters because this situation naturally grows three readers (review UI, dashboard, eval scripts) and rounds make log shapes drift.",
+        "Note 9 (hash inputs) — the source text can be re-exported between rounds; a path-only reference silently points at different text.",
+        "Notes 4 and 10 (undo/correct as events, corrections overlay) — excluding a buggy engine must be an appended correction applied by the fold, not a filter applied ad hoc in each script."
+      ],
+      "risk": "Stamping per job or per round instead of per segment, and letting reviewers see segments without the engine id attached: the bug is then found after the fact and madeBy(engine@version) cannot enumerate the affected segments, so the exclusion is guesswork. The second trap is deleting the bad segments to 'exclude' them, which destroys exactly the history the audit needs."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is the chapter's own stated non-case twice over: the cache key is already a hash of the inputs, so the artefact identifies its maker (Applicability: 'artefacts are disposable intermediates… the cache key already identifies them'), and per-tile stamping plus an eviction event per tile is the tiny-event volume the chapter says costs more than the questions it answers. Nobody ever asks where a cached tile came from, and replaying an eviction log to recover a tile the service discarded under memory pressure buys nothing.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability ('Do not use it when') is the controlling text: disposable intermediates whose key already encodes provenance, and high-volume tiny events that should be aggregated instead.",
+        "Note 9 (hash inputs) shows the useful residue: the input hash belongs in the cache key, which the service already does — that is provenance enough for this artefact class.",
+        "Forces ('Completeness against weight'): stamping every tile would grow memory on the exact resource the service is short of, so the proposal works against the system's stated constraint."
+      ],
+      "risk": "Applying it anyway would fill memory with provenance sidecars and an eviction log that must itself be folded, turning a memory-pressure eviction policy into a write-amplifying logging system; the honest alternative is the existing content hash plus aggregate counters (hit rate, evictions by reason) if anyone ever asks the question."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution / Structure / Sketch",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The join between the two halves is undefined. The fold produces `map itemId → Event`; acceptance(bySource) needs to know each item's provenance, but nothing in the pattern says how an itemId maps back to a Provenance record, and `madeBy(source)` iterates 'artefacts' with no defined universe (a directory scan? an index?) and no cost model.",
+      "suggestion": "Add a participant or sentence: an item index (itemId → provenance + kind) written by the stamper, and state whether madeBy scans a directory or queries the index. Show the join explicitly in the sketch, e.g. `acceptance(s) = decidedFor(s) grouped by provenance(itemId)`."
+    },
+    {
+      "section": "Sketch (fold)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`fold(events) → map itemId → Event` keeps only the last event per item, so `count(accepted)/count(decided)` cannot be computed: an item accepted then corrected now looks only 'corrected'. Worse, `undo` deletes the entry, so an item that was decided and then undone vanishes from the denominator entirely.",
+      "suggestion": "Make the fold return a small state record per item — first decision, current decision, history length, plus a separate 'artefact withdrawn' notion distinct from 'decision undone' — and say which of the two undo deletes."
+    },
+    {
+      "section": "Sketch (Provenance) / Solution",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The Solution insists on keeping field definitions and units in the schema, but the record itself is `ids: map` — an untyped bag with six implied keys, one of which (`line`) is a line number, which is not an identifier and moves on any edit. `version: codeVersion()` is ambiguous between the writing program's version and the model's.",
+      "suggestion": "Make the id bag a typed record or a tagged union per maker kind, and describe `line` as a hint to be resolved against a pinned commit rather than an id. Name the two versions (producer code version vs model/prompt version)."
+    },
+    {
+      "section": "Implementation notes 1 / Sketch (save)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Note 1 says a path that forgets to stamp produces artefacts that 'every later query silently drops', and the sketch's save always returns ok. Silent dropping is the failure mode the pattern exists to prevent, and the sketch also writes the artefact before the sidecar, so a failed stamp leaves an unstamped artefact on disk.",
+      "suggestion": "Make an unstamped creation a refusal (or at minimum a loud warning counted in a metric), and specify write order — sidecar first, or attest-then-commit — so a crash cannot leave an artefact with no provenance. The language has `refuse` for exactly this."
+    },
+    {
+      "section": "Applicability / Forces — 'Inline against sidecar'",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Inline-vs-sidecar is listed as a force, but the Solution says only 'stamp' and never tells the reader how to choose; the guidance appears as note 8, about one specific project. A reader planning implementation has to find the answer in a note about goja-cv.",
+      "suggestion": "State the decision rule in the Solution: inline if you own the artefact's format and want it to travel; sidecar (with a content hash linking the two) if other readers already parse that format. Keep note 8 as the example."
+    },
+    {
+      "section": "Consequences",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "'Logs grow; folds must be fast, and old logs archived' is where the pattern gets hard, and arhiving an append-only log is precisely what breaks replay — a truncated log folds to the wrong state. Nothing in the chapter covers snapshots, base offsets, retention, or concurrent appends from several agents and people (ordering by wall-clock `at` is not safe).",
+      "suggestion": "Add an implementation note: snapshots are written as events with a base offset so the fold can start from a snapshot, and appends are serialised (single writer, or monotonic sequence number rather than relying on `at`)."
+    },
+    {
+      "section": "Intent / Problem / Ratings line",
+      "kind": "other",
+      "severity": "medium",
+      "note": "The pattern bundles two separable things with different applicability: provenance stamping (wanted even where decisions are never revised, e.g. data pipelines) and an event-sourced decision log (only worth it where decisions get revised). The Applicability bullets never distinguish them, so a reader who needs only the first half must invent the split, while the ★★ 'close to invariant' claim is asserted, not argued.",
+      "suggestion": "Say explicitly that the two halves are independently adoptable, with one line each on when the decision log is not worth its cost, and justify the rating in the overview rather than referring to it."
+    },
+    {
+      "section": "Motivation / Known uses",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The Motivation leans on project-internal detail a reader cannot verify or reuse: 81/47/20 %, `agent_pos_frac`, `reveal(id)`, and a bare ticket reference 'GCV-006' whose contents the reader is never told. Two running examples (dust and the Editor lab) plus four generic bullets is more than the section needs.",
+      "suggestion": "Keep one example, replace GCV-006 with the one sentence of what it proposes, and fold the Editor lab's two-way query into the Structure table where it earns its place."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The two-way stamp-and-fold shape is easy to remember and cheap to start (clarity would be higher except that the fold's output type and the artefact→provenance join are underspecified); reusability is limited because provenance and the decision log are welded into one pattern with one set of applicability rules, and I would apply the stamping half widely and the log half only where decisions get revised."
+  }
+}

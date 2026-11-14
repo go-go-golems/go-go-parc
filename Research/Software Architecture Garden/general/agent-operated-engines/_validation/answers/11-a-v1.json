@@ -1,0 +1,146 @@
+{
+  "restatement": {
+    "intent": "Every artefact should answer two questions by itself: what made it (kind of maker, its ids, the inputs it read, versions, time), and who decided what about it over time. Decisions are appended as events and the current state is derived by folding that log, so any source can be measured, filtered, audited and undone.",
+    "problem": "When artefacts do not record what made them and decisions overwrite one another, nobody can measure a source, filter by origin, audit a result, or undo a decision without losing what came before.",
+    "solution": "Stamp every artefact at creation, from every creating path, with a provenance record (maker kind, ids, hashed inputs, code/model version, time) — inline if the format may change, sidecar if other readers depend on it. Append every decision (accept, reject, correct, undo) to a log with actor, time and reason; keep rejections and undos as events and never edit them. Fold the log into state in one shared function used by all readers, and offer queries in both directions plus aggregates: sourceOf, madeBy, acceptance by source."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A file-level origin cannot attribute individual points to hand-drawing, a named suggestion or a detector, so acceptance rates per suggestion-confidence band (81/47/20 %) become uncomputable. Per-item origin is what made measuring the agents possible.",
+      "where": "Motivation (first bullet) and Implementation notes 2"
+    },
+    {
+      "id": "Q2",
+      "answer": "Deleting or editing a line destroys the history: the fold can no longer replay the log, the earlier state is unrecoverable, and the correction itself stops being traceable. As an event, undo is applied by the fold like any other decision.",
+      "where": "Implementation note 4; Solution; note 10 'corrections overlay'"
+    },
+    {
+      "id": "Q3",
+      "answer": "The copies drift on edge cases — an unknown decision, a malformed line — so training, scoring and the review tool silently disagree about the same data. The dust project had three folds (review tool in Go plus two scoring scripts).",
+      "where": "Implementation note 5; Forces ('Readers against writers')"
+    },
+    {
+      "id": "Q4",
+      "answer": "When the artefact's format must not change because other tools read it as-is: goja-cv's saved JSON is consumed as plain rows by other scripts, so a sidecar file beside each artefact adds lineage without breaking those readers.",
+      "where": "Implementation note 8; Forces ('Inline against sidecar')"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Exactly the applicability conditions: several maker kinds (three engines, humans), decisions revised over rounds by several reviewers, and a later question that only the record can answer (acceptance per engine, blast radius of one buggy engine version).",
+      "participants": {
+        "Provenance record": "per-segment record: kind (engine | human | post-edit), engine + model version, prompt/glossary version, round, reviewer, hashed source segment, hashed TM/glossary version, pipeline version, time",
+        "Stamper": "called by each of the three engine adapters, the human workbench save path, and any reviewer post-edit save path",
+        "Schema": "segment-level fields plus the definition of 'acceptance', 'round' and what an engine version identifies",
+        "Decision event": "segId, decision (accept | edit-with-new-text | reject | undo), actor, round, at, reason — the edit event must carry the edited text or an edit-distance, otherwise the engine output is lost",
+        "Decision log": "one append-only, sequence-numbered log per job/batch, kept per round",
+        "Fold": "one function returning, per segment, current text plus the full event history; shared by the QA report, the exclusion tool and the deliverable builder",
+        "Lineage queries": "acceptance(engine, round) and post-edit rate per engine; madeBy(engineVersion) lists every segment the buggy engine produced"
+      },
+      "sketch": "value SegProv: kind (engine | human | post-edit),\n  ids: {engine, engineVersion, promptVersion, round, reviewer?},\n  inputs: [(docId, hash), (segId, hash), (tmVersion, hash)],\n  version: pipelineVersion, at\nvalue SegEvent: segId, decision (accept | edit | reject | undo),\n  actor, round, at, payload?, reason?\n\n-- four creating paths, one stamper\naddSegment(seg, ctx) → Segment | Refusal\n  match ctx.kind:\n    engine → stamp(kind: engine, ids: {engine, engineVersion, promptVersion, round})\n    human  → stamp(kind: human,  ids: {reviewer, round})\n  -- refuse(kind: missingId, where: ctx.kind) when required ids are absent\n\ndecide(log, segId, decision, actor, round, payload?, reason?) → ok\n  append(log, SegEvent(segId, decision, actor, round, now(), payload, reason))\n\n-- one shared fold; history is a first-class result\nfold(log) → map segId → {text, history}\n  for e in order(log):            -- by seq, then at\n    history[segId] = history[segId] ++ [e]\n    text[segId] = match e.decision:\n      accept → text[segId] | edit → e.payload | reject → none | undo → previous\n\nmadeBy(v) → [s for s in segments if s.prov.ids.engineVersion == v]\nexclude(v) → for s in madeBy(v):\n  decide(log, s.id, reject, actor: \"system\", reason: \"engine bug \" ++ v)  -- overlay, no rewrite\nacceptance(engine, round) → (accept + edit) / (accept + edit + reject)   -- define once",
+      "key_notes": [
+        "Note 1 (stamp in every creating path): four producers plus reviewer post-edits; one unstamped path biases every acceptance rate and the bias is invisible.",
+        "Note 2 (origin per item): provenance must be per segment with engine and round; a per-document stamp makes 'engine acceptance rate' uncomputable — it is the whole point here.",
+        "Note 3 (keep rejections): they are the denominator, and a rejected suggestion must stay visible so the buggy engine's output is not re-offered.",
+        "Note 5 (write the fold once): QA report, exclusion tool and deliverable builder must agree whether `edit` counts as acceptance or as an error; three folds disagreeing on exactly that is the predicted failure.",
+        "Note 9 (hash inputs): the source segment and the TM/glossary get re-exported; a path-only record is wrong after the first TM update — which is when the rates matter.",
+        "Note 6 (record who decided): several reviewers over several rounds, so actor and round are needed from day one, not after the second reviewer appears.",
+        "Note 10 (corrections overlay): excluding the buggy engine must be an appended event; rewriting the log makes the bug period's rates unrecoverable."
+      ],
+      "risk": "Reviewers post-edit segments in place, so the engine's original output is overwritten and the log collapses to final text; no engine can then be scored and the bug's blast radius is unknowable. Second most likely: keeping only the latest event per segment (as the chapter's fold does) destroys round-by-round rates and post-edit trends."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter's own do-not-use clause excludes it: these are disposable intermediates whose cache key already identifies them, and 'nobody ever asks' is the test the pattern exists to pass. Stamping every tile adds write and metadata cost on the hottest path, and logging every eviction as a 'decision' invents an actor and a reason where there is only memory pressure — the volume of tiny events would cost more than the questions they answer.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability (do-not-use, first and third clauses) is decisive; note 9 is already satisfied by the cache key being an input hash — the hash needs no separate record.",
+        "If diagnostics are ever wanted, the chapter's 'aggregate first, then record' applies: counters of evictions per stage and per key prefix, not per tile."
+      ],
+      "risk": "Spending provenance metadata on tiles that compete for the same memory budget eviction is managing, and paying it on the hot path to answer a question nobody asked. A defensible middle: keep the key as the identity, add cheap aggregate counters, and stamp full provenance only when a tile is promoted out of the cache as a saved deliverable."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (`fold`, `Event`)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The pattern promises 'derive current state by folding the log', but `Event` has no payload, so a `correct` event cannot yield corrected state — fold can only record that something was corrected. Worse, `fold` maps itemId to the last Event, discarding the sequence that audits, replay, round-by-round rates and 'editing then undoing to an earlier state' all need. As written the fold is a last-writer-wins map, not a log fold.",
+      "suggestion": "Give `correct` events a payload (new value or diff) and make the fold return state plus history: `map itemId → {state, history}`. Add `history(itemId)` as a first-class lineage query and `state = last(history)`."
+    },
+    {
+      "section": "Implementation note 1; Consequences",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Unstamped artefacts are said to be 'silently dropped' by every query — that is the worst possible failure mode, because measurement denominators become biased with no signal. Nothing is said about artefacts created before the pattern existed, or about detecting a path that forgets.",
+      "suggestion": "Add a `kind: unknown` provenance for pre-pattern and unstamped artefacts, a cheap audit query that counts them per store, and a stamper that refuses (`refuse(kind: unstampedWrite, hints: [required ids])`) in dev/CI so forgotten paths fail loudly."
+    },
+    {
+      "section": "Provenance record / Sketch",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Only inputs are hashed. Nothing identifies the artefact itself, so lineage cannot tell a stamped artefact from one modified after stamping — which undermines the audit claim.",
+      "suggestion": "Record a hash of the artefact content at write time (or of the output in an external-lineage variation), and expose `verify(artefact, provenance)`."
+    },
+    {
+      "section": "Decision event; Implementation note 5",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "Events carry no sequence number and only wall-clock `at`, so fold order depends on file order and can differ across readers on clock skew or same-second events — the exact disagreement note 5 warns about, built into the schema. Note 5 also mentions 'an unknown decision, a malformed line' as disagreement sources but never says what the correct handling is.",
+      "suggestion": "Add a per-log monotonic `seq` and define fold order. Make fold total and specify one behaviour for unknown decision kinds and malformed lines (`refuse(kind: malformedEvent, where: seq)` or skip-with-count) once, in the sketch."
+    },
+    {
+      "section": "Provenance record (`ids: map`)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "A free-form `map` lets a program-made artefact omit file and line, and an agent-made one omit run and step, and still be a valid record; the missing id then silently fails the `madeBy` join.",
+      "suggestion": "Make ids a variant per kind with required fields (person → actor; program → file, line, codeVersion; agent → run, step, model, promptVersion; preset → presetId, version), checked by the stamper."
+    },
+    {
+      "section": "Sketch (`acceptance(bySource)`)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The signature takes `bySource` but the body iterates confidence bands; the denominator `decided` is undefined (does `correct` count as accepted, as error, as both?), and the join from decision events to provenance is never shown. A reader cannot implement this from the chapter, though it is the motivating query.",
+      "suggestion": "Define one measure precisely — per (source, band) over current state after fold, with `correct` reported as a separate post-edit rate — and work it through with the dust 81/47/20 numbers."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "`GCV-006`, `agent_pos_frac`, 'the Editor lab', 'goja-cv', and the unglossed 81/47/20 figures assume the running example's vocabulary. The two negative cases are also left hanging: we are told goja-cv saved files cannot be traced, but not what was added, so the 'where lineage was missing, it cost' paragraph teaches nothing reusable.",
+      "suggestion": "Gloss each project-specific term on first use in half a clause, and close each negative case with the one sentence saying what was added or what it would take."
+    },
+    {
+      "section": "Structure and Collaborations",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The participant table, the five-step collaboration list and the mermaid diagram state the same flow three times; a reader gets no new information from the second and third pass.",
+      "suggestion": "Keep the table plus one short paragraph of collaborations; keep the diagram only if it adds the log/fold distinction the table cannot show."
+    },
+    {
+      "section": "Applicability / Consequences",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "'Logs grow; folds must be fast, and old logs archived' appears only as a minus. Append-only logs need a compaction/snapshot story — otherwise the archival step quietly deletes the history the pattern exists to preserve.",
+      "suggestion": "Add an implementation note: periodic snapshot = folded state plus `upTo(seq)`, archive raw events immutably, and state who may archive and how replay-from-archive is tested."
+    },
+    {
+      "section": "Applicability (privacy clause)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'record only what the rules allow, and say so' is a hand-wave: it does not say what the artefact looks like when the actor must be withheld, so a fold cannot tell a redacted record from an unstamped one, and 'acceptance by actor' silently loses a whole population.",
+      "suggestion": "Define a `withheld` actor form with an opaque, stable pseudonym (or a per-batch role), and say which aggregates remain valid when the actor is redacted."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 3,
+    "comment": "The shape (stamp at creation, append decisions, one fold, query both ways) is crisp and genuinely transportable, but the sketch's lossy last-writer-wins fold, payload-less `correct` events, and the silent-drop handling of unstamped artefacts mean I would apply the idea only after fixing those, not as written."
+  }
+}

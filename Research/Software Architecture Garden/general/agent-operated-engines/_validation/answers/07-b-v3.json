@@ -1,0 +1,137 @@
+{
+  "restatement": {
+    "intent": "Let a vision agent use pictures only to judge appearance, while every number it reports comes from a table of ids computed in code.",
+    "problem": "An agent that must both see and measure gets imprecise numbers from pictures (and often an unbounded image count) and gets no appearance judgement from numbers alone.",
+    "solution": "Measure first: candidates become rows with stable ids, positions, sizes and scores. Draw pictures only as marked views and sheets — many small magnified cells, each labelled with its row id, several views side by side where the decision needs them — so the agent answers by id and the engine maps ids back to exact numbers. Ration pictures per call and per conversation, state the budget in the agent's instructions, deliver everything a call created and name each omitted picture by line."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Under a single shared intensity stretch, a faint item next to a bright one is crushed into the background and disappears. Giving each cell its own range (stretch: \"cell\") keeps every item visible in its own cell, so the agent judges grain-vs-speck, not exposure.",
+      "where": "Implementation notes 5"
+    },
+    {
+      "id": "Q2",
+      "answer": "They are not silently dropped: the deliverer returns them after the requested (\"returned\") pictures, and emits one LOOKS warning per omitted picture giving its label and line plus a fix hint (\"fewer cells per sheet, or a smaller zoom\"). The call still succeeds; the agent can react next turn.",
+      "where": "Implementation notes 7 (and the deliver() pseudocode in Sketch; Deliverer in Structure)"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because image APIs downscale large images before the model sees them, which erases small features (three-pixel specks). A composite of small crops shown magnified keeps per-item detail after downscaling, where one large overview does not.",
+      "where": "Implementation notes 8 (also note 3, Forces: 'Context against detail')"
+    },
+    {
+      "id": "Q4",
+      "answer": "The scene view and a band-pass (\"speck\") view of the same cell: the scene shows what the object is, the band-pass view shows whether it stands out from the grain.",
+      "where": "Implementation notes 4; Collaborations step 3; View presets in Structure"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is the dust case with a different detector: 40 measured candidates per scan, a visual real/not-real judgement, and numbers (slice, coordinates, diameter) that must stay exact and must not be read off pixels. The one real adaptation is 3D — a nodule spans slices, so cells must show the nodule's own slice (or a small through-slice strip), and window settings are calibrated, not free.",
+      "participants": {
+        "Item rows": "Detector output per scan: id, slice index, in-plane cx/cy, diameter in mm, HU stats, confidence; stable across filtering and scoring",
+        "Marked view": "A full slice with each nodule circled and labelled by row id, for orientation and for showing where candidates sit in the lung",
+        "Sheet": "A grid of 12–15 magnified crops, one per candidate, taken at a fixed field around the candidate (e.g. 2× diameter) on its centre slice; 40 candidates becomes three sheets",
+        "View presets": "Lung window and soft-tissue/mediastinal window of the same crop (the direct analogue of scene + band-pass), optionally an edge-enhanced view",
+        "Budget": "Per conversation and per call, in the run prompt: e.g. at most 50 images total, prefer sheets, 40 candidates → three sheets, not forty looks",
+        "Deliverer": "Returns the sheets first up to the per-call limit, and names any undelivered sheet by line in a LOOKS warning"
+      },
+      "sketch": "nodules = detect(scan)                     -- rows: id, slice, cx, cy, d_mm, score\nkeep = sortBy(nodules, -score)[0:15]        -- code filters; ids unchanged\nsheet(keep, views: [window(crop, \"lung\"), window(crop, \"soft\")],\n      cell: 64 px, zoom: 3, stretch: \"fixed\").look(\"top 15\")\n\nbyId = { i.id: i for s in deliveredSheets(session) for i in s.items }\nfor i in answer.nodules:\n  if i not in byId: return refuse(E_UNKNOWN_ID, i, valid: keys(byId), hint: \"cite ids from the last sheet\")\nlabels = [byId[i] for i in answer.nodules]  -- exact slice, cx, cy, diameter",
+      "key_notes": [
+        "1 (never read a number off a picture) — the whole point: the model says \"7 is a nodule\", the engine supplies millimetres; it must never eyeball size or position.",
+        "2 (ids match rows) — critical with 40 candidates and multi-sheet delivery: renumbering each sheet 1–15 silently reassigns findings to the wrong nodule.",
+        "4 (two views side by side) — lung vs soft-tissue window is the exact decision the radiologist-style judgement needs (is it parenchymal, vascular, calcified).",
+        "3 (sheet size vs API downscale) — 40 candidates forces sheets; tune cells so a nodule is still legible after downscaling.",
+        "5, but inverted — per-cell stretch is the note NOT to copy here: CT is calibrated in Hounsfield units, and per-cell normalisation destroys the density difference between calcium, soft tissue and vessel. Use a fixed window.",
+        "9 (check ids on the way back) — answers must be validated against the sheet actually shown, or a hallucinated id becomes a finding at a real coordinate."
+      ],
+      "risk": "Copying note 5's per-cell stretch (or auto-levelling each crop) onto CT, which erases the density information that separates a calcified granuloma from a nodule, and pairing that with a single centre-slice crop that hides that the \"nodule\" is a vessel running through slices — confident, wrong, and still citation-clean."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter explicitly excludes this case: a global colour cast has no natural identity or position to number, so sheets, marks and ids add nothing — the model would start answering with ids instead of a correction. Worse, per-cell/per-image stretching (note 5) is precisely the operation that destroys the cast being measured. Only the budgeting half of the pattern, and honest delivery, apply.",
+      "participants": {
+        "Item rows": "none — the deliverable is one correction value per photo, not measured items with ids; numbering the ten files adds no information",
+        "Marked view": "none — a numbered mark on a colour cast answers a question nobody asked",
+        "Sheet": "none, and actively harmful: a contact sheet puts all ten casts side by side on one canvas and changes the perceived cast of every panel",
+        "View presets": "none needed; one unmodified image per photo is the evidence",
+        "Budget": "this part does transfer: ten photos is still a conversation-count item, so state a limit and prefer one image per photo",
+        "Deliverer": "transfers: deliver every image the call created and name any it could not deliver, rather than failing silently"
+      },
+      "sketch": "",
+      "key_notes": [
+        "6 and 7 (state the budget; deliver all and name omissions) — the only notes that matter here, because the task still spends images and can still hit the conversation limit.",
+        "1 (never read a number off a picture) — half-applies in reverse: here the answer IS a visual judgement, so a caption or a numeric estimate like \"+300 K\" must come from a measurement, not from reading pixels of a swatch."
+      ],
+      "risk": "Forcing the fit: marks and sheets get built because they are the pattern, garments with ids are reported instead of a correction, and per-cell normalisation flattens exactly the cast the model was asked to estimate."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Implementation notes 9 vs Sketch (byId) vs refuse hint",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Three statements disagree. Note 9 says an id 'from an earlier sheet' is a problem to refuse; the sketch builds byId from deliveredSheets(session), i.e. all sheets in the session, so earlier-sheet ids are accepted; and the refusal hint says 'cite ids from the last sheet'. A reader cannot tell whether ids are session-scoped or sheet-scoped, which is exactly the bug the check exists to prevent.",
+      "suggestion": "Pick one rule (recommend: ids are valid if their sheet was delivered and is still in context; refuse ids from omission-warned sheets and from sheets dropped by compaction) and make note 9, the byId construction and the hint text say the same thing."
+    },
+    {
+      "section": "Sketch / Collaborations (filtering in code)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Step 2 has the agent keep 'the twelve it wants to judge' and the sketch sorts by score and truncates at 12, with no acknowledgement that this is where evidence is silently lost: a low-scoring true positive is never shown and can never be reported. The pattern's own evidence claim ('things no measurement finds will not be in any sheet') covers detector misses but not budget-driven filtering misses.",
+      "suggestion": "Add an implementation note on selection under budget: how many candidates to keep, whether to sample by score plus spatially, and what to tell the agent so it can request a second sheet of the tail instead of assuming the top 12 are the world."
+    },
+    {
+      "section": "Motivation (evidence)",
+      "kind": "other",
+      "severity": "medium",
+      "note": "The headline numbers rest on 'two runs per side', and the same paragraph then reports that the longer annotator sessions showed no difference (9 of 13 in both). The chapter is honest, but it leads with a quantitative claim its own next sentence partly retracts, so the reader's confidence is set by whichever sentence they read first.",
+      "suggestion": "Restate the finding as a mechanism first ('ruler reading is a noisy channel; rows are lossless'), then give the numbers with n and the null result next to them, and drop the phrase 'far fewer' unless the difference survives the sample size."
+    },
+    {
+      "section": "Budget (Structure, note 3, note 7, Collaborations 6)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Three different limits float around: the API's 100-image rejection, the prompt's 'stay under 50', and goja-cv's per-call 4 pictures / 8 MiB. Nowhere does the chapter say who owns each number, how per-call and per-conversation budgets relate, or how to derive them; note 3 punts with 'the right count depends on the API's image size limit' without a procedure.",
+      "suggestion": "Add a short derivation: target item size after downscaling → cells per sheet → sheets per call → conversation cap with headroom; and a one-line statement of which limits the transport enforces and which only the instructions state."
+    },
+    {
+      "section": "Sketch and Implementation notes 5",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Per-cell stretching is presented as a general improvement, with no warning that it destroys absolute intensity comparisons. In any domain where the number matters (Hounsfield units, calibrated exposure, satellite reflectance) it manufactures contrast differences that the model will then report as findings.",
+      "suggestion": "Qualify note 5: per-cell stretch only where intensity is not itself the evidence; otherwise use a fixed window/stretch and say so, and name the failure mode."
+    },
+    {
+      "section": "Sketch (deliverer pseudocode)",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The only real code in the chapter is goja-cv internals: returnedFirst(callPictures), p.label, p.line, LOOKS, session.picturesSoFar, snr: 1, stretch: \"cell\", 8 MiB, 40 px cells. 'Line' and 'returned first' are never explained (line of what — agent script? reply?), so the sketch documents an API rather than the pattern.",
+      "suggestion": "Keep the code but add one line defining 'line' and why requested pictures outrank incidental ones; move goja-cv-specific names into a 'how goja-cv does it' paragraph and let the sketch use neutral names (budget.callCount, budget.bytes, budget.sessionCount)."
+    },
+    {
+      "section": "Header rating ('★') and cross-references",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "The ★ rating is unexplained and, without the overview, tells a reader nothing about how strong the form is or when to prefer a variation. Note 3 also forward-references 'note 8' for a point it needs immediately.",
+      "suggestion": "State the rating in words in one clause ('preferred form when candidates are measured; see Variations for the rest'), and inline the downscaling point in note 3 rather than pointing forward."
+    },
+    {
+      "section": "Known uses (Playwright accessibility snapshot)",
+      "kind": "other",
+      "severity": "low",
+      "note": "The accessibility-snapshot example supports 'act by reference, not pixel', but it delivers no picture and no budget, so it illustrates only half the pattern; presented next to Set-of-Mark it reads as stronger support for the sheets-and-budget claim than it is.",
+      "suggestion": "Say what each known use actually demonstrates (reference-not-pixels vs marks-in-an-image vs many-items-one-view) so the reader can see which half of the pattern each one evidences."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core rule (numbers come from rows, pictures only for judgement, pictures are rationed and omissions named) is memorable and I would apply it, but the id-lifetime contradiction, the unexplained filtering step and the goja-cv-specific pseudocode leave the reusable skeleton harder to extract than it should be."
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "restatement": {
+    "intent": "Design an agent-facing interface from evidence of how agents actually use it: mine recorded sessions into counts, read the transcripts behind the surprising counts, and turn both into design decisions. Judge every decision by re-running a fixed scenario set before and after, appending each run to a results ledger.",
+    "problem": "An agent interface designed from intuition misses what agents actually do, and a change made without fixed before-and-after runs cannot be told apart from run-to-run noise or from a regression.",
+    "solution": "Keep every session's events and mine them with scripts into counts per operation, option, error code, mistyped name, warning and pasted block; then read the transcripts behind the surprising counts and let counts plus reason become proposed changes. Before shipping, run a versioned scenario set with the same sealed runner and agents on the old and new version, several runs per side, and append one row per run stamped with every version it used. Compare only rows that differ in the one change, apply a decision rule fixed in advance, and log the accepted change with its numbers."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Any two of: the interactive-slider parameter system, with zero uses in 751 counted calls, was deleted; the image value-space override (used 198 times) showed the space belonged on the image and was moved there; agents wanting to run files became a library loader rather than a new tool.",
+      "where": "Motivation (also Implementation note 1)"
+    },
+    {
+      "id": "Q2",
+      "answer": "It recognised pasted helper files only by their final marker, so ten trimmed pastes were missed and it reported 29 instead of 39, and the wrong number reached a design document. The rule: fix counts at their source and test the miner on transcripts whose answers you already know.",
+      "where": "Implementation note 2 (Fix counts at their source)"
+    },
+    {
+      "id": "Q3",
+      "answer": "Zero can mean useless, or never shown in an example agents copy, or invisible to the miner (used under another name). Only reading the transcripts behind the count distinguishes them, and deleting on a misread count removes surface someone needed.",
+      "where": "Forces (Counts against meaning) and Implementation note 3"
+    },
+    {
+      "id": "Q4",
+      "answer": "As noise, not as evidence: replicate runs of the same version rated it within about one point of each other, so a one-point move after a revision cannot be attributed to the revision. Report ranges and use several runs per side.",
+      "where": "Implementation note 6 (Repeat runs, report ranges, and state the rule before looking)"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "All three applicability conditions hold: the CLI surface is the team's own to change, six months of sessions can be mined and replayed into scripted tasks, and outcomes are countable (failed invocations, error codes, task completion, tokens to success). It is almost the chapter's developer-tool variation, with the extra twist that both humans and agents are users.",
+      "participants": {
+        "Transcript store": "argv + exit status + duration captured by a shell hook or a thin wrapper, joined with agent tool-call transcripts; raw history text alone is not enough (no exit codes, truncated arguments, no session boundaries).",
+        "Miner": "Scripts counting subcommand and flag usage, nonzero exits clustered by error code, 'command not found' and unknown-flag names typed, and flags in each tool's manifest with zero uses.",
+        "Reader": "A tool owner who reads the worst clusters and says why (undocumented flag, misleading usage text, missing subcommand) rather than only how often.",
+        "Decision log": "One entry per accepted CLI change with the counts and the ledger row numbers behind it.",
+        "Scenario set": "A frozen core of scripted tasks per tool (same task text, same model, tool version pinned), plus a tail grown from real failures; history is used for mining, not as a before/after window.",
+        "Runner": "Sealed container runs of an agent on each task, tool version installed on each side.",
+        "Results ledger": "One row per run: tool version, side, change id, model and harness version, scenario, set version, run number, and metrics (task passes, invocations, failed invocations, bytes of script written).",
+        "Decision rule": "As in the chapter, applied per tool and per scenario, with the target metric declared before the runs."
+      },
+      "sketch": "events = shellHook(argv, exit, duration) ++ agentTranscripts.toolCalls   -- instrument first; do not parse ~/.zsh_history\n\nmine(events) -> Counts\n  calls    = countBy(events, e -> (e.tool, e.subcommand))\n  options  = countBy(events, e -> (e.subcommand, e.flags))\n  failures = countBy(events where e.exit != 0, e -> (e.tool, e.errorCode))\n  typed    = countBy(unknownNames(events), n -> n)          -- bad subcommand and flag names typed\n  unused   = [flag for flag in manifest(tool) if calls[flag] == 0]   -- read before deleting\n  return Counts(calls, options, failures, typed, unused)\n\ncompare(change, core, runs: 3) -> Verdict\n  for s in core, for side in [before, after], for r in 1..runs:\n    ledger.append(Row(tool: version(side), side, change: change.id, model: M, harness: H,\n                      scenario: s, setVersion: core.version, run: r,\n                      metrics: {taskPass, invocations, failedInvocations, tokensToSuccess}))\n  -- keep only if invocations/failures fall (direction: lower is better) on most core scenarios\n  -- and no guardrail metric (taskPass) rises or falls outside its range",
+      "key_notes": [
+        "Note 2, Fix counts at their source, matters most: the obvious transcript store here is shell history, which loses exit status and argv after truncation and cannot link a command to its failure, so every failure count would be wrong. Log from a shell hook or wrapper and validate the miner on a two-week window you already understand.",
+        "Note 3, A zero count needs a reason: here a flag with zero agent uses may still have human users, so each deletion is two decisions (agent-facing and human-facing) and only one of them is measured by your runs.",
+        "Note 7, Measure behaviour, not only outcomes: failed invocations per task and error code distribution are the metrics that should move; task pass rate alone hides an agent that succeeds slowly by trial and error.",
+        "Notes 5 and 6 matter as a constraint: humans cannot be A/B tested on your timescale (habit and six months of history confound any before/after), so history is mined but the comparison runs agents only, at least three runs per side.",
+        "Note 10: a core set built from your own examples will test whether agents read the docs, not whether commands are error-prone, so grow the tail from real failure clusters."
+      ],
+      "risk": "Trusting shell history as a faithful transcript and then deleting or renaming flags on wrong counts, judging an agent-facing improvement that silently breaks the human users of the same flag."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "No, as proposed: the message format is fixed by the standard, which is the chapter's own first do-not-use case ('measure, but redesign elsewhere'). The transcripts show that agents struggle, not that the format is wrong; the change belongs in the encoder/decoder, the client helper, the error text or the docs. Only the measurement half of the pattern applies, and if the mistakes trace to a bug in the implementation it is a correctness fix: ship it, then measure side effects.",
+      "participants": {
+        "Transcript store": "Agent sessions plus implementation and conformance logs, kept as the chapter asks.",
+        "Miner": "Error clustering by message type, by field, and by error code; names agents typed that the SDK does not expose.",
+        "Reader": "A protocol engineer who reads the failing sessions to separate agent misunderstanding from an implementation bug from a misleading error message.",
+        "Decision log": "Entries for what was changed inside the implementation and its SDK, never for the wire format.",
+        "Scenario set": "The conformance suite (fixed by the standard) plus a frozen core of interop fixtures against an independent implementation.",
+        "Runner": "Sealed runs of agents against a pinned implementation version.",
+        "Results ledger": "Rows per run, stamped with implementation version, spec version, SDK version, model, harness and scenario-set version.",
+        "Decision rule": "Applied only to changes you are allowed to make (SDK ergonomics, error messages, docs); the guardrail is conformance and interop, not transcript counts."
+      },
+      "sketch": "",
+      "key_notes": [
+        "Note 8, Check the yardstick when results surprise: your 'known answer' here is the spec and your conformance suite, so verify the suite before trusting a high error count on one message type; the tests, not the agents, are often the wrong side.",
+        "The Applicability do-not-use clause is the note that matters: a fixed interface is measured, not redesigned, so the counts can only point at your own layers.",
+        "Note 3, A zero count needs a reason, applied as a high count needs a reason: read the failing sessions to see whether the cause is the SDK's field naming, a wrong error message, or a real bug, because each implies a different fix.",
+        "Note 7, Measure behaviour: cluster by message type and field so the fix can land where the friction is, instead of a pass/fail number that tells you nothing actionable."
+      ],
+      "key_notes_note": null,
+      "risk": "Using the counts as a mandate for a format change ('agents keep getting this message wrong, so simplify it'), which fragments the protocol; worse, the guardrail that must not get worse — interop with independent implementations — never appears in your transcripts, so the decision rule's 'no other metric worse' clause cannot protect you at all."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Structure (Decision rule) vs Motivation and Implementation note 5",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The rule requires at least three runs per side, but the running example and note 5 both use two runs per side, and the flagship gold-point claim (4 and 5 becoming 14 and 13 of 53) rests on that two-run design. At two per side, both after-runs above both before-runs happens by chance one time in six, so the chapter's own best evidence falls below its own bar and the reader cannot tell which number is the real requirement.",
+      "suggestion": "Say explicitly that the three-run rule is the adoption target and that goja-cv's table predates or misses it, then either restate the gold-point result with its caveat or add a third run per side; add one sentence on what n=2 complete separation is worth (1/6) so the reader can price their own runs."
+    },
+    {
+      "section": "Structure (Decision rule), second clause",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "'The medians differ by more than the larger range' is not a noise test; heavily overlapping data can satisfy it, which contradicts the same sentence's 'the ranges do not overlap'. It also gets harder to satisfy as runs are added (ranges widen), so the clause punishes collecting more evidence. The first clause, by contrast, is a permutation separation test whose strength is purely a function of runs per side.",
+      "suggestion": "Drop the second clause or replace it with a permutation / rank separation test on the metric, and state the runs-per-side to confidence mapping once (n=3 vs 3 gives about one false accept in 20)."
+    },
+    {
+      "section": "Sketch (compare)",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "improves(m, a, b) is used without ever saying which direction is an improvement, yet the example's central metrics are lower-is-better (calls 31.5 to 29, errors). The expression also mixes 'and' with 'or' unparenthesised, so two readers will parse two different rules.",
+      "suggestion": "Declare direction per metric (calls, errors: lower; accuracy: higher) in the Row/metrics definition, make improves read it from the table, and add parentheses around the two alternative clauses."
+    },
+    {
+      "section": "Solution vs Motivation / Collaborations step 4",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The Solution insists 'Compare only rows that differ in one thing', but the flagship change is a bundle of three changes and its numbers are then used as the chapter's proof. Collaborations step 4 papers over this with 'judged as a bundle, or taken apart' without saying what a bundle verdict licenses or what taking it apart costs.",
+      "suggestion": "State what a bundle verdict buys (this bundle is better; no credit or blame to any part, so a regression inside it is invisible) and that isolating parts costs one full before/after set per part, then say when that cost is worth paying."
+    },
+    {
+      "section": "Sketch (Row) vs Implementation note 9",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The Row record has system, side, change, model, scenario, setVersion, run and links, but note 9 demands prompt or chapter version, and nothing records harness version, sampling parameters, or cost. Nothing in compare() enforces that the before and after rows agree on everything except the change, so the 'differ in one thing' guarantee is aspirational.",
+      "suggestion": "Add promptVersion, harness, sampling and cost to Row, and give compare a guard that refuses (refuse('confounded', ...) with the differing fields) when non-change fields disagree between sides."
+    },
+    {
+      "section": "Consequences / Implementation notes",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "'Mining, scenarios and runs cost time before every change' is the only cost statement, with no order of magnitude. A reader deciding whether to adopt cannot tell whether a change costs one afternoon or a hundred agent runs, and the cost is the main reason teams will skip the after-side.",
+      "suggestion": "Give one rough figure for the goja-cv loop (runs per change, wall clock, tokens) and name the cheap path for small changes (fewer core scenarios, a subset of the set, telemetry instead of transcript mining)."
+    },
+    {
+      "section": "Structure (Decision rule), keep condition",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'No other metric gets worse beyond its range' is ambiguous (whose range, and is it a veto or a review trigger) and it will veto changes that are actually good: a library loader makes agents write more code because they now do more. 'mostly(better for the target metric)' never says whether mostly means a majority, a strict majority, or a fraction, nor how ties count.",
+      "suggestion": "Separate the target metric from declared guardrails, say guardrails are hard vetoes or review flags, and give 'mostly' a number; add the loader example as a case where a guardrail degradation was accepted and why."
+    },
+    {
+      "section": "Sketch (mine) / Implementation note 2",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "The paste counter is `[b for b in largeRepeatedBlocks(agentCode(transcripts))]`, which neither deduplicates nor counts per session, so the sketch encodes the very mistake note 2 describes (a marker-based, wrong-unit count that reported 29 instead of 39). The general rule behind the story, normalise content and count per session, then check against a labelled sample, never appears.",
+      "suggestion": "Replace with a per-session hash of normalised block content, show the count as sessions-with-paste, and state the rule as 'count the unit you will act on and validate the miner against a hand-labelled sample'."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "The section is a results table in prose: 751 calls, 198 overrides, 70 to 0, 99 to 0, three median call figures, 4 and 5 to 14 and 13 of 53, 374 evaluations, 3.2 KB, 19 firings, and a whole second example (annotator agents and the lint). goja-cv itself is never introduced, so the reader must infer what kind of system it is. A reader needs two numbers and the shape of the argument, not nine.",
+      "suggestion": "Open with one sentence saying what goja-cv is and what agents do with it, keep the zero-use deletion and the gold-point result, and move the rest plus the annotator study into a short case appendix."
+    },
+    {
+      "section": "Related chapters, classic patterns",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "The Observer and Memento mapping is forced. A miner is a batch pass over stored events with no subject, no registration and no notification; a ledger row is a record for comparison, not a Memento, which exists so an originator can be restored to a previous state.",
+      "suggestion": "Drop both, or say what actually transfers: append-only event log and provenance record (Chapter 11) for the row and the decision log."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The participants, the loop and the honesty about run-to-run noise are the real contribution and make it worth applying; clarity and reusability are dragged down by a decision rule that is ambiguous in its second clause, undefined in metric direction, and contradicted by the example's two runs per side."
+  }
+}

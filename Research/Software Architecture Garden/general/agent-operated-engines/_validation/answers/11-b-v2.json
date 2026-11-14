@@ -1,0 +1,146 @@
+{
+  "restatement": {
+    "intent": "Every artefact should be able to say what produced it and what was decided about it, so that sources can be measured, filtered, audited and corrected after the fact.",
+    "problem": "When artefacts do not record their makers and decisions overwrite one another, nobody can measure a source, filter by origin, audit a result, or undo a decision without losing what came before.",
+    "solution": "Stamp every artefact at creation with a provenance record (maker kind, identifiers, inputs with hashes, version, time), and put field definitions and units in a schema. Record every decision (accept, reject, correct, undo) as an appended event carrying actor, time and reason; never edit events. Derive current state by folding the log through one shared function, and offer queries in both directions: what made this, and what did this source make."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "What made it (maker, identifiers, inputs) and who decided what about it.",
+      "where": "Intent"
+    },
+    {
+      "id": "Q2",
+      "answer": "A rejection is information: without it the acceptance rate of a source cannot be computed, and the same suggestion may be offered again.",
+      "where": "Implementation notes 3; also Motivation ('rejected suggestions are kept as decisions too')"
+    },
+    {
+      "id": "Q3",
+      "answer": "The events record item, decision and time but not the reviewer; that is enough with one reviewer and insufficient with two, so the actor is missing.",
+      "where": "Implementation notes 6 (the review-log gap); note 5 flags the three divergent folds as a second gap"
+    },
+    {
+      "id": "Q4",
+      "answer": "Corrections went into a review log of decisions, and the scoring scripts fold that log over the gold labels, so the corrections apply as an overlay while the original labels stay intact.",
+      "where": "Motivation ('Correcting the yardstick') and Implementation notes 10"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Artefacts come from several kinds of source (agent sessions, people), will be compared and weighted by source, and results must be traceable and revertable, so both halves of the pattern apply. Git already supplies author and history, but not the agent session, model or prompt version, which is exactly the missing stamp.",
+      "participants": {
+        "Provenance record": "per-commit (or per-hunk) record: kind (agent | person), session id, model, prompt version, program and line that made the edit, input files with content hashes, at",
+        "Stamper": "the one commit helper / commit-msg hook that every path (agent commit tool, human CLI, bot) must go through; refuses a commit without a stamp",
+        "Schema": "trailer keys (Agent-Session, Model, Prompt-Version) plus the rule that attribution granularity is the commit or hunk, with units for timestamps and ids",
+        "Decision event": "revert, restore, review approval, cherry-pick; appended, never a history rewrite",
+        "Decision log": "append-only table of revert/approval events keyed by commit or blob hash, ordered by its own sequence number",
+        "Fold": "one shared liveLines(commits, events) that maps path and line to its surviving owner and status",
+        "Lineage queries": "sourceOf(line or commit), madeBy(prompt version), revertRate(source), unstamped()"
+      },
+      "sketch": "value Prov: kind (agent | person), ids: {session, model, promptVersion, program, line},\n            inputs: [(path, hash)], at\n\n-- the only commit path; no construction without a stamp\ncommit(tree, msg, ctx) -> Commit\n  if ctx.kind == agent and ctx.promptVersion is none:\n    refuse(E_STAMP, \"an agent commit needs model and prompt version\")\n  return git.commit(tree, msg ++ trailer(Prov(kind: ctx.kind, ids: {...}, inputs: ctx.inputsRead, at: now())))\n\n-- reverts are events, never rewrites\nrevert(log, commitId, actor, reason?) -> ok\n  append(log, Event(seq: log.next(), commitId, revert, actor, now(), reason))\n\n-- the one shared fold: what is still live\nliveLines(commits, events) -> map path -> [line -> ownerProv]\n  for c in commits: for l in c.lines: live[l] = c.prov\n  for e in sortBy(events, seq):            -- seq, not commit date\n    if e.decision == revert: drop(live, lines(e.commitId))\n  return live\n\nmadeBy(promptVersion) -> [c.id for c in commits if c.prov.ids.promptVersion == promptVersion]\nrevertRate(source) -> reverted(commits(src)) / all(commits(src))",
+      "key_notes": [
+        "Note 1 (make stamping impossible to forget): agents commit through their own tools, so the stamp has to live in a single shared commit helper plus a hook that rejects unstamped commits, and legacy unstamped history must be counted via unstamped().",
+        "Notes 3 and 4 (rejections/unstamped work kept as events; order by sequence, not clock): reverts, force-push restores and review rejections are events; commit dates from many machines and CI runners reorder, so the fold orders by the log's seq.",
+        "Note 2 (per item, not per file): attribution must be per commit or per hunk, because a per-branch or per-repo stamp cannot answer 'which lines'.",
+        "Note 5 (write the fold once): 'what is live now' must be one function, otherwise every dashboard re-implements revert semantics and the revert rate drifts.",
+        "Note 9 (hash inputs): reference commits and files by content hash, because amend, rebase and squash change commit ids and silently detach stamps from lines."
+      ],
+      "risk": "History rewriting is this situation's characteristic failure: rebase, amend and squash-merge drop trailers or move lines to a commit with a different id, and every query then silently omits those lines, biasing the revert rate the team wanted. Guard it by refusing merges that drop the trailers, counting unstamped commits, and keying state on content hashes."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Not as proposed. The actor on every decision is load-bearing for the pattern's headline queries (acceptance by source, madeBy(actor), accountability), and legal anonymity removes it; the chapter's own Applicability says not to use it when privacy rules forbid recording who did what. A reduced variant fits: stamp the artefact's provenance (read id, imaging inputs with hashes, model/tool version, time) with no person, keep an append-only decision log of accept/correct/undo with role, time and reason, and fold it; drop the by-source rate queries entirely.",
+      "participants": {
+        "Provenance record": "read id, study and image inputs with hashes, tool or model version, at - never the radiologist",
+        "Stamper": "the read-saving path, which must refuse an unstamped read",
+        "Schema": "declares which fields are deliberately absent and why, so the omission is a documented rule rather than a forgotten call",
+        "Decision event": "accept, correct, undo with role, time, reason - no actor identifier",
+        "Decision log": "append-only review log that survives anonymity",
+        "Fold": "the same shared fold, so corrections still overlay originals",
+        "Lineage queries": "sourceOf(artefact) and madeBy(algorithm version) only; no actor dimension"
+      },
+      "sketch": "",
+      "key_notes": [
+        "Applicability's 'privacy rules forbid' clause plus note 6: record what the rules allow, and that is role plus time here, stated in the schema.",
+        "Note 7 and the Schema participant: the absence of an actor must be written down, or a later maintainer adds it back.",
+        "Note 10 (corrections overlay, do not rewrite): the medically valuable half - revisions and undo - survives anonymity intact."
+      ],
+      "risk": "Forcing the fit by substituting a role or a pseudonymous id that de-anonymises in a two-radiologist department, or by leaving the reviewer's name in the provenance stamp instead of the event; the ledger then holds exactly the personal data the law forbids. Refuse the full pattern, and keep any accountability record outside the ledger."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (fold)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`if e.decision == undo: pop(s.decisions)` is unguarded: an undo on an artefact with no decisions crashes or silently does nothing. More importantly, the undo event is consumed but never stored, so `ItemState.decisions` is not the history the pattern promises - a reader inspecting decisions cannot tell an undo happened without re-folding, which contradicts 'derive current state by folding the log'.",
+      "suggestion": "Guard the pop (refuse(NO_PRIOR) or record a no-op), and keep the undo in the decision list, e.g. an explicit undo marker over the stack, so `decisions` remains replayable and auditable."
+    },
+    {
+      "section": "Sketch (fold, acceptance)",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "`acceptance(field)` is not well defined: `s.origin[field]` indexes a Provenance value as if it were a map, while `madeBy` uses `matches(a.provenance, source)`; the two queries do not share a predicate. It also divides by `count(decided)`, which drops pending items without saying so and can be zero, so the rate is silently computed over a subset - the same bias note 1 warns about.",
+      "suggestion": "State one predicate, e.g. `originOf(a) -> map` and `matches` over it, used by both queries; report the denominator explicitly and refuse(E_EMPTY) on zero decided."
+    },
+    {
+      "section": "Sketch (madeBy / fold)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The fold assumes every event's artefactId is present in `state`. Events for artefacts dropped or aggregated away (which the Applicability explicitly permits) make the fold crash or be silently skipped, and note 5 names exactly this 'unknown decision, malformed line' drift without the code showing how it is handled.",
+      "suggestion": "Add one explicit policy in the fold: refuse(ORPHAN_EVENT) with the event id, or count orphans in an audit query so the gap is a number, matching note 1's technique."
+    },
+    {
+      "section": "Motivation / Collaborations step 4 vs Sketch",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The headline result (81 %, 47 %, 20 % acceptance by confidence band) is not expressible with the given records: Provenance carries kind, ids, inputs, version and time, but no confidence or other suggestion attributes, so 'acceptance by confidence band' has no slot. The schema silently depends on data the pattern does not model.",
+      "suggestion": "Either add `attributes: map` to Provenance (with a note on why suggestion confidence lives there) or say plainly in a note that banded rates join the suggestion's own record, as the gold files do."
+    },
+    {
+      "section": "Implementation note 8 (atomic sidecar)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The claim 'saving with a sidecar, both or neither' is not delivered by the sketch: two renames cannot be atomic together, and renaming the sidecar first deliberately produces the opposite failure - an orphan sidecar with no data file on crash. The text also never says how a reader treats the orphan.",
+      "suggestion": "Keep the sidecar-first ordering but drop 'both or neither'; add fsync of both temporaries before renaming, and state the reader rule (sidecar without file = truncated write, ignore or repair) plus cleanup of stale orphan sidecars."
+    },
+    {
+      "section": "Solution / Structure / Consequences",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "The chapter says the two halves are separable, then presents the Solution as one fused sentence, lists Schema as a participant, and gives ten consequences without ever stating the cheapest useful version. A reader cannot tell what they must build for 'stamp only' versus 'stamp plus decision log'.",
+      "suggestion": "Split the Solution into two labelled paragraphs (provenance, then decision log), add one line naming the minimum set per half, and demote Schema from participant to a dependency, since field names and units are Chapter 2's concern."
+    },
+    {
+      "section": "Sketch (create/save) and Provenance",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "`ctx` fixes the dust/Editor lab field bag (`eval`, `line`, `promptVersion`, `runId`) and `save` hard-codes a `.provenance.json` rename dance. A reader in another setting must first undo these before the sketch means anything.",
+      "suggestion": "Show a minimal stamp (kind, one id, one input with hash, at) as the normative shape and move the full id bag and the concrete sidecar filename to an 'in the dust project' example."
+    },
+    {
+      "section": "Implementation notes / Consequences",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Consequences admits 'logs grow; folds must be fast, and old logs archived', but no note says how: nothing on compaction, snapshots of fold state, or versioning the provenance and event schema so old stamps stay foldable after a field or decision kind is added.",
+      "suggestion": "Add a note on checkpoint/snapshot folds (fold to a snapshot, fold only events after it) and a `schemaVersion` on provenance and events, with the rule that new decision kinds must be handled by the one fold."
+    },
+    {
+      "section": "Ratings / Applicability",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "The ★★ 'close to invariant' rating asserts convergence without evidence, while the chapter carries ten notes and four variations - a form that reads like a frequent, problem-prone pattern. The rating also gives no guidance on when the cheap form suffices.",
+      "suggestion": "Defend the rating in one sentence (which systems converge, and on what shape) or drop it here, and use the space for the cost-of-stamping versus cost-of-reconstruction trade-off the Forces raise."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The prose and provenance/log split are clear and the applicability limits are honest, but the sketch has real defects (unguarded undo that also erases the undo from state, an undefined acceptance predicate and denominator, provenance with no slot for the confidence band it advertises), which is what caps clarity."
+  }
+}
