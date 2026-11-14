@@ -1,0 +1,137 @@
+{
+  "restatement": {
+    "intent": "Describe every operation of an engine once, as one data record, and let every consumer that needs to know an operation's shape read that record instead of keeping its own copy.",
+    "problem": "When several consumers each hold their own idea of what an operation accepts and returns, they drift apart, and the caller — often an agent — gets silently wrong behaviour instead of a precise refusal.",
+    "solution": "One Operation record per (receiver kind, name) carries argument specs (type, unit, default, hard limits, usual range, redirects, doc), a cross-argument hook, result fields as a function of the bound arguments, flags, docs and the implementation; the registry validates it structurally and semantically at registration. A Binder turns a raw call into bound arguments plus warnings or a Failure, in the declared units; the Diagnoser turns Failures into refusals from the same record; the Describer renders short and long help; a Walker test calls every record. Parts that cannot be records live in one enumerated exception list and are tested separately — any other list of operations outside the registry is a bug."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Refuse it: bind returns Failure(UNKNOWN_OPTION, key, rec); the diagnoser then renders a refusal carrying the valid option names and, if the record holds a redirect for that key, a concrete fix (e.g. use `crop`). It must never be silently ignored.",
+      "where": "Solution; Collaborations steps 2–3; bind pseudocode (`unknownKeys`); Implementation note 3"
+    },
+    {
+      "id": "Q2",
+      "answer": "In the Argument spec's `unit` field; defaults, hard limits and the usual range are all expressed in it. It matters because limits are checked on the value as the caller wrote it, at bind time, and conversion to the engine's working scale happens only at evaluation — so a preview-scale check cannot make a full-size export differ from the approved preview (the failure of two prototypes that did not scale radii/crops).",
+      "where": "Structure (Argument spec); Collaborations step 2; Implementation note 2; Motivation bullet 2"
+    },
+    {
+      "id": "Q3",
+      "answer": "`cv.open` is bound by hand and the reference's \"Globals\" section is fixed written text. Such parts must be kept in one visible list and tested separately, so it stays clear which parts of the API the records do not cover.",
+      "where": "Implementation note 10"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because a composite is still an operation to every consumer: the binder checks its arguments, the describer documents it, the diagnoser names it in refusals, the agent's context lists it and the walker exercises it. Giving it a record means help, errors and the reference treat it like any other operation instead of it becoming a hidden exception.",
+      "where": "Implementation note 11 (with Solution's exception-list rule)"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Three real consumers (planner, autocompletion, error reporting) plus analyst-added functions at run time is exactly the stated applicability. The one thing the chapter's default shape does not carry is name overloads, so the lookup must return a candidate set.",
+      "participants": {
+        "Operation record": "each registered UDF: name, argument specs from the Python signature and type hints, return type, a `volatile`/`sideEffects` flag, docstring first line as `doc`, `run` = the Python callable",
+        "Argument spec": "name, type (int/float/str/relation/array-of-T), optional/default, hard limits where declared, value docs, redirects for common misspellings",
+        "Registry": "the UDF catalogue keyed by (namespace, name), enumerable; validates records at registration time before any query can call them",
+        "Binder": "the query planner / call resolver: picks the one candidate whose argument types accept the bound arguments; returns NO_MATCH with the full candidate list when none or several match",
+        "Describer": "notebook autocompletion line (`name(arg: type, …) → relation: doc line`) and full `help(name)` from the same records",
+        "Diagnoser": "\"no function matches\" refusal naming the candidates and the first argument each candidate rejected, plus the nearest name",
+        "Walker": "a test that calls every UDF with sample arguments kept per record and checks the returned relation's columns against the declared fields",
+        "Flags": "`volatile` (must not be cached/planned away), `sideEffects` (confirm before running), `internal` (not offered to analysts' autocompletion)"
+      },
+      "sketch": "```text\n-- planner lookup is an overload set, not a single record (note 8)\nresolve(name, raw) → BoundCall | Failure:\n  cands = registry.lookup(name)                      -- all records with this name, any arg types\n  if cands == []: return Failure(NO_METHOD, name)\n  if len(cands) == 1 and cands[0].type.accepts(raw): return bind(cands[0], raw)\n  ok = [c for c in cands if allArgsAccept(c, raw)]\n  if len(ok) == 1: return bind(ok[0], raw)           -- bind checks limits, fills defaults, hook\n  return Failure(NO_MATCH, name, tried: cands)        -- 0 or >1 survivors\n\nexplain(NO_MATCH, …) → refuse(E_NO_FUNCTION, name,\n    nearest: closest(name, registry.names()),\n    tried: [(c.signature, firstRejectedArg(c, raw)) for c in failure.tried],\n    fix: redirectFor(name))                          -- e.g. `sessionize` → `sessionise` alias\n\ncontextLine(rec) → \"name(arg: type, …) → relation: first line of docstring\"\n\n-- at registration of an analyst function\nregistry.register(rec) → ok | refuse(E_BAD_RECORD, …)\n  -- structural: type hints resolvable, no rag after kw-only, unique names\n  -- semantic:   default accepted by its own type, redirect targets exist, (ns,name,arity) handled\n\n-- walker\nfor rec in registry.all(): walk(rec)   -- sample args from defaults; missing samples fail the walk\n```",
+      "key_notes": [
+        "Note 8 (one record per receiver kind and name / overload sets) matters most: UDFs in a SQL engine are routinely overloaded by argument types, so the plain `lookup(on, name) → one record` shape of the chapter will not hold; the lookup must return a set and the refusal must explain why each candidate failed, which is precisely the \"no function matches\" message the task asks for.",
+        "Note 1 (validate the record, not only the call): here records arrive at run time from analysts, so bad records must be rejected at registration — otherwise the first victim is an unrelated analyst's query. Also add the semantic checks the chapter admits goja-cv lacks.",
+        "Note 7 (pluggable argument types): a Python UDF surface will meet lists, dicts, relations, arrays, nullable columns; hard-wire each into the binder and it becomes the 1,331-line type system the chapter warns about.",
+        "Note 9 plus note 5 (two renderings, described results): autocompletion wants the context line, `help()` wants the full form, and the planner needs the declared result columns — all from the same record, or the editor will promise columns the query does not produce."
+      ],
+      "risk": "Building a second type system that drifts from Python's real runtime behaviour: the record says `float`, the UDF gets a `numpy.int64` or a column and fails deep inside, well past the check — so keep `accepts` permissive and treat the record as the authority for *messages and planning*, never as a stricter gate than the language itself. Second risk: trusting a user-supplied record's flags (a `volatile` side-effecting UDF marked pure gets cached or reordered)."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "There is one consumer (the script) and a dozen operations, and the modules are general-purpose code, not a catalogue addressed by name from outside. The chapter's own \"do not use\" list covers this exactly — a registry of every function in a program is a second type system — and the benefits it pays for (several consumers agreeing, agents who cannot read the source, frequent additions by several people) are all absent.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability \"Do not use it when\" is the governing text here, not the implementation notes: no checker/doc/UI consumer exists to keep in agreement, so every record is pure cost.",
+        "Consequences' minus column is the honest argument to give the researcher: the binder becomes a small type system needing its own design and tests, and each new module touches shared code — friction with zero returned benefit for one caller."
+      ],
+      "risk": "The likely wrong move is applying it half-way \"for cleanliness\": decorators that register modules whose records nothing reads, which is boilerplate that drifts from the real signatures — worse than plain module functions with type hints. If the situation later changes (a sweep/config UI enumerates modules and their hyper-parameters, or an agent starts driving the training script), the pattern becomes appropriate and the trigger is exactly the chapter's applicability list."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution vs Implementation note 1",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The Solution asserts as the pattern that the registry \"validates each record when it is registered\", but note 1 then admits goja-cv does not check defaults within limits or redirect targets, and that such mistakes \"surface only when an agent hits them\". A reader cannot tell whether semantic validation is part of the pattern or a TODO in the example.",
+      "suggestion": "State in the Solution which checks are normative (structural and semantic both), and rewrite note 1 as \"the example's omission, and what it cost\", not as an open invitation."
+    },
+    {
+      "section": "Implementation note 4 / ArgSpec sketch",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The record has no home for a method-level redirect. `look({ box })` → use `crop` redirects to a different operation, not to another option key, yet `redirects` is defined only inside ArgSpec, and the diagnoser's UNKNOWN_OPTION arm only ever produces an option fix. The note then concedes three redirect tables live outside the registry, which is the symptom of this gap, not an accident.",
+      "suggestion": "Add a record-level field (e.g. `nearCalls: [(signature, redirect)]` or `aliases`) and give the diagnoser an UNKNOWN_METHOD arm that reads it; then say the three outside tables are the debt this field removes."
+    },
+    {
+      "section": "Structure (Flags)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Flags are described by example only: `identity` predicate, `lossless-preview` hint and `global` are named but no consumer is said to read them, and nothing says which flags the binder/engine may enforce versus merely display, or which may be trusted from a plug-in's record (only `confirm` gets that rule).",
+      "suggestion": "Give flags a small table: flag, who reads it, what goes wrong without it, trusted-from-record yes/no. If a flag has no consumer in the example, cut it."
+    },
+    {
+      "section": "Collaborations 2 / bind sketch",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The prose says the binder matches \"positional and named arguments\", but the sketch only does `take(raw, spec)`, ArgSpec has no position field, and the only trace of positionality is the registration check \"required before optional\". For an agent caller, whether `gaussian(2)` and `gaussian({sigma: 2})` are both legal and how they mix is exactly the fluency the pattern is selling.",
+      "suggestion": "Say explicitly whether records support positional calls, add the position to ArgSpec if so, and show one mixed call in the sketch."
+    },
+    {
+      "section": "Cross-argument hook path",
+      "kind": "missing",
+      "severity": "low",
+      "note": "`validate` returns `Failure`, but `explain`'s match has no arm for kinds produced by a hook, so the reader cannot see how \"two arguments that must agree\" becomes a repairable refusal rather than a raw failure leaking out.",
+      "suggestion": "Say that hooks must return the same Failure vocabulary, and add one arm to explain (e.g. ARGS_DISAGREE → refuse with both argument names)."
+    },
+    {
+      "section": "Missing topic: record evolution",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Records are the contract for stored scripts, editor presets and (per Chapter 3) lazy-graph content keys, but nothing says what happens when an argument is renamed, a default changes, or a redirect target is later removed. Default drift silently changes cache keys and previously approved results.",
+      "suggestion": "Add a note: additive-only changes plus aliases, redirects that are themselves validated at registration, and whether a default change invalidates bound calls or cached nodes."
+    },
+    {
+      "section": "Whole chapter, especially Motivation",
+      "kind": "too-specific",
+      "severity": "high",
+      "note": "The goja-cv instance (binder 1,331 lines, 58 records, 30,916-character reference, `P.choice`, `heal`, `TestSchemaProperty`, `mask.luminance`) plus the Editor lab as a second running example crowds out the reusable core; a reader in another domain has to discard a large share of the text. The chapter itself rates itself ★★ near-invariant, which argues for more on variation points and less on this instance.",
+      "suggestion": "Keep one failure per Motivation bullet and one measurement per implementation note; move the Editor lab out of Motivation (it already reappears in notes 10–11) into a short \"two further instances\" block; replace the line counts with the lesson they support."
+    },
+    {
+      "section": "Implementation notes",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "Eleven notes, several of which repeat material already given: note 6 restates the \"coverage, not correctness\" consequence, note 9 restates the agent-context budget already in Consequences and Chapter 5, and note 5's property test restates the walker.",
+      "suggestion": "Cut to about seven: merge 5 into 6 (walker plus both-direction result checks), fold 9 into Collaboration 5, and keep the goja-cv measurement as a single sentence."
+    },
+    {
+      "section": "Applicability (\"Do not use it when\")",
+      "kind": "missing",
+      "severity": "low",
+      "note": "\"A registry of every function in a program is a second type system\" is the most useful sentence for a reader deciding against the pattern, but it gives no test for where to stop. Nothing says how many consumers, or which consumers, justify a record.",
+      "suggestion": "Add a stopping rule: a record is justified when at least two independent consumers need its shape, or when the caller cannot read the source; otherwise keep the signature."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The shape (record + binder + diagnoser + describer + walker, plus a visible exception list) is clear and transferable, but the reusability is held back by goja-cv measurements and an unowned home for method-level redirects and name overloads."
+  }
+}

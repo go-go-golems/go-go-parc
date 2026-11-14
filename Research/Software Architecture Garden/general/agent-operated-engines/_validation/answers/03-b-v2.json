@@ -1,0 +1,141 @@
+{
+  "restatement": {
+    "intent": "Let a script build a graph of operation calls without running them, make equal calls collapse into one shared node, and compute a node only when a value is actually demanded.",
+    "problem": "Expensive computations are rewritten in slightly different words on every request and asked for piecemeal, so recomputing them wastes work — yet caching them by name or source text returns stale values.",
+    "solution": "Every operation call returns an interned Node hashed over the op, its canonical arguments and its input nodes; a value is computed only at an explicit evaluation point. Its key is a Signature: node hash + quantised evaluation parameters + op implementation version + the signatures of its inputs, recursively. The Signature indexes a byte-budgeted shared cache and a per-request run memo, concurrent requests for one key share a single in-flight computation, and cached values are never mutated — warnings travel with them."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A Signature: the node's structural hash (op name, canonicalised bound arguments, input node hashes), plus the operation's implementation version, plus the evaluation parameters in quantised form (e.g. scale, precision, device), plus the signatures of the node's inputs — recursively. The node hash alone is not the key, because nodes are interned independently of how they will be evaluated.",
+      "where": "Structure (Signature row), Collaborations 2, Sketch (`signature`), Implementation notes 2"
+    },
+    {
+      "id": "Q2",
+      "answer": "So that nearly equal scales share cache entries and produce identical buffer sizes — and, crucially, the computation must then actually run at the quantised value. Quantising only the key while computing at the raw value would file one value under another value's key, silently.",
+      "where": "Implementation notes 2"
+    },
+    {
+      "id": "Q3",
+      "answer": "An opaque fill covering the whole tile ignores the layers beneath it (also: a hidden layer takes the key of what is below; a pass-through group at full opacity takes its top child's key). Risk: each such rule is a correctness obligation, not an optimisation — if it is wrong in even one case, that case returns a stale picture with nothing reporting it.",
+      "where": "Implementation notes 4"
+    },
+    {
+      "id": "Q4",
+      "answer": "It computes only on `await`, `look()` and `cv.save`, and refuses to read a property of an unevaluated node with `E_NOT_AWAITED`. The first version silently dropped bare `x.look()` statements; the second delivers every look created in an eval. The tried lint for 'node built but never used' was deleted because it fired on legitimate code more often than on mistakes.",
+      "where": "Implementation notes 12"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is the pattern's canonical case: many expensive, deterministic derivations of file contents, re-requested across runs and now across machines. The chapter's own 'build system' motivation applies, but the shared-cache and source-identity parts move from optional to essential.",
+      "participants": {
+        "Node": "a page render (markdown + layout template + feature-nodes), an image resize, a JS/CSS bundle step",
+        "Builder": "the site build graph builder; interns `page(md, layout)` so the 200 callers of one layout share it",
+        "Source": "a markdown file, a template, an image — identified by content hash, not by path+mtime",
+        "Signature": "render/resizer/bundler tool version + config that changes output (base URL, locale, minify flags) + input signatures",
+        "Evaluator": "the CLI's build step, acting on an explicit `build`/`render` command",
+        "Run memo": "one file's dependency walk, so a layout shared by 200 pages is hashed once per build",
+        "Value cache": "local artifact store (keyed by signature) plus a shared remote store CI uploads to",
+        "In-flight group": "dedupes a template parsed by 20 parallel workers"
+      },
+      "sketch": "source(path) → Node\n  intern(op: read, args: {path}, inputs: [])   -- signature includes sha256(bytes)\n\npageNode(md, layout) → Node\n  intern(op: render, args: {engine: \"3.2.1\", baseUrl: cfg.baseUrl, minify: true},\n         inputs: [source(md), source(layout), postListFeature])\n\nbuild(root) → Value\n  pages = [pageNode(md, layout) for md in markdown(root)]\n  for p in pages: v = evaluate(p, params: {target: \"static\"})   -- the explicit evaluation point\n\n evaluate(n, params) → Value                       -- unchanged from the chapter\n  k = signature(n, params)\n  if remote has k: fetch artifact(k); return it\n  if cache has k: return cache[k]\n  return inflight.once(k, () →\n    ins = parallel([evaluate(i, params) for i in n.inputs])\n    v = n.op.run(ins, n.args)\n    cache.put(k, v); remote.put(k, v); return v)",
+      "key_notes": [
+        "Note 11, 'source identity': path+size+mtime is valid only within one machine and session. To let a laptop reuse CI artifacts you must move to content hashes, computed once per file.",
+        "Note 2, implementation version: a cross-deploy, cross-machine cache must key on the code — renderer, template engine, image resizer, and every config value that changes bytes (base URL, output format, locale).",
+        "Variations, 'Persistent and shared caches': this is where the remote store belongs, and it forces 'every environmental input in the key' — CI's env is not the laptop's.",
+        "Note 10, early cutoff: a layout change re-renders 20,000 pages, most of whose bytes are unchanged; here the waste the note warns about is the common case, so the verifying-key variation is worth weighing rather than dismissing.",
+        "Note 4, what can be left out: a page whose template never reads the post list need not depend on it — but the graph only knows this if the dependency is recorded by the render, not assumed by the author.",
+        "Note 3, key width: 2×10⁴ pages is small in-session, but a remote cache is long-lived and shared, so use a full hash not a short one.",
+        "Note 12, explicit evaluation points: `serve` must build on demand, drafts must never be evaluated, and 'node built but never used' is normal for a dev server."
+      ],
+      "risk": "Hidden environmental inputs missing from the key — the year printed in a footer, the commit hash, the build host's timezone/locale, the resizer's version, base URL — so CI-produced artifacts are quietly served for a page whose bytes should differ. Second most likely: keeping mtime/size as Source identity and getting zero cross-machine hits, or worse, false hits after a checkout."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "It violates two of the chapter's own do-not-use conditions at once: the operations depend on hidden state (an unseeded RNG, the clock), so their keys would lie, and caching is contrary to the stated requirement that every run produce new samples — the cache would either never hit or, worse, return run 1's draws forever. No participant mapping would save it.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Note 2 and the Consequences' 'one hidden input (a global, a clock) produces silently stale results': the first run's samples would be replayed as if they were new.",
+        "Note 11, source identity: if you modelled the clock and the RNG as Sources whose identity changes every run, every signature changes every run — an honest graph that never hits, i.e. the pattern's cost with none of its benefit.",
+        "Note 5's principle still applies to the salvageable half: make the seed an explicit hashed argument (or make sampling an operation in the graph). That gives reproducibility per seed, but 'new samples every run' means a new seed every run — still a miss. Cache only the deterministic shell around the sampling: input parsing, data loading, aggregation and plotting of a finished batch."
+      ],
+      "risk": "The proposed design's failure mode is silent and severe: identical-looking results across runs that users believe are independent samples, which corrupts any statistical conclusion drawn from them. If it must be built, the seed must be an explicit key component and the service must refuse to serve a signature whose seed it did not receive."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Structure table vs. Sketch (`signature`, `evaluate`)",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The Run memo is given two incompatible descriptions. The table says it maps signature → value (and node → signature); the `signature` pseudocode says it is 'memoized per (node, params) in the run memo', i.e. keyed by node; and `evaluate` reads `memo[k]` but never writes it, so a reader cannot see where the memo is ever filled.",
+      "suggestion": "State explicitly that the run memo holds two tables (node+params → signature, signature → value), and add `memo.put(k, v)` next to the cache write in `evaluate`."
+    },
+    {
+      "section": "Sketch (`withinMask`) and Implementation notes 5",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The placeholder technique is the chapter's most original idea and its least explained. `withinMask` interns `within` with `subgraph(inner, hole)` as an input, but `evaluate` calls `n.op.run(ins, n.args)` — nothing shows how the mask region is bound to the hole at evaluation time, or what `subgraph(...)` yields as a value. The 'evaluating the placeholder anywhere else is an error' clause has no stated reason.",
+      "suggestion": "Show the run side: how `within` receives its subgraph, binds the hole to a region of the mask, and why a hole escaping the subgraph (e.g. returned, or stored in the parent) is `E_PLACEHOLDER`."
+    },
+    {
+      "section": "Applicability",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The list of preconditions omits the sharpest one: every function passed as an argument must be data-independent (it may build a graph but cannot branch on values it has not seen). This is stated only inside note 5, as an aside, yet it is an API constraint that reshapes every call site an adopter writes.",
+      "suggestion": "Add 'functions passed as arguments are data-independent, or the data-dependent choice is expressed as an operation/argument' to Applicability, and cross-reference note 5."
+    },
+    {
+      "section": "Implementation notes (absent)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Only values are budgeted. The interned node table, the node→signature map and the signature computation are unbudgeted and never evicted, which is exactly the unbounded growth an agent session produces (thousands of distinct calls, most evaluated once). The chapter's memory force covers only half the memory.",
+      "suggestion": "One note on bounding or reasoning about the node/signature tables: expected size, whether interned nodes are ever dropped, and what dropping them costs (losing the sharing that made the next round free)."
+    },
+    {
+      "section": "Sketch (`evaluate`) and Implementation notes 8",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "No path for failure. If `n.op.run` throws or refuses, is anything cached (negative caching), retried on every request, or does `inflight.once` reject and re-run each time? Warnings are carefully persisted; errors, which are far more expensive to recompute and far more likely to storm, are not mentioned. The identity short-cut also returns before `cache.put`, so its behaviour is unexplained rather than deliberately documented.",
+      "suggestion": "Say whether failures are cached, shared through the in-flight group (so a hundred concurrent requests get one error, not a hundred), and whether identity nodes ever enter the cache."
+    },
+    {
+      "section": "Implementation notes 4",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The chapter stresses that each key-narrowing rule 'is a correctness obligation' whose failure mode is a silently stale picture, then offers no way to detect a wrong rule. That is the single largest operational risk in the pattern and it is left entirely to the reader.",
+      "suggestion": "Add a note: a debug mode that recomputes bypassing the cache and compares, or invariants tested pairwise ('these two graphs must share a signature / must not'), which is how the lab's rules can be kept honest across refactors."
+    },
+    {
+      "section": "Motivation, Implementation notes 2/3/9/10, Rating",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The chapter is saturated with the running examples' measurements — a third of a second per speck view, 2 GiB cap, 10⁵ tile keys, 1.2 expected collisions, 15–22% output-hash cost, a quarter as many tiles under GreedyDual-Size — while the rating claims the pattern is 'close to invariant'. Some numbers settle a design choice (the birthday bound, the early-cutoff cost); others read as an engineering log and dilute the two that matter.",
+      "suggestion": "Keep the birthday bound and the early-cutoff trade-off in the body, move the rest into a short case-study box or the Lab chapter, and use the freed space for the missing items above."
+    },
+    {
+      "section": "Implementation notes 6",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "Test instrumentation ('it counts runs per node, so a test can assert what was recomputed') is bundled into a note about single-flight and parallel inputs. It also sits oddly against the pattern's premise: once nodes and values are shared across callers, a per-node run count is no longer a clean per-caller fact, so what the counter means needs saying.",
+      "suggestion": "Split the counter into its own short note, and say what it counts (physical op applications per signature) and why tests should assert on that rather than on cache size."
+    },
+    {
+      "section": "Structure table vs. notes 3 and 5",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "'Signature' is used for two different things: the full cache key in the Structure table and Collaborations, but also the per-node 256-bit hash in note 3 ('256-bit SHA-256 signatures per node'). A reader trying to implement the `signature` function from the sketch can easily conflate the two.",
+      "suggestion": "Name them distinctly throughout — e.g. node hash and signature (key) — and use one term per concept in notes 3 and 5."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The shape is clear enough to implement, and I would use it; reusability is held back because the preconditions that decide whether it works (data-independent function arguments, every environmental input in the key) are scattered into implementation notes rather than stated up front, and the key-narrowing rules are lab-specific with no stated way to verify them."
+  }
+}

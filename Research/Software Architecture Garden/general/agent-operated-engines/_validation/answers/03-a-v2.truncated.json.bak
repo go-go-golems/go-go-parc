@@ -1,0 +1,29 @@
+{
+  "restatement": {
+    "intent": "Turn each operation call into an interned, immutable node so a script builds a graph instead of running work, then compute a node only when a value is demanded and cache that value under a key derived from the operation, its arguments, its evaluation parameters and the keys of its inputs — so equal computations, however spelled, are done once across callers and programs.",
+    "problem": "Expensive computations are written repeatedly in different words and requested piecemeal, so recomputing them per request wastes most of the work, while caching by variable name or by source text returns stale results.",
+    "solution": "Every call returns a hash-consed node; a value is computed only at an explicit evaluation point, under a signature made of the node hash, quantised evaluation parameters, the operation version and the input signatures. Before computing, the evaluator consults a per-request memo, then a byte-budgeted shared value cache, then joins any in-flight computation of the same signature; it evaluates inputs in parallel, stores warnings and size with the value, and never mutates a cached value. Function arguments are run once at build time against a placeholder and turned into subgraph nodes so no key ever depends on function text."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A function's behaviour depends on what it closed over, not on its characters. Two calls with identical source text but different captured values would hash to one key, so the second caller gets the first's result — stale. The chapter cites prototypes that keyed functions by source and did exactly that. Fix: run the function once at build time against a placeholder node, keep the subgraph it builds, and key on that subgraph; this is conditional on the function being data-independent.",
+      "where": "Forces (functions as arguments against hashability); Solution; Implementation note 5; Motivation (stale-source prototypes)"
+    },
+    {
+      "id": "Q2",
+      "answer": "The warnings raised while the value was computed, plus its byte size and cost (used by the budget/eviction policy). Warnings are stored because a cache hit replays no computation: without them a warning is shown on the first request and silently vanishes on every later one. A value too large to cache must report its warnings immediately, since nothing will replay them.",
+      "where": "Structure (Value cache); Collaborations 3–4; Implementation notes 8 and 9"
+    },
+    {
+      "id": "Q3",
+      "answer": "Early cutoff: record each computation's output hash and stop a bottom-up rebuild where the output is unchanged, so downstream work is skipped. Keys built from inputs cannot do this — they always recompute everything downstream of a change. The price is a hash of every output (the lab measured 15–22% extra work on a cheap layer, for a third to a half of masked-layer recomputation saved).",
+      "where": "Forces (structural against output keys); Implementation note 10; Variations (verifying keys with early cutoff)"
+    },
+    {
+      "id": "Q4",
+      "answer": "The identity short-cut returns the input's own value — an object that already belongs to another node's cache entry. Writing this node's metadata (frame, encoding) onto it would mutate a cached value, corrupting another node's result. Copying first keeps the 'never modify a cached value / sharing versus isolation' rule intact.",
+      "where": "Forces (sharing against isolation); Solution ('never modify a cached value'); Implementation note 7"
+    }
+  ]
+}

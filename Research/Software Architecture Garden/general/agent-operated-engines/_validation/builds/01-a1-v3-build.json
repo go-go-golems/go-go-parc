@@ -1,0 +1,60 @@
+{
+  "summary": "hubreg is a Python 3 standard-library package in which every hub action is one validated record that drives binding, refusals, the assistant's tool schemas, the app's controls, human help and a registry walk. Four demo plug-ins (thermostat.set_temperature, light.dim, door.lock_door, scene.run_scene) are registered by hubreg.demo_registry(), and a command line (python3 -m hubreg describe | call) exercises the same records. Validation, repairable refusals (nearest name, redirect-derived fix), usual-range warnings, host-enforced confirmations and a self-checking walker are all implemented and covered by tests.",
+  "files": [
+    "hubreg/__init__.py",
+    "hubreg/__main__.py",
+    "hubreg/argtypes.py",
+    "hubreg/cli.py",
+    "hubreg/demo.py",
+    "hubreg/diagnose.py",
+    "hubreg/errors.py",
+    "hubreg/registry.py",
+    "hubreg/render.py",
+    "hubreg/spec.py",
+    "hubreg/walker.py",
+    "tests/support.py",
+    "tests/test_registration.py",
+    "tests/test_binding.py",
+    "tests/test_execution.py",
+    "tests/test_consumers.py",
+    "tests/test_walk.py",
+    "tests/test_demo.py",
+    "tests/test_cli.py",
+    "tests/test_types.py",
+    "tests/test_surface.py"
+  ],
+  "pattern_mapping": {
+    "Operation record": "hubreg/spec.py normalises/validates the dict into the one stored shape; hubreg/registry.py stores it keyed by (on, name) and runs it.",
+    "Argument spec": "hubreg/spec.py (_normalize_arg) validates name/type/unit/default/optional/min/max/usual/values/redirects and checks the semantic consistency of each spec.",
+    "Flags": "record['flags']['confirm'] validated in hubreg/spec.py; host/plugin confirmation precedence in Registry.needs_confirmation (hubreg/registry.py) and enforced in Registry.run.",
+    "Registry": "hubreg/registry.py Registry.register/record/records/kinds/names/redirect_for.",
+    "Binder": "hubreg/registry.py Registry.bind, with per-type accept/parse/describe in hubreg/argtypes.py.",
+    "Diagnoser": "hubreg/diagnose.py (unknown_action, unknown_option, missing_argument, bad_type, out_of_range, usual_message, hook_refusal, closest).",
+    "Describer": "hubreg/render.py (tool_schema, controls, help_text) exposed as Registry.tool_schemas/controls/help.",
+    "Walker": "hubreg/walker.py walk(registry), exposed as Registry.walk; it renders every consumer, binds and runs every sample and compares result keys with the declared fields.",
+    "Cross-argument validation hook": "record['validate'] called at the end of Registry.bind; its answer normalised by diagnose.hook_refusal.",
+    "Exceptions list": "hubreg.NON_RECORD_ENTRIES (empty; every action is a record) plus tests/test_surface.py checking every reachable name is in the registry."
+  },
+  "notes_applied": [
+    "Note 1 (both structural and semantic registration checks): structural checks (typed args, unique names, one run callable, required-before-optional, samples naming real args) plus semantic checks (default within type and hard limits, usual range inside hard limits, option and action redirect targets exist, no redirect clashes) all raise RecordError with a code.",
+    "Note 2 (hard limits vs usual ranges in the declared unit): min/max are refusals with a clamped fix; usual range binds and adds a CallWarning(RANGE) whose message contains the record's usual_hint; units are carried on specs and rendered, never converted in the binder.",
+    "Note 3 (no silent defaults or coercions): unknown options are refused before anything is defaulted, wrong types are refused (a string never becomes a number, a bool is never a number), and an unknown key is reported before a missing required one because the near-miss is the real problem.",
+    "Note 4 (redirects live in the records): option redirects live on ArgSpecs and action redirects on OpRecords; the registry builds the action-redirect index from them, and both bind failures and help use that single index.",
+    "Note 5 (walk the registry, results included, and know its limits): walk renders tool schema/controls/help per record, binds and runs every sample with confirmation answered, requires result keys to match declared fields exactly, and reports records with no samples; limit/warning/redirect behaviour has its own tests.",
+    "Note 6 (pluggable argument types): hubreg/argtypes.py defines the ArgType interface (accepts/describe/expected/parse/range_checked); Registry.register_type adds a domain type; tests add a colour type without touching the binder.",
+    "Note 7 (one record per receiver kind and name): records are keyed by (on, name), so the same action name can exist on two kinds; tests cover that.",
+    "Note 8 (defaults are part of identity, renames leave redirects): records are deep-copied at registration so later mutation cannot change bound defaults; action redirects are validated and exposed in help ('answers to'), and tests assert the stored default is unaffected by mutating the input record.",
+    "Note 9 (enumerate exceptions): hubreg.NON_RECORD_ENTRIES is the one visible list of non-record entry points (empty here), with a test that every agent-facing name is either registered or listed.",
+    "Note 10 (composite/user-defined operations are records): the demo plug-ins and any plug-in register through the same path; samples are stored in the records so the walker can exercise user-supplied actions identically."
+  ],
+  "tests": "159 unittest tests across 9 test files (registration, binding, execution/confirmation, consumers, walker, demo, CLI subprocess, pluggable types, surface checks). Last run: python3 -m unittest discover -s tests -> Ran 159 tests, OK (0 failures, 0 errors), and demo_registry().walk() returns [].",
+  "chapter_feedback": [
+    "The chapter's binder sketch assumes positional arguments and explicit duplicate-argument refusals; this task's raw call is a dict, so I reinterpreted the positional rules as argument ordering (required before optional) and made unknown-key detection precede missing-argument reporting so a near-miss option still gets the redirect refusal rather than 'argument missing'.",
+    "The warning code is only shown as RANGE in the sketch; the task does not state it, so I followed the sketch and documented CallWarning.code == 'RANGE'.",
+    "The chapter says redirect targets must be validated at registration but does not say what to do with forward references; I made action redirects require the target to be already registered (a record may redirect to itself), which forces an explicit registration order and is documented in the code.",
+    "The chapter recommends requiring samples at registration; I made missing/empty samples register but be reported by walk(), because the walk is where 'never exercised' is meaningful and it keeps ad-hoc records testable.",
+    "The task's result fields have no optional/derived concept, so the walker requires result keys to equal the declared fields exactly; the chapter's 'fields are a function of the bound arguments' is still supported because fields is read per record and samples can vary.",
+    "The chapter says warnings must reach the caller in the result; this task's run() returns the action result dict, so warnings travel on the Call (and the CLI prints them), which is a small deviation from the sketch's result-carried warnings.",
+    "Registration-time checks of the host's confirm set are not described by the chapter; the precedence rule (host raises, plug-in cannot lower) is implemented and tested explicitly."
+  ]
+}

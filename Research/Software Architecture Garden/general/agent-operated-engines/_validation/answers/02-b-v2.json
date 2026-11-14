@@ -1,0 +1,144 @@
+{
+  "restatement": {
+    "intent": "Make a number's reading — its length unit, its coordinate frame, its sample scale/encoding — a property of the container that holds it, and let a builder insert declared conversions between those tags (or refuse) instead of trusting the caller.",
+    "problem": "When a number's unit, frame or scale lives only in the author's head, a value read on the wrong scale yields a plausible result instead of an error.",
+    "solution": "Tag every value container on three separate axes: unit of lengths, coordinate frame, and space (scale/encoding of samples). Declare directed conversions in one catalogue, each with cost and a losslessness flag, and give each operation a rule (which space it works in, whether inputs must share a frame, what space its result has). The builder — not the kernels — resolves the rules: it inserts lossless conversions as ordinary cached nodes, converts the result back to the receiver's space, and refuses where a conversion is missing or lossy. Numeric arguments carry declared units, bound to the evaluation scale; results report positions in the one shared document frame."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A physical operation declares `works: physical`, so the builder picks linear light as the work space: it converts every input to linear via the catalogue, runs the op there, and (because `result: follows`) converts the result back to the receiver's space. On an encoded image the builder therefore inserts `as(linear)` before and `as(file units)` after — `img.exposure(+1)` becomes convert → exposure → convert back, with no change in the caller's code.",
+      "where": "Collaborations step 2 and 4; Sketch (`work = match rule.works: physical → linear`, `follows → convertTo(n, receiver.space)`); the `-- in use` block"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because every sample in a container shares one scale, so one tag per container is sufficient, and per-element tags would put a check inside a performance-critical loop. Checking once per operation gives the same protection at no per-sample cost.",
+      "where": "Solution ('attach to every value container … not each element'); Applicability, third 'Do not use it when' bullet"
+    },
+    {
+      "id": "Q3",
+      "answer": "Conversion code exists once, is cached/hash-consed, and shows up as a visible node in the graph an agent can inspect; kernels stay simple and can assume their declared space, and a new kernel cannot silently forget to convert (the chapter's counter-example: the Editor lab converts inside each physical kernel, so every new kernel must remember to).",
+      "where": "Implementation note 1 ('Kernels never convert'); Consequences, third '+'"
+    },
+    {
+      "id": "Q4",
+      "answer": "Frames are rectangles expressed in document coordinates, not tile-local ones. A crop keeps the frame, and a tile opened with its `origin` inherits the full scan's coordinate system (`open(\"tile.tif\", origin: [2048, 1024])` → frame `[2048, 1024, 1024, 1024]`), and results always report positions in document coordinates that all values share.",
+      "where": "Collaborations steps 1 and 6; Implementation note 6"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is the chapter's own second motivation example: several legitimate representations of one quantity (EUR/USD/JPY), conversions whose parameters come from the value (the rate on the transaction date), and a plausible-but-wrong failure (summing mixed currencies, or today's rate applied to last year's expense) if an LLM writes the query. Caveat: only two of the three axes map cleanly — currency is 'space', and 'frame' only maps if you read it as the valuation date (amounts at different dates may not be combined without an explicit restatement). There is no counterpart for the scale binder, since there is no evaluation resolution.",
+      "participants": {
+        "Tagged value": "A `Money` row/balance: amount + tags {currency, asOf date, major|minor unit}; the rate table rows are `Conv`-like values (from, to, on date).",
+        "Conversion catalogue": "The daily FX rate table, keyed (from, to, date); `params(tags)` = the row for the value's own `asOf`. Rates are ratios, so mark edges `lossless: false` only for the final rounding to minor units, not for the ratio arithmetic.",
+        "Operation rule": "`total`/`report` declares `works: declared(home)` (the user's home currency, taken from the profile, not from the LLM's string) and `sameFrame: true` (same `asOf` date).",
+        "Argument unit": "Bare numbers in assistant-written queries: e.g. `above: 100` must be declared as home-currency major units, or 100 minor units, or a fraction of the period budget — never a bare number whose unit the model guessed.",
+        "Builder": "The query builder/planner that walks the ledger, inserts `as(home)` steps with the per-row date, or refuses.",
+        "Scale binder": "No real counterpart; the nearest thing is the final explicit rounding of the total to the home currency's minor unit at report time (which is lossy and therefore must be a caller-requested step, not an inserted one)."
+      },
+      "sketch": "value Money: amount, tags: {cur: EUR|USD|JPY, asOf: Date, unit: major|minor}\nvalue Edge:  from, to, on: Date, lossless: false, rate(tags) → exact decimal   -- row for tags.asOf\nrule total:  works: declared(home), sameFrame: true                            -- sameFrame = same asOf\n\nbuild(total, rows, args):                     -- args.to = home currency, from profile\n  for r in rows:\n    if r.tags.asOf ≠ args.asOf:\n      return refuse(E_FRAME, asOf: [args.asOf, r.tags.asOf],\n                    fix: \"restate at one date: r.at(d)\", where: callSite())\n    c = convertTo(r, args.to)                 -- Edge(r.cur, args.to, on: r.tags.asOf)\n    if c is Refusal: return c                 -- missing pair → E_SPACE, no silent identity\n    acc = acc ++ [c]\n  n = node(\"total\", acc, args)                -- summed in exact decimals, not floats\n  return roundToMinor(n, args.to)             -- the only lossy step; explicit, at report",
+      "key_notes": [
+        "Note 7 (parameters from the value): a rate baked in at build time would be wrong for every row but one; the transaction date must enter the conversion node's key, which also makes the cache correct.",
+        "Note 8 + 'Explicit conversions only' variation: ratio arithmetic can be lossless in exact decimals, but rounding to minor units (JPY has none) is not. Keep `roundToMinor` out of inserted conversions or the builder will refuse every conversion.",
+        "Note 3 (keep the axes apart): currency, valuation date and major-vs-minor units fail differently — mixed currency is a space refusal, mixed date is a frame refusal, a cents/dollars mix is a factor-of-100 error. Collapsing them into one 'Money type' hides which one went wrong.",
+        "Note 2 (space on the value, not the caller's head): the pattern's whole value here is that the LLM cannot choose a scale per query; it inherits the row's currency and picks only the reporting currency.",
+        "Note 9 (tag data you did not produce): both the rate table and the assistant's query text are foreign data; the rate table needs (from, to, on) in its schema, and query constants need declared argument units."
+      ],
+      "risk": "The LLM writes `sum(amount)` over rows of different currencies and the batch happens to be same-currency in tests, so nobody notices; or the team silences the date `E_FRAME` refusal with a single 'latest rate' shortcut, which reintroduces exactly the plausible-but-wrong number the pattern exists to prevent. Second most likely: rounding to cents inside every conversion instead of once at the end."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is the chapter's own exclusion case: one legitimate representation, always (linear float in [-1,1] at a fixed rate), and per-sample tags would be checked inside a real-time loop. A tag per sample costs memory bandwidth and blocks SIMD/cache-friendly processing against a 1 ms budget, and the failure it would prevent — reading a sample on the wrong scale — is immediately audible (clipping, silence, wrong gain), not plausible-but-wrong. The pattern's Solution explicitly puts the tag on the container 'not each element'.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Solution ('attach to every value container … not each element') and Applicability's per-element exclusion: the proposal is outside the pattern's scope by its own statement, so answering 'yes' would be forcing a fit.",
+        "Note 1 (kernels never convert): already satisfied for free — one internal format means there is no conversion to insert, which is why the tagging has no work to do here.",
+        "What would fit at container level, if they want it: tag the buffer, once per buffer or at graph build — sample rate, planar vs interleaved, linear vs dB, latency declared in samples vs milliseconds. Rate mismatch and latency units are the real docPx-vs-bufferPx problem in this domain."
+      ],
+      "risk": "Concluding from the rejection that no tagging is needed anywhere. Sample-rate and latency tags do earn their keep at buffer/plug-in boundary granularity, where a wrong reading is plausible (host compensation in samples applied at the wrong rate) — but they belong on the buffer, checked once, never on the sample."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch / Collaborations step 3 / Implementation note 6",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Three different frame rules are stated: step 3 says inputs 'must cover the same frame', note 6 says 'combining images with different extents is refused', and the sketch refuses on `x.frame ≠ receiver.frame` (identical rectangles). Covering, overlapping and being identical are different predicates; a large image plus a small crop of it overlaps but does not cover or match, and the reader cannot tell whether that is legal.",
+      "suggestion": "Name the predicate explicitly on `OpRule` (e.g. `frameRule: identical | containedIn | anyOverlap`) and give one line per value, plus say what the refusal is called in each case."
+    },
+    {
+      "section": "Sketch (`value Conv: … lossless: bool`) vs Implementation note 8",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Losslessness is modelled as a fixed property of an edge, but note 8 says encoded↔linear 'is effectively lossless' *in float* and quantisation to 8/16 bits is not. So losslessness depends on the value's pixel type, not on (from, to). As written, either the catalogue must contain a duplicate edge per dtype, or `convertTo` will insert a conversion the sketch's own signature says is lossy.",
+      "suggestion": "Make it a function: `lossless: (dtype) → bool`, or `Conv.from/to` over (Space, dtype) pairs, and show the builder passing `x.dtype` into the check."
+    },
+    {
+      "section": "Collaborations step 5 / Structure ('Scale binder') / Motivation (quarter-resolution preview)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Only one evaluation scale exists in the design, and the frame check compares rectangles only — not scale. So combining a full-resolution image and a quarter-resolution preview of the same region (identical frames, different buffer scales) is accepted by every check in the sketch and silently misaligns, which is exactly the class of bug the chapter claims to abolish. Nothing says how two inputs at different buffer scales meet.",
+      "suggestion": "Either state that all values in one graph share a single evaluation scale (and that rescaling a value is itself a catalogue conversion, refused across scales), or add the per-input scale to the frame check and to `OpRule`."
+    },
+    {
+      "section": "Sketch (`catalogue.find(x.space, s)`) vs Motivation/T1-style domains",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "`find` returns one conversion, implying a direct edge for every ordered pair. With three or more spaces (EUR/USD/JPY, three colour spaces) a chain is required, and the pattern says nothing about path search, cost comparison between alternative paths, or how the inserted chain is keyed. `cost` is declared but never used.",
+      "suggestion": "Say whether `find` searches a lowest-cost lossless path, how ties break, and that the resulting chain (not a single `as`) is what gets inserted and hashed; or restrict the pattern to 'direct edges only' and say so."
+    },
+    {
+      "section": "Applicability ('do not use it when … conversions are mostly lossy; then use explicit conversions only') vs Implementation note 8 ('Insert only lossless conversions; refuse or record the rest')",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Lossy conversions get three different treatments in three places: refused by the sketch (`E_LOSSY`), 'recorded' per note 8, and delegated to a different variation per Applicability. A reader cannot tell whether lossy is a refusal, a ledger entry, or a mode switch.",
+      "suggestion": "State the default once (sketch: refuse; caller bypasses with an explicit `as(to, acceptLoss: true)` that appears as its own node), and let note 8 describe only the save-time path."
+    },
+    {
+      "section": "Whole chapter (Motivation, Collaborations, notes 2, 4, 8)",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The 'space' axis is written almost entirely in colour-management terms (file units, Rec. 709, 16-bit TIFF, exposure, healing), and note 4's rule ('a level is read on the work space's scale') is presented as pattern-level but only makes sense for samples. A finance or geospatial reader cited in Motivation must translate every sentence, which weakens the claim that this is a general pattern.",
+      "suggestion": "State the space axis once in domain-neutral terms ('the scale on which the number is to be interpreted'), then give the image case as one worked instance; mark note 4 as an instance of 'a constant given in one tag's terms is read on the scale in force where it is compared'."
+    },
+    {
+      "section": "Structure table, 'Tagged value' ('the unit of any lengths it holds')",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`Tags` carries a `unit: Unit` field, but nothing in the sketch or collaborations ever reads it — every unit mentioned (`DocPx`, `DocPx2`, `fraction`, `level`) belongs to an *argument*. A reader cannot tell whether the value's unit tag describes its own extents, or is a default for arguments, or is vestigial.",
+      "suggestion": "Either show `Tags.unit` being used (e.g. an extent reported in the source's units) or delete it and say units are an axis of arguments only."
+    },
+    {
+      "section": "Implementation note 9",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The gold-label radius anecdote runs five lines and carries fitted-circle detail and SNR numbers (0.86 vs 1.56) that are the running project's data, not the pattern's. It is also a dataset-schema point already owned by Chapter 11, and duplicates the 'Tags as schema metadata' variation.",
+      "suggestion": "Compress to one sentence ('a dataset field stored a fitted-circle radius under the name 'radius'; measuring with it as the speck radius halved measured SNR until someone compared numbers with pictures') with the Chapter 11 pointer."
+    },
+    {
+      "section": "Sketch (`build`, `bindArg`)",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "`rule = op.rule(args)` suggests rules may depend on arguments, but the argument units are bound later, at evaluation, against 'the receiver's frame' — which receiver, since inputs have already been converted to the work space? For `fraction` and `level` this ordering decides the answer, and the example (`radius: 3`) never exercises it.",
+      "suggestion": "Add one sentence on ordering (are rules and units resolved before or after space conversion?) and one example with a `fraction` argument where receiver and work-space extents differ."
+    },
+    {
+      "section": "Title and 'Also known as' ('no naked numbers')",
+      "kind": "other",
+      "severity": "low",
+      "note": "The title and the alias both suggest the *number* carries its tag, while the Solution's central move is that the *container* does and individual samples stay naked. That inconsistency is the one thing a reader must not get wrong, and it appears in the first lines.",
+      "suggestion": "Retitle toward containment ('Units Travel With Containers') or note explicitly in the Solution that 'no naked numbers' means no untagged containers."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core move (tags on containers, rules per operation, builder inserts lossless conversions and refuses the rest) is clear and I would apply it; reusability is held back by a colour-management-specific space axis, a single-scale assumption, and the unresolved frame and losslessness contradictions."
+  }
+}

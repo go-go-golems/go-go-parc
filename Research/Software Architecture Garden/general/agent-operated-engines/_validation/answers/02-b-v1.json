@@ -1,0 +1,146 @@
+{
+  "restatement": {
+    "intent": "Make each number carry the tags that decide how it must be read (unit of length, coordinate frame, sample encoding/space), so operations declare what they accept and the system either inserts the conversion or refuses.",
+    "problem": "When a number's unit, frame or scale lives only in the author's head, reading it on the wrong scale yields a plausible answer instead of an error.",
+    "solution": "Tag every value with its unit, frame and space rather than carrying scale as a per-call option. Give each operation a rule: it follows its input's tags, or works in a declared space (physical/display), or requires all inputs in one frame. A builder resolves those rules at graph-construction time, inserting ordinary cached conversion nodes (or refusing when none exists); a scale binder converts numeric arguments to the scale actually being evaluated, and results are reported in the caller's frame."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A physical rule (works: physical) says the operation is only meaningful in linear light. The builder converts every input to linear with an inserted `as(\"linear\")` node before calling the kernel, and because its resultSpace is `follows`, it converts the result back to the receiver's space.",
+      "where": "Collaborations 2, Sketch (OpRule.works / build), Implementation note 1"
+    },
+    {
+      "id": "Q2",
+      "answer": "Per-element tags would have to be checked inside performance-critical inner loops; on a container the tag is checked once per operation, so a kernel can assume its declared space for the whole buffer.",
+      "where": "Applicability, \"Do not use it when… performance-critical inner loops would have to check tags per element\""
+    },
+    {
+      "id": "Q3",
+      "answer": "Conversion code exists once instead of in every kernel, and inserted conversions are ordinary nodes, so they are hash-consed/cached, visible in the inspectable graph, and testable; a new physical kernel cannot forget to convert (contrast the Editor lab in note 1).",
+      "where": "Implementation note 1; Consequences (+) bullet"
+    },
+    {
+      "id": "Q4",
+      "answer": "The tile is opened with its origin (`cv.open(\"tile.tif\", origin: [2048, 1024])`), so its frame is the scan's document frame; crops keep document coordinates and the reporter expresses results in the caller's frame, so coordinates need no re-basing.",
+      "where": "Collaborations 1 and 5; Implementation note 5; Sketch `-- in use`"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It fits the tagging/refusal half well — every amount has more than one legitimate representation and the reader (an LLM) cannot see where values came from — but it needs a modification: the conversion rate depends on the value's own date, not on the graph's declared space, so the conversion step must take the date as an explicit argument and record it.",
+      "participants": {
+        "Tagged value": "Money = amount + currency tag + transaction date (the date is part of the tag, since it decides the rate)",
+        "Operation rule": "sum/total declares it accepts one currency and a target currency; percentage ops need fractions of the right base; report query declares result in home currency",
+        "Argument unit": "\"5%\" declared as fraction vs percent; rounding policy (minor units: JPY has none); date range of the report",
+        "Builder": "the query builder behind the assistant's report request — inserts `convert(m, to: home, on: m.date)` per row or refuses when no rate exists",
+        "Conversion step": "`fx(m, to, on)` = rate-table lookup, cached by (from, to, date), recorded in the report lineage",
+        "Scale binder": "resolves \"last month\" and per-row dates to the actual rate rows, and normalises argument percentages to fractions",
+        "Reporter": "totals in the user's home currency, with the rounding policy and the rates used attached"
+      },
+      "sketch": "value Money: amount, unit: Currency, on: Date\nrule total: works: follows, needsSameCurrency: true, resultUnit: follows\nrule report(unit: c): works: follows, resultUnit: c\n\nconvert(m, to: c) → Money | Refusal\n  if m.unit == c: return m\n  r = rate(m.unit, c, on: m.on)          -- date comes from the VALUE\n  if r == none: return refuse(E_RATE, on: m.on, from: m.unit, to: c)\n  return copy(m, amount: round(m.amount × r, minorUnits(c)), unit: c)\n\n-- report(totals, unit: user.home): convert each row at its own date, then sum\n-- (state explicitly: sum-then-convert ≠ convert-then-sum)",
+      "key_notes": [
+        "Note 3 (arguments carry units): the chapter's own finance example names \"a percentage to a fraction\"; a percentage argument is the most likely silent bug in report code the assistant writes.",
+        "Note 2 (space on the value, not the caller's head): the assistant cannot see where a CSV column came from, so currency and date must be on the value, read at import, not passed per call.",
+        "Note 7 (tag data you did not produce): a bank export column \"amount\" may be minor units, and JPY has no minor unit at all — unit and definition belong in the schema next to the field.",
+        "Note 8 (re-encoding chains are conversions): every FX step is a recorded conversion with the rate and date used, otherwise the report cannot be audited.",
+        "Note 1 (kernels never convert): the summing kernel must never hold a rate table; only the inserted conversion step touches rates."
+      ],
+      "risk": "Inserting the conversion without the transaction date — using today's or month-end rate — which is exactly the plausible-but-wrong result the pattern is meant to prevent; and mixing sum-then-convert with convert-then-sum, plus rounding each row to minor units, so totals drift by cents and the two reports disagree."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "No. A tag per sample means a branch or a wider record per element inside a budgeted 1 ms inner loop, breaks float-lane/SIMD layout, and the plug-in is exactly the chapter's \"every value has one representation and always will\" exclusion (linear amplitude, 48 kHz, [-1,1]). What would fit is the same pattern at container level: tag the buffer with format, sample rate and channel layout, and refuse mismatched connections outside the loop.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability exclusion \"performance-critical inner loops would have to check tags per element; keep the tags on containers\" — this proposal violates it directly.",
+        "Note 1 (kernels never convert): conversion to/from dBFS or to a different rate belongs in one inserted step at the buffer boundary, with the DSP kernel assuming linear amplitude.",
+        "Note 2 (space on the value, not in the caller's head): still worth honouring at buffer level — a stored sample rate on the buffer is what lets the host refuse a 44.1 kHz source wired into a 48 kHz chain.",
+        "Note 9 (warn where you cannot refuse): amplitude in dBFS vs linear is a legitimate display conversion, so a warning rather than an error at that boundary."
+      ],
+      "risk": "Accepting the proposal as stated, or half-applying it: buffer-level tags added but then re-checked per block inside the processing loop, which pays the cost without moving the decision out of the 1 ms budget."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch / Implementation note 3 (units on arguments)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The chapter never says what happens to a bare number. In `peaks(radius: 3)` the 3 silently becomes `docPx`, but nothing states that default, and a reader cannot tell whether a bare number means document pixels, receiver pixels, or a refusal asking for a unit. This is the first thing an implementer will guess at, and the failure mode is exactly the one the pattern exists to prevent.",
+      "suggestion": "State the default explicitly (e.g. \"a bare number on a length argument is read as document pixels; every other unit must be named\") and say whether an agent-facing call can demand a unit instead."
+    },
+    {
+      "section": "Solution / Structure (Builder) / Consequences",
+      "kind": "missing",
+      "severity": "high",
+      "note": "`convertNode` needs a conversion table (\"if no conversion from x.space to s\"), but no participant owns it: who declares encoded↔linear, which are lossy, which are refused rather than inserted? Consequences mention \"every new space needs conversions to and from the others\" without saying where they are declared or who maintains them.",
+      "suggestion": "Add a participating **conversion catalogue** (the OpenColorIO-config analog already in Known uses) with responsibility for declaring directed conversions, their cost and whether they are lossy, and say the builder consults only it."
+    },
+    {
+      "section": "Solution (\"Report results in the frame the caller can use\") vs Sketch",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The Solution promises results in the *caller's* frame and the Structure table has a **Reporter** participant, but the sketch never takes a caller target frame: `resultSpace: follows` returns the receiver's space, not the caller's. For a cropped tile asked for scan coordinates, nothing in the sketch does the work the Reporter is supposed to do.",
+      "suggestion": "Give the build call an optional target frame/unit, or drop the Reporter from the table and say plainly that the caller performs one explicit reproject step at the end."
+    },
+    {
+      "section": "Sketch (`resultSpace: linear → n`) vs Implementation note 2",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Note 2 says \"every other operation returns its result in its receiver's space\", and Collaborations 3 says multi-input ops take the receiver's space, yet the sketch has a `resultSpace: linear` branch that leaves the result linear. No operation in the chapter declares it, so a reader cannot tell whether it is necessary or a leftover.",
+      "suggestion": "Either name one operation that legitimately returns linear (and say why the agent must see it), or delete the branch and state that resultSpace is always follows."
+    },
+    {
+      "section": "Builder (Sketch) vs Collaborations 3 and Implementation note 9",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Refusal-vs-warning policy is inconsistent. `build` shows `refuse(E_FRAME)` gated on a rule flag but shows no `ENCODING` warning at all, and it checks frames *before* computing `work`, so an input that ends up converted to linear is still refused on frame grounds. The reader cannot tell whether frame checks are tag-level or space-level.",
+      "suggestion": "Show the warning path in the sketch, and order the steps explicitly: compute `work`, then apply frame/encoding policy against `work`, then convert."
+    },
+    {
+      "section": "Sketch (`bindLength`: `fraction → arg.value × extent(at: scale)`)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`extent` is undefined and a fraction of what is not stated (image width? diagonal? the reach region?), yet this branch is the one that makes preview and full-size arguments agree for non-length arguments. `level` is also glossed as \"read on the receiver's own scale\", which is true only when `works: follows` — after an inserted `as(\"linear\")` the sample the kernel sees is linear.",
+      "suggestion": "Define `extent` (and say what a fraction is a fraction *of*), and say that a `level` unit resolves against `work`, not against the receiver's tag."
+    },
+    {
+      "section": "Builder / Solution (implicit assumption)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The pattern quietly assumes the conversion is a function of the *space* alone, so it can be inserted at build time. Many real conversions depend on the value: FX rate on the transaction date, per-pixel calibration, per-frame white balance. Nothing in the chapter says how a value-dependent conversion is declared or where its parameter comes from.",
+      "suggestion": "Add one note: a conversion whose parameter varies per value must take that parameter as an explicit input (a field of the tag or an argument), never a build-time constant, and be recorded per value."
+    },
+    {
+      "section": "Variations (\"Canonicalise at the boundary\")",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "\"Convert everything on load and back on save; nothing inside carries tags\" is not a variation of this pattern — it is the absence of it, and it contradicts Collaborations and note 2, which are the chapter's core. Listing it as a sibling leaves the reader unsure whether tags on values are optional.",
+      "suggestion": "Rewrite it as the degenerate case (\"one declared internal space, with the file unit kept only at the boundary\") and state the cost: it fails as soon as two internal scales are needed."
+    },
+    {
+      "section": "Consequences / Sketch (`convertNode`)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Inserted conversions are treated as costing only time and memory (\"a chain that bounces between spaces pays for each bounce\"), but encoded→linear→encoded is lossy and a lower-precision target loses bits. Bouncing is a correctness issue, not just a performance one, and note 8 already concedes that re-encoding changes rankings.",
+      "suggestion": "Say that round-trip conversions may lose precision, that lossy conversions should be refused or recorded like note 8's encodings, and that the builder collapses adjacent `as` nodes (cross-ref Chapter 3) so a chain does not bounce."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The three-case motivation plus four bulleted readings plus four separate failure anecdotes is the longest section in the chapter, and the dust-project radius story (0.86 vs 1.56 SNR, fitted vs speck radius) is fully restated in note 7 anyway.",
+      "suggestion": "Keep one or two sentences per anecdote here and let note 7 carry the fitted-radius detail; the reader needs the four readings, not the numbers."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The problem and rule/builder split are genuinely portable and the applicability exclusions are honest, but the sketch leaves bare-number defaults, the conversion catalogue, warning placement and value-dependent conversions unspecified, which is where a reader would go wrong first."
+  }
+}

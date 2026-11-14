@@ -1,0 +1,149 @@
+{
+  "restatement": {
+    "intent": "Make the reading of a number part of the value that carries it: which unit a length is in, which frame a position refers to, which scale its samples are encoded on. Operations declare which tags they accept and produce, and the machinery between operation and kernel supplies the conversions or refuses.",
+    "problem": "When a number's unit, frame or scale lives only in the author's head, a value read on the wrong scale yields a plausible result instead of an error.",
+    "solution": "Put three separate tags on each value container, not on its elements: the sample space (encoded or linear), the coordinate frame, and the length unit. Declare every directed conversion between tags once, in one catalogue, with its cost and whether it is lossless. Give each operation a rule — the space it works in, whether its inputs must share a frame, the space of its result — and let the graph builder, not the kernels, insert lossless conversions as ordinary cached nodes and refuse everything else. Numeric arguments carry declared units, the scale binder converts them to the buffer scale an evaluation actually runs at, and results come back in the receiver's space with positions in the one shared coordinate system."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "The graph builder inserts them, as ordinary nodes; kernels never convert and assume their declared input space. It refuses (E_SPACE) when no catalogue entry exists and (E_LOSSY) when the entry loses information.",
+      "where": "Solution; Collaborations step 4; Implementation notes 1 ('Kernels never convert')"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because area scales with the square of the evaluation scale. An area declared in document pixels squared and multiplied by the linear scale would be wrong by scale² — a hundred times too strict at one-tenth scale — so docPx2 is a distinct argument unit bound with scale².",
+      "where": "Structure ('Argument unit'); Implementation notes 5 ('Areas scale with the square')"
+    },
+    {
+      "id": "Q3",
+      "answer": "It refuses with E_FRAME, reporting both frames, the call site, and a fix that crops both inputs to the same box. It does not resample because resampling shifts masks against images by fractions of a pixel, which changes the answer for specks three pixels wide.",
+      "where": "Collaborations step 3; Sketch (sameFrame branch); Implementation notes 6"
+    },
+    {
+      "id": "Q4",
+      "answer": "The gold labels stored a fitted circle's radius — about twice the speck's own radius — without saying so; measuring with it as the speck radius gave a median SNR of 0.86 instead of 1.56, and only comparing numbers against the pictures revealed it. Lesson: tag the data you did not produce; a field's unit and definition belong in its schema, and every re-encoding toward a dataset is a recorded conversion.",
+      "where": "Motivation; Implementation notes 9 ('Tag the data you did not produce')"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It fits closely: the same quantity already has several legitimate readings (degrees vs grid metres, camera pixels vs ground metres, encoded vs linear reflectance), values cross boundaries the reader cannot see, and the failures would be plausible-but-wrong hectares rather than crashes.",
+      "participants": {
+        "Tagged value": "Each photo, mosaic raster and field-outline layer, carrying space (sRGB-encoded JPEG vs linear reflectance), frame (EPSG:4326 degrees or the national grid, as a CRS plus transform, not just a Rect), and unit (camera pixels, ground metres).",
+        "Conversion catalogue": "PROJ pipeline 4326 → grid (lossy, resamples, parameterised by the per-photo CRS tag); pixel → ground metre parameterised by ground sample distance, which itself comes from altitude and intrinsics tags; encoded → linear with the file's curve; m² → ha.",
+        "Operation rule": "Stitch/mosaic: follows its inputs' space, sameFrame false, result declared in the grid frame. Outline extraction and area: follows the receiver, sameFrame true, area result declared in m².",
+        "Argument unit": "A length in ground metres or camera pixels; an area in m² or hectares (the docPx2 analogue); the query's '2 hectares' is a level-free numeric argument in a declared unit.",
+        "Builder": "Before stitching, inserts the reprojection node for photos still in degrees and refuses one with no CRS; refuses an area query on a layer whose frame is still geographic (E_FRAME) rather than comparing degrees² against m².",
+        "Scale binder": "Converts camera-pixel arguments to ground metres with the per-image GSD, and hectare arguments to m², so 'larger than 2 hectares' means 20000 m² at any resolution."
+      },
+      "sketch": "```text\nvalue Tags:  space: Space,        -- sRGB-encoded | linear reflectance\n             frame: CRS,          -- EPSG:4326 (degrees) | national grid (metres)\n             unit:  Unit          -- camera px | ground m\nvalue Shot:  data, tags, alt: length, intrinsics: px\n\ncatalogue:\n  4326 → grid:   lossless=false, cost=high, params(tags) → datum      -- resamples\n  px  → groundM: lossless=false, cost=low,  params(tags) → gsd(alt, intrinsics, spacing)\n  encoded → linear: lossless in float, params(tags) → curve\n  m2 → ha:       lossless=true,  cost=0\n\nrule stitch:  works=follows, sameFrame=false, result=declared(grid)\nrule outlines: works=follows, sameFrame=true,  result=follows\nrule area:    works=follows, sameFrame=true,  result=declared(m2)\n\nbuild(\"fields.larger_than\", layer, 2 ha):\n  if layer.frame ≠ grid:\n     c = reproject(layer, grid, allowLoss: true)   -- explicit, visible, recorded\n     if c is Refusal: return c\n  a = node(\"area\", [layer])                        -- space m2\n  return a > bindArg(2 ha)                         -- bindArg(ha) = 20000\n\nbindArg(px2, scale, _) → value × gsd²              -- gsd from the shot's own tags\n```",
+      "key_notes": [
+        "Note 7 (parameters from the value): the GSD and the datum pipeline are per-photo tags, not build-time constants — a single global scale factor is exactly how survey pipelines go silently wrong.",
+        "Note 6 (shared coordinate system, and its limit): this is the case it half-covers — map projections belong in the catalogue, but the chapter's 'refuse mismatched extents rather than resample' cannot be the rule when reprojection is the whole job, so lossy reprojection must be an explicit, recorded conversion the caller asks for.",
+        "Note 5 (areas scale with the square): hectares vs m² and pixel² vs ground m² is the same trap; the query's hectare argument must be bound, not compared raw.",
+        "Note 8 (insert only lossless): reprojection and JPEG re-encode are both lossy, so an automatic builder that inserts them 'because the catalogue has an entry' would defeat the chapter's own rule.",
+        "Note 9 (tag data you did not produce): field outlines used as training or gold labels need their CRS, minimum-area definition and segmentation rules in the schema, or the hectare counts will not reproduce."
+      ],
+      "risk": "Turning the builder into a silent reprojector: an automatic degree→grid conversion on every layer, plus an extent-equality check applied to stitching (which no set of overlapping photos can satisfy), so either the stitch is impossible or hectares are computed from an outline resampled twice with the loss nowhere recorded."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Every field already has exactly one representation, no field is a quantity, and nothing is ever converted; there is no second legitimate reading to disambiguate and no plausible-but-wrong result to prevent, so unit and frame tags would be ceremony with no refusal anyone could act on. The Applicability section says so explicitly ('every value has one representation and always will').",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "The only genuine instance is much smaller and belongs in schema validation, not here: birth date needs a timezone/instant decision and email needs a normalisation rule — both are 'tag the data you did not produce' (note 9) as schema metadata, i.e. the chapter's weakest variation, not the builder."
+      ],
+      "risk": "Applying it anyway produces per-field unit/frame vocabulary with no conversion catalogue, so refusals arrive with no possible fix and developers learn to switch tags off — which then discredits the pattern where it does pay."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (build, mixesEncodings line)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`mixesEncodings(converted) and work == encoded` can never fire: after the previous loop every input has been converted to `work`, so they all share one space. The ENCODING warning described in Collaborations step 4 and note 10 — encodings mixed on purpose — is therefore dead code in the only place the reader will copy it from.",
+      "suggestion": "Compute the test on the pre-conversion spaces (`mixesEncodings(inputs) and work == encoded`) or compare `x.space ≠ work` per input, and say so in a comment."
+    },
+    {
+      "section": "Sketch (convertTo) vs Solution and the E_LOSSY fix text",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Every refusal's fix says 'convert explicitly with as(...)', but `as` is itself an operation whose result is `declared(s)` and therefore goes through `convertTo`, which raises the same E_LOSSY refusal. There is no parameter anywhere that says 'the caller accepts the loss', so the advertised escape hatch does not exist.",
+      "suggestion": "Add an explicit-loss allowance: `as(x, to, allowLoss: true)` producing a node tagged as a recorded lossy step, and make the E_LOSSY fix text name that form."
+    },
+    {
+      "section": "Collaborations step 5 vs Implementation note 4",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The level argument is read 'on the work space's scale', and the reader is told the agent chooses that scale by choosing the receiver's space — but for a `physical` operation the builder overrides the receiver and moves the work space to linear regardless. So `threshold(above: 0.3)` silently means two different things on `encoded` and `linear` receivers while the value looks identical, which is the exact failure the chapter exists to prevent.",
+      "suggestion": "Say which space a level argument is bound in when the rule is `physical` (refuse a bare level, or force it to be written as `level(0.3, on: encoded)` and let the builder convert it through the curve), and reconcile note 4 with that."
+    },
+    {
+      "section": "Sketch (sameFrame branch) vs Collaborations step 3",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Collaborations says inputs 'must cover the same frame'; the sketch tests `x.frame ≠ receiver.frame`, i.e. exact equality. Equality is far stricter — it forbids combining a tile with the full scan it came from, and forbids stitching — and the offered fix ('crop both to the same box') is impossible for two disjoint tiles. There is also no participant or rule for the union-aligned case.",
+      "suggestion": "Split the rule into `sameFrame: exact | covered-by | aligned-on(grid)` with the corresponding check and fix (crop, or allocate a covering frame), and give stitching one worked rule."
+    },
+    {
+      "section": "Structure (Tagged value) and Collaborations step 6",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Nothing says what space a non-image result has. The example's `mask = img.as('linear').mask.luminance(above: 0.05)` yields a mask that, by 'follows its receiver', is tagged `linear` — a binary or probability image claiming a light encoding — and later `mixesEncodings` may then complain about it. Label images, masks and tables of positions get no tag vocabulary at all.",
+      "suggestion": "Add explicit spaces for non-photometric data (`mask`, `labels`) that are never converted and never trigger ENCODING, and say which operations may take them as inputs."
+    },
+    {
+      "section": "Motivation",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Four anecdotes are listed, but none is mapped to the axis it demonstrates (blur → space, radius → unit, crop position → frame, re-encoded tiles → space again). The 'two of nine prototypes did not scale radii' story is the chapter's best evidence for the scale binder, yet the binder appears only inside step 5 and `bindArg`, so the reader cannot connect the failure to the mechanism.",
+      "suggestion": "Label each bullet with its axis, and after the radius one add a sentence naming the Scale binder as the fix."
+    },
+    {
+      "section": "Structure ('Argument unit') and Sketches (`bindArg`)",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The unit vocabulary is a closed list of four names taken straight from goja-cv (`docPx`, `docPx2`, `fraction`, `level`), and `fraction` is bound to 'extent of the receiver's frame' without saying which axis on a non-square buffer. A geospatial or robotics reader has no slot for a physical length in mm/µm or a time.",
+      "suggestion": "State that the unit set is declared per operation in the registry (Chapter 1) with a binding function and a dimension, give the four example units as examples, and specify the axis/box convention for `fraction`."
+    },
+    {
+      "section": "Consequences / Implementation note 8",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The chapter admits a chain that bounces between spaces pays for each bounce, and note 8 answers only that identities are skipped and nodes are cached — but caching does not remove the linear→encoded→linear round trip around each physical operation in a chain, which is the common case for an editing session. No guidance on hoisting or merging adjacent conversions.",
+      "suggestion": "Add a note that the builder may hoist a run of physical operations into one linear window (convert the first input once, convert back after the last), and say what that costs in graph readability."
+    },
+    {
+      "section": "Structure (Tagged value), `frame: Rect in document coordinates`",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The frame tag is a rectangle in one flat document coordinate system, which cannot express a rotated or non-linear CRS — yet note 6 tells map-projection domains to put reprojection in the catalogue. A reprojection is not a Rect-to-Rect conversion, so the record shown in the sketch cannot hold the very case the chapter recommends.",
+      "suggestion": "Make `frame` an opaque frame identifier plus a transform resolved by the catalogue, keeping `Rect` as the axis-aligned special case used by the example, and note that non-Rect frames make some conversions lossy."
+    },
+    {
+      "section": "Collaborations step 1 / Implementation notes",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "There is no way to override a tag at open. Notes 7 and 9 assume the file's declared encoding and the gold label's schema are true; a mis-tagged TIFF or a legacy dataset with a wrong curve is exactly the case an agent hits first, and it will read linear data as encoded with no refusal.",
+      "suggestion": "Add a parameter on `open` (e.g. `open(path, override: {space: 'file-encoded'})`) that records the override in lineage, and say why overriding at the boundary beats overriding per call."
+    },
+    {
+      "section": "Motivation (second list) and Known uses",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The geospatial/finance/robotics bullets repeat what Applicability and the transfer value of the pattern already convey, and the Mars Climate Orbiter entry is retold at a length every reader has already met. They cost space in the two sections a reader skims.",
+      "suggestion": "Cut the second Motivation list to one line or delete it; compress the Orbiter entry to one clause inside Known uses."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The three-axis split plus builder-inserted catalogue conversions is a shape I can carry to geospatial and radiometric work — but the sketch's dead ENCODING test, the nonexistent `as()` escape from E_LOSSY, and the level-means-two-things ambiguity make it unsafe to copy literally, and the Rect-only frame and four-name unit vocabulary are straight from the running example."
+  }
+}

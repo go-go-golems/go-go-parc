@@ -1,0 +1,140 @@
+{
+  "restatement": {
+    "intent": "Every operation gets exactly one data record, and every consumer of operations — call checker, help, agent context, refusals, tests — reads that record instead of keeping its own copy.",
+    "problem": "When several consumers each keep their own idea of what an operation accepts, they drift, and the caller gets silent wrong behaviour instead of a precise refusal.",
+    "solution": "Register one OpRecord per (receiver kind, name) holding argument specs (type, unit, default, hard limits, usual range, redirects, doc), a cross-argument hook, result kind plus fields(boundArgs), flags, samples and either a run or an expansion. Registration validates structure and consistency, cross-record checks run at end of start-up. A binder turns raw calls into checked arguments plus warnings or a Failure; the diagnoser turns Failures into refusals with valid names, nearest match and a fix; the describer renders context lines and full help; a walker test calls every record. Everything that cannot be a record goes in one enumerated, separately tested list."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Refuse it: the binder returns Failure(UNKNOWN_OPTION, key, rec) — before checking for missing arguments, so a near-miss gets its repair rather than a 'missing target' report — and the diagnoser looks for a redirect on that key to build the fix. It is never ignored and never defaulted.",
+      "where": "Solution; Collaborations 2–3; Sketch `bind` ('first: a near-miss beats \"missing\"') and `explain`; Implementation notes 2 and 3"
+    },
+    {
+      "id": "Q2",
+      "answer": "In the Argument spec's `unit` field — default, min, max and usual range are all expressed in that declared unit. It matters because the binder checks the value as the caller wrote it, in document units, and conversion to the engine's working scale happens only at evaluation; if you validated or scaled in preview pixels, a full-size export would scale radii and crops differently from the preview the user approved (one of the prototypes' failures).",
+      "where": "Structure (Argument spec); Collaborations 2 ('units are converted to the working scale later, at evaluation'); Implementation note 2; Motivation, second bullet"
+    },
+    {
+      "id": "Q3",
+      "answer": "`cv.open` is bound by hand and the \"Globals\" section of the reference is fixed hand-written text. The chapter says: keep such parts in one visible list, and add a test asserting every name reachable from the agent appears either in the registry or in that list (the Editor lab's hand-written API reference with no such check is the counterexample).",
+      "where": "Implementation note 9 ('Enumerate the exceptions and test them separately'); Solution's last clause"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because the record carries `run | expand`, and the other consumers do not care which: help, refusals, the agent's context, flags and the walker must treat an expansion exactly like a built-in, otherwise composite operations become a second hand-maintained list that drifts. It also lets registration validate an expansion's targets and the walker call it like anything else.",
+      "where": "Implementation note 10; Structure (Operation record: 'either an implementation or an expansion'); Sketch's OpRecord"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It has three independent consumers of one operation catalogue (planner type-checking, notebook autocompletion, 'no function matches' errors), callers who cannot read the UDF source, and functions added at run time by users — exactly the Applicability case. Note that overloads are the norm here, so the Variations' overload-set form is mandatory rather than optional.",
+      "participants": {
+        "Operation record": "FnRecord per UDF: name, args (from `inspect.signature` annotations and defaults), returns, flags, docstring, samples, run = the registered Python callable. Same name registered twice is two records, not an overwrite.",
+        "Argument spec": "ArgSpec per parameter: name, position/name, type from the annotation, optional when it has a default, min/max only if the author supplied hints; units only for numeric parameters whose meaning has a unit.",
+        "Flags": "volatile/deterministic (may the planner cache or reorder it), row-preserving vs aggregating, cost class, `internal` for helper functions. `confirm` probably not needed; a `sideEffects` flag would be the analogue.",
+        "Registry": "Keyed by name → a set of records (overload set), plus cross-record pass at end of start-up, because a UDF body may call a UDF that registers later.",
+        "Binder": "The overload resolver: filter candidates whose arguments match the written names/types, report per-candidate failure reasons when none match, and refuse ambiguity.",
+        "Describer": "Two renderings: the autocomplete signature line `f(a: int, b: text = 'x') → table`, and full help from the docstring plus the declared types.",
+        "Diagnoser": "'no function matches' with nearest candidates by name and by signature, one line per candidate saying which argument failed.",
+        "Walker": "Calls each UDF on sample rows; needs samples in the record, and a way to skip or mock functions with side effects or long runtimes."
+      },
+      "sketch": "-- registration, derived then hand-completed\nregister(pyfn) → ok | refuse(E_BAD_RECORD, …)\n  sig = signature(pyfn)\n  refuse if a parameter has no annotation and no declared type   -- else everything degrades to `any`\n  rec = FnRecord(name, args: [ArgSpec(name, type, position, default?, optional, doc)],\n                 returns, flags{volatile, cost}, samples, run: pyfn)\n  -- cross-record pass after all UDFs register: called functions exist, redirects resolve\n\n-- lookup returns a candidate set (Overload sets variation)\nbind(name, raw) → BoundCall(rec, args, warnings) | Failure\n  cands = registry.lookup(name)\n  if cands is empty: return Failure(UNKNOWN_FUNCTION, name)\n  ok = [c for c in cands if matches(c.args, raw)]\n  match ok:\n    []    → Failure(NO_MATCH, name, reasons: [(c, why(c.args, raw)) for c in cands])\n    [one] → args = fill + type-check + limits check, no coercion to a zero value\n            warnings ++ [Warning(IMPLICIT_CAST, spec)] if an accepted value was widened\n            BoundCall(one, args, warnings)\n    many  → Failure(AMBIGUOUS, name, tieBreak: ok)\n\ncontextLine(rec) → \"f(a: int, b: text = 'x') → table : first docstring line\"\nwalker: for rec in registry.all(): if rec.flags.volatile or rec.cost > budget: skip(rec) else run(bind(...rec.samples))\n",
+      "key_notes": [
+        "#7 One record per (kind, name) and the Variations' overload sets: this is the decision that makes or breaks T1 — a single-record-per-name table cannot express two functions called `score`, and the 'no function matches' refusal is the whole point.",
+        "#6 Pluggable argument types: analysts bring pandas dtypes, decimals, dates and domain wrappers; the binder must not grow a case for each, and `accept` must state whether numeric widening counts as acceptance or as a coercion worth a warning.",
+        "#1 Registration checks plus the end-of-start-up cross-record pass: UDFs are created in arbitrary order and may call each other, so redirect/target checks cannot be per record.",
+        "#5 The walker's limits: calling user code in a test is unsafe and slow, so samples must be in the record and skipping must be an explicit, enumerated decision, not a silent per-record flag.",
+        "#9 The exceptions list: `CREATE FUNCTION`/`DROP FUNCTION` and any other built-in statement surface cannot be records but must be enumerable and tested against the registry.",
+        "#8 Records evolve: redefining a UDF changes behaviour under a name that saved notebooks already use — require an explicit replacement or a redirect, and treat a changed default as a behaviour change."
+      ],
+      "risk": "Deriving everything from Python annotations alone: most analyst UDFs are untyped or annotated loosely, so every parameter becomes `any`, `accepts` always passes, and the planner, autocomplete and refusals all degrade to nothing while still looking implemented. Mitigate by refusing unannotated parameters at registration, or by requiring a declared type in a decorator."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Only one consumer exists (the script's own forward pass), the caller reads the source, there is no catalogue of externally callable operations, and the modules are general-purpose code composed in code rather than a set of operations with outside callers — which is precisely the chapter's second 'Do not use it when'. Building a registry here buys no decoupling: the binder, describer and walker would all have exactly one reader, the author, who already has the signatures in front of them. The chapter is explicit that the trigger is a second independent consumer, not a count of operations or a wish for cleanliness.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, 'Do not use it when' bullet 2: one consumer plus a source-reading caller — a function signature (and Python type hints) is enough.",
+        "Applicability bullet 3 and Variations (schema-first, code-first): nothing here generates help, a UI or an agent context, so there is nothing for a registry to keep in agreement with.",
+        "The cheap 90% that is legitimately useful: type-annotate the modules and give each a small frozen config record — that is an Argument spec without the Registry, Binder, Describer, Diagnoser and Walker, which are the parts that cost."
+      ],
+      "risk": "Doing it anyway and paying for a binder that is a small type system with its own tests (the chapter's own listed consequence), written by the one person who never needed the checking, while the actual research risk — wrong module composition — is untouched. Revisit only if a second consumer appears: a sweep over module hyperparameters, a serialized experiment config, or a dashboard/agent that must describe the modules without importing the script."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch / Structure (fields) vs Collaborations 5",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The record's declarative claim is undermined: `validate?(args) → ok | Failure` and `fields(boundArgs) → [FieldSpec]` are arbitrary code closures inside the record, yet the Variations offer 'schema-first records in an external file (YAML, TableGen, protobuf) with code generation' and known uses are exactly that (PyTorch YAML, ONNX schemas). The chapter never says how a schema-first record expresses a cross-argument rule or argument-dependent fields, and never notes that this is the reason those systems have a weaker notion of an operation. Separately, `fields` appears as `fields(boundArgs)` in Structure but as `fields(defaults)` in `help(name)`.",
+      "suggestion": "State which record fields must be data and which may be code, and give the schema-first variation an explicit escape (named hooks resolved from the generated module, or a small expression language for validate/fields) plus the FieldsSpec type (name, type, required/optional). Make `help` call `fields` with the same arguments the caller would get from defaults, and fix the notation to match."
+    },
+    {
+      "section": "Solution / Sketch `bind` vs Implementation note 3",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "Note 3 is titled 'Nothing falls back to a default silently', but `bind` does exactly that: `take(raw, spec) else spec.default` fills a default with no record of having done so, and note 8 makes that default part of the cache key and of saved-script meaning. A reader cannot tell whether 'silently' means 'without a refusal' or 'without a trace', and the BoundCall carries no information about which arguments the caller actually supplied — which the diagnoser, the describer and an agent all need.",
+      "suggestion": "Add `supplied: {name}` (or `defaulted: {name}`) to BoundCall and say once, in the Solution, that defaults are applied silently but are visible in the bound call and in help; note 3 should then be retitled to what it actually argues (unknown keys and wrong types are refusals, not fallbacks)."
+    },
+    {
+      "section": "Sketch (type.accepts) and Implementation note 6",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "`spec.type.accepts(v)` is the entire type system and is left undefined: exact match or coercing? Is an int acceptable where a number is declared? Is `[x, y, w, h]` a box or something else? Note 6 proposes an interface per type with `accept, check, describe`, but `check` is never defined and overlaps both the hard limits and the `validate` hook, so a reader implementing this does not know where a range test lives or what `accepts` is allowed to convert. This is the single question a query-engine or UDF implementer will hit first (see T1).",
+      "suggestion": "Define the TypeSpec interface explicitly — `accepts(v) → bool` (pure, no coercion) vs `coerce(v) → ok | Failure` (only where declared) vs `describe() → text` — say that range/limit tests live in the binder and never in the type, and give one example each of a scalar type and a domain type (box)."
+    },
+    {
+      "section": "Problem/Forces vs Sketch `explain`",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The refusal vocabulary is inconsistent across the chapter: the notation's `refuse(kind, message, hints, fix, where)` takes named fields, the sketch calls `refuse(E_UNKNOWN_OPTION, failure.key, fix: r.call if r else none, valid: optionNames(...))` with positional and differently named arguments, `ARG_RANGE` passes `fix: clamp(...)` while `HOOK` passes `failure.code` and bypasses the E_* space entirely. The chapter also never says what happens when a hook or a plug-in returns a Failure with a code nobody has a renderer for.",
+      "suggestion": "Give the Refusal and Failure types once, in the sketch, with named fields (kind, message, valid, nearest, fix, where, hint), state that hooks must use the same E_* kinds or a declared `E_OPERATION` with a code field, and say how an unknown code is rendered."
+    },
+    {
+      "section": "Known uses",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Two of the five entries contradict the chapter's own exclusion: Kubernetes OpenAPI and MCP tool input schemas are cases of 'the platform already gives you the records; use that schema as the registry instead of building a parallel one'. Listing them as known uses of the pattern without qualification lets a reader conclude the chapter recommends building a registry where it explicitly says not to, and it blurs the boundary the Applicability section works to draw.",
+      "suggestion": "Split Known uses into 'systems that build the registry' (PyTorch, ONNX, Glazed) and 'schemas you can adopt as the registry, still needing binder/describer/diagnoser/walker around them' (OpenAPI, MCP), with one sentence on what each still had to write by hand."
+    },
+    {
+      "section": "Structure (Argument spec) and Motivation/Sketch (`docPx`)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The `unit` field is central to the chapter's second failure mode and to Chapter 2, but what a unit *is* is never stated: a symbol from a unit table, a dimension (length vs angle), a factor, or just a string for documentation. `unit: docPx` in the example is unexplained, and nothing says whether `usualHint` is in the same unit as `usual`, whether unit conversion can itself fail, or how two arguments that must share a unit are checked.",
+      "suggestion": "One short paragraph in Structure or a note: units are named symbols with a dimension and a conversion to the working scale; all numbers in an ArgSpec are in the declared unit; conversion failure is an E_UNIT refusal at evaluation. Then Chapter 2 has something to point at."
+    },
+    {
+      "section": "Implementation note 5 / Sketch (walker)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "FieldSpec is never given a shape, and the walker only asserts key presence (`keys(v) ⊆ names(declared)`, `required(declared) ⊆ keys(v)`); the declared `returns` kind is checked only when fields are empty. So a record that declares a field of the wrong type, or a result of the wrong kind, passes the walk — the one mechanical guarantee the chapter promises ('a test walks every record and calls it') is weaker than it reads.",
+      "suggestion": "Define `FieldSpec: name, type, required` and extend the walker to check each present field against its declared type (and each row of a row-returning result), plus the `returns` kind unconditionally. Then note 5's 'what the walk does not prove' can be honest about coverage of limits/redirects rather than about shape."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The four failure bullets are the best part of the chapter and earn their space, but the image-specific asides — 'about sixty operations', `gaussian`/`peaks`/`mask.luminance`, preview-vs-full-size scaling, 'eight times the size of the instructions' — carry detail a non-image reader does not need and obscure the claim that the problem is general. The image material elsewhere (Structure's `blur` example, `heal`) is enough of a running example.",
+      "suggestion": "Cut each failure bullet to the mechanism in one sentence (advertised-but-absent functions; unstated units so scaling differs between preview and export; a wrong default swallowed silently; near-miss keys refused generically), and move the goja-cv specifics to one short paragraph or a side box retitled 'the running example'."
+    },
+    {
+      "section": "Solution's absolute claim vs Implementation notes 4 and 9",
+      "kind": "other",
+      "severity": "low",
+      "note": "'Any other list of operations found outside the registry is a bug' is stated flatly, then notes 4 and 9 admit goja-cv keeps method, help and look redirect tables outside the registry and hand-binds `cv.open`. The honesty is good, but a reader cannot tell whether these are recognised debts the pattern forbids or permitted exceptions, and no rule is given for where a method-level redirect lives when its target may only be registered later by another plug-in.",
+      "suggestion": "Rewrite the closing sentence as: operations live only in the registry or in the enumerated exceptions list, and redirects live only in records (validated at end of start-up); then mark goja-cv's three tables explicitly as a violation of the pattern rather than 'debt', so the reader knows what to do."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The shape is memorable and the applicability boundary (second consumer, callers who cannot read source) is unusually honest, but the sketch leaves the type system, the refusal vocabulary and the record's data-vs-code boundary underspecified, and the unit is named without being defined."
+  }
+}

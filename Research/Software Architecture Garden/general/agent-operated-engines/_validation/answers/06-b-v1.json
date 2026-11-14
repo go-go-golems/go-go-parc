@@ -1,0 +1,170 @@
+{
+  "restatement": {
+    "intent": "Every failure an agent can cause comes back as one structured record — stable code, message, path of operations, the agent's own source line, valid alternatives, a concept hint, and a pasteable fix — so the next attempt is the repair, not another guess.",
+    "problem": "An error that only says something failed forces the caller to rediscover the API, and an agent pays for each rediscovery with a round trip and context.",
+    "solution": "Define one Refusal shape with code / message / path / where / valid / hint / fix, and make every layer (binder, evaluator, kernels, host language) emit it. For unknown names, suggest in a fixed certainty order: mined redirects with literal fixes, then structural relatives (namespace, other kinds), then a spelling guess within a length-scaled edit budget. Warnings use the same fields at the line that caused them and are folded with a count; anything produced before a failure is still delivered.",
+    "quiz": []
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A stable code from a closed list, a one-sentence message, the path of operations from source to failure, the line (and quoted source line) in the agent's program, the valid alternatives, a hint explaining the concept, and a fix written as code. Sketch type: `value Refusal: code, message, path: [label], line?, valid: [name], hint?, fix?`.",
+      "where": "Solution; Structure (Refusal row); Sketch"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because the near-misses that matter are conceptual, not orthographic: no edit-distance rule maps `zoom` to `crop(...).look({zoom: 8})`. Only transcripts show what agents actually typed, so mined redirects carry a real hint plus a literal fix and are treated as known answers, ranked above spelling guesses.",
+      "where": "Forces (generic against mined); Implementation note 1; Collaborations step 2"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because the agent did not write those conversions; the path should show only the steps the agent authored, so it maps onto the program the agent can edit.",
+      "where": "Implementation note 5 (also note 6, same principle for `where`)"
+    },
+    {
+      "id": "Q4",
+      "answer": "It was deleted after firing 19 times in an annotator study, 18 of those on correct code. Rule drawn: a warning that is usually wrong is worse than no warning — measure each warning on real transcripts before shipping it.",
+      "where": "Implementation note 8"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Same forces at larger scale: expensive round trips (a model call per failed query), a huge name space (2,000 tables) where names are easy to confuse, and three distinct failure families that each want a different kind of repair (spelling, scope, dialect).",
+      "participants": {
+        "Refusal": "The error object returned with the failed SQL: code, message, path (statement → CTE → select → failing column), where = line:column offset in the SQL text the model wrote, valid = qualified columns in scope, hint, fix = a rewritten SQL fragment (or a whole clause for the missing-join case).",
+        "Code list": "Closed set: E_UNKNOWN_COLUMN, E_AMBIGUOUS_COLUMN, E_UNKNOWN_TABLE, E_WRONG_DIALECT_FUNCTION, E_UNKNOWN_FUNCTION_ARITY, E_TYPE_MISMATCH, E_PERMISSION; plus warning codes (implicit cast, cartesian join).",
+        "Suggester": "Order: dialect redirects first, then structural relatives (same column name on another accessible table → qualify it, or add the join), then edit distance restricted to columns of tables already in FROM/JOIN.",
+        "Redirect table": "Mined from analyst/model transcripts: `DATEDIFF`/`DATEADD` → warehouse `date_diff('day', a, b)`, `IFNULL` → `coalesce`, `TOP n` → `limit n`, `weeks_between` → …, each with the literal rewritten call.",
+        "Translator": "Warehouse engine binder/parser errors (SQLSTATE 42703, ambiguous reference, unknown function) plus driver/network errors mapped into the same record; keep the engine code as a subfield, not as the refusal code.",
+        "Site tracker": "Maps the engine's byte offset to line:column of the SQL string the model just wrote, and quotes that line in `where`.",
+        "Warning folder": "Folds repeated bind warnings (implicit casts, cartesian join, unpartitioned scan) by (code, line, message) with a count over the generated query."
+      },
+      "sketch": "value Refusal: code, message, path: [label], line?, valid: [qualified], hint?, fix?\n\nsuggestColumn(scope, name, dialectRedirects) → (hint, fix) | none\n  if dialectRedirects has lower(name):        return dialectRedirects[lower(name)]   -- mined: date_diff('day', a, b)\n  for c in scope.columns: if c.base == name:\n      return (\"it exists on \" ++ c.table ++ \" outside your FROM; qualify and join it\",\n              c.table ++ \".\" ++ name ++ \"  -- add: join \" ++ c.table ++ \" on …\")\n  c = closest(name, scope.columns, budget: max(1, min(3, len(name) / 3)))\n  if c:  return (\"did you mean \" ++ c ++ \"?\", c)\n  return none\n\nunknownColumn(sql, name, path, offset) → Refusal\n  scope = tablesInFromJoin(sql)\n  s = suggestColumn(scope, name)\n  return Refusal(E_UNKNOWN_COLUMN, \"no column \" ++ name ++ \" on \" ++ scope.tables,\n                 path ++ [\"✗ \" ++ name], lineOf(sql, offset),\n                 valid: s ? [] : qualify(scope.columns, limit: 5), hint: s.hint, fix: s.fix)\n\ntranslate(engineError, sql) → Refusal          -- SQLSTATE 42703 / 42702 / unknown function\n  match engineError:\n    ambiguous(name) → copy(base(engineError), code: E_AMBIGUOUS_COLUMN,\n                          fix: \"qualify as alias.\" ++ name, where: lineOf(sql, engineError.pos))\n    unknownFunction(f) → redirects[f] ?? (code: E_WRONG_DIALECT_FUNCTION, hint: \"that is another dialect's name\")\n\n-- in use\nselect datediff(day, ship, now()) … → E_WRONG_DIALECT_FUNCTION, fix: \"date_diff('day', ship, current_date)\"\nselect amount from orders o join lines l … → E_AMBIGUOUS_COLUMN, fix: \"o.amount\"",
+      "key_notes": [
+        "Note 1 (mine redirects) is the highest-value item: dialect near-misses (`DATEDIFF` vs `date_diff`) differ in argument shape, not spelling, so only a mined literal fix repairs them.",
+        "Note 2 (fixed order) matters because a spelling guess would happily rename `datediff` to some existing `date_*` function and produce a query that runs and returns wrong numbers.",
+        "Note 3 (fixes in the agent's names) — the fix must reuse the model's own aliases and the offending fragment, otherwise it cannot be pasted into the query being edited.",
+        "Note 6 (line in the agent's program) — here the agent's program is the SQL text, so the site tracker is an offset→line:column mapping, not a stack-frame scan.",
+        "Note 5 (path) — for a 200-line query with three CTEs, the path is what tells the model which subquery the column belongs to.",
+        "Note 8 (measure warnings before shipping) — the classic trap is a cartesian-join lint that is right half the time on intentional cross joins.",
+        "Note 10 (one redirect table) — dialect redirects, function redirects and column fixes must live in one registry, or the same wrong name yields three different answers."
+      ],
+      "risk": "Unbounded edit distance plus `valid` lists leak and mislead at 2,000-table scale: the suggester confidently returns a real column on a table the analyst cannot see, or a column with the wrong semantics, turning a refusable error into a silently wrong report. Restrict candidates to accessible, in-scope tables, cap `valid` at a handful, and fall back to a uniform refusal (Applicability, second do-not) for tables outside the analyst's grants."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is exactly the chapter's first do-not case: callers are programs that log and never retry with modified input, so hint, valid alternatives and fix are never read — you would pay per-error authoring and drift costs, plus context in every error payload, for zero repair. A stable code plus a message is the whole requirement.",
+      "participants": {
+        "Refusal": "Keep, reduced to code + message (+ correlation id); drop path, valid, hint, fix.",
+        "Code list": "Keep and invest here — closed, documented, stable codes are what make logs groupable and alerts routable.",
+        "Suggester": "Not used.",
+        "Redirect table": "Not used.",
+        "Translator": "Worth a thin version: map third-party/driver failures into the same code list so logs stay homogeneous.",
+        "Site tracker": "Not used (no agent-editable program line); a stack frame in the log is enough.",
+        "Warning folder": "Only if callers aggregate warnings as counters; folding is then a log concern, not a reply concern."
+      },
+      "sketch": "",
+      "key_notes": [
+        "Applicability, second bullet-set (\"caller is code that branches on errors\") is the deciding note.",
+        "Consequences minus column (work per error, drift, context cost) is the cost side that makes the proposal a net loss here.",
+        "If a human operator ever hand-edits input and reruns, the fix should be written for that human in operator terms — that is a different audience and a different pattern, not a pasteable code fix."
+      ],
+      "risk": "Half-adopting it: teams add a `hint` field that is a generic template (\"check your input\"), which adds payload and maintenance debt without being actionable, while the one thing that would help — a stable, closed code list — stays loose."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution vs Collaborations step 2 vs Sketch (suggest order)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The three places disagree. Solution: redirects → structural relatives (namespace or other kind) → spelling. Collaborations: redirects → namespace → spelling → other kind. Sketch: redirects → namespace → spelling → other kinds. Implementation note 2 implies cross-kind ranks with namespace, above spelling. Cross-kind placement is the one ordering decision that changes behaviour most (\"await the regions first\" vs a plausible typo).",
+      "suggestion": "State the order once, in one sentence, and make the other three sections point at it; decide explicitly whether cross-kind is a structural fact (above spelling) or a last resort, and say why."
+    },
+    {
+      "section": "Implementation note 2 (edit budget)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The example does not follow from the formula. `max(1, min(3, len/3))` for `crop` gives 1, and `crop`→`drop` is a single substitution, so the suggester would suggest `drop` — the opposite of what the note claims. As written, the budget cannot prevent the misdirection the note says it prevents.",
+      "suggestion": "Either drop the example or add the missing rule (e.g. require a shared prefix of ≥2 chars, restrict to transpositions/deletions on short names, or refuse suggestions below length 5), and justify why the budget caps at 3."
+    },
+    {
+      "section": "Sketch vs \"in use\" (code choice)",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "`unknownMethod` always returns `E_UNKNOWN_METHOD`, yet the run sheet says `img.luminance(...)` → `E_NAMESPACE` along the same path. Nothing says how the code is selected, and if the code depends on whether a suggestion was found, callers branching on codes see two codes for one failure class.",
+      "suggestion": "Make code selection independent of the suggestion (code = what is wrong: unknown member / wrong namespace / wrong kind) and show the branch that produces `E_NAMESPACE` in the sketch."
+    },
+    {
+      "section": "Sketch `translate` + Solution (\"stable code from a closed list\")",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`translate` copies the host's own code (`hostError.name`, e.g. `TypeError`), which is not in the closed list and collides across layers, and it branches on the host's message text (`TypeError(\"no member m\")`). Host wording changes between runtimes and versions, so both the code stability promise and the match are brittle.",
+      "suggestion": "Canonicalize to your own codes (e.g. `E_TYPE_ON_PLAIN_DATA`) and keep the host code as a subfield; match on structured information (receiver type, member name) rather than on message strings, and note that a message-pattern fallback is a last resort."
+    },
+    {
+      "section": "Collaborations step 3 / Implementation note 3 (`receiverOf(sourceLine, m)`)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Recovering the receiver by scanning the source line is presented as reliable. It is not: chained calls (`rows.filter(f).count()`), multi-line expressions, optional chaining, or the same method name twice on one line all break it, and there is no stated fallback when the receiver cannot be found.",
+      "suggestion": "Say how the receiver is obtained (preferably recorded at call time as a node/span, not re-parsed from text) and what the refusal looks like when it is ambiguous — probably a hint without a fix."
+    },
+    {
+      "section": "Sketch `suggest` / `unknownMethod`",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The sketch is not implementable as written: `ns(m)`, `otherKinds(kind)`, `explainCrossKind` are undefined, `registry.names(kind)` and `registry.has(k, name)` imply two different registry APIs, and `recv` appears inside returned fix strings although it is not a parameter of `suggest`.",
+      "suggestion": "Add `recv` to `suggest`'s parameters, define or inline the helpers, and fix one registry interface so a reader can see the whole lookup in one screen."
+    },
+    {
+      "section": "Solution/Structure (`valid` field)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Structure says a refusal carries the valid alternatives, but the sketch fills `valid` with `[]` whenever a suggestion exists and otherwise with `registry.names(kind)`, which is unbounded (a kind with 40 methods turns the refusal into noise — the exact cost the Forces warn about). It also silently conflicts with Applicability's \"refuse uniformly, do not reveal alternatives\" for access control: nothing says where that switch lives.",
+      "suggestion": "Give a cap and a rule (nearest N in scope, or the kind's own short namespace), and state that `valid`/`hint`/`fix` are suppressible per error class for security-sensitive refusals."
+    },
+    {
+      "section": "Collaborations step 4 / Structure (Warning folder) vs Sketch `foldWarnings`",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Warnings are promised \"the same fields\" as refusals, but `foldWarnings` groups by `(code, line, message)` and adds `count`, which is a different shape; nothing says where warnings sit in the reply, whether they are ordered or capped, or how a caller tells a warning from an error.",
+      "suggestion": "Define the Warning record beside Refusal (shared fields plus count), show the reply's `warnings:` key once, and state an ordering/cap."
+    },
+    {
+      "section": "Implementation note 11 (testing codes)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Codes are tested; fixes are not. A confidently wrong `fix` is the most damaging output the pattern can produce (the agent pastes it and fails again), and the chapter admits fixes \"drift as the API changes\" without prescribing a test for them.",
+      "suggestion": "Add a note that every literal fix in the redirect table is executed against the current API by the documentation test (the fix must run and succeed), not merely checked for its code."
+    },
+    {
+      "section": "Naming of the location field",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "The field is called `where` in the Solution, the YAML and note 6, but `line?` in the sketch type, while Structure describes it as \"the line and its source\" — three names for one field. For a pattern whose claim is \"one shape everywhere\", naming drift is exactly the defect it is trying to prevent.",
+      "suggestion": "Pick one name (`where`) with an explicit sub-shape, e.g. `where: {file?, line, text}`."
+    },
+    {
+      "section": "Motivation (captured YAML)",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "`path: open(016ea3c2858fb626_1536_0.tif) → ✗ zoom` carries an opaque internal filename that says nothing to a reader who has not seen goja-cv; the reader spends effort decoding it instead of the point (the path ends at the failing step).",
+      "suggestion": "Use a readable filename in the example and put the interesting detail (the path terminating in ✗ zoom) forward; keep the binary-captured provenance as one clause, not the framing."
+    },
+    {
+      "section": "Known uses",
+      "kind": "missing",
+      "severity": "low",
+      "note": "Elm, rustc, Clang, Git and Stripe all pre-date agents, and none of them ship a fix written in the caller's own language for a caller that will run it unattended. The chapter's distinctive claim (mined redirects, agent-name fixes) has no independent corroboration, which weakens the ★★ \"close to invariant\" rating.",
+      "suggestion": "Admit the split: the record shape is well-attested; mined redirects and per-error pasteable fixes are the chapter's own contribution, and say how they were evaluated."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core idea and forces are clear enough to adopt, but the suggestion order contradicts itself across three sections, the edit-budget example is arithmetically wrong, and the JS-specific translator plus undefined sketch helpers make it harder than necessary to port to another stack."
+  }
+}

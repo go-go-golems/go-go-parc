@@ -1,0 +1,139 @@
+{
+  "restatement": {
+    "intent": "Give an agent a single tool that runs a short program against the engine's API inside a session that survives between calls, and return the program's effects in a form the agent can actually read.",
+    "problem": "One narrow tool per operation forces round trips and blocks loops/filters, but sending whole programs into a bare REPL loses state, floods the context, and silently drops what the programs made.",
+    "solution": "Split the tool into a generic runtime (executes with a timeout, persists state) and a domain result processor that renders value, warnings, a rebuilt context block and queued deliverables. State must be explicit in one named object; text is capped with a note on how to get the rest; flat records become tables; libraries load as layered preludes or by name instead of being pasted; failures are replies too."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "On one explicit, documented state object (`mem`); top-level `const`/`let` declarations in a function-body eval do not survive the call, so code later in the session cannot see them.",
+      "where": "Implementation notes 1 (\"Make state explicit\"); Problem/Motivation bullet \"State vanished between calls\""
+    },
+    {
+      "id": "Q2",
+      "answer": "Every call: named inputs, the state object's keys with their kinds, and helper/function signatures. Only when new or changed: the helper's full doc line (parameter list plus first body comment read from source).",
+      "where": "Solution; Structure table (Context block); Implementation notes 5 and 8"
+    },
+    {
+      "id": "Q3",
+      "answer": "They are not delivered; each is named by its line in a warning and replaced by a placeholder in the reply. Returned pictures are delivered first, within four pictures / 8 MiB.",
+      "where": "Collaborations step 5; Implementation notes 6; Sketch (`budget(queue(), maxCount: 4, maxBytes: 8 MiB)`)"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because no one reads it; discarding it keeps the first context block about the session's real contents rather than library chatter.",
+      "where": "Collaborations step 1; Implementation notes 7 (\"Prelude output is discarded, because no one reads it\")"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Exploratory queries over one persistent engine are exactly the combining/looping case, temporary tables are state worth keeping, and 10,000-row result sets are the canonical 'results are too large to read raw' case. The one required deviation is that state lives in the database (temp tables, session variables) rather than in a JavaScript object, so the context block must enumerate temp tables instead of `mem` keys.",
+      "participants": {
+        "Eval tool": "one `sql` tool taking a multi-statement script; its description states that the last result set is the value and that results can be paged",
+        "Session": "one persistent connection to the replica, serialized calls, statement timeout, policy `readOnly: true`",
+        "State object": "the session's own state: temp tables, session variables, `search_path` — listed by name in every context block",
+        "Result processor": "SQL processor: resets the export queue and deadline before each call, renders rows as a table, caps, folds warnings (e.g. planner notices, truncation) by query line",
+        "Context block": "connection and read-only flag, temp tables with columns and row counts, session variables, saved-query names; doc lines only for newly created or changed temp views",
+        "Deliverables queue": "CSV/report files the script wrote, delivered within a count/byte budget, extras named by statement",
+        "Library loader": "saved queries / temp views loaded at start (explain helpers) or by name for common explorations (top-slow-queries, bloat)"
+      },
+      "sketch": "session = Session(sqlRuntime, SqlProcessor, policy: {timeout: 30s, readOnly: true},\n                  preludes: [\"explain-helpers.sql\"])        -- CREATE TEMP VIEWs; output discarded\n\nsql(script) → Reply\n  processor.beforeEval(runtime, now() + policy.timeout)\n  try:   v = runtime.run(script, deadline)                  -- last result set is the value\n         return processor.process(runtime, v)\n  catch e: return processor.processFailure(runtime, e)\n\nprocess(runtime, v) → Reply\n  text = table(v, budget: ⅔ × CAP)                          -- header + one line per row\n  text = cap(text, CAP, note: \"showing 800 of 10000 rows; add LIMIT, fewer columns, or aggregate\")\n  text = text ++ foldByLine(warnings()) ++ contextBlock(runtime)\n  files, left = budget(queue(), maxCount: 4, maxBytes: 8 MiB)\n  return Reply(text, files)\n\ncontextBlock(runtime) → text\n  state = [t.name ++ \"(cols, rows=\" ++ count(t) ++ \")\" for t in tempTables()]   -- never SELECT * here\n  return [\"replica, read-only\"] ++ state ++ [name ++ \"(...)\" for name in savedQueries()]",
+      "key_notes": [
+        "3 (cap the text and say how to get the rest): 10,000 rows is the whole problem; the cut note must name LIMIT / fewer columns / aggregate, or the agent will keep asking for the same oversized set.",
+        "4 (tables for lists of records): rows of flat records are the case this note was written for; a row per record is what makes 10,000 rows survivable at all.",
+        "5 (rebuild the context block, show deltas): temp tables are this situation's `mem`, so they must be listed with columns and row counts every call, with doc lines only when a temp view is new or redefined.",
+        "2 (generic session vs domain processor): keep SQL rendering out of the runtime so the same session serves other engines; here the processor is the only place that knows about result sets.",
+        "7 (load, don't paste): saved queries and standard temp views belong in preludes/`load(name)`, not retyped in every script.",
+        "Applicability + Structure policy: `readOnly: true` is not optional on a production replica; note 9-style failure replies should say when a statement was refused by policy."
+      ],
+      "risk": "Letting the raw 10,000-row set reach the reply as one table and trusting a character cap to save it — the agent then reads a truncated table and writes wrong conclusions. Cap by rows with an explicit 'shown N of M' note, and make truncation a warning in the reply, not a silent cut."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is the chapter's own 'do not use it' case: two independent actions with side effects that must each be confirmed. There is no combinatorial need, so the one-tool benefit is zero, and arbitrary code destroys the confirmation gate — the model can put several transfers in one program and the customer would be confirming a program, not a specific transfer of a specific amount.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability 'Do not use it when': actions must each be confirmed — narrow tools make each one visible and reviewable.",
+        "Variations, 'Many narrow tools': typed arguments let each proposed transfer be shown to the customer with its amount and payee before execution.",
+        "If one tool is still wanted, the only defensible variation is 'Structured call tool' (`call(path, args)`), and even then confirmation binds to the single call, never to a script."
+      ],
+      "risk": "Treating eval as harmless because the bank API 'validates arguments': the schema check happens on the wrong object (the arguments of a call buried in a program), and the confirmation prompt shows code the customer cannot audit. A loop over a payee list is the concrete failure mode."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution / Sketch (`contextBlock`) vs Implementation note 7",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Helpers are reached two incompatible ways: the Solution and Sketch put them on the state object (`functions(mem)`, `mem.cands`, signatures from `mem`), while note 7 has them loaded as preludes and reachable as `cv.load`/`cv.scripts`. If preludes only define globals they would vanish like top-level declarations (note 1), so a reader cannot tell what actually persists and where `signature(f)` looks.",
+      "suggestion": "State the rule once: libraries install their functions onto the state object (or onto a named namespace object that survives), preludes run for effect only, and give one line showing a helper surviving into the next call."
+    },
+    {
+      "section": "Implementation notes (timeout)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "`timeout: 30s` appears in the Sketch and in the Session participant, but nothing says what the agent sees when a program times out, whether that goes through `processFailure`, whether partially created pictures/state are kept, and whether the session is still usable or must be reset.",
+      "suggestion": "Add a note: timeout raises a structured refusal with the line where execution was, deliverables created so far are delivered, session state marked as possibly partial (or session restarted with that stated in the context block)."
+    },
+    {
+      "section": "Intent / Structure (Eval tool description) and first call",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The consequence list admits 'agents still need to be told the contract (await, return, state object)' and Structure says the tool description 'states the contract', yet no specimen description is given and there is no account of the first call, before any helper or state exists. Since note 10 says a manual is never read, the description and the first reply are the whole onboarding and deserve text.",
+      "suggestion": "Add a short verbatim tool description and a sample first-call context block (prelude helpers present, empty state), plus what the reply looks like when the program returns nothing."
+    },
+    {
+      "section": "Motivation, Sketch, Implementation notes (domain jargon)",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "`cv.sheet`, `x.look()`, `img.as(\"linear\").peaks({snr: 1})`, `judge-helpers.js`, 'the dust pipeline's judge', `UNUSED_NODE` all assume the reader knows goja-cv and the lab. A reader from another project can follow the shape but not check their own design against it.",
+      "suggestion": "Use neutral names in the Sketch (`report(...)`, `open(...).peaks(...)`) and add a three-line glossary of the example's domain terms, keeping project names only in Implementation notes and Known uses."
+    },
+    {
+      "section": "Structure and Solution ('deliverables queue': pictures and files)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The participant is defined as 'pictures and files', but the Solution says 'every picture', the Sketch only budgets `pics`, and the reply constructor takes only `(text, pics)`. Files are never shown reaching the agent — as paths? as attachments? — which matters for any non-visual engine.",
+      "suggestion": "Either drop 'files' or show them: how a written file is named in the reply, whether it counts against the same count/byte budget, and what the placeholder says for one left out."
+    },
+    {
+      "section": "Structure (Library loader) and Implementation note 10",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Libraries load 'on demand by name', but the context block lists only what is already loaded, and note 10 observes that agents never read documentation. So an agent that does not already know a library exists can never ask for it — discoverability is exactly the problem the context block was built to solve.",
+      "suggestion": "Put the loadable names (or a one-line catalogue hint) in the context block, or make `load(\"typo\")` fail with a refusal that lists the available script names."
+    },
+    {
+      "section": "Sketch (`process`)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The value text is capped at `CAP`, then warnings and the context block are appended after the cap, so the reply can exceed CAP by an unbounded amount; the chapter never says whether CAP bounds the value, the tables, or the whole reply, despite warning that 'caps and budgets hide information'.",
+      "suggestion": "Say CAP bounds the whole reply and show the budget arithmetic: table share (⅔), warnings and context reserve (e.g. fixed remainder), value text gets the rest."
+    },
+    {
+      "section": "Implementation notes (constants)",
+      "kind": "other",
+      "severity": "low",
+      "note": "9,000 characters, four pictures, 8 MiB, ⅔ of the budget, 30 s timeout are given as bare numbers. A reader cannot tell which are measured defaults worth copying and which are one project's choice under one model's context window.",
+      "suggestion": "Mark them as observed defaults with the reason (context window, image cost) and say what to change when the model or the media change."
+    },
+    {
+      "section": "Motivation vs Implementation notes 1, 6",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The Motivation bullets already carry the findings and the counts (39 pastes of 374 evals, dropped `x.look()`, unread `cv.docs`), and notes 1 and 6 repeat the same stories with the same numbers. Notes 1 and 6 are long because of the retelling, not the rule.",
+      "suggestion": "Cut the narrative from notes 1 and 6 to one clause each and cross-reference the Motivation; spend the saved space on the timeout and first-call gaps above."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The generic-session/domain-processor seam, explicit state object and rebuilt context block are genuinely portable and the failure modes are named precisely; it loses points because helper persistence, timeout behaviour and the deliverables-with-files role are underspecified and the Sketch leans on goja-cv vocabulary a new reader cannot decode."
+  }
+}

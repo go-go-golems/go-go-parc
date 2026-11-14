@@ -1,0 +1,153 @@
+{
+  "restatement": {
+    "intent": "Give an agent a single tool that runs a short program against an engine's API inside a session that persists between calls, and turn what the program returned, warned and created into a reply the agent can actually read.",
+    "problem": "One tool call per operation forces round trips and blocks loops/filters, but handing the agent a whole program loses state between calls, floods the context, or silently drops what the program produced.",
+    "solution": "One eval tool over a persistent Session split in two: a generic runtime (execute with timeout, persist, own the state object) and a domain Result processor (before-hook, process, processFailure). All surviving state lives on one named object, and every reply is a rebuilt package: YAML/tabular value capped with a note on how to get the rest, folded warnings with line numbers, an incremental context block, and deliverables within a count/byte budget. Libraries load as layered preludes or by name instead of being pasted."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "On one named object (`mem`), because runtimes that evaluate each program as a function body (goja-cv's JavaScript) discard top-level `const`/`let` after the call — pasted helpers lost their constants in the next eval; the object is also what the context block lists, so what persists is visible.",
+      "where": "Implementation note 1 'Make state explicit'; also Structure/State object"
+    },
+    {
+      "id": "Q2",
+      "answer": "Every call: named and unnamed opened inputs, the state object's keys with their kinds, and helper signatures. Only when a helper is new or its source changed: that helper's full doc line.",
+      "where": "Structure/Context block; Implementation note 5; Sketch `contextBlock`"
+    },
+    {
+      "id": "Q3",
+      "answer": "They are not delivered: delivered in order up to the budget (four pictures, 8 MiB), and any beyond it are named by line in a warning and replaced by placeholders in the reply. Files the program saved stay in the workspace and are named.",
+      "where": "Collaborations step 5; Implementation note 6; Structure/Deliverables queue"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because no one reads it — prelude output would only spend context; a prelude that fails stops the session from starting, so the successful case is silent by design.",
+      "where": "Structure/Library loader; Collaborations step 1; Implementation note 7"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "This is the chapter's own 'database agent' instance: many operations over one engine combined in data-dependent ways, real session state (temporary tables, session variables), and results far too large to read raw. The production replica makes it read-only, which the Applicability clause and the read-only policy support rather than forbid.",
+      "participants": {
+        "Eval tool": "one tool that takes a SQL script (plus short procedural wrapping) and returns the summarized reply",
+        "Session": "the persistent SQL connection/transaction to the replica, with timeout and `readOnly: true` policy",
+        "State object": "the documented object holding session variables the agent sets and any handled names; temporary tables are session state that the context block lists by name and row count",
+        "Result processor": "the SQL-specific plug-in: resets the per-call queue, renders each result set, folds warnings/notices, appends the context block, renders `E_TIMEOUT` and plan/permission errors with the line",
+        "Context block": "open replica + schema/current database, temp table names with row counts, session variables and their kinds, loaded helper signatures",
+        "Deliverables queue": "no pictures here: any exported CSV/plan/result file the script wrote stays in the workspace and is named in the reply; the picture path is simply unused",
+        "Library loader": "preludes or named helper scripts (statistics helpers, then task-specific query helpers) installing functions on the state object"
+      },
+      "sketch": "session = Session(sqlRuntime, sqlProcessor,\n                  policy: {timeout: 60s, readOnly: true},\n                  preludes: [\"common-helpers\", \"replica-helpers\"])   -- output discarded\n\nevalTool(sql) → Reply\n  processor.beforeEval(runtime, now() + policy.timeout)\n  try:   rs = runtime.run(sql, deadline)\n         return processor.process(runtime, rs)\n  catch e: return processor.processFailure(runtime, e)    -- E_TIMEOUT, permission, syntax + line\n\nprocess(runtime, rs) → Reply\n  text = table(rs.rows, budget: ⅔ × CAP,\n               note: \"rows 1..N of M; aggregate with GROUP BY or add LIMIT/OFFSET\")\n  text = cap(text, CAP, note: \"cut at N of M chars\")\n  text = text ++ foldByLine(notices()) ++ contextBlock(runtime)\n  return Reply(text, files_written)\n\n-- in use\nCREATE TEMP TABLE hot AS SELECT ... ;      -- survives; appears in context block next call\nreturn SELECT region, count(*) FROM hot GROUP BY region   -- 10k rows -> aggregated table, not 10k rows",
+      "key_notes": [
+        "Note 3 (cap the text and say how to get the rest) matters most: 10,000 rows dwarf any 9k-character cap, so the reply must both summarize and tell the agent to aggregate/paginate. A cap alone turns a large result into a silent lie.",
+        "Note 4 (tables for flat records): result sets are exactly lists of flat records; two thirds of the budget to a table with 'showing rows 1..N of M' is what makes 10k rows legible.",
+        "Note 1 (state explicit): temporary tables and session variables are the persistence here — they must be listed in the context block every call, or the agent cannot know what a temp table holds.",
+        "Note 2 (generic session vs domain processor): the SQL result renderer must be the plug-in, not baked into the session, so the same session serves a file engine later.",
+        "Note 9 (failures/timeouts are replies): a 10k-row scan on a replica will hit the deadline eventually; render `E_TIMEOUT` with the line and note that temp tables created before it persist.",
+        "Applicability + policy: run `readOnly: true` against the replica so expressiveness cannot become a write."
+      ],
+      "risk": "Treating the character cap as paging: the tool fetches 10,000 rows, prints the first few hundred, and the model concludes that is the whole result — or, from the same place, losing read-only enforcement and letting an exploratory script write to a production replica."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is exactly the chapter's 'Do not use it' case: a handful of independent actions with side effects that must each be confirmed. A general program defeats the confirmation, because the model writes the control flow — it can call `transfer` twice, in a loop, or behind an `if` the customer never saw — and per-call review is impossible once a call is an arbitrary script.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "The 'Many narrow tools' variation is the right answer here: one tool per action, structured arguments, each call validated by schema, visible in the transcript, and confirmable between calls.",
+        "Nothing in the pattern's value proposition applies: two operations need no loops or filtering; no state is worth keeping between calls; and no large result needs summarizing.",
+        "If some of the reply machinery is wanted anyway, only the reply format is transferable — confirmations have to live in the tool boundary, not in the program."
+      ],
+      "risk": "Bolting the eval tool on 'for uniformity' and then trying to enforce confirmation inside the scripted program; confirmation must gate the tool call, with server-side amount limits and idempotency keys, and the API exposed to the model limited to those two actions."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Structure (Deliverables queue, Eval tool), Solution, Implementation note 6",
+      "kind": "too-specific",
+      "severity": "high",
+      "note": "The pattern claims reuse for a data-analysis assistant, a database agent and an infrastructure agent, but pictures are a first-class participant: 'Deliverables queue' is defined purely as 'Pictures the program created', and the reply contract names 'every picture'. A SQL or shell instance has to mentally delete a participant, which undermines the claim that the structure is generic.",
+      "suggestion": "Generalize the participant to 'artifacts' (files written, plots, rendered pages, exported tables) with pictures as one kind supplied by the domain processor; say explicitly which participants are optional for engines with no visual output."
+    },
+    {
+      "section": "Applicability, 'Do not use it' second bullet",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "'If the host cannot run code safely, keep the session, processor and context block, but replace the eval tool with the structured-call variation' — if the host cannot run code there is no session executing programs, so there is nothing to keep. The structured-call variation is one function per call, i.e. no persistent program context at all.",
+      "suggestion": "Reword: keep the *reply format* (cap, tables, context block, warnings) and the policies, and drop both the session and the state object; or state what a 'session' means when there is no interpreter (an ordinary connection/process the host owns)."
+    },
+    {
+      "section": "Structure/Eval tool row",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "goja-cv's tool description is pasted in full — the longest cell in the table — and mixes the transferable contract (async body, `return` a value, state on `mem`, max chars) with this engine's vocabulary (`cv.load`, `cv.scripts`, `cv.docs.search`, `node.look`, `cv.help`). A reader cannot tell which clauses a new instance must copy.",
+      "suggestion": "List the contract as 5–6 imperative clauses with role names ('expose the API as a global object', 'state on the named object', 'call the library loader by name'), and put the verbatim goja-cv text in a boxed example labelled as one instance."
+    },
+    {
+      "section": "Sketch (`contextBlock`), Implementation note 5",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "'docs = [docLine(f) for f in functions(mem) if new or changed since last call]' silently requires per-helper source memory and a change test that the chapter never specifies: what is stored (hash? source text?), where (processor state?), what the first call does, and whether a failed or timed-out call still updates the baseline. It also disagrees with the Structure table, which says 'full doc lines only for helpers that are new or changed' — same content, but the moment of comparison is unstated.",
+      "suggestion": "Add one sentence: the processor keeps `{name → source hash}` across calls, refreshes it only after a successful process(), and treats the first call as 'all new'. Mention `kindOf`'s fallback when a key holds a non-plain value."
+    },
+    {
+      "section": "Sketch `process` vs Implementation note 3",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Two different capping mechanisms appear without reconciliation: `yaml(..., tableBudget: ⅔ × CAP)` already budgets tables, then `cap(text, CAP, ...)` caps again with its own note. A reader cannot tell whether the note mentions rows, characters, or both, or what happens when tables plus YAML plus warnings plus context exceed CAP (the code appends warnings and context after the cap, so the reply can exceed it).",
+      "suggestion": "Show one cap: render value → cap value to CAP with a row-and-character note → then append warnings and context, and state the resulting worst-case reply size."
+    },
+    {
+      "section": "Sketch / error path",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The notation offers `refuse(kind, message, hints, fix, where)`, and note 9 promises structured errors and timeouts, but the sketch's only structured output is `warning(LOOKS, ...)`; the failure reply's actual shape lives in Chapter 6. As written, a reader of this chapter alone cannot build `processFailure` — notably for `E_TIMEOUT`, where they cannot see how 'state assigned before it persists' and 'start a new session' are conveyed.",
+      "suggestion": "Give one concrete failure reply in the sketch, using `refuse(E_TIMEOUT, …, where: line, fix: …)`, plus the degenerate 'session unusable, start a new one' case."
+    },
+    {
+      "section": "Collaborations, Implementation notes 3/5/6/7/9",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "Collaborations steps 1–6 and the numbered notes are two passes over the same material (preludes in step 1 / note 7; cap in step 4 / note 3; pictures in step 5 / note 6; errors in step 6 / note 9), and the sequence diagram then states it a third time. The reader has to check three places to learn one rule.",
+      "suggestion": "Keep the sequence diagram plus notes only; delete Collaborations or reduce it to the two non-obvious ordering facts (preludes before the first call, pictures flushed even on failure)."
+    },
+    {
+      "section": "Applicability / Structure (State object)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Nothing says how a long session's state is bounded. `mem` accumulates keys, helper functions and cached values, and the context block lists all of them every call — so both memory and the 'few lines per call' block grow without limit. There is also no way for the agent or the host to drop a key, which is the natural first thing an agent gets wrong.",
+      "suggestion": "Add a note on eviction: a documented way to delete state keys, a size/age cap with a warning when exceeded, and whether the context block truncates the key list (and says so)."
+    },
+    {
+      "section": "Implementation note 6 (deliver every picture)",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "'v2 delivers everything created, returned ones first' — but a returned picture was also created, so the delivery rule implies de-duplication that is never mentioned; without it a `return cv.sheet(...).look(...)` would appear twice and eat the four-picture budget.",
+      "suggestion": "State that the queue is keyed by creation (line/identity) and that returning a picture only orders it, it does not enqueue it a second time."
+    },
+    {
+      "section": "Implementation note 3 / Sketch",
+      "kind": "missing",
+      "severity": "low",
+      "note": "The concrete budgets — 9,000 chars, four pictures, 8 MiB, ⅔ of the cap for tables, 30 s timeout — are justified only as 'a default chosen for current models', with no rule for a new engine with a different context window or a different media type. A reader adopting the pattern has no basis to pick their numbers.",
+      "suggestion": "Add the reasoning as a ratio (e.g. cap ≈ a few percent of the context window; media budget a fraction of remaining tokens) so the numbers can be re-derived rather than copied."
+    },
+    {
+      "section": "Structure/Library loader, Implementation note 7",
+      "kind": "missing",
+      "severity": "low",
+      "note": "'A prelude that fails stops the session from starting' is a hard failure with no repair path, which contradicts note 10's advice that hints and fixes in the reply reach agents. The model cannot fix a prelude it did not write, and the chapter does not say what the tool returns in that state or whether `load` can be retried mid-session.",
+      "suggestion": "Say what the start-up failure reply contains, and whether a failed `cv.load(name)` mid-session is a repairable error (and whether it leaves partial helper installs behind)."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 2,
+    "would_apply_it": 4,
+    "comment": "The core shape (one tool, one named state object, generic session + domain processor, capped tabular reply, layered preludes) is clear and worth adopting; reusability suffers because pictures are a first-class participant, the tool contract is pasted verbatim from goja-cv, and the cap/error machinery is specified twice and inconsistently."
+  }
+}

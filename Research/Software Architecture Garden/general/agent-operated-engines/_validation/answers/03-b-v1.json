@@ -1,0 +1,132 @@
+{
+  "restatement": {
+    "intent": "Let a script express a computation as a graph of operation calls without running it, make identical calls collapse to one interned node, and compute a node's value only when someone asks, so the same work is never done twice no matter how it was spelled or which round requested it.",
+    "problem": "Expensive computations are rewritten in different words and requested piecemeal, so recomputing wastes most of the work, while caching by variable name or by source text returns stale values.",
+    "solution": "Every operation call returns an immutable Node interned by a hash of op, canonical args and input node hashes. A Signature folds the node hash, the quantised evaluation parameters and (recursively) the input signatures; the Evaluator checks the run memo, then a byte-budgeted value cache, joins any in-flight computation of the same signature, evaluates inputs in parallel, runs the op and stores value plus reported warnings. Cached values are never mutated, and function arguments are expanded into subgraphs at build time so no key ever depends on a function's text."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A signature: the node's structural hash (op, canonical args, input hashes) + the evaluation parameters, quantised (scale, precision, device) + the signatures of the input nodes, computed recursively. Volatile things (in-flight state) and cheap-invalidating things (output hashes) are not in it unless the early-cutoff variation is used.",
+      "where": "Solution; Structure (Signature row); Sketch (signature(n, params)); Implementation notes §2–§4"
+    },
+    {
+      "id": "Q2",
+      "answer": "Scale is rounded to 10⁻⁴ so that nearly equal scales share cache entries instead of missing on float noise, and so they produce identical buffer sizes. It is a hit-rate optimisation bought by accepting slightly different scales as the same.",
+      "where": "Implementation notes §2"
+    },
+    {
+      "id": "Q3",
+      "answer": "An opaque fill covering the whole tile ignores the layers below it (also: a hidden layer takes the key of what is below, a full-opacity pass-through group takes the key of its top child). The risk: each such rule is a correctness obligation — if it is wrong in one case, that case silently returns a stale picture and nothing reports it.",
+      "where": "Implementation notes §4"
+    },
+    {
+      "id": "Q4",
+      "answer": "Values are computed on `await`, `look()` and `cv.save`, and reading a property of an unevaluated node is refused with `E_NOT_AWAITED`; a first version silently dropped bare `x.look()` statements, the second delivers every look created in an eval. The 'node built but never used' lint was deleted because it fired on legitimate code more often than on mistakes.",
+      "where": "Implementation notes §11"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is the canonical case: deterministic per-page computations from files, expensive parts (image resizing, markdown→HTML), repeated across commits and across machines, with nobody needing every intermediate. The 'persistent and shared caches' variation is what makes CI→local reuse legitimate.",
+      "participants": {
+        "Node": "a page build: parse front matter, render markdown, resize hero image, apply layout — plus each intermediate step as its own node",
+        "Builder": "the site builder that interns page/render/resize calls by hash so 20,000 pages sharing a layout share one layout node",
+        "Source": "each .md file, layout partial and image asset, identified by content hash (plus asset size/dimensions if the resizer needs them)",
+        "Signature": "node hash + build params that change bytes: template engine version, image library version, resize defaults, minifier settings",
+        "Evaluator": "the renderer invoked for a page that is actually written; evaluates its inputs (markdown parse, resized images) in parallel",
+        "Value cache": "local cache plus a remote/shared cache keyed by the same signature, byte-budgeted, so a CI build is a hit for a developer checkout"
+      },
+      "sketch": "params = { toolchain: \"ssg-1.4.2\", imgLib: \"vips-8.15\", minify: true }\n\nmd(slug)  = source(\"posts/\" ++ slug ++ \".md\")      -- Source: identity = content hash, not mtime\ntpl(name) = source(\"layouts/\" ++ name ++ \".html\")\n\npage(slug) → Node\n  fm   = intern(op: parseFrontMatter, args: {}, inputs: [md(slug)])\n  body = intern(op: renderMarkdown, args: {engine: \"md-3\"}, inputs: [fm])\n  hero = intern(op: resize, args: {w: 1600}, inputs: [source(\"img/\" ++ slug ++ \".png\")])\n  return intern(op: applyTemplate, args: {layout: \"post\"}, inputs: [body, hero, tpl(\"post\")])\n\nbuild(slug):\n  n = page(slug); k = signature(n, params)\n  if remote.has(k):  v = remote.get(k)          -- CI's page, reused locally, warnings replayed too\n  else: v = evaluate(n, params); remote.put(k, v)\n  write(\"dist/\" ++ slug ++ \".html\", v)",
+      "key_notes": [
+        "§3 key width + 'Persistent and shared caches' variation: a shared cache makes collisions and missed environmental inputs everyone's problem, so 256-bit signatures and an explicit toolchain/resizer version in params are not optional.",
+        "§10 early cutoff (via the verifying-keys variation): in an SSG the expensive failures are a layout or CSS tweak that changes no output byte — output hashes let the rebuild stop instead of re-rendering everything above.",
+        "§4 leave out what cannot affect the value: a page that does not include the site-wide nav partial must not be keyed on it, or every nav edit rebuilds 20,000 pages; the flip side is that a template dependency must be discovered exactly.",
+        "§1 canonical args: 'resize(w: 1600)' and 'resize(1600)' must hash alike, otherwise CI and local builds never hit each other.",
+        "Structure table (Source) is wrong for this case: mtime/size identity does not survive a fresh checkout, so reuse across machines requires content revisions.",
+        "§6 parallel inputs: image resizing is the dominant cost; evaluating a page's inputs concurrently is where the wall-clock win is."
+      ],
+      "risk": "Keys that omit the toolchain (template engine, image library, minifier) or that identify sources by mtime/size: the remote cache then serves pages from a different tool version, or never hits across machines, and the failure looks like 'stale HTML nobody can reproduce'."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "An unseeded random generator and a wall-clock stamp are exactly the hidden inputs the Applicability section forbids: their keys would lie. Identical keys would return the first run's samples, directly contradicting 'every run produces new samples', and each step depends on the previous sample anyway, so there is nothing shareable to key.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, 'Do not use' first bullet — side effects and hidden state (time, unseeded randomness) make the signature a lie; this alone rejects the proposal.",
+        "Forces, 'key precision against key cost' — a key that is too coarse returns wrong values; here the key would be coarse by design.",
+        "Only if the service is later made deterministic (seeded PRNG as an explicit Node arg, time passed in as an arg and removed from the value) do §2 (params in the key) and §3 (collision budget) become relevant — and then 'new samples each run' has to be renegotiated as 'new seed each run', which is a cache miss, not a cache hit.",
+        "§9 memory budget: caching whole sample sets would buy nothing and blow the byte budget."
+      ],
+      "risk": "Building it anyway, seeding the key from step index only, and shipping a service that silently replays the first run's numbers while stamping them with a fresh timestamp — every result looks new."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Implementation notes §7 vs Sketch (identity short-cut)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The two disagree. The sketch does `if n.op.identity(n.args): return ins[0]` before any cache.put, while §7 says the evaluator copies the value first (because writing metadata would mutate the input's cached result) and then sets the node's metadata. As sketched, the identity node stores nothing, so every later request re-enters evaluate, and the warnings stored with the input's entry are never replayed.",
+      "suggestion": "Show the short-cut as a real path: copy when the value is owned by an input, store the resulting entry under the node's own signature, replay the input's warnings — or state explicitly that identity nodes are deliberately left uncached and why that is safe."
+    },
+    {
+      "section": "Solution / Sketch (signature)",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The node hash already folds in the input hashes, yet `signature` recurses over the same inputs again. A reader cannot tell why the evaluation parameters are not simply part of the node identity, nor what the recursion adds.",
+      "suggestion": "One sentence: nodes are interned independently of evaluation parameters so one node can be evaluated at many scales, and Source leaves carry identity that changes under the same node, so the recursion re-derives the current one. Then say when the recursion can be memoised per run."
+    },
+    {
+      "section": "Missing: the operation's own implementation in the key",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Nothing in the key changes when you edit a blur's code. op.name and args are unchanged, so every cached value — and, worse, every remote-cache entry in the persistent variation — is silently stale after a code change. This is the classic content-addressed-build failure and the chapter never mentions it, even while citing Nix and Bazel, which exist largely to solve it.",
+      "suggestion": "Add an implementation note: include an op version (or a hash of the op's implementation and its dependency closure) in the node hash, and state the rule for bumping it; note that this is what toolchain inputs in Nix/Bazel derivations are."
+    },
+    {
+      "section": "Implementation notes §2",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "Quantising scale to 10⁻⁴ while computing at the unrounded scale (0.50004's value stored under 0.5's key) is precisely the 'key that is too coarse returns wrong values' case the Forces section warns about. The text presents quantisation as a pure hit-rate win.",
+      "suggestion": "State the invariant that makes it safe: the operation itself rounds scale to the same grid, so stored value and key agree. If it does not, quantise only for parameters that provably do not affect the bytes."
+    },
+    {
+      "section": "Implementation notes §5",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Running a function argument against a placeholder quietly requires the function to be build-time pure: it cannot branch on the data it will eventually see (a mask function that tests image width, or that raises on an empty mask, fails or silently builds the wrong subgraph). The restriction is never stated.",
+      "suggestion": "Document it as an obligation next to E_PLACEHOLDER, with the two shapes that break (data-dependent branches, calls needing real pixel values) and what the caller should pass as an explicit argument instead."
+    },
+    {
+      "section": "Structure table, Source row",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "'file location, size and modification time' works inside one session but neither survives a checkout or a CI round-trip, which makes the persistent/shared-cache variation unavailable on exactly the inputs it needs. The row is written for goja-cv and quietly narrows the pattern.",
+      "suggestion": "Make content revision the primary identity and mtime/size an optional cheap pre-check for local runs; say which identity each cache scope requires."
+    },
+    {
+      "section": "Implementation notes §9–§10 and Consequences ('+Parallelism comes for free')",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "Lab measurements crowd out the transferable rule: 10,560 vs 2,662 tiles, 0.093 ms per tile, 15–22 %, 33–52 %, in a chapter that already says 'measure the policy on your workloads'. Separately, 'parallelism comes for free' is contradicted by the byte budget — evaluating a node's inputs in parallel multiplies peak memory on the same budget and interacts with the single-flight group.",
+      "suggestion": "Keep one number per claim, keep one sentence of 'here is what to measure', and push the tables to the measured-redesign-loop chapter. Reword to 'parallelism across inputs falls out of the structure, at the cost of peak memory'."
+    },
+    {
+      "section": "Also known as",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "'constructive trace' names a rebuild strategy (Shake/Salsa-style dependency recording with early cutoff), not this whole pattern; listing it as a synonym will mislead readers who know the build-systems vocabulary. 'Memoization' likewise names only the caching half.",
+      "suggestion": "Drop 'constructive trace' from the synonym list (it belongs in the verifying-keys variation) and mark the remaining aliases as partial names for the caching half."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "Intent, forces and the failure modes of naive caching are sharp and the applicability section is honest, but the sketch contradicts note 7 and the key never covers the operation's own code version — the one omission most likely to burn a reader in production."
+  }
+}

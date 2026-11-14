@@ -1,0 +1,113 @@
+{
+  "quiz": {
+    "a": {
+      "Q1": [
+        [
+          "mem",
+          "state object",
+          "named object",
+          "object"
+        ],
+        [
+          "const",
+          "let",
+          "vanish",
+          "disappear",
+          "declar",
+          "survive"
+        ]
+      ],
+      "Q2": [
+        [
+          "helper",
+          "function",
+          "state",
+          "input",
+          "key"
+        ],
+        [
+          "doc",
+          "new",
+          "chang"
+        ]
+      ],
+      "Q3": [
+        [
+          "placeholder",
+          "named",
+          "warning",
+          "looks"
+        ]
+      ],
+      "Q4": [
+        [
+          "no one",
+          "nobody",
+          "not read",
+          "never seen",
+          "no output",
+          "unread",
+          "nothing reads"
+        ]
+      ]
+    },
+    "b": {
+      "Q1": [
+        [
+          "processor"
+        ],
+        [
+          "generic"
+        ]
+      ],
+      "Q2": [
+        [
+          "compact",
+          "scan",
+          "fewer",
+          "short",
+          "read",
+          "filter"
+        ]
+      ],
+      "Q3": [
+        [
+          "never",
+          "did not",
+          "didn't",
+          "no agent",
+          "unread",
+          "not call",
+          "none",
+          "ever called"
+        ],
+        [
+          "repl",
+          "result"
+        ]
+      ],
+      "Q4": [
+        [
+          "false",
+          "wrong",
+          "18",
+          "correct code"
+        ],
+        [
+          "ignore",
+          "precise"
+        ]
+      ]
+    }
+  },
+  "fits": {
+    "a": {
+      "T1": true,
+      "T2": false
+    },
+    "b": {
+      "T1": true,
+      "T2": false
+    }
+  }
+}

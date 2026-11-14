@@ -1,0 +1,155 @@
+{
+  "restatement": {
+    "intent": "Write each operation down once as a data record — arguments, units, limits, result shape, flags, docs, implementation — and make every consumer of the API read that record instead of keeping its own copy.",
+    "problem": "When several consumers each hold their own idea of what an operation accepts and returns, they drift apart and the caller gets plausible-but-wrong behaviour instead of a precise refusal.",
+    "solution": "One Operation record per (receiver kind, name), validated at registration, containing typed Argument specs (unit, default, hard limits, usual range, redirects), a cross-argument hook, result fields as a function of bound args, flags, docs and the implementation. A binder checks calls against it and attaches warnings, a describer renders help and agent context from it, a diagnoser builds refusals from it, and a walker test calls every record and compares result keys with the declared fields. Operations that cannot be records live in one visible exception list; any other list of operations elsewhere is a bug."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "It binds normally, and a warning (kind RANGE plus the spec's usualHint, e.g. 'downsample first') is appended to the bound call; the warning must travel with the call into the result the caller reads, not just a log. Hard limits refuse, usual ranges warn.",
+      "where": "Collaborations §2 and §4; Implementation note 2; bind() in the Sketch"
+    },
+    {
+      "id": "Q2",
+      "answer": "The registry-walking test (Walker / TestRegistryWalk): an operation without sample arguments fails it outright, and its key assertions (keys ⊆ declared, required ⊆ keys, i.e. exactly the declared fields with only optional ones missing — TestSchemaProperty for row-returning ops) catch result keys that differ from the declared fields.",
+      "where": "Implementation notes 5 and 6; Walker participant in Structure; the walker block in the Sketch"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because a redirect added to one table (methods, help, looks) is invisible to the other two, so the same near-miss is repaired on one path and refused on another; and it violates the rule that no list of operations lives outside the registry.",
+      "where": "Implementation note 4 (echoed by the Solution's 'any other list of operations found outside the registry is a bug')"
+    },
+    {
+      "id": "Q4",
+      "answer": "Any two of: the Binder (checks calls, emits warnings), the Describer (context line and help), the Diagnoser (refusals with valid names/nearest/redirect), the Walker test; in the Editor lab, the UI's sliders and the agent's kinds() answer.",
+      "where": "Structure (participant table) and Collaborations §2–§6"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Forty actions, three consumers with genuinely different renderings (LLM tool text, UI controls, server validation) and third-party plug-ins adding actions at run time — exactly the chapter's Applicability conditions, including 'added by users at run time'. The only addition is that the records carry side effects, which the chapter anticipates with the confirm flag.",
+      "participants": {
+        "Operation record": "One per device class and action: e.g. (Thermostat, set_temperature), (Lock, lock_door). Fields as in the chapter: args, validate hook, result fields (state after the action), flags, doc, run = dispatch into the plug-in driver.",
+        "Argument spec": "target temperature (type number, unit °C, min 5, max 30, usual [16,24], default from the device profile), brightness (0–100 %, unit %, default 100), sceneName (enumeration with valueDocs from the plug-in).",
+        "Flags": "class (safety: lock_door; comfort: dim_lights), confirm (asked by the hub, not taken from the plug-in's record), internal (plug-in maintenance actions not callable by the assistant), a 'needs the whole device' flag analogous to global, and an identity predicate for run_scene on the scene already active.",
+        "Registry": "Validated at plug-in load: rejects duplicate (device class, action), defaults outside limits, redirects to missing actions, untyped args. One bad record should reject that plug-in's module, not the hub.",
+        "Binder": "Single entry point for both the voice assistant and the mobile app; unknown keys and wrong types are refusals, never coerced.",
+        "Describer": "Two renderings: a short tool description for the LLM (name + args + first doc sentence) and per-argument control metadata for the app (min/max/unit/default become slider bounds).",
+        "Diagnoser": "Refusals naming valid actions for that device class, nearest name ('set_temp' → set_temperature) and record-held redirects ('{on:true}' → brightness).",
+        "Walker": "Test that walks the registry and calls every action against a simulated device with per-action sample arguments; any action without samples fails the walk."
+      },
+      "sketch": "-- records from built-in and third-party plug-ins\nregistry.register(OpRecord(name: \"set_temperature\", on: Thermostat, returns: DeviceState,\n    args: [ArgSpec(name: \"target\", type: number, unit: degC, default: 20,\n                   min: 5, max: 30, usual: [16, 24], usualHint: \"comfortable band\")],\n    validate: a → a.target > 5 or refuse(E_ARG_RANGE, …),\n    fields: a → [FieldSpec(target), FieldSpec(current), FieldSpec(mode)],\n    flags: {class: comfort, confirm: false}, doc: \"Set target room temperature\", run: driver))\n\nregistry.register(OpRecord(name: \"lock_door\", on: Lock, returns: DeviceState,\n    args: [], flags: {class: safety, confirm: true},       -- hub reads confirm, not the plug-in\n    doc: \"Lock the front door\", run: lockDriver))\n\n-- every consumer reads the same records\nassistant.tools      = registry.all().map(contextLine)              -- small, on-demand detail\napp.controls(action) = bind-help from rec.args → slider(min, max, unit, default)\ncommand(from voice|app) → bind(on, name, raw) → BoundCall|Failure → explain(failure, registry)\nwalker: for rec in registry.all(): run(bind(rec.on, rec.name, samples[rec])) on a simulator",
+      "key_notes": [
+        "Note 1 (validate the record at registration) matters most: the records here are written by third-party plug-ins, so semantic checks — default within limits, redirect targets exist, unique (class, name) — are the main defence, not niceties.",
+        "Note 3 (nothing falls back to a default silently) plus the Flags row: a wrong-typed command from an LLM or a plug-in typo must refuse, and confirm/class must be read by the hub rather than trusted from the plug-in's own record.",
+        "Note 9 (two renderings): the LLM tool description and the app's per-argument controls want different projections of the same specs; one 30k-character reference cannot serve both, so short form plus on-demand help.",
+        "Note 8 (one record per receiver kind and name): 'set_temperature' on a thermostat and on a heated floor are different records; do not overload one name by argument type across device classes.",
+        "Note 7 (pluggable argument types) and note 10 (exceptions list) come next: device-specific value types (HVAC mode, colour temperature) must not bloat the core binder, and hub-level operations like 'discover devices' belong in the visible exception list."
+      ],
+      "risk": "Trusting the plug-in: records arrive from third-party code, so a plug-in can declare confirm: false on lock_door, a wrong unit, or no hard limits and the registry will happily enforce it — and the walker will exercise that record against real hardware. Records must be validated and safety flags overridden centrally, and the walker run against a simulator."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter's own Applicability excludes it: when the platform already gives you the records (a typed RPC schema that generates clients, docs and validation), use that schema as the registry instead of building a parallel one. Protobuf files plus constraint annotations already are the single source; a Go registry would be a second type system that drifts from the wire schema, which is precisely the problem the pattern exists to remove.",
+      "participants": {
+        "Operation record": "Already the method descriptors in the protobuf service definition, not a new Go struct.",
+        "Argument spec": "Field descriptors plus the existing constraint annotations; usual-range hints and near-miss redirects are the only things genuinely missing, and they belong as annotations or as a thin side-car keyed by fully-qualified method name.",
+        "Registry": "Protobuf reflection over the compiled FileDescriptorSet at run time, exposed as the one catalogue.",
+        "Binder": "Generated validation (or an interceptor reading descriptors), unchanged.",
+        "Describer": "Help text generated from descriptors plus leading comments — not hand-maintained Go tables.",
+        "Diagnoser": "Interceptor mapping validation failures to refusals using the same descriptors.",
+        "Walker": "Descriptor-driven test that invokes every method with sample messages."
+      },
+      "sketch": "",
+      "key_notes": [
+        "Applicability, third 'do not use' bullet, decides the case outright.",
+        "Consequences ('the binder becomes a small type system') is the argument to make to the new engineer: the Go registry buys nothing the descriptors do not already give, and costs a second source of truth.",
+        "Note 1 would still apply if they build it: an unvalidated second table is worse than none, but the correct fix is to add semantic checks to the existing annotation pipeline, not beside it.",
+        "If the real gap is usual ranges and redirects (notes 2 and 4), add those to the protobuf annotations or one side-car keyed by method name — one source, still."
+      ],
+      "risk": "Building the parallel Go registry 'temporarily' for nicer help text, then having validation disagree with the wire schema — the drift the chapter's Motivation opens with."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Implementation note 1 vs Structure/Sketch",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The note says Register refuses a record with 'both or neither of an implementation and an expansion', but 'expansion' appears nowhere else — the Structure table and the sketch have only `run`, and composite operations (note 11) are described as graphs without saying how they are represented.",
+      "suggestion": "Define 'expansion' in the Structure table next to `run` (a record may carry an implementation or a graph of other records), or delete the phrase; the mutually-exclusive-pair rule is otherwise unmotivated."
+    },
+    {
+      "section": "Sketch (bind) — positional and named arguments",
+      "kind": "missing",
+      "severity": "high",
+      "note": "`take(raw, spec)` hides the whole argument-matching rule. Nothing says whether positional and named forms may mix, or what happens when the same argument is supplied both positionally and by name — the most common silent-override bug in exactly this kind of binder.",
+      "suggestion": "Add a short paragraph or sketch lines: positional first then named, and an explicit Failure(ARG_DUPLICATE) when both supply the same spec."
+    },
+    {
+      "section": "Sketch (walker) and Implementation note 6",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Sample arguments are 'kept per operation' — a list of per-operation data outside the records, which is the very thing the Solution calls a bug. Also, the walker's key assertions assume every result is a record; goja-cv also has operations returning images or scalars (note 5 quietly restricts TestSchemaProperty to row-returning ops).",
+      "suggestion": "Put `samples` in the OpRecord (registration can then require it for callable records) and state in the walker what it asserts for results with no fields."
+    },
+    {
+      "section": "Sketch (help)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`fields` is a function of the bound arguments, yet `help(name)` is called with no arguments and is expected to render `fields(defaults)`. It is unspecified what help shows when a required argument has no default, or when options change the result columns.",
+      "suggestion": "Give help an optional argument form — help(name, sampleArgs?) — and say what is rendered when fields cannot be resolved; or restrict documented fields to the option-independent ones and mark the rest as dependent."
+    },
+    {
+      "section": "Flags participant ('confirm')",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The one flag with safety consequences is disposed of in a parenthesis: 'A system with side effects would add confirm (ask before running), read by the session, not trusted from a plug-in's own record.' Nothing says what the session does with it (refuse? ask? which refusal kind? what happens in a non-interactive scripted session?).",
+      "suggestion": "Move this into Collaboration or an implementation note: who asks, how the ask appears in a scripted eval session, and how a plug-in's declared confirm is overridden centrally. It is the chapter's most reusable extension point for non-image domains."
+    },
+    {
+      "section": "Implementation notes / Solution rule",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The Solution states 'any other list of operations found outside the registry is a bug', but notes 4 and 10 then admit three redirect tables, a hand-bound cv.open and a hand-written Globals section — with no statement of how the rule is enforced or how a reader tells sanctioned exceptions from debt.",
+      "suggestion": "Say the exception list is the only sanctioned place and how it is checked (e.g. a test that asserts every method name reachable in the reference appears in the registry or the exception list)."
+    },
+    {
+      "section": "Structure / Collaborations — registration of third-party records",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Reusability hinges on run-time registration (the Applicability explicitly includes 'users at run time'), yet there is no semantics for failure granularity, re-registration, or a record changing shape while bound calls exist: is one malformed record a refused module, an aborted start-up, or a disabled operation?",
+      "suggestion": "Add one implementation note on registration failure granularity and on what happens to an already-registered (kind, name), plus a sentence on versioning a record whose signature changes."
+    },
+    {
+      "section": "Sketch (explain) and diagnoser",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The match has no arm for failures raised by the cross-argument hook or ARG_TYPE, and `closest(...)` is left undefined. Nothing says what happens when a record's redirect and the nearest-name suggestion disagree, which is a plausible and confusing refusal.",
+      "suggestion": "Show the fallthrough arm for hook failures (which argument the hook blames), state the precedence rule (redirect beats nearest name, or both shown), and say the metric is deliberately conservative."
+    },
+    {
+      "section": "Applicability",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "'Only a handful of operations and one consumer' gives no way to judge the boundary, and it sits awkwardly beside the Motivation's 60-operation example and the Editor lab — a reader deciding for, say, twelve operations has no rule.",
+      "suggestion": "Replace the count with the real criterion: build it when a second consumer exists or is visibly coming, not when a number is crossed."
+    },
+    {
+      "section": "Implementation notes 7 and 9 (numbers)",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "'1,331 lines', '30,916-character reference', 'under 4,000 characters' are unverifiable to the reader and carry no transferable lesson; note 9's real point (render short form by default, full form on demand) is buried behind the figures.",
+      "suggestion": "Lead with the rule and keep at most one figure as illustration, phrased as a ratio (reference length vs. context budget) rather than raw counts."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The participants, forces and the deliberate 'do not use' case make the shape easy to carry to other domains, but the sketch hides argument matching, registration failure semantics and the confirm flag — the three things a second implementation is most likely to get wrong."
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "restatement": {
+    "intent": "Put the reading of a number — which unit its lengths are in, which frame its positions belong to, which scale its samples are on — into tags on the value container, so that the way it must be interpreted travels with it.",
+    "problem": "When a number's unit, frame or scale exists only in the author's head, a value read on the wrong scale yields a plausible result instead of an error.",
+    "solution": "Tag every value container on three independent axes (space, frame, unit) and give every operation a rule: the space it works in, whether its inputs must share a frame, and the space of its result. Declare the directed conversions with cost and losslessness in one catalogue; the builder — not the kernels — inserts lossless conversions as ordinary cached nodes, converts numeric arguments to the evaluation scale at run time, and refuses anything it cannot satisfy losslessly."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "The builder (graph builder) inserts them, as ordinary cached, hash-consed conversion nodes; kernels declare and assume their input space and contain no conversion code. In the contrasting Editor lab, each physical kernel converts in its own loop and every new kernel must remember to.",
+      "where": "Implementation notes 1 ('Kernels never convert'); also Solution, Collaborations step 4, and the build/convertTo sketch"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because an area scales with the square of the evaluation scale. If an area were expressed as a plain length it would be off by the square factor — a minimum area given in document pixels squared would be a hundred times too strict at one-tenth scale — so it needs its own declared unit (DocPx2) that the scale binder multiplies by scale².",
+      "where": "Implementation note 5 ('Areas scale with the square'); Argument unit row in Structure; bindArg in the sketch"
+    },
+    {
+      "id": "Q3",
+      "answer": "It refuses with E_FRAME, reporting both frames and a fix that crops them to a common box; if the frames are disjoint there is no common box and the fix is to open the region of the scan covering both. It does not resample or pad because resampling shifts masks against images by fractions of a pixel, which matters for specks three pixels wide.",
+      "where": "Collaborations step 3; Implementation note 6 ('Share one coordinate system and refuse mismatched extents')"
+    },
+    {
+      "id": "Q4",
+      "answer": "The stored radius was the radius of a fitted circle, about twice the speck's own radius, and nothing in the dataset said so; measuring with it as the speck radius gave a median signal-to-noise ratio of 0.86 instead of 1.56 until someone compared the numbers against the pictures. Lesson: tag the data you did not produce — a field's unit and definition belong in its schema, and every re-encoding on the way to a dataset is a recorded conversion.",
+      "where": "Implementation note 9 ('Tag the data you did not produce'); also Motivation and the 'Tags as schema metadata' variation"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Every one of the three axes is live and independent: degrees vs national-grid metres (frame/reprojection), pixel intrinsics vs ground metres (unit), raw DN vs reflectance (space), and queries comparing hectares against an area field. Mistakes here are exactly plausible-but-wrong (a field reported as 0.3 ha because someone read degrees as metres), not crashes.",
+      "participants": {
+        "Tagged value": "Each orthomosaic tile / raster band: space = dn or reflectance; frame = its rectangle in national-grid metres plus the EPSG code; unit = metres for lengths, m² for areas; sample GSD is derivable from altitude and intrinsics.",
+        "Conversion catalogue": "EPSG 4326↔national grid (reprojection, expensive, resamples — so lossy), pixel↔ground metre via altitude × focal/pixel pitch, DN↔reflectance via the sensor's calibration from the file's tags.",
+        "Operation rule": "Seam-line stitching and orthorectification work in the grid (physical); display/burn-in works in encoded; area measurement follows its receiver and must be in grid metres so the result is m².",
+        "Argument unit": "m (min field width, buffer radius), m² (minArea), fraction of the tile extent, and a level read on the work space's scale for a reflectance threshold.",
+        "Builder": "Inserts reprojection and calibration nodes when tiles are combined, refuses E_FRAME for tiles whose grid rectangles are not identical (a stitch is a combining op), refuses E_SPACE when a tile has no calibration entry, warns on mixed encodings in an overlay.",
+        "Scale binder": "Converts 20000 m² to the pixel area of the pyramid level being evaluated (× scale²), and metres to pixels, so '2 ha' means the same at every overview level."
+      },
+      "sketch": "value Tags:   space: dn | reflectance, frame: Rect in grid metres, epsg: EPSG, unit: Unit\nimg   = open(\"DSC_0412.tif\")          -- epsg 4326 frame in degrees, GSD from altitude+intrinsics\nband  = img.as(\"EPSG:27700\")           -- catalogue: 4326→27700, params from value tags, lossy(resample)\nmosaic = band.stitch(tiles, minOverlap: 0.3)   -- argument unit: fraction of tile extent\nrefl  = mosaic.as(\"reflectance\")       -- calibration node, curve from file tags\nfields = refl.segment(minArea: 20000)  -- Argument unit m²; bound as value × scale²\nbig    = fields.select(area > 2 ‹ha›)  -- ha → 20000 m² in the query's declared unit\n                                       -- reported outline positions in grid metres",
+      "key_notes": [
+        "3 — Keep the three axes separate: EPSG is frame, pixel/sample size is unit, DN/reflectance is space. Collapsing them into one 'geo type' tag makes the refusal message useless.",
+        "5 — Areas scale with the square; a hectare query evaluated on a 1:4 overview without DocPx2-style binding is off by 16×, silently.",
+        "6 — Share one coordinate system and refuse mismatched extents; the chapter explicitly names map projections as a domain that adds reprojection to the catalogue. Refusing non-identical grid rectangles instead of resampling also protects field boundaries from being shifted by a fraction of a pixel.",
+        "7 — Conversion parameters come from the value: the EPSG code, the flight altitude, the sensor curve. A build-time constant GSD is wrong for every tile but one.",
+        "8 — Builder inserts only lossless steps. Reprojection and orthorectification resample, so they are lossy in the chapter's sense and must be explicit `as()`, not auto-inserted."
+      ],
+      "risk": "Marking reprojection 'lossless' because it is 'just a coordinate change' and letting the builder insert it freely — then two tiles get silently resampled onto slightly different grids and the stitch produces sub-pixel misregistration that no refusal ever reports. Second most likely: dropping the m² unit on the stored field-area column, so a query's '2' means 2 m²."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Every field has exactly one representation, nothing is converted, and none of them is a quantity — which is the chapter's first explicit 'do not use' case: tags would be pure ceremony. The real risks here (bad email format, unparseable birth date, oversized bio) are validation and schema problems, not scale-of-reading problems, and tagging a bio with a 'frame' or a 'space' is meaningless.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability ('every value has one representation and always will; tags would be ceremony') is the governing note here — none of the implementation notes apply, because there is no conversion catalogue, no work space and no evaluation scale to bind.",
+        "Note 9 is the only adjacent idea worth borrowing, and only in its schema form: a birth date should carry 'date of birth, calendar and timezone', and a bio its length/encoding — as column metadata, not as run-time tagged values."
+      ],
+      "risk": "Adopting the vocabulary ('space', 'frame', 'unit' on every profile row) and thereby building an enforcement layer that checks nothing: the tags become documentation that drifts, and readers stop trusting refusals because there are none. If the developer's underlying worry is 'we might later add a country column with multiple address formats', answer that with a schema migration, not a tagging framework."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution / Structure (Conversion catalogue) / sketch",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The three states of `Space` are effectively `physical → linear` and `display → encoded` plus `none`, but real files carry their own transfer curves (the Motivation's whole point is a file-specific curve). If two inputs are sRGB and AdobeRGB, both have space 'encoded', so `convertTo` sees identity, inserts nothing, and the only protection left is the `ENCODING` warning. The chapter therefore cannot refuse the exact mismatch it opens with.",
+      "suggestion": "Make the space tag a named space (e.g. `linear`, `sRGB`, `file:<curve>`), keep `physical`/`display` as classes of space with a chosen default, and let the catalogue connect named spaces. State that mixing distinct encoded spaces is a catalogue conversion, not a warning-only case."
+    },
+    {
+      "section": "Sketch (convertTo) vs Structure (Tagged value)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "`c.lossless(x.precision)` reads a `precision` field that no declared tag supplies — `Tags` is defined as `space, frame, unit` only, and `Image` has `data, tags`. A reader implementing this hits an undefined field and invents one with unspecified semantics (bit depth? float width? per-value?).",
+      "suggestion": "Add precision to `Tags` (or make it a field of `Image.data`), say who sets it (open, each op, each conversion node) and how `lossless(precision)` is defined for the float and 8/16-bit cases."
+    },
+    {
+      "section": "Collaborations step 3 and sketch (E_FRAME)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The prose says disjoint frames have no common box and need a different fix ('open the region covering both'), but the sketch's refusal always emits the crop fix string regardless of the frames. The generated fix is therefore wrong exactly in the case the text distinguishes.",
+      "suggestion": "Compute the fix from the frames: `if intersect(a,b) is none → fix: open(union(a,b)) else fix: crop both to intersect(a,b)`, and show that branch."
+    },
+    {
+      "section": "Structure (Tagged value table)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "One table cell carries all three axes plus the `none` exception plus the goja-cv-specific default ('document pixels for goja-cv's regions'). It is the key participant and the hardest thing in the chapter to read; a reader cannot tell which part is the pattern and which is the example.",
+      "suggestion": "Split into three short bullets (space / frame / unit), each one sentence plus a wrong-reading example; move the goja-cv default into the chapter's running example, not the participant definition."
+    },
+    {
+      "section": "Motivation, Collaborations, Implementation notes 1/4/6/9",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Film scanning, 16-bit TIFF, specks three pixels wide, the nine prototypes, the dust project's gold labels, the Editor lab — the running example supplies most of the chapter's load-bearing sentences, so a finance or robotics reader has to translate before they can apply anything. Some of it (the SNR 0.86 vs 1.56 anecdote) does real work; much of the rest is local colour.",
+      "suggestion": "Keep one concrete failure story (note 9's) and one encoding story; compress the rest to a clause. In Collaborations, phrase each step in domain-neutral terms with the goja-cv instance in parentheses."
+    },
+    {
+      "section": "Implementation note 8 and Consequences",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Both mention that a chain that bounces between spaces costs a round trip per operation 'unless adjacent conversions are merged', but nothing says how merging works, whose job it is, or whether it is implemented. The catalogue also promises 'the cheapest path of lossless steps' with no statement about cycles, cost units, or what happens when the only path is lossy but shorter.",
+      "suggestion": "Add one sentence on the path search (cost units, no repeated spaces, refuse when no lossless path exists) and either drop the merge remark or describe the adjacency rule for merging in the builder."
+    },
+    {
+      "section": "Collaborations step 5 / sketch (bindArg)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Arguments are bound to numbers at evaluation time, but nodes are created at build time and cached by key. The chapter says the evaluation scale is 'part of every cache key' for buffers, yet never says the bound argument value (or the argument's unit and the scale) enters the node's key — so a node built at full scale can be reused at preview scale with the wrong radius.",
+      "suggestion": "State explicitly that an op node's key includes each argument's unit and the scale/extent it binds against, and show `key = hash(op, inputs, [ (a.unit, bindArg(a, scale)) ])`."
+    },
+    {
+      "section": "Applicability ('do not use it when')",
+      "kind": "other",
+      "severity": "low",
+      "note": "The second exclusion is not an exclusion: 'tag per element in a loop' is refuted by the Solution itself ('tag the container'), so listing it as a reason not to use the pattern contradicts the pattern's own prescription.",
+      "suggestion": "Turn it into a caution inside the Solution or Structure ('tag containers, never elements'), and keep only genuinely disqualifying cases in the 'do not use' list."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The three-axis split, the catalogue and the builder-vs-kernel division are the right shape and transfer cleanly to geo and finance work; clarity is held back by the overloaded Structure table and the sketch's undefined precision field, and reusability by the encoding collapse that makes the chapter's own headline failure warn-only."
+  }
+}

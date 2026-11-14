@@ -1,0 +1,146 @@
+{
+  "restatement": {
+    "intent": "Let an engine answer a request for a small window of a large result by computing only that window plus whatever margin each operation actually reads, and get exactly the value a whole-input computation would have produced there.",
+    "problem": "When every operation runs over the whole input, a small request costs as much as the whole input, and the only safe way to compute less is to know precisely what each operation reads.",
+    "solution": "Give every operation a declared footprint: for an output window, the window it needs from each input (itself, itself grown by the reach, itself mapped back through a resampling, or whole for a global operation). An evaluation carries a window; each node asks its inputs for their clipped footprints, runs on what it receives, and returns only the requested window, so the margin may be inexact but is thrown away. Global operations stop the request and evaluate whole; split operations with global parameters into a statistic node plus a local application. Prove it with one invariance test: windowed result equals the same window cut from a whole result."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Every output position inside the requested window read only inputs that were themselves grown by the declared reach, so all the pixels it depends on were actually computed; the inexact positions lie only in the outward margin, which is discarded. This holds only if the declared reach is correct and border rules fire at the real border, not the buffer's edge.",
+      "where": "Collaborations step 5, plus Implementation notes 1 and 2"
+    },
+    {
+      "id": "Q2",
+      "answer": "It stops: the node's footprint is whole, so the evaluator evaluates that node whole (its whole input), then cuts the requested window from the result. The 'Global barrier' is where window propagation dies; splitting the operation into a global statistic plus a local application is what lets windows pass again.",
+      "where": "Solution; Structure (Global barrier); Collaborations step 3"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because today the second window of the same view is free — the whole view is cached. A window design that always recomputed from inputs would make that common case slower, and the whole cached value answers any window, while a window-keyed entry answers only overlapping ones.",
+      "where": "Collaborations step 2 and Implementation note 6"
+    },
+    {
+      "id": "Q4",
+      "answer": "If the grid follows each node's own extent, two crops of the same scan at different offsets land on different grids and never share a tile; a grid in the source's coordinates makes their tiles coincide, so overlapping requests reuse work.",
+      "where": "Implementation note 9"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "This is the pattern's home ground: tiled window requests from a source far larger than memory, with bounded-neighbourhood operations (smoothing, hillshade stencil, marching-squares contours) and a few genuinely global parameters (elevation percentiles for the tint, label collision) that must be split out.",
+      "participants": {
+        "Window": "a slippy-map tile (z, x, y), converted once to a rectangle in the raster/projection coordinate system at that zoom",
+        "Footprint": "per layer: smoothing grows by 3σ in output pixels at the tile's zoom; hillshade and contour grow by 1–2 cells; hypsometric tint is a point operation; a NODATA-aware or global elevation-range statistic is whole",
+        "Region evaluator": "the tile renderer, pulling each layer's tile plus apron from the layer below, top-down from the client's request",
+        "Global barrier": "the elevation percentile/min-max pass over the 50 GB raster, and the label-collision pass (labels depend on neighbours beyond any bounded apron)",
+        "Statistic node": "the global elevation range / percentile used by the hypsometric ramp, computed once and cached, then applied locally",
+        "Tile grid": "the z/x/y grid in projection coordinates (not per-layer extents), shared by every layer and nested across zooms",
+        "Invariance test": "render a region whole at a given zoom and assert every tile equals its crop; run at several zooms, including fractional/odd scales"
+      },
+      "sketch": "value Window: x, y, w, h  -- tile (z,x,y) mapped to raster coords\n\nfootprint(smooth(σ), w, s)   = grow(w, 3*σ in output px at zoom level s)\nfootprint(hillshade, w, s)   = grow(w, 1)          -- 3x3 derivative stencil\nfootprint(contour(iv), w, s) = grow(w, 1)          -- marching squares; cut = clip geometry\nfootprint(hypsoTint, w, s)   = w                   -- point op, ramp args are stats\nfootprint(elevRange, w, s)   = whole               -- global: needs the 50 GB raster\n\nrender(layer, tile) -> Value\n  if cache.has(key(layer, tile)): return cache.get(key(layer, tile))\n  fps = [footprint(layer.op, tile, s) for i in inputs(layer)]\n  if any whole -> range = evaluateWhole(statNode); cut it from the cached whole value\n  fps = [clip(fp, raster.extent) for fp in fps]\n  ins = parallel([render(i, fp) for (i, fp) in zip(inputs(layer), fps)])\n  v   = layer.op.run(ins)          -- each buffer knows its raster origin\n  return cache.put(key(layer, tile), cut(v, tile))   -- for contour: clip features to tile, keep crossing ones",
+      "key_notes": [
+        "Note 9 (align tiles to the source) matters most: the z/x/y grid must live in projection coordinates and be shared by the smoothing, hillshade and contour layers, or adjacent tiles at one zoom never share work and seams appear where layers were gridded differently.",
+        "Note 4 (units and scale): σ is given in metres/arc-seconds, the reach must be buffer pixels at the requested zoom — one conversion point, or the footprint is right at z12 and short at z8.",
+        "Note 2 (border rules at the real border only): the raster's edge and NODATA holes are the real borders; edge-clamping at a tile edge fabricates gradients and shows as seams.",
+        "Note 3 (reaches add): smoothing → hillshade → contour accumulates, so the apron for the contour layer is the sum, not the maximum.",
+        "Note 5 (hidden globals): the hypsometric ramp and especially label collision are unmarked globals; a per-tile collision pass gives different labels in neighbouring tiles.",
+        "Note 1 (only a test proves exactness): the invariance test at several zooms and on edge tiles is the only thing that catches an off-by-one apron."
+      ],
+      "risk": "Seams: an under-declared reach after zoom conversion, or a contour layer that clips geometry to the tile without carrying an apron, yields one-pixel mismatches and truncated lines at tile edges that no visual spot-check notices. Secondary risk: label collision silently degraded to per-tile resolution."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Connected-component labelling is the chapter's own example of a global operation, and here the query itself has no bounded reach: the blob touching the tile may extend arbitrarily far, its id comes from a global ordering, and its total area is a whole-image property. No finite apron lets a tile compute the answer, so windows stop at the first operation and the pattern degenerates to whole-image evaluation.",
+      "participants": {
+        "Footprint": "declared whole for the labelling node — that declaration is the honest verdict that no window passes",
+        "Global barrier": "the labelling pass itself: one run over the whole image, cached",
+        "Statistic node": "the per-blob id → total-area table (and the id assignment) produced by that global pass",
+        "Window": "the requested tile",
+        "Region evaluator": "only after the global pass: reduce over the label rasters inside the tile and look up areas — no widening needed, because the tables are already whole",
+        "Invariance test": "tile answer must equal the same tile cut from a whole-image labelling"
+      },
+      "sketch": "",
+      "key_notes": [
+        "The chapter's Applicability 'do not use' list applies verbatim (connected components over everything); Implementation note 5 (find the hidden globals) is the operative one — this operation is global and cannot be split into a global statistic plus a local application, because the local half needs the global id assignment.",
+        "Note 6 (keep the best case) is the salvage: run the labelling once whole, cache it, then serve tiles as lookups, so repeat tiles cost nothing and ids are stable across requests.",
+        "Note 10 inverts: a blob is not a neighbourhood, so 'evaluate each neighbourhood as its own window' gives no saving here — the blob's extent is the whole scan."
+      ],
+      "risk": "Labelling per tile so the same blob gets different ids and partial areas in different tiles; the largest blob touching a tile is then missed whenever most of it lies outside, and results are not comparable across tiles or runs."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (evaluate)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The pattern claims exactness, but `footprint(gaussian(σ))` uses 3σ, i.e. a kernel truncated at 3σ. If the implementation uses a wider kernel (or an exact/FFT gaussian), the outermost ring will differ and the invariance test fails; the chapter never says the footprint must equal the kernel's actual support.",
+      "suggestion": "State the rule explicitly: the declared reach must be the kernel's declared support, and a 3σ gaussian means a kernel truncated at 3σ (say so in Chapter 1's operation record, and make the invariance test the check)."
+    },
+    {
+      "section": "Sketch (evaluate) and Implementation note 6",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "Window-keyed caching is under-specified: is the inexact margin stored? `cache.put(key(n, scale, window), cut(v, window))` suggests only the exact part, but Collaborations step 6 says 'the windowed value is cached under the node's key plus the window'. There is also no rule for partial reuse (answer this window from a cached larger window), and 'same byte budget as whole values' means overlapping window entries evict each other and the hit rate collapses.",
+      "suggestion": "Say plainly that only the exact window is stored, that lookup is containment-based or tile-quantised (not exact equality), and give an eviction policy for many small window entries."
+    },
+    {
+      "section": "Sketch (evaluate)",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "`0.6 × sum(area(inputs))` is a magic constant presented as a rule. The comparison also ignores per-pixel operation cost and double-counts inputs shared by several consumers, so it is a rough proxy dressed as a criterion.",
+      "suggestion": "Name it as a measured, tunable crossover (pointing at Chapter 13), state what it is a proxy for (cost of windows ≈ cost of whole), and note when it is misleading (cheap op, huge inputs; expensive op, small inputs)."
+    },
+    {
+      "section": "Structure / Consequences",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The whole model assumes a node's value is a 2-D buffer with an origin, so `cut` is a rectangle cut. Nodes that return features, geometry or sets (contour lines, labels, blobs, item measurements) have no such cut: a line crossing the window must be clipped and still reported, a feature whose extent is unknown cannot be 'cut'. The chapter's own Motivation (label collision in a map server) needs this.",
+      "suggestion": "Add a short subsection: for non-buffer values the footprint is stated in output coordinates and the cut is a clip (plus an 'enters/leaves' flag for open geometry); if an operation's output extent depends on its input content, it is a global barrier."
+    },
+    {
+      "section": "Sketch (footprint declarations)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`grow(w, ceil(ceil(3σ·scale)/scale))` is opaque: two nested ceilings, and it is not visible whether the unit of the inner value is buffer or document pixels. Note 4 asks for one conversion point but the code performs the conversion inline and rounds twice.",
+      "suggestion": "Show the conversion once (document px → buffer px, round outward, buffer px → document px) as a named helper, and use `grow(w, reachDoc(op, scale))` in every footprint."
+    },
+    {
+      "section": "Implementation note 1 / Sketch (invariance test)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The test is both too narrow and unbounded: chains are only depth 2 ('op after a blur, a blur after op') although note 3 says reaches add, and nested resamples (footprints composed through inverse maps) — the likeliest failure — are untested. `close(...)` has no stated tolerance, and 'every operation × several chains × 3 scales × 7 windows' is not a budget anyone will run on every change.",
+      "suggestion": "Specify exact equality for integer paths and a numeric tolerance for float; include one chain of length ≥3 with two resamples; and split a cheap always-on subset (1×1 and whole-extent windows, scale 1) from the full sweep."
+    },
+    {
+      "section": "Collaborations step 3 / Statistic node",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Splitting out a statistic node moves the whole-image cost, it does not remove it: the first 64-pixel probe on a 24-megapixel scan still pays the whole percentile. For the agent use case the chapter opens with, that is the dominant cost, and the chapter does not say who absorbs it.",
+      "suggestion": "State the amortisation rule: global statistics are computed once per content key, cached (optionally persisted across runs), never per request; and note that a request whose only path crosses an uncached statistic node costs the whole input."
+    },
+    {
+      "section": "Header rating and Variations",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The header asserts 'any system with this problem converges on this shape', which is an unsupported claim and undercuts the language's premise that patterns are choices. Separately, 'Region of interest only at the source' is listed as a Variation although the Motivation already rejects exactly that fix (hand-chosen margin, wrong at edges, global statistics change) — the same idea appears once as a bug and once as an option.",
+      "suggestion": "Either argue the convergence (exactness plus bounded reads forces declared footprints) or downgrade it to a hint. Move the ROI-only variant out of Variations into a 'known wrong attempts' note."
+    },
+    {
+      "section": "Implementation notes 7–9, Known uses",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The core pattern is windows; notes 7–9 are all about the optional tile grid, and note 7 itself says 'windows first, tiles second'. Eleven notes plus five known uses plus four other domains is longer than a reader needs to apply the pattern, and the tile material is separated from the tiled variation where it belongs.",
+      "suggestion": "Fold notes 8 and 9 into the 'Tiled demand-driven evaluation' variation and keep three or four notes for the core: exactness test, border rules, reaches add, units/scale, hidden globals."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The Solution, Structure and Collaborations make the shape easy to grasp and apply, but the sketch hides correctness-critical details (3σ truncation, the 0.6 constant, double rounding) and the buffer-only value model excludes the feature-valued nodes the chapter's own examples need."
+  }
+}

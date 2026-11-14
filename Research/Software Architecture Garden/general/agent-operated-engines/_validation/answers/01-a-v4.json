@@ -1,0 +1,149 @@
+{
+  "restatement": {
+    "intent": "Give every operation exactly one data record describing its name, receiver, arguments (type, unit, default, limits, docs), cross-argument rules, result shape, flags and implementation, and make every consumer read that record instead of keeping its own copy.",
+    "problem": "When several consumers (checker, help, error messages, agent context, tests) each hold their own idea of what an operation accepts and returns, they drift, and callers — especially agents — get plausible-looking wrong behaviour instead of a precise refusal.",
+    "solution": "Register one validated OpRecord per (receiver kind, name) into a registry. A binder looks up the record, matches arguments, fills defaults, checks types and limits in the declared unit, runs the cross-argument hook, and returns bound arguments plus warnings or a structured Failure. The diagnoser turns a Failure into a refusal built from the same record (valid names, nearest name, redirect, fix), the describer renders short and long help from it, and a walker test calls every record with its own sample arguments and checks the declared result fields."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "It binds successfully and carries a RANGE warning with the record's usualHint. Only a value outside the hard min/max is a refusal, and defaults never warn — only values the caller actually supplied.",
+      "where": "Implementation notes §2; 'binding a call' sketch"
+    },
+    {
+      "id": "Q2",
+      "answer": "The walker test (goja-cv's TestRegistryWalk / TestSchemaProperty). Missing samples are caught at registration, but registration can only require them if the samples live in the record rather than in the test file.",
+      "where": "Structure (Walker); Collaborations 6; Implementation notes §5; 'the walker test' sketch"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because method, help and look redirects sit in three tables outside the registry, so a redirect added to one table is invisible to the others — the diagnoser then gives inconsistent repairs for the same near-miss.",
+      "where": "Implementation notes §4"
+    },
+    {
+      "id": "Q4",
+      "answer": "The binder (call checking, warnings) and the describer (context line and full help); the diagnoser and the walker are two more.",
+      "where": "Structure table; Collaborations 2–6"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Three independent consumers (LLM tool descriptions, mobile control UI, hub validation) plus plug-in authors who add actions without reading the hub's source is exactly the stated applicability. It also forces the chapter's under-specified case — records arriving at run time from third parties — so the host-override rules matter more than in goja-cv.",
+      "participants": {
+        "Operation record": "One per (device kind, action name): set_temperature on Thermostat, dim_lights on Lamp, lock_door on Lock, run_scene on Scene.",
+        "Argument spec": "temperature (number, unit °C, min 5, max 30, usual [16,24], hint 'use set_mode for off'), brightness (number 0–100 %), duration (number, seconds), target (enum with valueDocs).",
+        "Flags": "class (climate, lighting, security, scene), confirm for lock_door and run_scene set by the hub (not the plug-in), internal for maintenance actions, identity/anonymous flags for idempotent reads.",
+        "Registry": "Hub-side registry keyed by device kind and action name; validates plug-in records and refuses name clashes between plug-ins.",
+        "Binder": "Hub command path, shared by voice-assistant commands and app commands so both get identical refusals.",
+        "Describer": "Two renderings: contextLine() = the tool description the LLM sees; controlSpec() = type, unit, limits and options the app draws one widget per argument.",
+        "Diagnoser": "Builds refusals for malformed commands from either consumer: valid actions, nearest action name, key redirects ('dim' → dim_lights, 'brightness' on a Thermostat).",
+        "Walker": "CI test that runs every registered action against a mock device per plug-in and compares result keys with declared fields."
+      },
+      "sketch": "value OpRecord: name, on: DeviceKind, args: [ArgSpec], validate?(args) → ok | Failure,\n                returns: Ack, fields(boundArgs) → [FieldSpec],\n                flags: {class, confirm: none|session|user, internal}, redirects?, samples, doc, run | expand\n\n-- plug-in load: per-record structural checks now, cross-record checks after the batch\nregistry.register(rec) → ok | refuse(E_BAD_RECORD, …)\nregistry.seal()   -- redirect targets exist, no name clash; re-run after every plug-in batch\n-- the hub rewrites flags.confirm from its own policy table; a plug-in cannot lower it\n\nhub.receive(cmd) → reply\n  bound = bind(cmd.on, cmd.name, cmd.args)\n  if bound is Failure: return explain(bound, registry)\n  if policy(bound.rec).confirm == user and not cmd.confirmed:\n      return refuse(E_NEEDS_CONFIRM, fix: same call with confirmed: true)  -- non-interactive: refuse\n  return run(bound) ⊕ { warnings: bound.warnings }\n\ndescriber.contextLine(rec)  -- ~1 line per callable action, for the LLM tool list\ncontrolSpec(rec)            -- per-arg type/unit/limits/options, for the app's widget\nwalker: for rec in registry.all(): assert run(bind(rec.on, rec.name, rec.samples)) matches rec.fields",
+      "key_notes": [
+        "§1 (validate structure and consistency): most important here. Third-party records arrive after start-up, so the chapter's 'check cross-record rules once at end of start-up' has to become 'after each plug-in batch'; otherwise a plug-in's redirect can dangle or collide and no call ever fails until an agent hits it.",
+        "§2 (hard limits vs usual ranges, in the declared unit): a voice assistant says °F or 'a bit warmer' while the app's slider is °C — units and limits must live in the ArgSpec, not in either consumer, or the two UIs disagree about what 22 means.",
+        "Flags / confirm row: the hub must own confirm per action and cap what a plug-in may declare; a plug-in that self-declares confirm: none on lock_door silently widens what the LLM is allowed to call.",
+        "§8 (defaults are part of identity): a plug-in bumping set_temperature's default must be treated as a behaviour change, or every saved scene and automation changes meaning silently on upgrade.",
+        "§4 (keep near-miss redirects in the records): 'dim' → dim_lights and brightness-on-a-thermostat must live in the same records the app and the LLM read, or the two get different repairs.",
+        "§9 (enumerate exceptions): hub-level things that are not device actions still need one visible list with a test that every reachable name is in the registry or that list."
+      ],
+      "risk": "Letting plug-ins own their own flags and cross-record redirects: a third-party record then decides its own confirm policy, collides with another plug-in's action name, or redirects into a stranger's action, and the permissive record is what the LLM's tool description shows. Second risk: generating the mobile UI straight from ArgSpec yields sliders for enumerations and no grouping or layout, so the app looks machine-made."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter's own Applicability rule excludes it: 'the platform already gives you the records (a typed RPC schema that generates clients, docs and validation); use that schema as the registry instead of building a parallel one.' A Go registry beside the .proto files recreates exactly the drift the pattern exists to remove — two descriptions of the same method, one of which will be stale.",
+      "participants": {
+        "Operation record": "The protobuf method plus its message and annotation constraints — already the record; a second Go record is the anti-pattern here.",
+        "Argument spec": "Field definitions with buf/validate or custom option annotations (min/max, required, enum values, docs).",
+        "Flags": "Custom method options only if they are genuinely missing (idempotency, confirmation); add them as annotations rather than in Go.",
+        "Registry": "The compiled file descriptor set, read at run time — a projection of the .proto, not a copy of it.",
+        "Binder": "The generated/annotated validator on the server plus the client-side check; one implementation, driven by descriptors.",
+        "Describer": "A renderer over descriptors (comment → doc line, annotations → limits), producing help and the agent's tool list.",
+        "Diagnoser": "Deserialises the structured refusal into help text; it reads the same descriptors for valid field names.",
+        "Walker": "Walks the descriptor set and calls each method against a test double, asserting response fields against declared ones."
+      },
+      "sketch": "",
+      "key_notes": [
+        "Applicability, 'do not use it when the platform already gives you the records' — this decision is settled there, not by how nice the Go table would look.",
+        "If a registry is still wanted, §1's lesson applies inverted: it must be derived from the descriptor set at start-up and refuse to start when it disagrees with a .proto, so it is never a second source of truth.",
+        "§2 and §4 (units, ranges, redirects) point at the real gap: plain protobuf has no 'usual range' or near-miss redirect, so those belong in annotations and in a diagnoser layer, not in a parallel record."
+      ],
+      "risk": "Approving it 'just for help text' and ending up with two field lists: the validator honours the .proto, the help honours the Go table, and the first renamed or newly required field makes the help lie to agents — the documentation-drift failure the chapter opens with."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution and Implementation notes 1, 4, 8",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "Three different rules for the same check. The Solution says validate each record at registration 'for structure and for consistency (… redirects that exist)'; note 1 says cross-record checks run at the end of start-up, not record by record; note 4 says keep redirects in the records and that goja-cv keeps them outside, which is debt; note 8 says 'validate redirects at registration'. A reader cannot tell what to implement, and the transfer case of plug-ins registering later has no rule at all.",
+      "suggestion": "State one rule explicitly and use it everywhere: per-record structural checks in register(); cross-record checks (redirect targets, (on,name) uniqueness across modules) in a separate registry.seal() called once after all modules and again after each late or plug-in batch, with the reason given (a redirect may point at an operation another module registers later)."
+    },
+    {
+      "section": "Structure (Flags) and the OpRecord sketch",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Flags are the participant with the least specification and the most consequences. 'flags' has no type in the sketch, the flag names are only listed inside a table cell, the confirm flag appears nowhere in the sketch or the Collaborations, the host-cannot-be-lowered rule is one clause, and nothing says how the binder knows a run is non-interactive.",
+      "suggestion": "Add a short Flags subsection: the enumerated flags with type and default, who may set each (host policy vs record author), the precedence rule when a host and a record both set one, what registration does with an unknown flag name (refuse), and how interactive vs non-interactive is decided and passed to the binder."
+    },
+    {
+      "section": "Applicability ('added at run time') vs Collaborations and note 1",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The pattern claims to serve operations 'added often, by several people, or by users at run time', but every validation story assumes a start-up that finishes ('a malformed record fails registration before any call', 'at the end of start-up'). Run-time registration has no ordering, no reseal, and no statement of what happens to already-bound calls or cached results when a record is replaced.",
+      "suggestion": "Add a note on late registration: batch multiple records into one seal, re-run cross-record checks after each batch, refuse replacement of a record that bound calls or cached graph nodes already reference unless the default and result shape are unchanged, and say how a newly registered name enters the agent's context mid-session."
+    },
+    {
+      "section": "Diagnoser sketch, ARG_RANGE case",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "fix: clamp(value, spec) hands the caller a silently altered call, which contradicts the chapter's own strongest principle in note 3 (silent acceptance is the worst outcome, because the result looks plausible). Clamping a radius of 400 to 200 may preserve intent; clamping a temperature of 40 on a 5–30 limit to 30 does not.",
+      "suggestion": "Refuse with the limits and, at most, the nearest legal bound as an explicit suggestion the caller must acknowledge — not as a 'fix' field that a caller replays verbatim. Say in the note which clamps preserve intent and which do not."
+    },
+    {
+      "section": "Collaborations 5 (Describer) / Consequences",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The short context is named as a deliverable ('a short form for the agent's standing context', the 8× ratio) but its selection rule is never given: which records get a line, in what order, whether internal or class flags filter it, and what gives way when the catalogue grows. This is the part a reader implementing the pattern must decide first.",
+      "suggestion": "State the rule: contextLine for every callable record, internal excluded, ordered by class then name, with a stated budget and what is dropped when the budget is exceeded (e.g. collapse a class to one line naming its operations)."
+    },
+    {
+      "section": "Walker sketch vs Implementation note 5",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "fields is declared as a function of the bound arguments, but the walker binds exactly one samples set per record, so any result shape that only one option produces is never checked. Note 5 admits 'one happy-path call per record does not exercise … optional arguments' but offers no mechanism to fix it.",
+      "suggestion": "Make samples a list of argument sets, one per result-shape branch, and have registration require every declared branch to be covered by at least one sample; the walker then compares keys per sample rather than once per record."
+    },
+    {
+      "section": "Implementation notes 4 and ArgSpec",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Redirects cover erroneous keys and method names, but not erroneous values. An agent writing interpolation: \"bicubic\" where the record enumerates \"cubic\", or a colour name with a typo, gets a plain ARG_TYPE with the valid set and no nearest value — even though options and valueDocs already make the nearest value computable.",
+      "suggestion": "Add a value-level redirect: on an enumeration failure, include nearest(failure.value, spec.options) and, when a valueDoc names it, the doc line; same refusal kind, one more field."
+    },
+    {
+      "section": "Motivation bullet 3 and Implementation note 3; Implementation note 6",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The cv.open encoding anecdote is told twice in near-identical wording, and note 6's 'goja-cv's binder is the largest file in its graph package' is a build fact that does not help a reader apply the pattern. Note 9's Editor-lab counterexample is likewise a third telling of the same drift story.",
+      "suggestion": "Tell the encoding failure once, in Motivation, and in note 3 only draw the rule. Replace file-size claims with the design consequence. Keep the Editor lab only as a one-line 'known cost' pointer, or cut it."
+    },
+    {
+      "section": "Structure (Operation record / Registry) and method-level redirects",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "The Structure table says method-level redirects live 'in the operation record or the registry', the sketch puts redirects? on OpRecord, and the diagnoser calls registry.redirectFor — the reader cannot tell which is authoritative, or what wins if both define a redirect for the same name.",
+      "suggestion": "Pick one home (the record) and let the registry hold only the derived index it builds at seal time; state the conflict rule, e.g. a record-level redirect beats a registry-level one and registration refuses duplicates."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The participant model, the do-not-use list and the non-image examples make the pattern genuinely transferable, but the redirect-validation rules contradict each other across three places, flags are left untyped and undescribed, and the run-time-registration case the pattern advertises has no validation story — so a reader would have to redesign those parts before applying it."
+  }
+}

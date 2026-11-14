@@ -1,0 +1,131 @@
+{
+  "restatement": {
+    "intent": "Describe every operation once as a validated data record, so checking, help, refusals, agent context and tests all derive from the same description.",
+    "problem": "When several consumers keep separate ideas of an operation's arguments and results, they drift and callers get silent wrong behaviour instead of precise refusals.",
+    "solution": "Give each operation one record covering its receiver, typed arguments with units, limits, defaults and docs, its result fields, flags and implementation. Validate records at registration and make the binder, describer, diagnoser and walker read only those records, with no consumer-owned operation lists."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "It binds successfully and raises a warning with the argument's usual-range hint; only a value outside the hard min/max is refused.",
+      "where": "Collaborations step 2; Implementation note 2; the `outside(v, spec.usual): warn(...)` line in the Sketch."
+    },
+    {
+      "id": "Q2",
+      "answer": "The walker tests: the registry walk catches an operation without usable sample arguments by failing to call it; the schema-property walker catches result keys that differ from the declared result fields.",
+      "where": "Implementation notes 5 and 6; Collaborations step 5."
+    },
+    {
+      "id": "Q3",
+      "answer": "Because a redirect added to one of the separate method, help or looks tables is invisible to the others, so the same near-miss can get different repairs depending on which consumer handles it, recreating the drift the registry is meant to remove.",
+      "where": "Implementation note 4."
+    },
+    {
+      "id": "Q4",
+      "answer": "The binder and the describer are two; the diagnoser and walker are also consumers.",
+      "where": "Structure; Collaborations steps 2, 3, 4 and 5."
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It fits: forty actions, three very different consumers and third-party plug-ins are the conditions in Applicability. One record per action is what keeps the LLM tool description, mobile controls and hub validation from diverging.",
+      "participants": {
+        "Operation record": "An ActionRecord for each action such as `set_temperature`, `dim_lights`, `lock_door` or `run_scene`, carrying device kind, arguments, result kind, flags, documentation and the plug-in handler.",
+        "Argument spec": "Per-argument type, unit such as °C or percent, default, hard safety limits, usual comfort range with hint, allowed options, voice near-miss redirects and UI documentation.",
+        "Registry": "The hub's plug-in registry at start-up; it rejects malformed or duplicate action records and indexes them by device kind and action name.",
+        "Binder": "The hub command binder shared by voice and mobile input; it resolves the action, fills defaults, converts units, checks types and limits, and refuses unknown keys.",
+        "Describer": "Generates the LLM tool schema and reference, the mobile control descriptor for each argument (slider, stepper, enum) and human-readable help from the same records.",
+        "Diagnoser": "Builds refusals with valid action and argument names, the nearest action, redirects and a fix, for both the assistant and the app.",
+        "Walker": "A contract test that registers each plug-in action, calls it with sample arguments on each device kind and checks its result fields; it can double as a plug-in acceptance gate."
+      },
+      "sketch": "value ActionRecord: name, on: DeviceKind, args: [ArgSpec], returns: ResultKind,\n                    fields(boundArgs) -> [FieldSpec], flags, doc, run\nregistry.register(rec) -> ok | refuse(E_BAD_RECORD, ...)\n-- at hub start-up: each plug-in registers; reject malformed or duplicate records\nbind(on, name, raw) -> BoundCall | Refusal\n  rec = registry.lookup(on, name)\n  if rec is none: return refuse(E_UNKNOWN_METHOD, valid: registry.names(on), nearest: closest(name, ...))\n  args = for spec in rec.args:\n    v = take(raw, spec) else spec.default else (spec.optional ? none : refuse(E_ARG_MISSING, spec))\n    v = convert(v, spec.unit)\n    if outside(v, spec.min, spec.max): return refuse(E_ARG_RANGE, spec, fix: clamp(v))\n    if outside(v, spec.usual): warn(RANGE, spec.usualHint)\n  unknown key -> redirect from spec or refuse(E_UNKNOWN_OPTION, valid: optionNames(rec))\n  return BoundCall(rec, args)\ndescriber.toolSchema(rec) -> LLM tool description\ndescriber.controls(rec) -> mobile control per ArgSpec\nwalker: for rec in registry.all(): call sampleArgs and check result fields against declared fields(boundArgs)",
+      "key_notes": [
+        "Implementation note 1 matters first: third-party plug-ins make registration-time validation the main defence, so a malformed action must fail hub start-up rather than a later voice or app session.",
+        "Implementation notes 2 and 3: temperature needs separate safety hard limits and comfort usual ranges, while lock and door actions must never take a silent default or coerce a wrong type.",
+        "Implementation notes 4 and 6: keep voice redirects such as 'heat' to `set_temperature` in the action record, and walk every plug-in action so none lacks a tool description or mobile control.",
+        "Implementation notes 7 and 9: device-specific types such as colour, duration and scene id need pluggable parse/check/describe behaviour, and plug-in actions should describe themselves through the same records.",
+        "Implementation note 11 also applies to `run_scene`: a composite action still gets one record and is described like any other."
+      ],
+      "risk": "Trusting plug-in records as both metadata and executable handlers without validation or safety review; one bad record can break registration or expose an unsafe action to the voice assistant and app."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The proposal does not fit: the protobuf files and annotations already are the operation records, and generated clients, documentation and server validation are already consumers. A separate Go registry would be a parallel type system and a second source of truth, which is the drift the pattern exists to prevent.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "The Applicability exception about the host language already providing the records applies directly; protobuf descriptors and constraint annotations are that schema.",
+        "If a registry is still wanted, derive it from protobuf descriptors or reflection rather than maintaining it by hand; then Implementation note 10's whole-surface rule has one source.",
+        "Implementation note 8 applies only to genuinely hand-bound exceptions: keep them listed and tested, but do not let hand-written help become a second catalogue."
+      ],
+      "risk": "Two schemas drift: a field constraint or help sentence is added to the Go registry but not the protobuf, or vice versa, so generated clients, documentation and server validation disagree."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (walker) and Implementation note 6",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The sketch asserts `keys(v) ⊆ names(...)`, which only rejects extra result keys; a result missing a declared field still passes. It also computes fields from raw `sampleArgs`, although the chapter says result fields depend on bound arguments and defaults.",
+      "suggestion": "Check that required declared fields are present, allow only explicitly optional ones to be absent, and call `fields(boundArgs)` after binding. Add negative tests for both missing and extra result keys."
+    },
+    {
+      "section": "Solution and Implementation note 4",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The Solution says no consumer keeps a list of its own, but note 4 says three more redirect tables live outside the registry. Calling that debt does not make the central claim true, and the pattern gives no migration path.",
+      "suggestion": "Either make all redirects record data with one dispatcher, or explicitly scope the pattern to argument redirects and move the remaining tables under the registry before claiming one source of truth."
+    },
+    {
+      "section": "Structure and Solution (flags)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`flags` is part of the Operation record and is said to tell the rest of the system how to treat the operation, but the chapter never lists a flag, its meaning or which consumer reads it. The reader cannot implement the field.",
+      "suggestion": "Enumerate representative flags such as pure, mutating, costly, agent-visible or confirmation-required, and state which participant reads each one. Remove the field from the core if it is too example-specific."
+    },
+    {
+      "section": "Structure and Implementation note 6",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`OpRecord.on` is a single `Kind`, but note 6 says the walker calls every operation on each receiver kind it accepts. Overloaded or multi-receiver operations are not defined, and `lookup(on, name)` implies one record per receiver kind.",
+      "suggestion": "Choose and state the rule: either `on: [Kind]` with explicit overload resolution, or one record per receiver kind with a defined lookup order. Make the walker match that rule."
+    },
+    {
+      "section": "Implementation note 1",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Registration validates syntax only. It does not mention checking that a default lies inside min/max, that the usual range lies inside the hard limits, that a redirect target exists, that unit-bearing types have units, or that operation names do not collide across modules.",
+      "suggestion": "Add these semantic checks to `register`, or require a separate consistency test over the whole registry, especially because malformed records are promised to fail at start-up."
+    },
+    {
+      "section": "Applicability and Implementation note 9",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The pattern explicitly supports operations added by users at run time, but says nothing about versioning, aliases and deprecation, permissions, confirmation or authorization. These are not incidental for agent-facing actions such as locking a door or running a scene.",
+      "suggestion": "Add lifecycle and safety fields or a short section saying which participant enforces them, and distinguish descriptive flags from security policy that must not live only in a plug-in record."
+    },
+    {
+      "section": "Implementation notes",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Much of the implementation guidance depends on goja-cv internals: `heal`, `look`, `TestSchemaProperty`, a 1,331-line binder, `docPx` and image argument types. Readers from the command-line, query or card-game examples must translate all of it.",
+      "suggestion": "State each rule generically first and put the goja-cv evidence in a clearly marked case box or appendix; keep only one image-specific example in the Sketch."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "Four failure modes, the Editor lab and three other domains all precede the Problem. The reader understands the issue after the first two failure modes, and the extra material delays the pattern.",
+      "suggestion": "Keep two concrete failures and one cross-domain paragraph; move the Editor lab and the CLI/query/card list to Applicability or a sidebar."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core shape is usable for catalogues with several consumers, but the chapter's own example does not fully obey it and fields such as `flags`, multi-receiver operations and lifecycle policy remain undefined."
+  }
+}

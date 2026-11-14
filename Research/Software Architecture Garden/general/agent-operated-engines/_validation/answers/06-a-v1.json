@@ -1,0 +1,143 @@
+{
+  "restatement": {
+    "intent": "Make every failure an agent can trigger carry enough information — a stable code, the failing operation's path, the caller's own source line, the valid alternatives, a concept hint, and a pasteable fix — that the next attempt is a correction rather than a guess.",
+    "problem": "A failure that says only 'something went wrong' forces the caller to rediscover the API, and an agent pays for each rediscovery with a round trip and context.",
+    "solution": "Every failure, from binder, evaluator, kernel or host language, becomes one Refusal record: closed-list code, one-sentence message, path of operations, the caller's line, valid alternatives, hint, and a fix written as code in the caller's own variable names. Suggestions are produced in a fixed order — mined redirects, structural relatives, then near spelling within a length-scaled edit budget. Warnings use the same fields at the line that caused them, fold identical repeats into one with a count, and anything produced before a failure is still delivered with it."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Redirect table first (names agents demonstrably typed, each with a literal fix), then a namespaced member of the same name, then a near spelling within an edit budget, then the same name on another kind of value. The order runs from known answers, through structural facts, to guesses, so the least certain source only runs when nothing better exists.",
+      "where": "Collaborations step 2, and Implementation note 2 ('Suggest in a fixed order, from most to least certain')"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because one edit is a large fraction of a short name, so short-name neighbours are usually unrelated words: the budget max(1, min(3, len/3)) gives a short name a single edit precisely so `crop` does not suggest `drop`. A confidently wrong suggestion costs more than silence.",
+      "where": "Implementation note 2; Forces (suggestion against misdirection); sketch `suggest` budget"
+    },
+    {
+      "id": "Q3",
+      "answer": "The translator matches the host's TypeError message, finds the receiver `rows` in the quoted source line, keeps the host's own code (TypeError) and adds a concept hint ('rows is plain data here … its length is the count') plus a fix that uses the agent's variable: `rows.length`. If the missing name is a node method, the fix instead places the data as the first argument of the node method.",
+      "where": "Collaborations step 3, sketch `translate`, and the '-- in use' example"
+    },
+    {
+      "id": "Q4",
+      "answer": "A range warning over 500 candidates would emit 500 identical lines and bury every other signal; folding by (code, line, message) into one warning with a count keeps the fact that it repeated while staying readable, which is what makes folded warnings actually get read.",
+      "where": "Implementation note 7; sketch `foldWarnings`; Consequences"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It meets all three applicability tests: callers (engineers and an ops agent) cannot read the implementation, each failed call is a real API round trip, and the surface is exactly the many-names/many-flags/many-resource-types confusion the pattern targets. The chapter's own exclusions do not bite, except that some resource lookups may leak existence across accounts.",
+      "participants": {
+        "Refusal": "The CLI's structured error envelope on stdout/stderr (JSON when the caller is an agent): code, message, path, where, valid, hint, fix.",
+        "Code list": "Closed set such as E_UNKNOWN_SUBCOMMAND, E_UNKNOWN_RESOURCE_TYPE, E_UNKNOWN_FLAG, E_MISSING_REQUIRED, E_PROVIDER_REJECTED, E_INTERNAL — each documented once and asserted by a doc test.",
+        "Suggester": "The argv resolver: subcommand → resource type → flag scope, consulted in the fixed order for whichever token failed.",
+        "Redirect table": "Aliases mined from shell history and agent transcripts (`sg` → `--type security-group`, `secgrp`, `net` → `network`), each with a literal corrected command.",
+        "Translator": "The wrapper around the cloud SDK / HTTP 400 body and the argument parser's 'unrecognized arguments': both mapped into the same envelope with the provider's detail preserved.",
+        "Site tracker": "Whatever can name the origin of the invocation — the agent's script line for `acme …` inside a script, otherwise the positional argv token plus invocation id; must degrade to `where: absent`, not to a lie.",
+        "Warning folder": "Deprecated-flag, quota-near-limit and drift warnings, grouped by line+code with a count when `--all` iterates a resource list."
+      },
+      "sketch": "```text\nvalue Refusal: code, message, path: [label], line?, valid: [name], hint?, fix?\n\nresolve(argv, line) → Refusal | Plan\n  match argv:\n    [sub, …] if not subcommands.has(sub) → unknownToken(Subcommand, sub, [], line, argv)\n    [sub, \"--type\", t, …] if not types.has(t) → unknownToken(ResourceType, t, [sub], line, argv)\n    [sub, \"--\" ++ f, …] if not flags(sub).has(f) → unknownToken(Flag, f, [sub, t?], line, argv)\n\nunknownToken(kind, name, path, line, argv) → Refusal\n  s = suggest(kind, name, registry(kind, path), redirects, argv)\n  return Refusal(code(kind), \"acme \" ++ join(path) ++ \" has no \" ++ kind ++ \" \" ++ name,\n                 path ++ [\"✗ \" ++ name], line,\n                 valid: s ? [] : summarize(registry(kind, path).names),   -- capped, not all 300\n                 hint: s?.hint, fix: s?.fix)\n\nsuggest(kind, name, reg, redirects, argv) → (hint, fix) | none\n  if redirects.has((kind, name)):      return redirects[(kind, name)]        -- mined literal, whole argv rewritten\n  if reg.has(globalScope, name):       return (\"it is a global flag\", \"acme --\" ++ name ++ \" \" ++ join(argv))\n  if reg.has(parentScope, name):       return (\"it belongs to \" ++ parentScope, rewritten argv)\n  c = closest(name, reg.names, budget: max(1, min(3, len(name) / 3)))\n  if c and not destructive(c):         return (\"did you mean --\" ++ c, argv with name → c)   -- never suggest a destructive flag\n  return none\n\n-- in use\nacme infra deploy --type sec-groupz --region eu-west-1\n  → E_UNKNOWN_RESOURCE_TYPE, path: infra → deploy → ✗ sec-groupz,\n    fix: 'acme infra deploy --type security-group --region eu-west-1'\n```",
+      "key_notes": [
+        "Note 1 (mine redirects from transcripts) matters most: agent typos in this space are patterned (`sg`, `secgrp`, `--rg` for `--region`), so a mined table with literal whole-command fixes beats any distance rule — and edit distance over hundreds of similarly named flags is dangerous, not helpful.",
+        "Note 2 (fixed order, length-scaled budget) plus a guard the chapter lacks here: single-character flag differences can be destructive (`--purge` vs `--purge-all`, `--dry-run`), so spelling suggestions must be suppressed for destructive verbs, not merely budgeted.",
+        "Note 3 (fix in the agent's own names): the fix must be the agent's full command with its own region/tags/ids substituted, not a template like `acme <cmd> --type <type>`; a half-filled command costs another round trip.",
+        "Note 9 (deliver what was produced before the failure) is safety-critical here rather than merely convenient: if 3 of 10 resources were already created before the bad flag, the refusal must report them, or the agent's repair will duplicate infrastructure.",
+        "Note 10 (one redirect table): a plugin-per-resource CLI will naturally grow one alias table per plugin, which makes the 'redirects first' order false for most tokens; centralize in the registry.",
+        "Note 11 (test every code) is cheap insurance for a CLI whose codes are a public contract for agent scripts.",
+        "Applicability's security bullet applies partially: resource-existence errors across accounts/tenants must refuse uniformly, so the suggester must be scoped to things the caller can already see."
+      ],
+      "risk": "Treating 'nearest flag' as safe. Spelling distance over flag names invites a pasteable fix that is a valid but different and possibly destructive operation (`--delete` vs `--deregister`), and the whole point of the pattern — that the agent pastes the fix without reading it — turns a wrong suggestion into an incident. Cap `valid` lists too, or a resource type with 300 names makes the refusal longer than the docs it replaces."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "This is exactly the chapter's own exclusion: 'revealing the alternatives would leak information … refuse uniformly there', because a did-you-mean list over usernames is a username-enumeration oracle. It also fails the pattern's premise — the caller is not trying to repair a malformed call; no suggestion, hint or fix can legitimately make the next attempt succeed, so `valid`, `hint` and `fix` would be either empty or a leak.",
+      "participants": {
+        "Refusal": "A uniform 401/403 with one code (E_AUTH_FAILED), a generic message, and no valid/hint/fix; the request id is the only extra field.",
+        "Code list": "One code covering wrong user, wrong password, locked and unknown account — deliberately many-to-one.",
+        "Suggester": "Deliberately absent; must not be wired to this path at all, and its absence should be asserted by a test.",
+        "Redirect table": "Not applicable — mined 'near-miss usernames' is the attack, not the remedy.",
+        "Translator": "Still useful in the narrow sense of mapping auth-library exceptions to the single uniform refusal, so the detail does not escape in a nested message.",
+        "Site tracker": "Server-side log correlation only: full reason, source IP and timing go to logs keyed by request id, never to the response.",
+        "Warning folder": "Not applicable to the response; auth anomalies belong in server-side alerting."
+      },
+      "sketch": "",
+      "risk": "Partial adoption: keeping the uniform code but letting the message or a timing difference distinguish 'no such user' from 'wrong password'. The Variation 'Uniform refusals' is the correct half to reuse; the did-you-mean half must be refused outright."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Collaborations step 2 vs Implementation note 2 vs Sketch",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The suggestion order contradicts itself. Step 2 and the sketch put 'near spelling' before 'same name on another kind of value', but note 2 groups namespace and cross-kind together as 'structural facts' ranked above 'spelling distance is a guess'. Two readers will implement two different suggesters, which is precisely the thing the pattern says must be fixed.",
+      "suggestion": "Commit to one order — mined redirects → namespace → cross-kind → spelling is the more defensible ranking — and make note 2, step 2 and the sketch agree; state the reason spelling is last (it fires on anything, so it is the only source that can be confidently wrong)."
+    },
+    {
+      "section": "Implementation note 2 / sketch `suggest` and `translate`",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The sketch will not run as written. `suggest` references `recv` and `ns(m)`, neither of which is a parameter or defined anywhere; `closest(...)` returns a name but the returned fix is built from the same undefined `recv`; `unknownMethod` reads `s.hint` without guarding `s == none` even though it checks `s ? …` in the same expression; `translate` hardcodes `img.` and `count`, so the translator looks like it only works for one library.",
+      "suggestion": "Pass the receiver into `suggest`, define `ns(m)` or drop the helper, make the none case explicit (`return s ? copy(base, hint: s.hint, fix: s.fix) : copy(base, valid: …)`), and give `translate` a table of (host name → hint pattern, fix pattern) instead of an if/elif on `count` and `img`."
+    },
+    {
+      "section": "Solution ('stable code from a closed list') vs Collaborations step 3 / sketch `translate`",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The pattern promises one vocabulary from a closed code list, but the one worked host-language example returns `code: TypeError` — an open, host-defined string. A caller cannot branch on a closed enum, note 11's doc test (`js error=E_CODE`) cannot cover translated failures, and the code list is no longer closed (any host error name leaks through).",
+      "suggestion": "Give translations their own codes (`E_PLAIN_DATA`, `E_HOST_TYPE`) and keep `TypeError` in a separate `host_code` field, then say explicitly which fields are mandatory for every refusal and which may be absent."
+    },
+    {
+      "section": "Solution / Structure (fields) vs Forces ('precision against noise')",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The forces name the noise problem, but nothing in the solution bounds the payload. `valid: s ? [] : registry.names(kind)` dumps the entire name list on exactly the failure where the caller is most lost; for an API with hundreds of methods, flags or resource types (the pattern's own applicability case) the refusal becomes longer than the docs it replaces. No cap, no ranking, no 'call names() for the rest'.",
+      "suggestion": "Add a rule: `valid` is capped (e.g. 5–8 entries) and points to a listing operation for the remainder; rank candidates by the same suggester order rather than registry order."
+    },
+    {
+      "section": "Structure (Site tracker) and Implementation note 6",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The site tracker is described only in its best case: an in-process evaluator that can walk stack frames and quote a source line. Nothing says what a caller does when there is no such frame — a remote HTTP client, a shell invocation, a script the engine never saw. The participant reads as unconditional, which makes the pattern look unimplementable outside one architecture.",
+      "suggestion": "State the contract instead of the mechanism: 'where' identifies the smallest unit the caller can edit — source line when the source is available, otherwise the request id plus the offending argument, otherwise omitted; never a frame inside the engine."
+    },
+    {
+      "section": "Forces ('errors against warnings') / Implementation note 7",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The chapter names the error-versus-warning trade-off as a force and then never resolves it: there is no rule for when a condition must refuse instead of warn, nor what a warning costs the reply's length if a program raises dozens of distinct ones. Note 7 covers folding repeats but not the distinct-but-numerous case.",
+      "suggestion": "Add two lines: promote to a refusal when continuing would silently produce a wrong result the caller cannot detect (the unused-node lint was the reverse — it warned on correct code and was deleted); cap distinct warnings and report 'and N more'."
+    },
+    {
+      "section": "Implementation notes (passim) and Sketch",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The tuned constant `max(1, min(3, len/3))` appears in both note 2 and the sketch as if it were part of the pattern, as do 'eight names for saving', 'fired 19 times, 18 on correct code', and 'layers are L1 Sky, L2 Glow'. These date the chapter to one binary; a reader designing a CLI or an HTTP API cannot tell which numbers are policy and which are goja-cv's measurements.",
+      "suggestion": "State policy ('the budget grows with name length and starts at one edit; suppress suggestions for destructive names'), keep the constant only in the worked example, and move the transcript anecdotes into one sentence under note 8."
+    },
+    {
+      "section": "Structure / Implementation note 10",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "Note 10 admits goja-cv has redirects in three separate tables and says 'one table avoids it', but the Solution's fixed order presumes a single redirects lookup that already happened. So in the reference implementation, 'mine redirects first' is false for two of three layers, and the chapter never says how a reader with a multi-layer system gets the ordering guarantee back.",
+      "suggestion": "Make the consolidated table part of the Solution (redirects are registry data, keyed by kind+name, consulted by every layer before any other source), and present note 10's three-tables state as the counter-example it is."
+    },
+    {
+      "section": "Motivation / Known uses / Consequences",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The 'not specific to agents' list (compiler, HTTP API, CLI) restates what Known uses then demonstrates at length (Elm, rustc, Clang, Git, Stripe), and the Consequences largely repeat the Forces. A reader gets the pattern in the Solution plus three notes.",
+      "suggestion": "Cut the Motivation's four-item list to one sentence and let Known uses carry the generality; trim Consequences to the two non-obvious items (per-error hint upkeep, context cost when nothing is wrong)."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core idea is sharp and worth adopting (hence 4), but the contradictory suggestion ordering, the open code list in the translator, and a sketch that does not compile make clarity and reuse mediocre — the pattern is easiest to reuse as prose plus the participant table, not as code."
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "quiz": {
+    "a": {
+      "Q1": [["warn"]],
+      "Q2": [["walk"]],
+      "Q3": [["invisible", "other table", "others", "scatter", "outside the registry", "not see", "don't see", "do not see"]],
+      "Q4": [["binder", "bind", "check", "validat"], ["help", "describ", "reference", "diagnos", "error", "walk", "test", "context"]]
+    },
+    "b": {
+      "Q1": [["refus", "reject", "error", "fail"]],
+      "Q2": [["spec", "record", "argument"], ["scale", "preview", "buffer"]],
+      "Q3": [["open", "global", "by hand", "hand-bound", "hand bound"], ["few", "one place", "list", "visible", "separately"]],
+      "Q4": [["help", "error", "reference", "describ", "like any"]]
+    }
+  },
+  "fits": {
+    "a": {"T1": true, "T2": false},
+    "b": {"T1": true, "T2": false}
+  }
+}

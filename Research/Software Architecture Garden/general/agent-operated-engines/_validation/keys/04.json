@@ -1,0 +1,17 @@
+{
+  "quiz": {
+    "a": {
+      "Q1": [["discard", "cut", "drop", "thrown"]],
+      "Q2": [["whole", "entire", "stop", "barrier"]],
+      "Q3": [["cut", "cheap", "free", "already", "nothing", "slower"]],
+      "Q4": [["share", "meet", "offset", "crop"]]
+    },
+    "b": {
+      "Q1": [["add", "sum"]],
+      "Q2": [["2m"], ["larg", "big", "more"]],
+      "Q3": [["percentile", "p99", "global"], ["split", "statistic"]],
+      "Q4": [["small", "simpl", "first", "need", "already"]]
+    }
+  },
+  "fits": {"a": {"T1": true, "T2": false}, "b": {"T1": true, "T2": false}}
+}

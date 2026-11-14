@@ -1,0 +1,136 @@
+{
+  "restatement": {
+    "intent": "Let an engine answer a small request — a window of a large result — by computing only that window plus whatever margin its operations actually read, and get the same values a whole-image computation would have produced there.",
+    "problem": "When every operation runs over the whole input, a small request costs the whole input, and the only safe way to compute less is to know exactly what each operation reads.",
+    "solution": "Every operation declares a footprint: for an output window, the window it reads from each input — the window itself for point ops, the window grown by the operation's reach for neighbourhood ops, the window mapped back through the transform for resampling, or whole for globals. The evaluator walks down from the requested window, widening by reach and clipping to each input's extent, runs each node on what it receives, and cuts the result back to the requested area, discarding the inexact margin. Global operations stop the request and read their input whole; whole results already in the cache are cut from; and one invariance test (windowed equals whole-then-cut, for every op, alone and chained, at several scales, on interior and edge windows) proves the declared footprints are honest."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "They add. A blur of reach 6 feeding an erosion of reach 4 needs inputs within 10 px of the output window. The evaluator gets this for free by widening at each node on the way down; a planner that computes the total margin ahead of time has to sum the reaches itself.",
+      "where": "Implementation note 3 (Reaches add up along a chain); also Solution/Collaborations step 4"
+    },
+    {
+      "id": "Q2",
+      "answer": "Each tile of size T for an operation of reach m reads (T + 2m)² pixels to write T². Large reaches therefore favour large tiles (a small tile spends most of its work on margin), while small local requests favour small tiles — so tile size must be a measured setting, not a constant.",
+      "where": "Implementation note 8 (Choose the tile size by measuring); Forces, 'Tile size against reach'"
+    },
+    {
+      "id": "Q3",
+      "answer": "Its display stretch is five times the 99th percentile of the whole residual — an unmarked global operation sitting inside a local chain. Evaluated on a window it would silently use the window's percentile, so the same speck would look different in two zooms. Fix: audit every operation and split global parameter from local application — statistic(\"p99\", img) evaluated whole and cached once, then levels(img, black: 0, white: 5 × s) as a local op that windows pass straight through.",
+      "where": "Implementation note 5 (Find the hidden global operations); Sketch, 'splitting an operation with global parameters'"
+    },
+    {
+      "id": "Q4",
+      "answer": "Windows are the smaller change and already carry the whole mechanism: reach, propagation, clipping, cutting, and the invariance test. Tiles add a grid, per-tile keys and assembly, and only pay off once overlapping requests are common — so build the windowed evaluator first and add the optional Tile grid as an optimisation on top of it.",
+      "where": "Implementation note 7 (Windows first, tiles second); Structure, 'Tile grid (optional)'"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Both stages read a bounded neighbourhood (5 × 5 → radius 2; the unsharp mask's internal blur radius), the requests are windows (a fixed 640 × 360 ROI per frame, ~0.7 % of an 8K frame), and an 8K frame is exactly the 'input large compared with the request' case. Nothing in the spatial chain is global, so requests never hit a barrier.",
+      "participants": {
+        "Window": "the 640 × 360 ROI in frame coordinates, one request per scrubbed frame position",
+        "Footprint": "denoise5x5 → grow(w, 2); unsharp(r) → grow(w, the reach of its internal blur, e.g. ceil(3·r)); any later point op (contrast/saturation) → w",
+        "Region evaluator": "walks down the chain from the ROI, widening by each stage's reach and clipping to the 8K frame extent, runs each op on its input window, cuts back to 640 × 360",
+        "Global barrier": "none in this chain — but it appears the moment anyone adds a temporal denoise, an auto-levels, or a histogram-based look",
+        "Statistic node": "none needed here; if the unsharp strength or a knee is derived from frame statistics, that half must be split out and cached per frame",
+        "Tile grid": "optional; scrubbing revisits heavily overlapping ROIs, so a source-aligned grid can share work — but only after windows work",
+        "Invariance test": "for each stage, alone and in the two chained orders, at scale 1 and any preview scale, on interior, edge and corner ROIs of a sample frame: evaluate(chain, roi, s) must equal cut(evaluate(chain, none, s), roi)"
+      },
+      "sketch": "roi = Window(3200, 1800, 640, 360)                     -- frame coordinates, scale 1\nfootprint(denoise5x5, w, i, s)  = grow(w, 2)                 -- radius 2 buffer px\ngrow'doc(r, s) = ceil(r·s)/s                                 -- reach in doc px, rounded out\nfootprint(unsharp(r), w, i, s)  = grow(w, grow'doc(blurReach(r), s))\nfootprint(pointwise, w, i, s)   = w\n\nevaluate(chain, roi, 1):\n  -- unsharp: fp = clip(grow(roi, blurReach), frame.extent)   -- buffer carries origin\n  -- denoise: fp = clip(grow(fp, 2), frame.extent)\n  -- each op runs on its input window; only the ROI survives the cut\n  return cut(denoise.run(unsharp.run(frame_window)), roi)\n\n-- invariance, per stage: for s in [1, proxyScale], for w in [interior, 4 edges, 4 corners]:\n--   assert exact(evaluate(c, w, s), cut(evaluate(c, none, s), w))",
+      "key_notes": [
+        "#2 Border rules only at the real border — a 5 × 5 denoise at the frame edge must mirror/clamp against the 8K frame, not against the ROI; this is the most likely source of a preview that silently differs from the full render.",
+        "#3 Reaches add up — the ROI margin is 2 + blurReach, not the larger of the two, and any pre-planning of the margin must sum them.",
+        "#4 Reach scales with the evaluation and its unit must be stated — the whole point of scrubbing is a lower-resolution proxy; a reach declared in buffer px will be short at a proxy scale, which is the likeliest bug.",
+        "#1 Test at the largest arguments agents use — the unsharp radius is a user parameter, so test the maximum radius, not the default, and at reduced scale.",
+        "#6 Keep the best case — while the user scrubs inside one frame the whole-frame result may be worth caching, so check the whole-value cache before propagating windows."
+      ],
+      "risk": "Treating the ROI edge as a buffer edge: the denoise and the unsharp mask clamp or mirror at the 640 × 360 boundary, and the preview looks subtly different from the frame rendered whole. Close second: a temporal denoise, frame-adaptive knee, or auto-levels sneaking in as an unmarked global (note 5) and making the preview depend on which ROI is on screen."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "A thumbnail is a whole-image request: there is no window smaller than the input, so no saving is available in the first place. 512 × 512 fits comfortably in memory and the whole chain runs in ~3 ms, which is the chapter's own 'do not use' case — the machinery (reach declarations, invariance tests, window keys, tile assembly) would cost more than it saves, and any tile margin would add work on every request rather than remove it.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "No implementation note rescues this: the governing text is Applicability, 'Do not use it when … inputs comfortably fit in memory and whole computation is fast enough'. Reach declarations only pay off when the footprint is a small fraction of the input."
+      ],
+      "risk": "Building it anyway and bolting on a Tile grid: with T = 128 and an unsharp reach of, say, 12, each tile reads (152)² for 128² of output — more total work than the 3 ms whole-image path, plus per-tile keys, assembly and cache churn."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (evaluate) / Solution",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The `0.6 ×` cost threshold exists only inside the pseudocode, with no justification, no unit of comparison sense (it compares summed input areas, not the cost of computing those inputs), and no way to set it. A reader implementing from the chapter has to invent it.",
+      "suggestion": "State the rule in the Solution text ('evaluate whole when the footprints cover most of the inputs'), say the constant came from measurement and belongs to Chapter 13, and make it a setting; also note the check must include the cost of the upstream subgraph, not just the area of the immediate inputs."
+    },
+    {
+      "section": "Sketch — footprint(gaussian) and the Footprint participant",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The formula `grow(w, ceil(ceil(3σ·scale)/scale))` is hard to read and its unit contradicts Structure, which says a footprint is expressed 'in buffer pixels at the evaluation scale' — the formula returns document pixels. The `i` argument is never used, `σ`/`scale`/`s` are used inconsistently, and 3σ is presented as if universal when it must match the actual kernel's support (a truncated or rounded kernel can read further).",
+      "suggestion": "Pick one unit for footprints and say it once; give a single named helper `reach_doc(r, s) = ceil(r·s)/s` with the round-outward rationale; and state that the truncation constant must equal the truncation the whole-image kernel actually uses, with a pointer to the invariance test as the check."
+    },
+    {
+      "section": "Intent / Forces vs Sketch (invariance test)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The prose promises exactness — 'exactly what a whole-image computation would have given', and any edge difference 'is a bug' — but the only test is `close(...)`, with no tolerance and no statement of which operations can legitimately differ. Float blurs and resampling can differ in the last bits because accumulation order changes with buffer size, so the promise and the test are not the same claim.",
+      "suggestion": "Split the claim: index-exact operations must agree bit-for-bit; resampling and float-accumulating kernels agree within a stated tolerance, with the reason given. Then the test in the sketch can say which comparison applies."
+    },
+    {
+      "section": "Structure (Window) / Collaborations step 1 / Implementation note 10",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "A request 'may hold several windows' (the neighbourhoods of scattered items), but `evaluate` takes one window and nothing says how a set is handled: one call per window, merged bounding boxes, or clustered. Note 10 says 'evaluate each neighbourhood (or each cluster of close ones)' without saying how close, and merging badly would recreate the bounding-box problem the note warns about.",
+      "suggestion": "Add the missing rule: keep windows separate when the gap exceeds about twice the summed reach, merge otherwise, and say what merging costs (the merged gap area is computed and thrown away). Show the set-of-windows request in the sketch signature."
+    },
+    {
+      "section": "Collaborations steps 2–4 / Sketch (parallel evaluate)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "For a graph with a shared ancestor reached through two inputs (a diamond — one blur used by both branches), `parallel([evaluate(input, fp) …])` evaluates that ancestor twice per request, in different windows, with no per-request reuse. The content-keyed cache only helps across requests, and window keys deliberately miss.",
+      "suggestion": "Say explicitly that the evaluator memoises node+window for the duration of a request (or that a plan is built first and shared sub-windows are computed once); without it the cost estimate in the chapter is optimistic for any non-tree graph."
+    },
+    {
+      "section": "Consequences (memory claim) / Structure (Global barrier vs Statistic node)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The claim that 'only global operations still read their whole input' hides the bigger cost: a global operation also *produces* a whole result (component labels, a full mask) that must be materialised whole and cached, so windows give no memory relief there. Separately, Global barrier and Statistic node are both 'global' and differ only in whether the whole result is a scalar parameter or an image; the two participant rows do not say that.",
+      "suggestion": "Reword to 'global operations still read their whole input and produce a whole result'; and define the distinction once — a Statistic node reduces to a parameter a local op consumes, a Global barrier yields a whole image that consumers then cut windows from."
+    },
+    {
+      "section": "Variations — 'Region of interest only at the source'",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "This is not a variation of the pattern: it is the anti-pattern the Motivation already rejected ('cropping the input first', with a hand-guessed margin and changed global statistics), and it declares no footprint at all. Listed among variations, it reads as an endorsed option.",
+      "suggestion": "Move it to a short 'Related non-solutions' paragraph next to the naive fixes in Motivation, or drop it and reference the Motivation bullet."
+    },
+    {
+      "section": "Solution paragraph",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "One bolded block of roughly ten lines carries footprint rules, clipping, the global barrier, the cache preference, the whole-evaluation fallback and the invariance test — much of which the Structure table and Collaborations then repeat. The shape a reader must remember is buried in it.",
+      "suggestion": "Keep four moves in the Solution (declare footprints; propagate widened, clipped windows down; cut back and discard the margin; barrier at globals) and let Structure/Collaborations carry the cache and cost details."
+    },
+    {
+      "section": "Structure / Sketch (Window = x, y, w, h)",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "The pattern is stated entirely in 2-D image rectangles, although the Motivation names scientific arrays and the shape applies to 1-D signals (audio, time series) and 3-D volumes (video, medical). A reader outside imaging has to re-derive whether 'grow by reach, clip to extent, cut' still holds for a 1-D or 3-D index space.",
+      "suggestion": "Add one sentence: a Window is a box in whatever index space the graph uses, one (or more) intervals per axis, grown per axis; the invariance test and cut-back argument are dimension-agnostic. Note that axis-wise reach (the motionBlurX example) is then the general case."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The participants, the boundary conditions and the one-test proof make this immediately usable; clarity loses a point to the dense Solution block, the muddy footprint formulas and the exact-vs-'close' tension, reusability to the unstated handling of window sets, shared ancestors and non-2-D index spaces."
+  }
+}

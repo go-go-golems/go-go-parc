@@ -1,0 +1,141 @@
+{
+  "restatement": {
+    "intent": "Describe each operation of an engine exactly once, as a data record, and let every consumer — checker, help, refusals, the agent's context, the tests — read that record instead of keeping its own copy. Where a consumer cannot read the record, say so in one enumerated exception list.",
+    "problem": "When several consumers each keep their own idea of what an operation accepts and returns, they drift, and the caller gets plausible silent wrong behaviour instead of a precise refusal.",
+    "solution": "Give every operation one registry record: name, receiver kind, argument specs (type, unit, default, hard limits vs usual range, position, options, redirects), a cross-argument hook, result kind and declared fields, view/behaviour flags, docs, and either an implementation or an expansion. Validate each record at registration for structure and consistency. Make the binder, describer, diagnoser and a walker test read only records, put near-miss redirects in the records too, and keep non-record parts (e.g. globals) in one short tested list."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Refuse it: `Failure(UNKNOWN_OPTION, key, rec)` — never ignore or drop it. The diagnoser then reads the same record for the valid option names and any recorded near-miss redirect (e.g. `{min}` → `above`) and returns a refusal naming the intended call.",
+      "where": "Solution / Sketch (`bind`), and Implementation note 3 (\"Nothing falls back to a default silently\")"
+    },
+    {
+      "id": "Q2",
+      "answer": "In the ArgumentSpec's `unit` field; default, hard min/max and usual range are all expressed in that declared unit, not in engine pixels. The binder checks the value as the caller wrote it; conversion to the working scale happens later, at evaluation (Ch. 2). It matters because the preview runs at reduced scale: if limits and units were applied in preview pixels, the full-size export would not match the preview the user approved — exactly the prototypes' failure.",
+      "where": "Structure → Argument spec; Collaborations step 2; Implementation note 2"
+    },
+    {
+      "id": "Q3",
+      "answer": "`cv.open` (the globals), bound by hand, and the \"Globals\" section of the reference, written as fixed text. Recommendation: keep such parts in one visible list and add a test that every name reachable from the agent appears either in the registry or in that list, and test those parts separately.",
+      "where": "Implementation note 9 (and note 4 for the three redirect tables kept outside the registry)"
+    },
+    {
+      "id": "Q4",
+      "answer": "Because describer, diagnoser, binder and walker only know records: without one, the operation would be absent from the agent's context, could not be bound or given a redirect, and would never be walked — consumers would have to special-case it, which is what the pattern forbids. It gets a normal record whose `expand` field holds the small graph instead of `run`.",
+      "where": "Solution; Structure → Operation record (\"implementation or an expansion\"); Implementation note 10"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Three independent consumers (planner types, editor autocompletion, refusal text) plus user-supplied functions added at run time — the chapter's Applicability conditions are met, and the chapter explicitly names the query-engine case (Motivation, note 7). The overload twist is already provided for in Variations.",
+      "participants": {
+        "Operation record": "one per UDF and per built-in function: name, schema, args, return type, flags (deterministic/volatile, needsConfirm), samples, doc, and `run` = the Python callable (or `expand` when a UDF is a composition of other functions).",
+        "Argument spec": "name, SQL type, position, default/optional, hard limits, doc; redirects for renamed parameters of a re-registered UDF.",
+        "Flags": "`deterministic` (may the planner cache/reorder), `volatile`, `needsConfirm` for functions with side effects; the host, not the UDF author, sets what it cannot lower.",
+        "Registry": "validates and stores records keyed by (schema, name); because of overloads, lookup must return a candidate set, not one record.",
+        "Binder": "argument matching plus overload resolution: pick the candidate whose argument types match, fail with NO_MATCH and one reason per candidate.",
+        "Describer": "autocompletion hints for the notebook editor (argument names, types, defaults) and a short line per function for the assistant's context.",
+        "Diagnoser": "\"no function matches the given argument types\" plus nearest function names and per-candidate failure reasons.",
+        "Walker": "test that binds and executes every UDF with the sample arguments its record carries."
+      },
+      "sketch": "value ArgSpec: name, sqlType, position?, default?, optional, min?, max?, doc\nvalue FnRecord: name, on: Schema, args: [ArgSpec], returns: SqlType,\n                flags: {deterministic, volatile, needsConfirm}, samples, doc,\n                run: pyCallable | expand\n\nregistry.register(fn) -> ok | refuse(E_BAD_RECORD, ...)\n  -- structural: unique names in a candidate set, typed args, samples, return type\n  -- semantic:   default within limits, redirect target exists, (schema,name,argTypes) unique\n\nbind(schema, name, rawArgs) -> BoundCall | Failure\n  cands = registry.lookup(schema, name)          -- a SET (note 7)\n  if cands is empty: return Failure(UNKNOWN_FUNCTION, name, schema)\n  ok = [c for c in cands if typesMatch(c.args, rawArgs)]   -- no implicit cast (note 3)\n  if ok is empty: return Failure(NO_MATCH, name, cands)    -- one reason per candidate\n  return BoundCall(pick(ok), args, warnings)\n\nexplain(NO_MATCH) -> refuse(E_NO_FUNCTION_MATCHES, valid: registry.names(schema),\n                            nearest: closest(name, ...),\n                            hint: per-candidate \"arg 2 is INT, declared TEXT\")\n\nexecute(sql, doc) -> plan/doc\n  plan = planner over (results, rec.returns, rec.flags.deterministic)",
+      "key_notes": [
+        "Note 7 (one record per name, overload sets): this is the crux — `lookup` must return candidates and the binder must choose; a single-record registry cannot produce \"no function matches the given argument types\".",
+        "Note 3 (nothing falls back silently): SQL's implicit promotion is exactly goja-cv v1's encoding bug in a new dress; only promote where the record declares it, or the good refusal is unreachable.",
+        "Note 1 (registration checks): UDFs arrive at run time and get replaced, so 'default within limits' and 'redirect target exists' must run on every registration, not once at build time.",
+        "Note 5 (walk, and what it does not prove): samples must be part of the record for UDFs, and a UDF can be slow or stateful, so keep the walk cheap and generate limit/redirect tests separately.",
+        "Note 9 (enumerated exceptions): CAST, operators, aggregates and table functions will not be records; list them once and test that every name the planner can see is in one list or the other.",
+        "Note 8 (defaults are identity): re-registering a UDF with a changed default or body must invalidate cached plans/results, as it would change cache keys."
+      ],
+      "risk": "Hand-written SQL type annotations drifting from what the Python function actually does, plus generous implicit casting, so the planner trusts types the function never had and calls succeed with silent wrong results — the failure the pattern exists to prevent."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "There is one consumer, the caller writes the modules in the same script and can read the source, and there is no catalogue — the chapter's Applicability says a function signature is enough here and that a registry over general-purpose code is a second type system. Nothing in the pattern's benefits (agreement between consumers, generated context, refusals for callers who cannot read source) exists to pay for the binder, the walker and the central table.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, first do-not-use bullet (\"only one consumer ... a function signature is enough\"): this is the deciding clause, not a judgement call.",
+        "Applicability, second do-not-use bullet (\"general-purpose code rather than a catalogue\"): a dozen composed `nn.Module`s are code, not an operation catalogue; Python's own annotations and the type checker already serve the one reader.",
+        "Note 8 (records evolve, defaults are part of identity): a concrete cost in this setting — moving defaults into records silently changes cache/checkpoint identity of experiments for no benefit.",
+        "Consequences (\"the binder becomes a small type system\"): that cost is only worth paying when a second independent consumer will read the records."
+      ],
+      "risk": "Doing it \"for cleanliness\" turns a short script into a schema plus a binder plus a walker, and the schema immediately drifts from the modules, so the researcher now maintains documentation that lies — the prototypes' first failure, at self-inflicted cost."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (`registry.register`) and Solution vs Implementation note 1",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The Solution and the sketch's comment claim registration performs semantic checks (\"default within limits, usual range within limits, redirect targets exist\"), but note 1 says goja-cv's `Register` does neither and that such mistakes \"reach agents before anyone notices\". A reader cannot tell whether the sketch describes the pattern or a system that does not exist.",
+      "suggestion": "Split the sketch into `register` (structural, built) and a second required step (semantic, required by the pattern, absent in v1), and say plainly which failures of the running example the pattern is designed to fix."
+    },
+    {
+      "section": "Sketch (walker comment) vs Implementation note 5 (samples)",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The sketch requires \"samples present for every callable record\" and the walker says \"registration guarantees samples exist\"; note 5 then says goja-cv keeps samples in the test file and that putting them in the record \"would let registration require them\" — i.e. the running example does the opposite of what the pattern shows.",
+      "suggestion": "Decide one rule (samples in the record, required at registration) and show the exception explicitly; also state what the walker does with operations the record marks `confirm`, since walking them performs the side effect."
+    },
+    {
+      "section": "Structure → Flags",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Five goja-cv flags (pixel/geometric/decoration, `global`, `internal`, identity predicate, lossless-preview hint) are listed with no participant and no effect, so a reader cannot implement any of them; only the speculative `confirm` flag gets a protocol, and it gets a whole session/refusal design in one table cell.",
+      "suggestion": "Give a flag → which consumer reads it → what changes table, keep one concrete flag per row, and move `confirm` to a sentence plus a pointer (it is a confirmation pattern, not a flag)."
+    },
+    {
+      "section": "Intent vs Implementation notes 4 and 9",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The Intent claims \"there is nothing for them to disagree about\", but note 4 admits method, help and look redirects live in three tables outside the registry, and note 9 admits `cv.open` and the Globals reference are hand-written. The chapter's central invariant is contradicted by its own known use, which weakens the applicability argument rather than the honesty of the notes.",
+      "suggestion": "State the invariant as \"every consumer reads records, except an enumerated, tested exception list\" and promote note 9's list-and-test rule into the Solution, so the exception mechanism is part of the pattern instead of an admission."
+    },
+    {
+      "section": "Solution / Collaborations → Describer",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The two renderings are named but not specified: what a context line contains, who decides short vs full, and how \"full help on request\" is reached (an agent operation? a flag?) never appear. The only quantitative claim is goja-cv's 8× ratio, which does not help a reader design the split.",
+      "suggestion": "Add the rules: context line = name, argument names with types, result kind, first sentence of doc; full help = per-argument unit, default, limits, value docs, result fields; and name the mechanism by which full help is requested."
+    },
+    {
+      "section": "Sketch (`bind` / `explain`)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The Failure vocabulary is loose: `explain` handles ARG_DUPLICATE but `bind` only mentions it in a comment, not in code; `outside(v, spec.usual)` is undefined when `usual` is absent; and Failure carries different fields per kind (spec, key, rec, code, on), so a reader cannot write the diagnoser against one shape. Check order is also unstated but visible to the caller (an unknown key is only reported after the argument loop).",
+      "suggestion": "Declare one `value Failure: kind, on, name, spec?, value?, candidates, why` and state the check order once (missing → type → limits → unknown keys → hook), because that order determines which refusal the agent gets."
+    },
+    {
+      "section": "Implementation note 6 (pluggable argument types)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The note prescribes an interface `accept, check, describe`, but the sketch uses `spec.type.accepts(v)` and a free `outside(v, …)`, and `check` is never used or explained. The chapter admits \"the binder becomes a small type system\" as a consequence yet gives no design for it beyond this note.",
+      "suggestion": "Show the three-method interface concretely (accept: does this value have this type; check: is it inside limits; describe: one phrase for help) and say which code in the sketch calls each."
+    },
+    {
+      "section": "Applicability",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "The third bullet bundles two different triggers: \"operations are added often, by several people\" is a frequency argument, which the do-not-use list then denies (\"build it when a second independent consumer exists, not when a count is crossed\"); only \"by users at run time\" is a real condition, because it removes the second consumer's ability to read source.",
+      "suggestion": "Reduce to three clean conditions: two or more independent consumers; callers cannot read the source; records arrive at run time. Drop frequency as a criterion and keep it as a cost argument."
+    },
+    {
+      "section": "Motivation and running example detail throughout",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "Several pages of image-specific material (pixel/geometric/decoration classes, `heal` radius 0.5–20 px, `peaks`, `mask.luminance({min})`, the 8× context ratio) cannot be acted on by a reader in another domain, and the two-level redirect design is justified twice, once here and again in Chapter 6.",
+      "suggestion": "Keep one fully worked record (`blur`) and one failure story; move the rest to a sidebar, and let the redirect mechanics be argued in Chapter 6 with a one-line cross-reference here."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The participant set and the forces are clear enough to reuse, and I would apply this to an agent-facing engine, but the sketch promises checks and samples the running example does not have, and the Flags and describer sections are too thin or too image-specific to implement from."
+  }
+}

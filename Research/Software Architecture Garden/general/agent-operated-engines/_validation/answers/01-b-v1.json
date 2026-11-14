@@ -1,0 +1,155 @@
+{
+  "restatement": {
+    "intent": "Give every engine operation exactly one data record, and let everything else — argument checking, help, error messages, the agent's context, the test suite — read that record instead of holding its own copy. Disagreement between those consumers then becomes impossible, because there is only one statement of what an operation is.",
+    "problem": "When several consumers each maintain their own idea of an operation's arguments, units and result, those ideas drift, and the caller — typically an agent — gets plausible-looking wrong behaviour instead of a precise refusal.",
+    "solution": "Register one record per operation: name, receiver kind, an argument spec per parameter (type, unit, default or optional, hard limits, usual range with a hint, option keys, value docs, redirects, doc), the result kind and its fields as a function of the arguments, flags, documentation and the implementation. The registry validates each record at start-up; the binder, describer, diagnoser and a registry-walking test all read the registry and keep no operation list of their own."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Refuse it. Unknown keys never fall back to a default and are never ignored: the binder asks the record whether the key is a known near-miss, and if so returns a refusal carrying the intended call as `fix`; otherwise it returns `E_UNKNOWN_OPTION` listing the record's valid option names.",
+      "where": "Solution sketch (`for key in unknownKeys(raw, rec): match redirectFor(key, rec)`) and Implementation note 3, \"Nothing falls back to a default silently\"."
+    },
+    {
+      "id": "Q2",
+      "answer": "On the argument spec itself (`unit: docPx` in the `blur` record), so the unit travels with the description rather than living in the kernel or in docs. That is what lets the binder convert the value before the engine sees it; without it, radii and crops are not rescaled when rendering at preview or full scale and the exported picture silently differs from the approved preview.",
+      "where": "Structure (Argument spec: \"type, unit, …\"), the sketch's `blur` record, `convert(v, spec.unit)` in `bind`, and the Motivation bullet \"Lengths had no stated unit\"; Chapter 2."
+    },
+    {
+      "id": "Q3",
+      "answer": "`cv.open` is bound by hand, and the \"Globals\" section of the reference is fixed hand-written text. The chapter says to list such exceptions in one place and test them separately, because they are exactly the part of the API that drifts (note 10 adds: describe the whole surface, not just the catalogue, and check that the hand-written part agrees).",
+      "where": "Implementation note 8, extended by note 10."
+    },
+    {
+      "id": "Q4",
+      "answer": "So that help, refusals, the agent's reference and the walker treat it like any other operation instead of it becoming a special case with its own documentation and error path. The record describes the composite at the same level as the primitives it is built from, even though the implementation expands into a small graph (two blurs and a subtraction).",
+      "where": "Implementation note 11, \"Composite operations are records too\"; Chapter 3."
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Three independent consumers already exist and must agree: the planner (types and arity), the notebook editor (argument hints and completion) and the error path (\"no function matches the given argument types\", nearest candidates). UDFs are added at run time by users, which is the chapter's third applicability condition, and the registration step is where misdeclared functions must be caught.",
+      "participants": {
+        "Operation record": "One per UDF: qualified name, `on` = the catalog/schema it lives in, argument specs, declared return type (or column list for table functions), flags (deterministic, null-handling, whether it may run row-wise), docstring, and `run` = the Python entry point plus its source hash.",
+        "Argument spec": "Per parameter: name, SQL type, unit where it exists (money, duration, timestamp zone), default, optional/nullable, min/max, usual range with hint, enum values with docs, redirects for names analysts demonstrably typed, doc from the docstring's `:param:` lines.",
+        "Registry": "Validates and stores UDF records at `CREATE FUNCTION` time; enumerates by schema and name for the planner and for completion. This is the only place that decides a UDF is well-formed.",
+        "Binder": "Called by the planner on the parsed call: resolves positional/named arguments against the record, coerces SQL literals to the declared types, checks limits, fills defaults — before anything is executed, so a bad call costs no table scan.",
+        "Describer": "Renders the editor's hover/hint text from the record, one `reference()` line per function for the catalog view, and the full signature with parameter docs on demand.",
+        "Diagnoser": "Builds `E_NO_MATCH` with candidate signatures ranked by how close the actual argument types are, plus nearest function-name matches and any in-record redirects.",
+        "Walker": "A test that, for every registered UDF, binds sample arguments and calls it on a tiny fixture table, asserting the returned column names and types match `fields(args)` and `returns`."
+      },
+      "sketch": "```text\nvalue ArgSpec:   name, type, unit?, default?, optional, min?, max?, usual?, usualHint?, options?, valueDocs?,\n                 redirects?, doc\nvalue OpRecord:  name, on: Schema, args: [ArgSpec], returns: Type,\n                 fields(args) → [ColumnSpec], flags(deterministic, nullSafe, rowWise), doc, sourceHash, run\n\nregister(udfSource) → ok | refuse(E_BAD_UDF, …)\n  rec = parsePython(udfSource)              -- signature, annotations, docstring\n  rec = normalise(rec, declaredTypes)       -- declared SQL types win; defaults and limits live here, not in the body\n  registry.register(rec)                    -- refuses: missing return type, untyped arg, dup param name,\n                                            -- required param after an optional one, unknown declared type\n\n-- planner\nbind(on, name, resolvedArgs) → BoundCall | Refusal     -- same algorithm as the chapter's `bind`\n\n-- editor\nhint(on, name, pos) → ArgSpec | none\ncomplete(on, prefix) → [(name, oneHelpLine(rec)) for rec in registry.matching(on, prefix)]\n\n-- failure\nrefuse(E_NO_MATCH, actualTypes,\n       candidates: rank(registry.signatures(name), actualTypes),\n       nearestName: closest(name, registry.names(on)))\n\n-- walker\nfor rec in registry.all():\n  v = run(bind(rec.on, rec.name, sampleArgs(rec)))      -- sampleArgs from defaults ++ editor example pairs\n  assert columnNames(v) == names(rec.fields(sampleArgs(rec)))\n```",
+      "key_notes": [
+        "Note 1 (validate the record, not only the call) matters most: the record is built from user-submitted source, so an untyped parameter or missing return type must be refused at `CREATE FUNCTION`, not discovered when the planner divides by an unknown arity.",
+        "Note 9 (user-defined operations describe themselves the same way) is the whole situation: parse the Python signature and docstring into the same records built-ins use, and have the planner and editor read that normalised record rather than re-inspecting the source each time.",
+        "Note 7 (pluggable argument types) will pay for itself immediately — you need a SQL type algebra and a Python type mapping, and the coercion rules per type must not accumulate as a switch statement in the binder.",
+        "Note 3 (nothing falls back to a default silently) is the analogue of the sRGB bug here: implicit casting of the string `'1'` to 1, or treating NULL as absent so a default applies, is exactly the plausible-looking wrong answer the pattern exists to prevent.",
+        "Note 5 (describe results) is what the planner and completion need most; return columns are a function of the arguments for table functions, so `fields(args)` must be evaluated after binding, not stored as a constant.",
+        "Note 4 (near-miss redirects live in the record) — analysts' UDFs get renamed and aliased; if redirects live in the notebook's name mapper instead of the record, the planner's error and the editor's completion will disagree.",
+        "Note 8 (few, visible hand-bound exceptions) — variadic `*args`, aggregate UDFs and table-returning functions will not fit one flat ArgSpec list; list them explicitly rather than widening ArgSpec until it means nothing."
+      ],
+      "risk": "The record and the real callable drift: the planner and completion validate against the record while execution calls the Python object, so any registration path that trusts a hand-written annotation, or that lets the function body disagree with its declared types, reproduces the chapter's v1 bug one level up. The second failure is overloads — a registry keyed by (schema, name) cannot hold two UDFs named `clean` with different types, which is precisely the case the \"no function matches the given argument types\" error implies; decide overload sets up front or forbid them at registration."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Every applicability condition fails at once: one consumer (the script), a handful of modules, and the author can read the source. The chapter's own \"Do not use it when\" covers this twice — one consumer means a function signature is enough, and a registry of every module in a program is the chapter's own example of \"a second type system\" with nothing buying it.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Note 7 (a binder becomes a small type system that needs its own design and tests) is the reason not to do this: that cost is listed as a consequence of the pattern, and here it is paid for no consumer.",
+        "Note 1 (validate the record at start-up) only helps if something else reads the record; with one caller there is nothing to disagree with, so the start-up checking catches only mistakes the module's `__init__` signature and type hints would catch at edit time.",
+        "Note 6 (walk the whole registry) would just re-run the dozen modules the script already runs, at the cost of maintaining sample arguments for each.",
+        "The pattern does not fit, so nothing is forced: keep the modules as ordinary classes with typed forward signatures."
+      ],
+      "risk": "Framing this as \"cleanliness\" hides the real motive, which is usually wishing the modules were more uniform. The cheaper fix is a convention on `__init__`/`forward` signatures and a lightweight config record passed to each module — adopt the record idea locally if it helps, but do not add a registry, binder, describer and walker for one caller."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Consequences / Implementation note 6 (walker)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "\"Checking, help, errors and tests agree by construction\" is too strong for the test axis. The walker only asserts that result keys are a subset of the declared fields and that help renders; it does not check declared argument types against what the kernel consumes, does not exercise warnings, limits, redirects or optional arguments, and says nothing about whether `doc` is true. Agreement by construction holds for describer/diagnoser; for the walker it is agreement by assertion over one happy-path sample per record.",
+      "suggestion": "Weaken the claim to \"checking, help and errors cannot disagree, and every record is at least executed once\", and say what the walker does not cover. Also state where `sampleArgs(rec)` comes from: defaults only, a per-record example pair, or a small generator — that determines whether option keys, optional arguments and redirect paths are ever exercised."
+    },
+    {
+      "section": "Sketch `bind` / Argument spec",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The unit is applied to the value (`v = convert(v, spec.unit)`) but the sketch then compares that converted value against `spec.min` / `spec.max` / `spec.usual` without saying what unit those are in — and `default: 2` likewise has unstated units. Structurally this is the v1 bug the chapter opens with, one level down: a spec whose numbers are in document pixels next to a value converted from preview pixels.",
+      "suggestion": "State the invariant explicitly (limits, usual range and default are expressed in the declared `unit`, never in engine units) and say when conversion happens relative to the limit check. Better: make it impossible to write a spec that violates it, by typing the numeric fields as quantities rather than bare numbers."
+    },
+    {
+      "section": "Sketch `bind` (warnings; Collaborations step 2)",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "The prose and note 2 make warnings a first-class part of the pattern (\"a value outside the usual range binds with a warning with a hint\"), but `bind` returns `BoundCall | Refusal` with no channel for warnings; `warn(RANGE, spec.usualHint)` appears from nowhere and its destination — the result, the agent's transcript, a log the caller never reads — is never stated. For an agent, an unread warning is the same as no warning.",
+      "suggestion": "Make the return type carry warnings (for example `BoundCall(rec, args, warnings)`) and add one sentence on how the warning reaches the caller, in the chapter that covers results or refusals. Otherwise drop warnings from the solution and keep them purely advisory in the kernel."
+    },
+    {
+      "section": "Structure / Registry and diagnoser",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The registry \"enumerates them by name and receiver kind\" and `lookup(on, name)` returns one record, yet the Motivation's query-engine example needs the error \"no function matches the given argument types\" — which only exists when one name has several signature records. The chapter never says whether names must be unique per receiver kind or whether overload sets are allowed, and the binder sketch silently assumes the former.",
+      "suggestion": "Add a short paragraph: either `lookup → [OpRecord]` with the binder matching an overload set and the diagnoser ranking candidates by argument types, or an explicit decision that names are unique and overloading is out of scope, with the consequence stated."
+    },
+    {
+      "section": "Structure table / Solution (\"flags\")",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "\"The flags that tell the rest of the system how to treat it\" appears in the Solution, in the Structure table and as `flags` in `OpRecord`, but no flag is ever named or used, and no consumer is said to read one. As written, `flags` is an unexplained bag that a reader cannot reuse.",
+      "suggestion": "Name two or three flags the real system has (purity/cacheability and lazy-versus-eager come to mind given Chapter 3; terminal/row-returning given Chapter 5), say which consumer reads each, and note that flags must be validated at registration like everything else."
+    },
+    {
+      "section": "Forces / Consequences (cross-argument rules)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The Forces admit that \"two arguments that must agree, a result shape that depends on an argument\" do not fit a table, and the Consequences mention \"a validation hook per record\", but there is no participant, no field and no sketch line for that hook. A reader hits the pattern's stated main limitation and is given nothing to implement. `fields(args)` has the same gap: nothing says when it runs or what happens if it cannot decide from the arguments.",
+      "suggestion": "Add `validate(args) → ok | refuse(…)` to `OpRecord`, call it in `bind` after the per-argument checks, and state that it is the sanctioned escape hatch — then note how the walker exercises it."
+    },
+    {
+      "section": "Motivation and Implementation notes 9–10 (Editor lab)",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "There are two running examples. The lab appears once in the Motivation with four unknowns (a \"table of kinds\", `kinds()`, sliders, presets) and then reappears in notes 9 and 10 as \"the lab\" and \"its table\" with no further mapping to the participant names, so a reader outside that project cannot follow those two notes. Note 10 is the worst offender: it is about a hand-written API reference that nothing checks, one level above the catalogue, and it is unclear whether that is a lesson from the lab or a general warning, or whether goja-cv has the same defect.",
+      "suggestion": "Keep goja-cv as the single worked example and reduce the lab to one sentence, or give the lab its own short paragraph mapping kind-table to Operation record and kind settings to ArgSpec so notes 9 and 10 can use the same vocabulary. In note 10, say plainly which project the defect belongs to and what the reader should do about it."
+    },
+    {
+      "section": "Solution and Collaborations versus notes 4, 8, 10",
+      "kind": "other",
+      "severity": "medium",
+      "note": "\"No consumer keeps a list of its own\" is the pattern's headline promise, and the chapter then reports three more redirect tables outside the registry, a hand-bound `cv.open`, a hand-written Globals reference and a hand-written API reference in the lab. These are honest, but they are exceptions to the rule presented without a bound on how much exception is acceptable, so the promise reads as aspirational rather than as the rule the reader should implement.",
+      "suggestion": "Restate the rule with its tolerance: every consumer reads the registry, exceptions live in one enumerated and separately tested list, and a redirect or operation found outside the registry is a bug rather than a style choice. A single sentence on how this debt is tracked would make the pattern's failure modes actionable."
+    },
+    {
+      "section": "Collaborations step 3 and the sketch (unknown method)",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "Collaboration 3 says a failed lookup \"goes to the diagnoser\", but in the sketch `bind` builds the unknown-method refusal itself (`refuse(E_UNKNOWN_METHOD, valid: registry.names(on), …)`), while the diagnoser only appears in the diagram. A reader cannot tell whether the diagnoser is a component with an interface or just a helper the binder calls.",
+      "suggestion": "Give the diagnoser one signature, for example `explain(failure, registry) → Refusal`, and have `bind` return the failure rather than the refusal — or say that `refuse(...)` is a diagnoser entry point and drop the box from the diagram."
+    },
+    {
+      "section": "Solution (describer / reference)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "`reference() → help line for every record` assumes the whole catalogue fits in an agent's context, but the chapter's own example is \"about sixty image operations\" with rich argument specs. Nothing addresses the size of the generated reference, whether there is a one-line and a full form, or how the describer decides what goes in context — even though the Forces mention fluency against honesty and Chapter 5 covers the context block.",
+      "suggestion": "Add a note on two renderings from the same records (a terse line per operation for the context block, full help on request) and one number: how large goja-cv's generated reference actually is."
+    },
+    {
+      "section": "Chapter opening (\"Rating: ★★\")",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "A two-star rating sits above the Intent with no stated scale, no author and no criterion. A reader does not know whether it rates the pattern's strength, its maturity, or the language's confidence in it.",
+      "suggestion": "Say what the rating measures in the overview and drop it here, or add a half-line (\"★★ — worth having; the binder cost is real\") so it does the work an editorial note should do."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 3,
+    "comment": "Participants, forces and the failure stories are concrete enough to act on, but the spec's own unit discipline, the missing cross-argument hook, the undefined flags and the silent assumption of one record per name keep it from being reusable without redesign; the promise \"agree by construction\" also overstates what the walker proves."
+  }
+}

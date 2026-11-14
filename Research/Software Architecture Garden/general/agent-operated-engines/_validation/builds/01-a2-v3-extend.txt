@@ -1,0 +1,10 @@
+== 01 v3 a2 extend
+Ran 25 tests in 0.003s
+
+OK
+Ran 7 tests in 0.002s
+
+OK
+Ran 192 tests in 0.355s
+
+OK

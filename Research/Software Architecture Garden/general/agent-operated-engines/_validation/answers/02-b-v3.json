@@ -1,0 +1,137 @@
+{
+  "restatement": {
+    "intent": "Make how a number is to be read — its unit, its coordinate frame, its sample scale — a tag on the value that carries it, so operations can state which tags they accept and the system can insert or refuse the conversions between them.",
+    "problem": "When a number's unit, frame or scale lives only in the head of whoever wrote the code, reading it on the wrong scale yields a plausible result rather than an error.",
+    "solution": "Tag the container (image, array, table) on three separate axes: space/encoding, frame in a shared coordinate system, and unit of its lengths. Declare directed conversions with cost and losslessness in one catalogue. Each operation declares its work space, whether its inputs must share a frame, and what space its result has; the graph builder inserts catalogue conversions as cached nodes, or refuses with a structured error. Numeric arguments carry declared units and are converted to the evaluation scale; only lossy conversions are forced to be explicit."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Its rule sets works: physical, so its work space is linear light regardless of the receiver's space; the builder converts each input to linear through the catalogue, runs the op, and (result: follows) converts the result back to the receiver's space. On an encoded image that means an inserted as(\"linear\") before and an as(encoded) after, both ordinary cached nodes.",
+      "where": "Solution; Collaborations steps 2 and 4; Sketch (works: physical → linear, then result: follows → convertTo(n, receiver.space)); the `glow = img.exposure(+1)` line in the Sketch"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because all samples of a container share one reading, so the tag need only be checked once per operation; per-element tags would be checked inside the hot loop and buy nothing. The chapter says to attach the tag to the container even when a value could carry one (\"tag the container instead, and check once per operation\").",
+      "where": "Solution; Structure (Tagged value); Applicability, the do-not-use bullet about per-element checks"
+    },
+    {
+      "id": "Q3",
+      "answer": "Conversion code exists once instead of once per kernel, it is cached and deduplicated, and it is a node the agent can inspect in the graph; a new kernel cannot forget to convert (the Editor lab, which converts inside each kernel, is the counter-example).",
+      "where": "Implementation notes 1 (with 8); Collaborations step 4; Consequences"
+    },
+    {
+      "id": "Q4",
+      "answer": "Every value's frame is a rectangle in document coordinates. A crop keeps the rectangle, and a tile opened with `origin:` keeps the full scan's coordinates (`frame [2048, 1024, 1024, 1024]`); a value's own sample buffer is not its coordinate system. Results are reported in document coordinates, which every value shares.",
+      "where": "Collaborations steps 1 and 6; Implementation note 6; the `open(\"tile.tif\", origin: [...])` line in the Sketch"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is the chapter's own finance case: currency is the space axis, minor-vs-major unit is the unit axis, and the transaction date is exactly the conversion parameter of note 7. The frame axis maps onto valuation date (an operation that must use one rate day needs all inputs on that day), which is weaker than a geometric frame but plays the same refusing role.",
+      "participants": {
+        "Tagged value": "each expense row, tagged with currency + transaction date + amount unit; the report set is the container, not the cents",
+        "Conversion catalogue": "the dated FX-rate table: directed per currency pair per day, cheap and lossless in float, lossy when rounded to a minor unit (JPY has 0 decimals); params(tags) → the rate at tags.date",
+        "Operation rule": "`sum` works in a declared output currency and needs each row's own rate day; `avgRate`/`dailyTotal` need one frame (identical rate day) and refuse otherwise; result declared(home currency, report day)",
+        "Argument unit": "major vs minor units (euros vs cents), and percent vs fraction for tax/discount, so a bare 0.2 is read as the declared unit",
+        "Builder": "the report-query layer the assistant writes against; inserts rate conversions as cached nodes, refuses on a missing rate",
+        "Scale binder": "report-time rounding to the home currency's minor unit (precision 2, or 0 for JPY), applied only when printing or saving"
+      },
+      "sketch": "value Tags:  space: Currency, frame: RateDay, unit: Major | Minor\nvalue Money: amount, tags\n\nbuild(total, receiver: MoneyTable, args {in: Currency, on: Day}) → Node | Refusal\n  for row in receiver.rows:                    -- rows keep their own currency and date\n    c = convertTo(row, args.in)                -- rate from params(row.tags): row.frame  (note 7)\n    if c is Refusal: return c                  -- E_RATE(from, to, day) -- no rate that day\n  total = Σ c.amount\n  return Money(total, {space: args.in, frame: args.on, unit: Major})\n\ndailyAvg(rows) -- needs one rate day:\n  if rows[*].frame ≠ rows[0].frame: refuse(E_FRAME, frames: ...,\n     fix: \"value each row on its own day first: total(in: USD, on: each)\")\n\nprint(m) -- the only lossy step: toMinor(m, precision(m.space)), acceptLoss: true",
+      "key_notes": [
+        "Note 7 (conversions may need parameters from the value): the rate must come from each row's transaction date, and that date must enter the conversion node's key — a build-time constant rate is the whole bug this pattern is meant to prevent.",
+        "Note 8 (lossy conversions are explicit): rounding to cents/yen is the only lossy step and must be confined to print/save, never to an intermediate total.",
+        "Note 3 (keep the three axes separate): a single 'money type' would hide whether a refusal is about currency, rate day, or cents-vs-euros.",
+        "Note 10 (warn where you cannot refuse): a chart that deliberately overlays currencies needs an ENCODING-style warning, plus a way to acknowledge it."
+      ],
+      "risk": "The builder only helps if the date really is a tag it must consume. An assistant-written query that applies today's rate to last year's rows, or that picks a cheap triangulation (EUR→USD→JPY) because it is the cheapest catalogue path rather than the correct one, produces a plausible total with no refusal."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Both do-not-use clauses apply: the domain has one representation and means to keep it, and per-sample tags are precisely the per-element check in a performance-critical loop that the chapter forbids. The pattern does fit the plug-in, but with the tag on the buffer/stream (sample rate, layout, linear-vs-dBFS) and on the time and level arguments (ms vs samples vs fraction of buffer), checked once per buffer — the 'one internal space, tags only at the boundary' variation.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability, do-not-use bullet on per-element checking: the proposal as stated is the anti-case, not a stricter version of the pattern.",
+        "Note 2 (put the space on the value, not in the caller's head): it still applies, but the value is the buffer, not the sample.",
+        "Note 1 (kernels never convert): inside a 1 ms inner loop a per-sample conversion is exactly the Editor lab's mistake in a worse place.",
+        "The Variations entry 'one internal space, tags only at the boundary' — the chapter calls this degenerate, yet it is the right answer here."
+      ],
+      "risk": "Implementing the proposal literally costs the 1 ms budget (no SIMD/vectorised inner loop) and hides the real defects — ms passed where samples are expected, dBFS parameters read as linear, host and file sample rates mixed — which buffer-level tags and argument units would catch for free."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Structure (Conversion catalogue) and Sketch (`catalogue.cheapestPath`)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "'Inserts the cheapest path of lossless steps' makes the numerical result depend on cost bookkeeping. Losslessness is stated per precision, so two paths (direct vs via a third space, triangulated currency, or a round trip through a matrix profile) can both be 'lossless' and give different answers; the cheapest is not always the correct one, and the choice silently changes when a catalogue entry is added.",
+      "suggestion": "Declare the path, not just the pair: each entry names its route (direct, or via a named canonical intermediate), and cost is used only for scheduling, never for choosing the result. Say that adding a catalogue entry must not change any existing result."
+    },
+    {
+      "section": "Sketch (`bindArg`) and Argument unit in Structure",
+      "kind": "missing",
+      "severity": "high",
+      "note": "There is no refusal for a wrongly unit-tagged argument: `bindArg` has no failure path, and a bare number 'is in the declared unit', so an agent passing a fraction where document pixels are expected is reinterpreted silently — the naked number the pattern bans comes back through the argument channel. The other three axes all produce refusals (E_FRAME, E_SPACE, E_LOSSY); this one does not.",
+      "suggestion": "Make the argument unit a checked tag with its own refusal (E_UNIT, with valid units and the operation's help text), and show bindArg being called for each numeric argument in the build/eval flow, which the sketch currently never does."
+    },
+    {
+      "section": "Sketch (`build`, sameFrame branch) vs Collaborations step 3",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The sketch always emits the fix 'crop both to the same box', but the text says that for two disjoint tiles cropping is impossible and the fix is to open the region covering both. The pseudocode's hardcoded fix contradicts its own collaboration and would send the agent into a loop of failing crops.",
+      "suggestion": "Compute the fix from the frames (empty intersection → 'open the region covering both: cv.open(path, origin: …)'), or let the refusal carry a fix function of its data."
+    },
+    {
+      "section": "Implementation note 4 (a level is read where it is measured)",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The decision is defensible for levels chosen from stats(), but the chapter never says what happens to a level the agent copied from an encoded readout or from a UI picker — e.g. threshold 0.3 seen on a display curve but evaluated in linear light, where it means a much darker pixel. That is the chapter's own failure mode, reintroduced at the level boundary, and 'the help says so' is not a mechanism.",
+      "suggestion": "State the rule as: a level must declare the space it was read in, and is either refused or converted through the transfer curve. Even if goja-cv chooses not to convert, name the case and the refusal."
+    },
+    {
+      "section": "Implementation note 6 (refuse mismatched extents)",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Refusing anything whose rectangles are not identical, rather than resampling, is right for specks three pixels wide and wrong for GIS layers, compositing and tiled rendering of large rasters, where overlap-and-resample with a recorded sub-pixel offset is the normal operation. The chapter states the choice as if it followed from the pattern.",
+      "suggestion": "Say explicitly that 'identical frames or refuse' is a per-domain policy, and name the alternative: allow overlap, resample, and record the resulting sub-pixel offset in the frame tag so positions stay honest."
+    },
+    {
+      "section": "Implementation note 10 (warn where you cannot refuse)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Warnings are raised next to the call site but there is no way to acknowledge an intended one. Agents will learn to ignore ENCODING the first time a legitimate overlay produces it, which costs the warning its meaning; nothing says how warnings are deduplicated across repeated builds either.",
+      "suggestion": "Add an acknowledgement (an opt-in argument recorded in the graph/cache key) and say warnings are deduplicated per call site so a rebuild does not re-emit them."
+    },
+    {
+      "section": "Variations ('One internal space, tags only at the boundary')",
+      "kind": "other",
+      "severity": "medium",
+      "note": "Calling this 'the degenerate case' biases readers away from the right choice for exactly the domains where the pattern otherwise does not fit — a single-format real-time pipeline, a plugin, a file converter. The chapter gives no criterion for choosing it.",
+      "suggestion": "Say when it is the correct choice: when one internal space is complete for all operations and the only boundaries are load/save; and note the cost of the tag on every boundary crossing."
+    },
+    {
+      "section": "Structure ('Scale binder') and Collaborations step 5",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "The scale binder appears in the participant table and in step 5 but nowhere in the build flow of the sketch, and its responsibility overlaps Argument unit ('declared unit' vs 'converts to buffer scale'). A reader cannot tell whether it runs at build time or evaluation time, or whether it may refuse (e.g. a fraction whose receiver frame is empty).",
+      "suggestion": "Give it one line in the sketch's evaluation path, and state that it is evaluation-time and cannot refuse — build time has already fixed the units."
+    },
+    {
+      "section": "Also known as; Consequences",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "'Colour-managed pipeline' is a known use, not an alias, and 'no naked numbers' is a slogan; the third negative consequence repeats the third force. Both cost the reader time without adding a distinct idea.",
+      "suggestion": "Trim the alias list to units of measure / tagged quantities / typed coordinate spaces, and drop the consequence that restates a force."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The three-axis split and the refusal vocabulary are clear and portable, but the cost-chosen conversion path and the unchecked argument-unit channel are real holes in a chapter whose whole point is that wrong readings fail loudly."
+  }
+}

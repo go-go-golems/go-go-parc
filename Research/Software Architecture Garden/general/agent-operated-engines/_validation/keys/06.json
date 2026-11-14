@@ -1,0 +1,17 @@
+{
+  "quiz": {
+    "a": {
+      "Q1": [["redirect", "typed", "mined"], ["spelling", "edit", "guess", "distance"]],
+      "Q2": [["short", "crop", "drop", "wrong", "mislead", "confiden"]],
+      "Q3": [["hint", "fix", "length"]],
+      "Q4": [["once", "count", "repeat", "500", "noise", "fold", "one warning"]]
+    },
+    "b": {
+      "Q1": [["code"], ["fix"], ["hint"]],
+      "Q2": [["concept", "zoom", "no edit", "distance", "never"]],
+      "Q3": [["did not write", "didn't write", "not write", "wrote", "inserted", "own"]],
+      "Q4": [["delet", "remov"], ["measur", "precise", "wrong", "ignore", "worse"]]
+    }
+  },
+  "fits": {"a": {"T1": true, "T2": false}, "b": {"T1": true, "T2": false}}
+}

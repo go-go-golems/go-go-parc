@@ -1,0 +1,136 @@
+{
+  "restatement": {
+    "intent": "Let an engine answer a request for a small region by computing only that region plus the margin each operation needs, producing exactly the values a whole-input computation would have produced there.",
+    "problem": "When every operation runs over the whole input, the cost of a tiny window equals the cost of the whole input, and the only safe way to compute less is to know exactly what each operation reads.",
+    "solution": "Give every operation a declared reach — zero, a distance, or global. Carry a window through evaluation: a node asks each input for the window grown by its own reach and clipped to that input's extent, computes on what it gets, and returns only the requested window. A global operation stops the request and forces whole evaluation; an operation whose parameters are global but whose application is local is split into a statistic node plus a local node so windows keep flowing. Serve a cached whole result when one exists, and prove the scheme per operation with an invariance test: windowed result must equal the whole result cut to the same window."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Every output position inside the requested window read only inputs that were actually computed: the input window was grown by the node's reach before being fetched. Only positions in the margin, which may have been cut short by clipping, can be wrong, and those are discarded by cutting back to the requested window.",
+      "where": "Solution; Collaborations step 5"
+    },
+    {
+      "id": "Q2",
+      "answer": "It stops there: the node is evaluated whole (its input read in full, no window propagated), and the requested window is cut from that whole result. Splitting the operation into a global statistic and a local application is the way to stop windows from dying at that point.",
+      "where": "Solution; Structure (Global barrier); Collaborations step 3"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because today's second request for another window of the same view costs nothing — the whole value is cached. A window-and-reach design that always recomputes from inputs would make that already-cheap case slower, so the cache lookup for the whole value comes first and the window is cut from it.",
+      "where": "Implementation note 6; Collaborations step 2"
+    },
+    {
+      "id": "Q4",
+      "answer": "A grid that follows each node's own extent gives every node its own phase, so two crops of the same scan starting at different offsets never land on a shared tile and the work is never reused. A grid in the source's coordinates makes overlapping requests from different nodes meet on the same tiles.",
+      "where": "Implementation note 9"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "It is the same shape as the chapter's own map-server example: large source, windows arriving as display tiles, and every step (smooth, hillshade slope, contour join, label avoidance) reads a bounded neighbourhood. The 50 GB raster is exactly the case where cost must follow request size, not input size.",
+      "participants": {
+        "Reach": "Declared per layer kind on the elevation pyramid: smoothing distance(ceil(3σ)) in raster pixels of the chosen level, hillshade distance(1–2) for slope/curvature taps, contour distance(2) for line join, label placement distance(glyph radius) for collision inside the apron, zero for styling/colour ramp application.",
+        "Window": "The 256-pixel output tile the map client asks for, expressed in the raster level's coordinates.",
+        "Region evaluator": "Pulls the elevation and derived layers for tile + apron only, cuts each result back to the tile.",
+        "Global barrier": "Any label collision or contour thinning resolved across the whole map, and any global elevation min/max for the colour ramp. Avoid the first by per-tile placement with a sufficient apron; convert the second into a statistic node.",
+        "Statistic node": "Global elevation range / hillshade percentiles used to fix the colour ramp, computed once per raster (or per coarse pyramid level, if approximation is acceptable) and cached.",
+        "Tile grid": "The web map tile grid, snapped to the raster's own origin and pyramid level so panning and neighbouring tiles share work.",
+        "Invariance test": "Render tile+apron per layer at every zoom level and compare to the corresponding cut of a whole-level render."
+      },
+      "sketch": "reach(smooth, σs, level) → distance(ceil(3σs / level))   -- raster px at that level\nreach(hillshade, cfg, level) → distance(2)\nreach(contour, iso, level)  → distance(2)          -- marching squares + join\nreach(labels, style, level) → distance(glyphRadius)\n\nrender(tile, level) → Image                        -- tile = {x, y, 256, 256}\n  levels = pyramid(level)                          -- scale fixed before any reach is computed\n  v = evaluate(chain(levels), tile, level)\n  return v\n\nevaluate(n, window, level) → Value\n  if cache.has(key(n, level)): return cut(cache.get(key(n, level)), window)\n  r = reach(n.op, n.args, level)\n  if r is global or area(window) > 0.5 × area(n.extent):\n    return cut(evaluateWhole(n, level), window)    -- whole level is itself rendered in tiles\n  m = r.d\n  ins = parallel([evaluate(i, clip(grow(window, m), i.extent), level)\n                  for i in n.inputs])\n  v = n.op.run(ins, n.args, origin: window.origin) -- source coords, not buffer coords\n  return cache.put(key(n, level, tile_of(window)), cut(v, window))",
+      "key_notes": [
+        "Note 4 matters most: reach must be declared against the pyramid level. σ is in document pixels but the raster is resampled per zoom, so the same smoothing has a large source-pixel reach at zoom-out and a small one at zoom-in; getting this wrong puts seams between tiles that only appear at some zooms.",
+        "Note 9: pan requests arrive at arbitrary offsets, so the tile grid must be snapped to the elevation raster's origin, not to each derived layer's extent, or adjacent pans never reuse tiles.",
+        "Note 2: hillshade and smoothing hit the real data edge, and the apron must meet it exactly; kernels must be told where the raster's true border is rather than applying edge/mirror rules at the apron boundary.",
+        "Note 8: 256 is a good default because the apron cost is (T+2m)²/T², but contour and label reaches grow at coarse levels, so tile size or apron must grow there; measure per layer rather than choosing one size for the whole stack.",
+        "Note 1: run the invariance test per layer at the largest σ and at every zoom level, not once at scale 1 — a reach that is only off by one at a downscaled level is invisible in review."
+      ],
+      "risk": "Tile seams from a reach that is right at one zoom and wrong at another, and duplicated or clipped contour lines and labels at tile edges because label placement is resolved globally instead of within an apron sized for the largest glyph."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The computation is exactly what the chapter rules out: connected components and total blob area are global, so the request would hit a global barrier at the first operation and be evaluated whole — the proposed tile-only evaluation would either produce wrong labels near the tile edge (a blob continues outside) or wrong areas (a blob's area is not visible from the tile). The chapter lists connected components under 'Do not use it' and marks them global in note 5.",
+      "participants": {
+        "Global barrier": "The labelling pass itself: it must see the whole image and cannot be windowed.",
+        "Statistic node": "The per-label area table (and a spatial index of which labels touch which region) — the global half, computed once and cached.",
+        "Window": "The requested tile, used only against the precomputed label raster and area table.",
+        "Region evaluator": "A zero-reach lookup over the tile: read labels in the tile, look up their areas, take the max."
+      },
+      "sketch": "",
+      "key_notes": [
+        "The chapter's split (note 5) is the honest alternative, but it is not the developer's proposal: run labelling once over the whole image as a global barrier, cache the label raster plus an area-per-label table, then serve each tile as a zero-reach local lookup — `ids = labels[tile]; answers = max_by(id -> area[id], unique(ids))`.",
+        "Note 6 applies: the whole label raster must be cached, because recomputing it per tile is the 50 GB whole-input cost again.",
+        "The 'largest blob touching the tile' figure is also not a property of the tile — two tiles may legitimately report the same blob with the same area, which is fine only because the global table exists; without it, tile-local areas silently disagree across neighbouring requests."
+      ],
+      "risk": "Forcing a fit: declaring blob finding as a distance reach and shipping it produces ids that differ between adjacent tiles and areas that grow as the tile grows — a wrong answer that looks plausible on isolated test tiles."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Solution and Sketch (reach vs. margin)",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "`reach(op, args, scale)` is declared as a function of the scale, yet the sketch then computes `margin = r.d / scale`, dividing the returned distance by scale again. A reader cannot tell whether reach returns document pixels or buffer pixels; the two readings differ by scale squared, and the worked example only uses scale 1, so nothing exposes the mistake.",
+      "suggestion": "Pick one: reach returns a length in document coordinates (per Chapter 2) and the division disappears, or it returns buffer pixels and `scale` leaves the signature. Then add one worked example at scale 0.5 with the arithmetic shown."
+    },
+    {
+      "section": "Sketch / Structure (resampling)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "No operation that changes scale appears anywhere. Resize and interpolation are where window arithmetic actually gets hard: the scale changes across the node, the ratio is often non-integer, and pixel-centre offsets decide whether the result is off by one. The chapter defers all of this to Chapter 2, but reach and window growth are this chapter's subject.",
+      "suggestion": "Add a `resample(factor)` case: the input window is the output window scaled by 1/factor, grown by the kernel radius, with an explicit rounding rule, plus an invariance test at non-integer ratios. Also say whether pyramid-level selection is a node or a choice of scale."
+    },
+    {
+      "section": "Sketch / Structure (multiple inputs)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The sketch grows every input window by the same single margin and calls the operation with `origin: inputWindows[0].origin`. That assumes all inputs share geometry and scale. Blends with a half-resolution mask, or composites of images with different extents, cannot be expressed.",
+      "suggestion": "State that reach is per-input (a list, or a per-port declaration), and show a two-input example where the mask is requested at a different window than the image."
+    },
+    {
+      "section": "Reach as a scalar distance",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Reach is one scalar, so growth is square in both axes. Directional operations — a separable pass, a derivative along x, a motion blur — declare a large reach in one axis only and are forced to read a square margin. Note 8's cost figures all assume square tiles and square margins, which hides this.",
+      "suggestion": "Make reach `distance(dx, dy)` (zero, a pair, or global) and grow the window per axis; the clipping and invariance test are unchanged."
+    },
+    {
+      "section": "Consequences vs. Implementation notes 3 and 'evaluate whole'",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The consequence 'large inputs no longer need to fit whole' conflicts with the rule that a node is evaluated whole when the window exceeds half its extent, and with the global barrier, which reads its whole input. Nothing in the chapter says how a global statistic over a 50 GB input is computed without materialising it, so the memory claim only holds for chains without global operations.",
+      "suggestion": "Add that whole evaluation is itself chunked (one pass accumulating the statistic over tiles, a second applying it), and restate the bound honestly: tile + margin per worker, plus whatever the largest global barrier needs."
+    },
+    {
+      "section": "Sketch (invariance test) vs. Implementation notes 1 and 4",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The invariance test loop fixes `scale = 1`, while note 1 demands testing 'at the largest arguments agents use' and note 4 says reach depends on the scale. A reach that is wrong only at downscaled levels — the most likely bug — passes the test as written.",
+      "suggestion": "Loop over the scales or pyramid levels the engine supports as well as over window positions and the operation's largest arguments, and say that `chain(op)` should include at least one two-input case."
+    },
+    {
+      "section": "Implementation notes 8–9",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The bench numbers (1 : 2.4 : 5.8 at 64/128/256 px, '3.5 times slower at 64') are one lab's workload and do not transfer; presented next to the reusable formula (T+2m)²/T² they borrow its authority without carrying its reasoning.",
+      "suggestion": "Keep the formula as the transferable content, mark the numbers explicitly as one workload, and move the tuning procedure to Chapter 13, which the chapter already cites."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The three 'naive fixes' restate the Forces, and the 'other domains' list restates Applicability and Known uses. Only the timing figures (161 ms / 662 ms / 3.1 s, 3.6 GB) are unique evidence here.",
+      "suggestion": "Cut to one paragraph built around the cost table, and let Applicability and Known uses carry the domain list."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The shape (declared reach, window growth, global barrier, invariance test) is easy to remember and the test is the real contribution, but the reach/scale unit ambiguity and the total absence of a resampling or multi-input case will bite anyone whose pipeline is not a plain single-input neighbourhood chain."
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "changed_files": {
+    "hubreg/plugins/__init__.py": "new package exposing the third-party plug-in module",
+    "hubreg/plugins/light_color.py": "new plug-in: the rgb ArgType and the light.set_color record, registered with one register(registry) call; imports only the ArgType interface, not the binder",
+    "hubreg/voice.py": "new fourth consumer: generates example voice phrases per record from names, kinds, argument names, units, defaults, enum values, samples and docs",
+    "hubreg/registry.py": "added the public voice_phrases() method required by the API, delegating to hubreg/voice.py; binder, registration validation and storage logic untouched",
+    "hubreg/demo.py": "renamed the thermostat argument target -> temperature with an option redirect for old callers, updated its run/samples, and registered the light_color plug-in in demo_registry()",
+    "hubreg/cli.py": "example text now says temperature=21 instead of the renamed target=21",
+    "tests/test_extensions.py": "new tests for the rgb plug-in, voice_phrases and the thermostat rename",
+    "tests/test_binding.py": "thermostat demo bindings use temperature",
+    "tests/test_consumers.py": "schema/control/help expectations use temperature and include light.set_color",
+    "tests/test_demo.py": "expects five actions and the renamed argument",
+    "tests/test_cli.py": "CLI calls use temperature, the redirect-fix test uses temp, describe expects five schemas"
+  },
+  "core_untouched": true,
+  "new_tests": "27 new tests in tests/test_extensions.py; full suite is now 186 tests and the last run of python3 -m unittest discover -s tests was 'Ran 186 tests ... OK' (demo_registry().walk() == []).",
+  "design_notes": [
+    "Requirement 1 was a data-only addition because the first version already had the ArgType interface from chapter note 6: the plug-in module defines RgbType (accepts/describe/expected) and a normal record, and the host calls registry.register_type + registry.register. No binder, spec validation or storage change was needed; only hubreg/demo.py gained one registration line.",
+    "The one ambiguity was how a non-JSON-Schema argument type should look in a tool schema. The requirement says schemas must describe the argument with type rgb, so RgbType.describe returns {\"type\": \"rgb\", \"pattern\": \"^#[0-9a-fA-F]{6}$\", \"example\": \"#ff8800\"}; controls needed no work at all because they read spec['type'] directly.",
+    "Requirement 2 could not be a pure plug-in because the API names reg.voice_phrases(); the smallest honest change was a two-line delegate in Registry. Phrase generation itself is a separate consumer module and holds only sentence templates, never per-action lists: the action name supplies verb and object, defaults/samples/enum values supply numbers and words, units are spelled out for speech, and the action's first doc sentence supplies a fallback phrase.",
+    "Natural phrasing from arbitrary action names remains heuristic (verb-first names read best); the generator only promises a non-empty, unique list, which is what the records can guarantee.",
+    "Requirement 3 was easy because option redirects already live in ArgSpecs and registration validates that their targets exist: the rename is one data edit plus {\"target\": \"temperature\", \"temp\": \"temperature\"}. The unknown-key-before-missing-argument check added earlier is what makes target=21 produce E_UNKNOWN_OPTION with fix 'temperature=<value>' instead of an unhelpful 'temperature is missing'.",
+    "The action result fields were left as [\"target\", \"mode\"] because the requirement renames the argument, not the result contract; temperature=21 runs and returns {'target': 21, 'mode': 'comfort'}."
+  ],
+  "chapter_feedback": [
+    "Keeping every near-miss redirect in the records (note 4) is exactly what made the argument rename a data change rather than a binder change; the chapter's insistence that redirects are validated at registration also caught nothing only because the redirect target already existed.",
+    "The chapter's pluggable-argument-type note (note 6) made requirement 1 straightforward, but it does not say how a domain type should be rendered in a JSON tool schema, so choosing type 'rgb' versus 'string' plus a format/pattern was a guess.",
+    "The chapter has no fourth consumer that speaks natural language, and no guidance on generating prose from records; the voice consumer had to be invented, and its phrasing rules are heuristics rather than anything the pattern prescribes.",
+    "The chapter treats the registry as the single source but does not discuss whether a new consumer method on the registry counts as 'core'; I read 'core untouched' as binder/validation/storage untouched and added only the delegate the public API demands.",
+    "The chapter's warning that generated help is flat also applies to generated speech: the templates are correct and always current but read mechanically; good voice phrasing still needs written guidance."
+  ]
+}

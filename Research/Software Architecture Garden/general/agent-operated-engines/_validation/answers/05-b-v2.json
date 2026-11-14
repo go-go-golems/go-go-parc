@@ -1,0 +1,146 @@
+{
+  "restatement": {
+    "intent": "Replace a large per-operation tool catalogue with one tool that runs a short program against the engine's API inside a session that survives between calls, and return what the program produced in a form the agent can actually read.",
+    "problem": "One-tool-per-operation agents cannot loop, filter or combine steps without extra round trips and drown the catalogue in context, while agents that send whole programs lose state, flood the context with results and silently lose what their programs created.",
+    "solution": "One eval tool runs a program in a persistent session, with one named state object holding everything that must survive. The session is split into a generic runtime (execute, time out, persist) and a domain result processor (before-hook reset, render value/warnings/context/deliverables, render failures). The reply is capped text plus tables for flat records, folded warnings, a context block rebuilt each call, and every created picture within a budget with placeholders for the rest. Helper libraries load as layered preludes or by name and describe themselves."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A generic runtime/session (executes programs one at a time with a timeout, owns state and loaded libraries, applies policies) and a domain result processor (before-hook, process, processFailure). The session is the generic part; the processor is plugged in per engine.",
+      "where": "Solution; Structure table; Implementation note 2"
+    },
+    {
+      "id": "Q2",
+      "answer": "Agents do their filtering and sorting in plain code, so lists of flat records are the common return shape; a header line plus one line per record is far more compact than nested YAML and easier to scan.",
+      "where": "Implementation note 3 (and Sketch: tables for arrays of >= 2 flat records)"
+    },
+    {
+      "id": "Q3",
+      "answer": "The 39 agents never called cv.docs or cv.help; they learned the API from the helpers and from the results they got back. Conclusion: put the contract, hints and fixes in the reply and in helper source, not in documentation the agent must read.",
+      "where": "Motivation; Implementation note 10"
+    },
+    {
+      "id": "Q4",
+      "answer": "It fired 19 times in the annotator study and 18 of those firings were on correct code. Lesson: a warning that is usually wrong teaches agents to ignore warnings, so lints must be precise or absent.",
+      "where": "Implementation note 11"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Long experiments over one engine with data-dependent loops (sweeps, sweep-and-measure, filter candidates by score), heavy structured output (sensor traces) and heavy deliverables (camera frames) is exactly the shape the pattern was built for.",
+      "participants": {
+        "Eval tool": "one `eval` tool whose program body has the simulator API in scope (spawn, step, read sensor, render)",
+        "Session": "one persistent simulator instance, programs run one at a time under a per-call timeout, policies for read-only inspection versus running experiments",
+        "State object": "`mem` holds experiment config, spawned-object handles, collected traces; anything not on `mem` is lost between calls",
+        "Result processor": "resets the frame/warning queues per call, renders sensor traces as tables, renders failures with the offending line inside the agent's program",
+        "Context block": "current sim parameters, live object handles with their kinds, helper signatures, deltas since last call",
+        "Deliverables queue": "camera frames created during the program, delivered in order under a count and byte budget (frames are large, so the 8 MiB half matters), excess frames named by line",
+        "Library loader": "preludes: a general sim-helpers library, then a task library (sweep controller, reward shaping) built on it; also loadable by name"
+      },
+      "sketch": "-- session with layered preludes\nsession = Session(simRuntime, simProcessor,\n                  policy: {timeout: 120s, readOnly: false},\n                  preludes: [\"sim-helpers.js\", \"sweep-helpers.js\"])\n\neval(program) → Reply   -- body of an async fn; mem survives between calls\n\n-- one call: sweep a parameter, keep the best runs, show a frame\nmem.arm = await sim.spawn(\"arm\", {mass: 1.2})\nmem.runs = []\nfor (let g of [0.5, 1, 2, 5]) {\n  mem.arm = copy(mem.arm, gain: g)\n  mem.runs.push(await sweep(mem.arm, {steps: 2000}))   -- helper from prelude\n}\nmem.best = mem.runs.filter(r => !r.collided).sort(byScore).slice(0, 3)\nawait sim.camera(\"side\").look(\"best run\")              -- joins deliverables queue\nreturn sim.table(mem.best)                            -- table, 2/3 of CAP, rows-shown note",
+      "key_notes": [
+        "Note 1 (make state explicit): object handles are the thing that must survive; if they sit in a local instead of `mem`, the next call cannot step the object it spawned.",
+        "Note 6 (deliver every picture): frames rendered inside a step loop used as bare statements are the main deliverable and the main silent-loss risk; deliver all created frames with the count/byte budget and line-named placeholders.",
+        "Note 9 (failures, timeouts): a 30s-scale timeout mid-episode leaves the simulator part-stepped; contract must say that state assigned before it persists and that the world itself may be dirty.",
+        "Note 3 (cap the text): sensor traces are the flood; tables plus a rows-shown note are what keeps a 2000-step run readable.",
+        "Note 7 (load, don't paste): controllers and reward shaping are 3 KB-scale helper files loaded as layered preludes, not pasted into each call."
+      ],
+      "risk": "Treating `mem` as the whole session state. The simulator's world state persists too but appears in no context block, so after a timed-out or failed call the agent cannot see that the world is mid-episode or mutated, and later measurements silently depend on hidden physics history. Mitigation: an explicit `reset()`/epoch counter in the context block and a fresh session per experiment."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The pattern's central mechanism is the property the auditors forbid: a persistent session, a surviving state object and results that depend on history. The chapter's own Applicability says not to use it when every call must be reproducible on its own, and the stateless-eval variation is a different pattern.",
+      "participants": {
+        "Eval tool": "not applicable — only the reply-shaping half transfers: a stateless runner that echoes the inputs it used",
+        "Session": "not applicable — no session; each call is a fresh, hermetic invocation",
+        "State object": "not applicable — state is an explicit input on every call, echoed back in the reply",
+        "Result processor": "keeps: capped text, tables for flat records, structured failures — this part is reusable without persistence",
+        "Context block": "reduced to a statement of what the call consumed (inputs, version/params), never what earlier calls left behind",
+        "Deliverables queue": "keeps: per-call artefacts within a budget, named in the reply (no cross-call queue)",
+        "Library loader": "preludes are acceptable only if pinned by version/hash and the reply records exactly which ones ran"
+      },
+      "sketch": "",
+      "key_notes": [
+        "Note 3 (cap and say how to get the rest) and Note 4 (tables): these survive the substitution and make audit replies readable.",
+        "Note 9 (failures are replies): a structured refusal with the failing line is what an auditor actually needs; keep it.",
+        "Note 2 (generic session vs domain processor): reusing the domain processor over a stateless runner is the legitimate part of the proposal — the session must not be reused."
+      ],
+      "risk": "Shipping the persistent version anyway and calling a logged transcript 'reproducible'. Hidden `mem` and simulator/engine state make replays diverge while every call still looks recorded, which is the worst outcome for an audit."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Structure › Eval tool",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The tool description is quoted 'in full' from goja-cv, so the reader cannot tell which sentences are the pattern's contract and which are that project's names (`cv.load`, `node.look`, `mem`, 9000 chars). The most reusable artefact in the chapter is currently un-reusable.",
+      "suggestion": "Replace with a checklist of what any such description must state (runtime and language, await/return semantics, where state lives, cap and how to get more, how pictures attach, how helpers load), and keep the goja-cv text as a boxed example under it."
+    },
+    {
+      "section": "Collaborations step 2 vs Implementation note 2",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The processor's before-hook 'links the call's deadline to the engine', but note 2 and the Structure table say the generic session owns timeouts and the policy. Wiring the deadline from the domain processor contradicts the generic/domain split the chapter insists on.",
+      "suggestion": "Let the session read `policy.timeout` and enforce the deadline (throwing E_TIMEOUT for the processor to render); leave the before-hook with domain work only — resetting the deliverables and warning queues."
+    },
+    {
+      "section": "Sketch: contextBlock + Implementation note 5",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "`docs = [... if new or changed since last call]` needs a stored source hash per helper, but nothing in the sketch holds it, and no rule says when the snapshot resets (session restart, library reload, agent redefining a helper, name shadowing).",
+      "suggestion": "Add an explicit `seen: map<name, sourceHash>` field on the result processor with the reset rule written out; the delta logic is the part agents depend on and it is the least specified."
+    },
+    {
+      "section": "Solution / Implementation note 3",
+      "kind": "missing",
+      "severity": "high",
+      "note": "CAP bounds only the rendered value; warnings, folded lines and the context block are appended afterwards with no bound, and the context block grows with every `mem` key and every helper. A hot session can therefore produce a reply far over CAP, which is precisely the force the chapter claims to resolve.",
+      "suggestion": "Give the context block its own budget (say top-N keys by recency, plus counts of the rest) and state the invariant 'total reply <= CAP + bounded tail' in the Solution and Forces."
+    },
+    {
+      "section": "Structure › Library loader / Collaborations 1",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "A prelude that fails 'stops the session from starting', but there is no reply channel at that moment: the agent gets a tool error, so the chapter's own structured-refusal machinery never runs for the most likely startup failure.",
+      "suggestion": "Say what the agent receives (a startup refusal naming the prelude, the failing line and the fix, delivered as the tool result) and whether the session can be retried or must be recreated."
+    },
+    {
+      "section": "Structure › Context block / Implementation note 8",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The context block lists helpers that are installed, but never the libraries that exist and are not loaded. Library discovery therefore hangs on a sentence in goja-cv's tool description (`cv.scripts()`), not on the pattern; a task library available but unloaded is invisible.",
+      "suggestion": "Add the list of loadable scripts (names only; doc line on first listing) to the context block, exactly like helper doc deltas."
+    },
+    {
+      "section": "Solution / Sketch (concurrency)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "'Executes programs one at a time' appears once, in the Structure table, and nothing says what happens to a second eval issued while one is running — queue, refuse, or abort. Since the warning list and deliverables queue are per-call, a shared session used in parallel would mix them.",
+      "suggestion": "Add a policy knob (`queue | refuse`) and a refusal kind, and note that per-call queues must be keyed by call, not by session."
+    },
+    {
+      "section": "Applicability, second bullet",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "'The host cannot run code safely... replace the eval tool with the structured-call variation' does not follow: a structured call still drives the same engine with the same side effects, and it loses loops and filtering, which is the Motivation. 'Untrusted callers' also mixes a multi-tenant host concern into a single-agent tool.",
+      "suggestion": "Split into two bullets: no sandbox -> stateless/no-code execution path; hostile or untrusted caller -> separate narrow tools with per-action confirmation. Say what risk each substitution actually removes."
+    },
+    {
+      "section": "Motivation / Known uses / Variations",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The three 'shape recurs' bullets, the four Known-uses items and the Variations list restate the same applicability ground three times, and the study numbers (39 agents, 374 evals, 39 pastes, 3.2 KB) are quoted with no sample, baseline or cost of the fix, so a reader cannot judge how far they generalize.",
+      "suggestion": "Cut the restatement, keep the two numbers that drove a design decision, and add one measured before/after (round trips or tokens per task) so the study claim earns the space it takes."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The shape, the failure catalogue and the generic/domain split are clear enough to rebuild, but the pasted eval-tool description, the deadline in the processor's hook, and an unbounded context block undercut the generality the chapter claims."
+  }
+}

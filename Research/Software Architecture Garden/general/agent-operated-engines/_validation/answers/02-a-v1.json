@@ -1,0 +1,145 @@
+{
+  "restatement": {
+    "intent": "Make the interpretation of every number — its unit, its coordinate frame, its encoding or scale — a tag that travels with the value, so nothing downstream can read it on the wrong scale by accident.",
+    "problem": "When a number's unit, frame or scale lives only in the author's head, reading it on the wrong scale yields a plausible wrong answer instead of an error.",
+    "solution": "Every value carries its tags. Every operation declares a rule: it computes in a declared space (physical/linear, display/encoded) or follows its receiver, needs inputs from one frame, and states the tags of its result. The graph builder — not the kernels — satisfies those rules at build time by inserting ordinary, cached conversion steps (as(space), reproject, rescale), refusing with a structured refusal where no conversion is defined. Numeric arguments carry units too, and a scale binder converts them (pixels, px², fractions, levels) to the scale actually being evaluated. Results are reported back in the frame the caller can use."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Not the kernels. The builder (graph-construction time) inserts conversion nodes; kernels assume their declared space. Conversion code then exists once, is cached like any node, and appears in the inspectable graph — unlike the Editor lab, where each physical kernel converts to linear and back inside its own loop.",
+      "where": "Implementation note 1; Structure (Builder, Conversion step); Collaborations step 2"
+    },
+    {
+      "id": "Q2",
+      "answer": "Because area scales with the square of the evaluation scale: a minimum area given in document px² becomes a hundred times too strict at one-tenth scale if scaled linearly. DocPx2 is a separate unit so the binder multiplies by scale².",
+      "where": "Implementation note 4; Sketch (bindLength's `docPx2 → arg.value × scale²`)"
+    },
+    {
+      "id": "Q3",
+      "answer": "It refuses with E_FRAME, naming both frames and hinting to crop both inputs alike. It does not resample because silent resampling would shift masks against images by fractions of a pixel, which is decisive for specks three pixels wide.",
+      "where": "Collaborations step 3; Implementation note 6"
+    },
+    {
+      "id": "Q4",
+      "answer": "The stored radius was the radius of a circle fitted to the speck — roughly twice the speck's own radius — and nothing in the data said so, so every measurement made with it was wrong (median SNR 0.86 instead of 1.56) until someone compared numbers against pictures. Lesson: tag data you did not produce; a field's unit and definition belong next to it in the schema.",
+      "where": "Motivation; Implementation note 7"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "This is a textbook instance: the same position and the same length have several legitimate readings (degrees vs national grid metres, raw-image pixels vs mosaic pixels, metres vs hectares) and a mix-up produces a plausible outline or area rather than a crash. Every chapter axis — unit, frame, encoding/space — occurs in some form.",
+      "participants": {
+        "Tagged value": "Each photo/stub: position tagged frame = wgs84-deg, altitude tagged len = m (with datum noted), intrinsics tagged len = rawPx. Each mosaic and field outline tagged frame = grid-<zone> (metres), area tagged m2.",
+        "Operation rule": "Orthorectify/stitch: works in grid metres, needs a declared CRS + datum, resultSpace = grid. Outline area: needsSameFrame = true, works in grid metres, resultUnit = m2. Buffer: works in grid metres. Nothing computes area or distance in degrees.",
+        "Argument unit": "\"2 hectares\" in the agent's query is a tagged Level/area argument, not a bare 2; a 5 m buffer is metres of ground, not pixels; an altitude is metres above the named datum, not above an unnamed ellipsoid.",
+        "Builder": "The query/pipeline builder reads each operation's rule, reprojects source rasters or outlines to the grid before geometric work, inserts the hectare→m² conversion for the comparison, and refuses a query that mixes two grid zones or an unreprojected degree layer.",
+        "Conversion step": "reproject(wgs84-deg → grid-32N) and rescale(ha → m²) and mosaicPx↔m via GSD — ordinary, hash-consed, cached nodes that show up in the plan the agent can inspect.",
+        "Scale binder": "Converts ground-metre arguments to pixels of the mosaic resolution actually being evaluated (full vs downsampled preview), so a 5 m buffer or a 0.5 m minimum-gap means the same at either resolution.",
+        "Reporter": "Outlines come back in national-grid metres with areas in m² (and hectares on request); a second rendering path re-expresses them in lat/lon for map display, as an explicit conversion rather than the storage format."
+      },
+      "sketch": "```text\nvalue Tags:  frame: CRS (wgs84-deg | grid-32N), len: m | rawPx | mosaicPx, area: m2\nvalue Raster: pixels, tags\n\nrule(orthoStitch) → { works: grid, needsSameFrame: false, resultSpace: grid }\nrule(outlineArea) → { works: grid, needsSameFrame: true, resultUnit: m2 }\nquery level \"2 ha\" → ArgumentUnit(ha)\n\nbuild(outlineArea, mosaic, {minArea: 2 ha})\n  rule = outlineArea.rule\n  inputs = [mosaic] ++ (outline layers)\n  for x in inputs[1:]:\n    if x.frame ≠ mosaic.frame:\n      if rule.needsSameFrame and no CRS transform known:\n        return refuse(E_FRAME, frames: [mosaic.frame, x.frame], hint: \"reproject to grid-32N\")\n      inputs = replace(inputs, x → convertNode(x, frame: grid))   -- reproject node, cached\n  n = node(\"outlineArea\", inputs)\n  minArea = bindArea(2 ha, scale)     -- ha × 10_000, then × scale² if computed on a raster\n  return compare(n, minArea)\n\n-- in use\nm = orthoStitch(photos)               -- degree positions reprojected once, explicitly\nbig = m.outlines(outlineArea, minArea: 2 ha)\nbig[i].corners                        -- grid metres; .as(\"wgs84-deg\") for a map\n```",
+      "key_notes": [
+        "6 (refuse across frames, do not resample silently) — here the temptation is the opposite of the chapter's: reprojecting degrees to a grid is *not* a cheap resample, it needs a declared CRS and datum, so the builder must insert it visibly and refuse for third-party layers whose CRS is unknown.",
+        "5 (frames are tags) — every stored photo, tile, mosaic and field outline must carry the frame it came from, or the origin problem reappears as outlines that shimmy between tiles.",
+        "4 (areas scale with the square) — hectares→m² is the easy half; the harder half is that an area threshold applied to a downsampled mosaic scales by scale², and areas computed on unprojected lat/lon are wrong by the cosine of the latitude.",
+        "3 (argument units for thresholds) — \"larger than 2 hectares\" must be a tagged argument so a query writer cannot mean 2 m² or 2 pixels; the hectare conversion belongs in the binder, not in a magic 10_000 in the DSL.",
+        "7 (tag data you did not produce) — third-party field outlines, and altitude (ellipsoidal vs orthometric, and which datum), arrive undocumented exactly like the gold-label radius; put unit and definition in the schema next to the column.",
+        "10 (canonical internal, original available) — orthorectify and measure in the grid; render in lat/lon only at the edge, so display never leaks into computation."
+      ],
+      "risk": "Two silent identity conflations: (a) assuming degrees are metres, or reprojecting with an unstated datum / stitching across a UTM zone boundary while calling it one grid; (b) treating \"pixels\" as one unit when raw camera pixels and mosaic pixels are different scales — a 20-pixel radius on the raw frame is nothing like 20 pixels of mosaic. Both produce plausible outlines and plausible areas with no error."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "None of the pattern's preconditions hold: no quantity, no second representation, no conversion, and no plausible-but-wrong arithmetic to prevent. The tags would be pure ceremony and would train the team to see the pattern as bureaucracy, which damages it where it does belong. Birth dates and emails need validation and normalisation rules, which are a different mechanism.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "Applicability's first \"do not use\" bullet is the direct answer: every value has one representation and always will.",
+        "The only honest partial borrow is the \"tags as metadata sidecars\" variation — document each column's meaning and format in the schema (note 7's lesson, minus run-time enforcement). Note 7 is about a stored field whose *definition* was wrong, not about units; the same schema-level documentation applies, but without tags, rules, a builder or refusals."
+      ],
+      "risk": "Cargo-culting: attaching `unit: none, frame: none` to every string so the mechanism exists, which adds ceremony to every call and buys nothing — and, worse, invites people to discount the pattern later when it genuinely matters (positions, lengths, sizes)."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch (`build` / `convertNode`)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`convertNode` is declared `Node | Refusal` and returns `refuse(E_SPACE, …)`, but it is called inside a list comprehension (`inputs = [convertNode(x, to: work) for x in inputs]`) whose result is passed straight to `node(op, inputs, args)`. As written, a space refusal becomes an element of the input list and the node is built anyway — the pattern's central safety promise fails in its own reference pseudocode.",
+      "suggestion": "Make refusal propagation explicit (a bind/`?`-style early return, or collect refusals and return the first one before `node(...)`), and show that the same holds for the arguments converted by the scale binder."
+    },
+    {
+      "section": "Solution vs. Implementation note 3 vs. Sketch (`bindLength`, `level`)",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The Solution says \"arguments carry units too, and the engine converts them to the scale it actually runs at\", but the one argument unit that matters most — `level` — is a no-op (`arg.value`, \"read on the receiver's own scale\"), and note 3 pushes the work back onto the agent (`img.as(\"linear\").mask.luminance({above: 0.3})`). That is exactly the 'scale in the caller's head' failure the chapter opens by condemning, and it contradicts notes 1 and 2.",
+      "suggestion": "Give `Level` a real declared space (e.g. `level.space: linear | encoded | receiver`) and have the builder insert the conversion or refuse when the target space is unknown; keep the agent-side `as(\"linear\")` example only as a way to choose the space deliberately, not as the mechanism."
+    },
+    {
+      "section": "Sketch (`Tags.frame`, `build`), Implementation note 5",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "`frame` is illustrated as a bounding rect `[x, y, w, h]` and is only ever compared for equality; nothing in the sketch converts a frame. Two identical-size tiles opened at different origins therefore compare unequal (spurious `E_FRAME`), two different-shaped crops of the same document compare unequal, and when `needsSameFrame` is false the inputs pass through with no frame conversion at all — only spaces are converted. So the frame axis is asserted in prose and unbuilt in the code.",
+      "suggestion": "Define a frame as a coordinate-system identity plus a transform (document id + origin/affine), compare identities, and add `reprojectNode(x, to: frame)` beside `convertNode` for the space axis; show the crop-offset case (two tiles of one scan) combining without a refusal."
+    },
+    {
+      "section": "Sketch (`resultSpace`) vs. Implementation note 2 and Collaborations step 2",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "`resultSpace: linear → n` and `encoded → n` return a node in a space other than the receiver's, while note 2 says v2 makes \"every other operation return its result in its receiver's space\" and Collaborations step 2 says the builder converts the result back after a physical operation. Either the enum is dead (only `follows` is reachable) or note 2 is false.",
+      "suggestion": "Drop `linear`/`encoded` from `resultSpace` or give the one case that genuinely needs them (an explicitly linear-analysis result the caller asked for) and say so in note 2."
+    },
+    {
+      "section": "Structure, Collaborations, Sketch (Reporter; `display`; `ENCODING`)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Three participants/outputs are declared but never instantiated. `Reporter` appears only in the Structure table; step 5 says results 'come back in document coordinates' without showing where. `display → encoded` appears only in the sketch and is never defined in the prose. `ENCODING` is a builder output that is neither a refusal kind nor a row in the table.",
+      "suggestion": "Add one line to the Sketch for the report step and define 'display' in the Solution; then separate the three axes explicitly (axis | tag | conversion step | refusal/warning kind: space/as/E_SPACE/ENCODING, unit/bind/E_UNIT, frame/reproject/E_FRAME). The axes are conflated throughout, which is the main obstacle to reuse."
+    },
+    {
+      "section": "Sketch (`bindLength`) and refusal vocabulary",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "`bindLength` matches four unit forms and has no default and no refusal, so an argument in a fifth unit (a physical length in millimetres, a rotation in degrees, an `extent-relative` fraction with no defined extent) either fails to compile or silently passes. There is no `E_UNIT`. `extent(at: scale)` is undefined — extent of the receiver's region, the image, or the diagonal?",
+      "suggestion": "Add `_ → refuse(E_UNIT, unit: arg.unit, accepted: […], fix: \"write the radius in docPx or fraction\")` and define `extent` precisely (and note that fractions of width vs of the diagonal differ)."
+    },
+    {
+      "section": "Solution and Consequences (cost of insertion)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Insertion is unconditional: the builder always inserts if a conversion exists, regardless of whether it is lossy, expensive, or would produce a bounce chain. Yet the Applicability section and the 'Explicit conversions only' variation both say lossy/ambiguous domains must refuse instead. The rule for choosing between insert and refuse is never stated, so an implementer cannot decide.",
+      "suggestion": "Declare each conversion with cost and lossiness; state the builder's policy (insert only lossless/cheap conversions, refuse lossy ones unless the caller marks them intended, cap space bounces) and show the policy hook in `build`."
+    },
+    {
+      "section": "Sketch and Implementation note 3 (`refuse` payload)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The Consequences section names 'agents and users must learn the vocabulary' as a real cost, and the notation defines `refuse(kind, message, hints, fix, where)` — but every refusal in the sketch populates at most a hint string; `fix` and `where` never appear, except a prose hint 'crop both alike'. The one mechanism that would offset the learning cost is unused.",
+      "suggestion": "Show one full refusal in the Sketch, e.g. `refuse(E_FRAME, frames: [f1, f2], fix: \"a.as(f1.frame).and(b.as(f1.frame))\", where: op.line)`; make `fix` an executable expression mandatory for E_SPACE and E_FRAME."
+    },
+    {
+      "section": "Known uses",
+      "kind": "missing",
+      "severity": "low",
+      "note": "The citations map one-to-one onto the three axes (F#/Pint = unit, OCIO = space, GDAL/PROJ = frame) so they validate the familiar parts, but nothing cited validates the chapter's distinctive claim — that a *graph builder* inserts conversions so kernels never convert, and that the graph is inspectable. On the evidence given, a reader could conclude the pattern is just 'use units'.",
+      "suggestion": "Add one analogue where a planner/compiler inserts coerced conversions centrally (e.g. implicit coercion insertion in a query planner or type checker), and say in one sentence what goja-cv does that these systems do not."
+    },
+    {
+      "section": "Motivation / Implementation notes (project history)",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "Density of running-example history ('two of the nine prototypes', v1-vs-v2 history, the Editor lab's per-kernel conversion) is high and mostly single-use: it persuades in the Motivation, then reappears as narrative in notes 1 and 2 where an implementer wants a rule, not a diary.",
+      "suggestion": "Keep the numbers in the Motivation, but compress notes 1 and 2 to the rule plus one clause of evidence ('v2 moved the space onto the image; v1's per-call option is the counter-example')."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 3,
+    "would_apply_it": 4,
+    "comment": "The core idea and its three failure stories are compelling and I would use them, but the chapter conflates the unit, space and frame axes, and its own pseudocode drops refusals and leaves the `level` argument (its most common argument unit) unconverted, so a reuser must invent the mechanics the text promises to supply."
+  }
+}

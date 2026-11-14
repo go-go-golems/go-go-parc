@@ -1,0 +1,37 @@
+{
+  "changed_files": {
+    "hubreg/plugins/__init__.py": "new: namespace for third-party plug-ins, states that a plug-in touches no core file",
+    "hubreg/plugins/light_color.py": "new: the `rgb` ArgType (#rrggbb via fullmatch), the light.set_color record, ARG_TYPES and records(); imports only `re` and `hubreg.ArgType`",
+    "hubreg/phrases.py": "new: VoicePhraser, the fourth consumer, generating phrases from record names, kinds, argument example values (default / enum values / unit-aware midpoints / type-schema examples), units and short plain argument docs",
+    "hubreg/registry.py": "three lines only, for requirement 2's mandated API: import VoicePhraser, self.voice = VoicePhraser(self), and voice_phrases() delegating to it",
+    "hubreg/demo.py": "renamed the thermostat argument target -> temperature (fields, samples, impl) with an option redirect target->temperature; installs the plug-in with Registry(arg_types=light_color.ARG_TYPES) + register_all(demo_records() + light_color.records())",
+    "hubreg/binder.py": "comment wording only ('the required option is missing'); no behaviour change",
+    "README.md": "documents the plug-in install, the rename, voice_phrases and the new participant row",
+    "tests/test_plugin_color.py": "new: plug-in installation with no core edit, core files provably free of `rgb`/`set_color`, plug-in import surface, hex acceptance/rejection, E_ARG_TYPE refusal, rgb in tool schema and controls, help, phrases",
+    "tests/test_phrases.py": "new: one key per action, non-empty string lists, determinism, name/unit/default/enum/doc-derived phrases, auto-coverage of a brand-new action, boolean phrasing, empty registry",
+    "tests/test_bind.py": "new RenameTest: target=21 -> E_UNKNOWN_OPTION with fix naming temperature, temperature=21 binds/runs, record declares only the new name, every consumer speaks it, no working alias",
+    "tests/test_describe.py": "updated to temperature and to the five actions",
+    "tests/test_demo.py": "updated action list, temperature calls, repair fix text",
+    "tests/test_cli.py": "updated schema property/action count and CLI calls to temperature",
+    "tests/test_generated.py": "added the `rgb` probe to the generated wrong-type map"
+  },
+  "core_untouched": false,
+  "new_tests": "37 new test methods (155 -> 192 total): 16 in tests/test_plugin_color.py, 16 in tests/test_phrases.py, 5 in tests/test_bind.py RenameTest (plus existing tests updated for the rename and the new action). Last result: `python3 -m unittest discover -s tests` -> Ran 192 tests, OK (0 failures, 0 errors).",
+  "design_notes": [
+    "Requirement 1 needed no core change at all: ArgType (accepts/schema/describe) plus Registry(arg_types=...)/add_type already existed from the first round, so the plug-in is one new file handed to the constructor. A test asserts the plug-in's imports are exactly {re, ..argtypes} and that registry.py, binder.py, records.py, describe.py, diagnose.py, walker.py, phrases.py and argtypes.py contain neither 'rgb' nor 'set_color', so the 'local addition' claim is checked rather than asserted.",
+    "The only judgement call in requirement 1 was the tool schema: a purist would emit type 'string'. The requirement says the schema must describe the argument with type rgb, so the plug-in's schema emits \"type\": \"rgb\" plus \"json_type\": \"string\", the ECMA pattern and examples; controls get type 'rgb' for free because Describer reads spec.type.",
+    "Bug caught by the new tests and worth noting: `^#[0-9a-fA-F]{6}$` accepts a trailing newline in Python, so rgb accepts used `fullmatch`; a value like '#ff0000\\n' is now refused. The type is also case-insensitive as required and rejects named colours, short hex, whitespace and non-strings without coercion.",
+    "Requirement 2 forced the one core edit: the API is `reg.voice_phrases()`, so Registry gained a three-line delegation to hubreg/phrases.py, exactly like the existing describer/walker attributes. Everything phrase-shaped lives outside the core.",
+    "Phrase generation is template-based over data every record already has: verb and object from the name (underscores to words), device kind for the '... on the <kind>' form (skipped when redundant), values from default/enum values/typical-unit midpoints/type-schema examples, and the argument doc as a spoken object only for required arguments and only when the sentence is short and free of quotes, brackets or punctuation. That guard keeps 'Colour as '\\''#rrggbb'\\''' out of speech while still using 'Target temperature for the room' -> 'set the target temperature for the room to 20 °C'. Enumeration values get their own phrase ('run the morning scene') rather than a clumsy 'to morning'.",
+    "Requirement 3 was easy structurally (record + option redirect, validated at registration) and hard in one respect: the chapter says a near-miss should be repaired, but a rename can be implemented either as a silent alias or as a refusal plus a fix. I chose refusal with fix='thermostat.set_temperature(temperature=21)', which is exactly what the old demo redirect machinery already produced once the redirect key became the old name; the binder needed no change, and the CLI's value coercion follows the redirect so the fix is a runnable call.",
+    "Requirement 3 also ripples through every consumer for free (schemas, controls, help, phrases, walk, CLI) because they all read the record; the only cost was updating tests that had hard-coded the old name."
+  ],
+  "chapter_feedback": [
+    "Note 6 ('make argument types pluggable before they multiply') paid off exactly as promised: adding rgb was a 60-line plug-in file and zero binder edits, and the same interface made the type appear in schemas, controls, help and phrases automatically.",
+    "The chapter's insistence that every consumer read the records is what made requirements 1 and 3 cheap; it is silent, though, on generated natural-language surface forms, so the phrase templates, the doc-phrase guard and the choice of example values are my design, not the chapter's.",
+    "The chapter describes redirects from the caller's point of view ('a redirect beats the nearest name') but not the shape of a renamed *option*: ArgSpec.redirects is specified as {wrong_option: right_option} in TASK.md, yet the chapter's example ({ min } -> use above) suggests the spec that owns the redirect is the *old* option's neighbour. I kept the TASK.md reading (the new spec lists the old names) and validated targets as existing option names.",
+    "The chapter never says whether a renamed operation/option should keep working as an alias. 'Nothing falls back to a default silently' and the repairable-refusal idea point at refusal plus fix, so that is what I did; an explicit sentence on aliases versus redirects would remove the guess.",
+    "Note 8 ('rename with a redirect from the old name, validate redirects at registration') was the single most useful instruction for requirement 3 — the validation caught a self-referential redirect during development.",
+    "A fifth consumer (voice) is not in the chapter's list of participants, and its 'consumers read records' advice does not say how far a generated surface may go (only names? or prose?). It left the quality bar of generated phrases to me; a note on how the Editor lab generated labels would have helped."
+  ]
+}

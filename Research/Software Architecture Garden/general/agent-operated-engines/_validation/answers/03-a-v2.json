@@ -1,0 +1,134 @@
+{
+  "restatement": {
+    "intent": "Let a script describe work as a graph of operation calls that are hash-consed into one node per distinct call, and compute any node's value only when something asks for it, never twice.",
+    "problem": "Expensive computations that recur across programs, are written in different words, and are requested piecemeal get recomputed every time, while caches keyed by variable name or source text go stale.",
+    "solution": "Every operation call returns an interned Node (operation + canonical arguments + input nodes, identified by a structural hash) instead of a value. A value is computed only at an explicit evaluation point, and is looked up first in a per-request memo, then in a shared byte-budgeted Value cache, then in an in-flight group, keyed by a Signature = node hash + implementation version + quantised evaluation parameters + the input signatures. Functions passed as arguments are converted into subgraphs at build time so keys never depend on function text, cached values are never mutated, and warnings raised during computation are stored in the cache entry and replayed on every hit."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "Because a function's behaviour is not determined by its text: two identical sources can capture different variable values, so the key would return a stale value after the captured state changes (the chapter cites several of goja-cv's nine prototypes failing exactly this way). Instead the function is run once at build time against a placeholder, and the resulting subgraph, with its hashed arguments, enters the key.",
+      "where": "Motivation (caching by source text) and Implementation note 5, \"Never key a function by its text\""
+    },
+    {
+      "id": "Q2",
+      "answer": "The warnings the computation reported (plus byte size and cost, used by the eviction policy). Without them a warning appears on the first request and silently disappears on every cached one; a value too large to cache reports its warnings immediately since nothing will replay them.",
+      "where": "Structure table (Value cache), Collaborations step 3, Implementation note 8"
+    },
+    {
+      "id": "Q3",
+      "answer": "Early cutoff: after a change you can recompute bottom-up and stop where a recomputed output hash is unchanged, so downstream work is not redone. Keys built from inputs cannot know that an output stayed the same; the cost is hashing every output (a third to a half of the lab's post-edit recomputation was avoidable, but output hashing cost 15–22% of a cheap layer's work).",
+      "where": "Forces (structural keys against output keys), Implementation note 10, Variations (verifying keys with early cutoff)"
+    },
+    {
+      "id": "Q4",
+      "answer": "The identity short-cut returns the input node's value, which is already the cached value of another node; setting this node's metadata (frame, encoding) on it would mutate that other node's cached result and corrupt results for every other caller sharing it. So the evaluator copies first — the general rule being \"never modify a cached value\".",
+      "where": "Implementation note 7 and Solution (\"Never modify a cached value\"), Forces (sharing against isolation)"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Operations are deterministic functions of raster inputs and parameters (CRS, resolution, resampling, index, zones), pipelines are expensive and recur with small edits, and several analysts request the same derived layers at different times — exactly the applicability list. The one condition to fix is source identity: location+size+mtime will not carry a shared cache across analysts' machines.",
+      "participants": {
+        "Node": "A raster operation call — reproject, mosaic, index(\"ndvi\"), zonal(zones) — with canonicalised args (CRS, resolution, resampling, nodata, band) and input nodes.",
+        "Builder": "The notebook client library that binds each call, interns it by hash, and turns analyst-supplied functions (a custom reducer, a masked index) into subgraphs against a placeholder band.",
+        "Source": "Each scene file leaf, identified by content hash (not path+mtime) so two analysts working from different mounts or checkouts share one key.",
+        "Signature": "node hash ⊕ op implementation version ⊕ quantised params (resolution to a fixed grid, CRS, resampling kernel, nodata rule) ⊕ input signatures — and, for a server cache, the tool/library version.",
+        "Evaluator": "The server-side compute worker: per-query memo, shared cache lookup, single-flight, parallel input evaluation, identity short-cuts (e.g. reproject to the same CRS).",
+        "Run memo": "One map per analyst query/notebook execution, discarded at the end of the request.",
+        "Value cache": "A shared, byte-budgeted layer/tile cache on the server (GreedyDual-Size tends to favour the undo-and-branch editing analysts do); raw decoded scenes kept outside the cap.",
+        "In-flight group": "Deduplicates the case where three analysts ask for the same NDVI layer within a minute, so the mosaic runs once."
+      },
+      "sketch": "```text\n-- analyst builds; nothing runs\nbase    = scene_a.reproject(crs: \"EPSG:3857\", res: 10)      -- intern(op, canonical(args), [src_a])\nbase2   = scene_b.reproject(crs: \"EPSG:3857\", res: 10)\nndvi    = mosaic([base, base2]).index(\"ndvi\")                -- analyst B builds the same nodes -> same hashes\n\nsignature(n, params) → Key\n  return hash(n.hash, n.op.version, quantize(params),          -- params: crs, res grid, resampling, nodata\n              [signature(i, params) for i in n.inputs])        -- Source leaf = content hash of the scene\n\nevaluate(ndvi, params) → Layer\n  k = signature(ndvi, params)\n  if memo has k: return memo[k]\n  if cache has k: report(cache[k].warnings); return cache[k].value    -- analyst B's hit\n  return inflight.once(k, () ->\n    ins = parallel([evaluate(i, params) for i in ndvi.inputs])        -- two reprojections at once\n    v = ndvi.op.run(ins, ndvi.args, warn: w -> warnings ++ [w])\n    cache.put(k, Entry(v, warnings, bytes(v), cost)); v)\n\nawait ndvi.zonal(zones).stats()          -- explicit evaluation point only here\n```",
+      "key_notes": [
+        "Note 11 (source identity) matters most: for a cache shared between analysts and machines, a file must be keyed by content hash, not location/size/mtime, or edits and path aliases return stale layers silently.",
+        "Note 2 (quantised parameters in the key, and the implementation version) — resolution, CRS, resampling kernel and tool version all change values; forgetting one, or a library upgrade serving old tiles from the shared cache, is a silent-wrong-answer bug.",
+        "Note 3 (wide keys) applies harder than in the chapter: a mosaic workflow multiplies keys by scene count, so a 32-bit key is unusable; use a real 256-bit digest, which is cheap relative to raster work.",
+        "Note 6 (single-flight + parallel inputs) is the point of \"several analysts query the same derived layers\": without it the same mosaic runs concurrently N times.",
+        "Note 9 (budget and policy) is a setting, not a default: raster values are enormous, so cache regions/tiles rather than whole scenes and keep decoded sources outside the cap.",
+        "Note 5 (function arguments) covers custom reducers and mask expressions: they must be converted to subgraphs and must not branch on pixel values; such branches become graph operations or explicit args.",
+        "Note 12 (explicit evaluation points) matters for notebook authors — a cell that only builds nodes does nothing, so the platform must make await/save/look the visible trigger."
+      ],
+      "risk": "Keying sources or parameters incompletely — path+mtime instead of content hash, or omitting CRS/resampling/tool version — so a shared cache serves a plausible-looking but stale layer to every analyst at once; the chapter's own warning that \"a collision returns a wrong value and nothing reports it\" applies to coarse keys generally, and here the blast radius is a whole team."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Charging a card and sending a receipt are side effects that must happen exactly once per real request, and their outcomes depend on hidden state (network, clock, the card's balance). Such a node's key would lie: a cache hit would skip a charge the customer authorised, and an eviction or restart would replay a charge. This is deduplication of effects by an idempotency key, not memoization of a value.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "The chapter's own exclusion applies directly: \"Do not use it when operations have side effects or depend on hidden state … their keys would lie.\"",
+        "The retry/dedup mechanism needed instead is a recorded effect outcome keyed by a caller-supplied idempotency key, checked inside the payment provider's transaction — not a Value cache with LRU eviction (note 9 would make \"cheap repeats\" mean \"dropped charge\").",
+        "Storing warnings with the value (note 8) shows the shape of the correct instinct — record what happened — but the record must be the authoritative effect log, not a replayable cache entry."
+      ],
+      "risk": "Forcing the fit: treating the handler as a lazy graph makes correctness depend on cache retention, giving double charges after eviction/restart and silently dropped receipts on hits — money-losing in both directions."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Rating line (\"★★ — close to invariant\")",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The claim that \"any system with this problem converges on this shape\" is asserted, not argued, and the Variations section contradicts it: dirty bits, call-level memoization without a graph, and verifying keys with early cutoff are viable answers to the same problem, each with its own trade-off. A ★★ that also claims near-invariance leaves the reader unsure how strongly to recommend it.",
+      "suggestion": "Either drop \"close to invariant\" and state the narrower invariant (\"deterministic functions + recurring expensive work ⇒ some content-keyed cache\"), or name the sub-problem on which all solutions really do converge and mark the graph as one of several."
+    },
+    {
+      "section": "Structure table / Collaborations step 3 — Run memo",
+      "kind": "unclear",
+      "severity": "medium",
+      "note": "The Run memo is described as \"a map from signature to value (and from node to signature)\", but the sketch memoizes signature(n, params) \"per (node, params) in the run memo\", which is a different map. The node→signature map never appears in the sketch or collaborations, so a reader cannot tell whether there are two memos or three, nor what the second one buys.",
+      "suggestion": "Split it explicitly: signatureCache: (Node, params) → Key, and valueMemo: Key → Value, saying which is discarded when and why the signature cache is worth having (repeat subgraphs inside one request)."
+    },
+    {
+      "section": "Sketch — withinMask and identity short-cut",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "`subgraph(inner, hole)` appears in the sketch and note 5 depends on it, but no participant or pseudocode line defines what a subgraph node is or how the placeholder is bound to the actual mask/input at evaluation time. Likewise `if n.op.identity(n.args)` is applied to `ins[0]` without saying what happens for multi-input operations (mosaic of two layers, where identity could mean dropping a neutral layer).",
+      "suggestion": "Add Subgraph (or \"function node\") to the participant table with its binding rule, and define identity(n.args) as returning the index of the input to pass through (or nothing), with one multi-input example."
+    },
+    {
+      "section": "Consequences / Implementation notes",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Two costs of the design are never accounted for. (1) Node interning has no eviction: a long agent session that builds nodes but never asks for them grows the intern table without bound, and the byte budget covers only the Value cache. (2) Failure behaviour is unspecified: nothing says whether a refuse/E_PLACEHOLDER or an op.run error is cached under the signature, whether in-flight joiners see the same error, and whether a retry recomputes. Chapter 6 is linked but the contract is not stated here.",
+      "suggestion": "Add a line to the Solution and Consequences on node-table lifetime/eviction, and a note \"Errors and refusals are not values\": decide per project whether failures are cached (and how they are invalidated), and state that all joiners of an in-flight group receive the same outcome."
+    },
+    {
+      "section": "Implementation note 2 (quantised parameters)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The note correctly says compute at the quantised value, but never surfaces the consequence: quantisation changes results (scale rounded to 10⁻⁴ ⇒ two analysts asking for nearly equal scales get one answer, and outputs differ slightly from the true parameter). That is a numerical-accuracy decision, and it belongs in Consequences, not buried in a note.",
+      "suggestion": "Add a bullet to Consequences: \"Results are the results at the quantised parameter; chose the quantum as an accuracy/throughput trade-off and document it\", and give one sentence on how to pick the quantum per operation type."
+    },
+    {
+      "section": "Implementation notes 3, 9, 10 and Motivation",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "Bench numbers tied to two codebases (10⁵ tile keys, 1.2 vs 10⁻⁶ collisions, 2 GiB cap, \"a quarter as many tiles\" / \"a third more\", 15–22%) are presented as guidance, and goja-cv identifiers (E_PLACEHOLDER, E_NOT_AWAITED, 10⁻⁴ scale, SHA-256) appear inside rules meant to generalise. A reader reusing the pattern cannot transfer any of these numbers, and the actual rule (pick key width by the birthday bound; measure policy per workload) is easy to miss.",
+      "suggestion": "State each rule in general form first (\"size the key so expected collisions over the session are ≪ 1 — birthday bound\"), keep the numbers in one clearly labelled boxed example per note, and move tool-specific identifiers into a single \"in goja-cv\" column or appendix."
+    },
+    {
+      "section": "Applicability — third exclusion",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "\"Inputs change constantly at fine grain and most changes leave outputs unchanged\" is listed as a reason not to use the pattern, yet the chapter's own editor is exactly that case and note 10 tells it to \"weigh\" output hashing. As written, the reader cannot tell whether the running example is outside the pattern's applicability.",
+      "suggestion": "Rephrase as a qualification: \"still usable, but only with verifying keys and early cutoff (see Variations); without them the input-keyed form will waste most of the work\"."
+    },
+    {
+      "section": "Motivation and Implementation note 7 / 12",
+      "kind": "too-long",
+      "severity": "low",
+      "note": "The goja-cv-plus-lab pairing is re-explained in the Motivation, the Solution, the Structure table and again in notes 5, 7, 8 and 12; the reader meets \"the lab's tiles\" and \"goja-cv's nodes\" four or five times before the pattern is fixed. The Motivation's three failing alternatives already carry the argument.",
+      "suggestion": "Cut the lab from the Motivation (keep it for notes 4, 9, 10 where its measurements do work) and let the running example be goja-cv alone, with the lab as the second witness."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The core shape (intern nodes by call hash, key values by signature, compute at explicit points) is exceptionally transferable, but the sketch is under-specified exactly where reuse is hardest — function-to-subgraph conversion, identity short-cuts, and error/cache lifetime — and the numeric, tool-specific detail crowds out the general rules."
+  }
+}

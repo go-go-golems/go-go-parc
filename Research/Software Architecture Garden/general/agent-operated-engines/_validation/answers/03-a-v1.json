@@ -1,0 +1,131 @@
+{
+  "restatement": {
+    "intent": "Let a script build a graph of operation calls without running them, make identical calls collapse to one interned node, and compute a node's value only when someone asks, caching it under a key built from the operation, its arguments and its inputs' keys.",
+    "problem": "Expensive computations recur in different spellings and are asked for piecemeal, so recomputing wastes most of the work while caching by variable name or by source text returns stale values.",
+    "solution": "Every operation call returns an immutable node; the builder hashes the canonical operation plus argument values plus input hashes and returns the existing node if there is one, so equal calls are one node. On request the evaluator derives a signature — node hash, quantized evaluation parameters, input signatures recursively — and checks a run memo, then a byte-budgeted value cache, then joins any in-flight computation of that signature, otherwise computing inputs in parallel and running the operation. Cache entries carry the value plus what the computation reported (warnings, size, cost), and cached values are never mutated. Functions passed as arguments are traced against a placeholder at build time into an ordinary subgraph, so no key ever depends on function text."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "A function's behaviour depends on captured variables, which its text does not contain; a variable can keep its text but change value, so a text-keyed entry is served stale. Three of the nine prototypes did exactly this.",
+      "where": "Motivation (third naive-alternatives bullet), Force 'Functions as arguments against hashability', Implementation note 5"
+    },
+    {
+      "id": "Q2",
+      "answer": "It stores the warnings raised during computation, plus the value's byte size and computation cost. Warnings must be replayed on every cached serve or they appear once and vanish; bytes and cost are what the eviction policy needs (GreedyDual-Size uses cost/size).",
+      "where": "Structure table (Value cache), Implementation notes 8 and 9, sketch's Entry record"
+    },
+    {
+      "id": "Q3",
+      "answer": "Let a rebuild stop early when a recomputed output is bit-identical to the old one, so everything above it can be skipped ('early cutoff'). Input keys cannot do this; they must recompute regardless of whether the output actually changed.",
+      "where": "Forces ('Structural keys against output keys'), Implementation note 10, Variations ('Verifying keys with early cutoff')"
+    },
+    {
+      "id": "Q4",
+      "answer": "In the short-cut the returned value belongs to an input node and is cached under that node's key, so writing this node's metadata onto it would corrupt another node's cached result. The copy makes the metadata write private to this node.",
+      "where": "Implementation note 7"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Pipelines are expensive, deterministic functions of raster inputs and settings, recur across analysts' notebooks in slightly different spellings, and are queried piecemeal (a window, a zone set) — exactly the applicability list. The purity caveat is satisfiable if sources are treated as immutable and library versions enter the key.",
+      "participants": {
+        "Node": "reproject / mosaic / vegetation-index / zonal-statistics calls with bound arguments (target CRS, resampling kernel, band pairing, zone table id)",
+        "Builder": "Interns those calls so analyst B's 'reproject then NDVI then mean over zones' collapses onto analyst A's nodes; canonicalizes CRS spellings, resampler names, band as index vs name",
+        "Source": "A raster file or ingested dataset, identified by path/size/mtime or, better, an ingestion content revision; plus a version tag for the GDAL/PROJ stack",
+        "Signature": "node hash + quantized eval parameters (target resolution, tile size, working CRS, nodata rule, precision) + input signatures recursively",
+        "Evaluator": "Single-flight per signature (several analysts hitting the same derived layer at once), inputs evaluated in parallel, per-run counters so a test can assert what was recomputed",
+        "Value cache": "Shared byte-budgeted store of tiles/windows and zonal-stat outputs, LRU or GreedyDual-Size, with nodata/coverage warnings stored alongside"
+      },
+      "sketch": "```text\n-- per analyst session; builder interns into a node table shared by the deployment\nsrc = source(path: \"2024_q3.tif\", identity: (size, mtime, stack: \"gdal 3.9/proj 9.4\"))\nred = reproject(src.band(\"red\"), crs: \"EPSG:3857\", res: 10, resampling: \"cubic\")\nvi  = ndvi(red, reproject(src.band(\"nir\"), crs: \"EPSG:3857\", res: 10, resampling: \"cubic\"))\n-- analyst B writes the same chain in other words: same nodes, no recomputation\n\nsignature(n, params) → Key\n  return hash(n.hash, quantize(params), [signature(i, params) for i in n.inputs])\n\nawait vi.window(w).mean(zones)          -- explicit eval point; window is a node arg, not a hidden param\n```",
+      "key_notes": [
+        "Note 1 (intern at build time, canonical args) — CRS/URN spellings, 'cubic' vs 'cubicspline', band-by-name vs band-by-index are the differences that would otherwise split identical work",
+        "Note 2 (quantize parameters) — working resolution, tile size and nodata policy change the values and must be in the key; quantizing resolution stops 10 m and 10.0001 m producing separate entries",
+        "Note 6 (single-flight + parallel inputs) — the decisive note here: many analysts asking for the same layer in the same minute is the common case, so in-flight joining, not just memoization, is what makes the shared cache pay",
+        "Note 8 (store warnings) — every analyst must see 'N tiles had no data' and 'zone partially outside raster'; without replay the second analyst silently gets a clean-looking result",
+        "Note 9 (budget and policy) — a mosaic of a whole region is far bigger than a film-scan tile; the byte cap and the LRU vs GreedyDual-Size choice need measuring on mosaic-heavy and zonal-heavy workloads separately",
+        "Note 10 (no early cutoff) — reprojecting a raster that a later edit does not actually change is exactly the wasted recomputation described; consider verifying keys for the expensive bottom of the pipeline",
+        "Note 11 (explicit evaluation points) — notebooks encourage 'just run the cell'; without an explicit await/look boundary analysts will believe a pipeline ran when it only built nodes"
+      ],
+      "risk": "Hidden environmental inputs. A source keyed only by mtime is stale when a file is rewritten within the timestamp granularity or replaced by a same-size same-time copy, and a pipeline keyed without the GDAL/PROJ/kernel version returns the previous library's numbers after an upgrade. Sharing one cache across analysts also needs permission scoping, or a cache hit hands someone a layer they are not entitled to read."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "Charging a card and sending mail are side effects with no deterministic value to key, so every key would lie: a repeat request either re-charges (the cache cost has bought nothing) or hits a cached 'success' and skips the charge or the receipt. Laziness is also inverted — the effect is the point and nothing happens until a value is asked for. Webhooks need idempotency keys plus a durable record of what was already done, not a content-keyed graph.",
+      "participants": {},
+      "sketch": "",
+      "key_notes": [
+        "The Applicability exclusion 'operations have side effects or depend on hidden state; their keys would lie' is the operative line, and note 11's laziness trap makes it worse: a handler that only builds nodes would acknowledge a webhook without charging anyone",
+        "The one salvageable fragment is the genuinely pure inner part — computing tax/totals or rendering the receipt PDF from an immutable order snapshot — which could be a Source-keyed Node feeding an eager side-effecting shell; the charge and the send stay outside the graph"
+      ],
+      "risk": "Calling a payment call 'deterministic enough because the arguments are the same'. Two requests with identical arguments are exactly the case where the second charge must be refused by an idempotency mechanism the processor enforces, not by a cache lookup this system controls."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Implementation note 2 / Variations (persistent and shared caches)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "The key is defined as node hash + quantized evaluation parameters + input signatures, and note 2 lists 'scale, precision, device' as the parameters that change the value — but the identity of the operation's own implementation never enters the key. A new kernel version, a fixed resampler, or a different build of the library changes every value while every key stays the same. The client-side value cache gets away with this only because it dies with the process; a persistent or shared cache, which the chapter recommends as a variation, silently serves the old algorithm.",
+      "suggestion": "Add the operation's implementation identity (source revision or version of the op record from Chapter 1) to the node hash or the signature, and say explicitly that a persistent/shared cache requires it — otherwise the variation is unsafe as written."
+    },
+    {
+      "section": "Implementation note 5 / Solution (function arguments)",
+      "kind": "missing",
+      "severity": "high",
+      "note": "Running the function once at build time against a placeholder only works for straight-line, data-independent code. The chapter never says so. `f = (img) => img.width > 1000 ? img.blur(2) : img` cannot be built at all, because no value exists to branch on; neither can a function that reads a captured JS variable, calls a non-graph helper, or loops over a measured length. Those are the cases that will hit a real user first, and the failure mode (a placeholder escaping, E_PLACEHOLDER at evaluation time, or a silently missing branch) is not described.",
+      "suggestion": "State the constraint as part of the pattern: argument functions must be trace-pure — build only, no host reads, no data-dependent branching — and say what happens when one is not (refuse at build time with a hint, rather than at evaluation). Give one example of a legitimate interpretation (pass the value as an explicit argument, note 5's own advice)."
+    },
+    {
+      "section": "Collaborations step 3 / sketch (memo vs cache vs in-flight)",
+      "kind": "unclear",
+      "severity": "high",
+      "note": "Three stores appear — 'the run's memo', the byte-budgeted value cache, and the in-flight group — but the Structure table lists only 'Value cache', and the memo is never defined: its lifetime, its size, whether it is per-run or per-session, and why it exists when the cache already holds the same key. A reader implementing this does not know whether to build one store or three.",
+      "suggestion": "Add Memo and In-flight to the Structure table with a one-line responsibility each, and say why the memo is separate (unbounded or per-run, so that small hot values survive cache eviction). Or drop it from the sketch if the cache subsumes it."
+    },
+    {
+      "section": "Motivation / Implementation notes 9 and 10",
+      "kind": "too-specific",
+      "severity": "medium",
+      "note": "The chapter claims goja-cv is the running example but constantly switches to 'the Editor lab', a second system whose relationship is never stated (a sibling prototype? the same team's other product?). The lab's numbers also arrive without denominators: '10,560 tiles under LRU and 2,662 under GreedyDual-Size' out of how many tiles requested? A 'third more' recomputation on a brush stroke means nothing without a base. Note 10 is better because it says '16 to 26 of its 40 output tiles', which a reader can price.",
+      "suggestion": "Say in one sentence what the Editor lab is and why it is the second witness. Give every benchmark as a fraction of the total requested (e.g. '2,662 of 14,000 tile requests'), as note 10 does."
+    },
+    {
+      "section": "Sketch vs Implementation note 7",
+      "kind": "wrong",
+      "severity": "medium",
+      "note": "The sketch's `evaluate` writes nothing but the cache entry; note 7 says the evaluator 'sets the node's own metadata (frame, encoding) on the result' and copies first when the value belongs to an input. As drawn, the identity short-cut returns `ins[0]` directly, so a reader following the sketch reintroduces exactly the shared-mutation bug note 7 warns about, and the metadata step is invisible. Note 8's 'value too large to cache' branch is likewise absent from the sketch's unconditional `cache.put`.",
+      "suggestion": "Add two lines to the sketch: a copy-on-identity branch (`v = ins[0]; return if shared: copy(v) with metadata`) and a size check around `cache.put` that reports warnings immediately when the entry is dropped."
+    },
+    {
+      "section": "Sketch, 'in use' / Source participant",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The payoff line — 'round 2, new program: a and b are the same node' — is asserted, not shown. Nothing in the sketch makes `img` in a fresh program the same node as last round's `img`, because Source construction (path → identity from size, mtime, or content revisions) is never sketched. That step is the whole cross-session story and the place where staleness bugs live.",
+      "suggestion": "Show the source line in the sketch, e.g. `img = source(path: \"scan.tif\", identity: (size, mtime))`, and one sentence on when mtime is too coarse and a content revision is required."
+    },
+    {
+      "section": "Implementation notes (signature computation)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "`signature` recurses to the leaves on every cache lookup, and `quantize(params)` is re-evaluated at every level. For a deep pipeline that is O(depth) hashing per request, and the chapter never says whether signatures are themselves memoized per (node, params) — which is nontrivial precisely because they depend on the parameters, so a naive per-node cache is wrong when a node is evaluated under two scales.",
+      "suggestion": "One sentence: signatures are cached per node in the run memo keyed by quantized params (or computed bottom-up over the evaluated subtree), and state the assumption that the graph is a DAG with no cycles."
+    },
+    {
+      "section": "Applicability ('Do not use it when' third bullet)",
+      "kind": "wrong",
+      "severity": "low",
+      "note": "'Inputs change constantly at fine grain and outputs rarely depend on the change; consider dirty-bit invalidation or verifying keys instead' conflates two fixes with different costs. Dirty bits do nothing for this case — the node is still dirty, so it is still recomputed; only verifying keys (early cutoff) helps. As written the bullet sends the reader to a variation that cannot solve the stated problem.",
+      "suggestion": "Split it: 'fine-grained change with coarse dependence → verifying keys with early cutoff (note 10)'. Reserve dirty bits for the case where the graph is rebuilt in place and cross-session sharing is not needed."
+    }
+  ],
+  "ratings": {
+    "clarity": 3,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "The mechanics and the honest failure modes (warnings replay, shared-mutation, no early cutoff) make this genuinely transferable, but two interleaved running examples, an undefined memo layer, and unpriced details — operation-version in the key, trace-purity of function arguments — cost it clarity."
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "restatement": {
+    "intent": "Describe each operation once as a data record (arguments with types, units, defaults, limits, redirects, result fields, flags, docs, implementation) and make checking, help, refusals and tests all read that one record, so they cannot disagree.",
+    "problem": "When several consumers each keep their own idea of what an operation accepts and returns, they drift apart and the caller gets silent wrong behaviour instead of a precise refusal.",
+    "solution": "Register one OpRecord per (receiver kind, name), keyed and validated at registration for structure and consistency. A binder turns raw calls into bound, checked arguments plus warnings (or a failure); a diagnoser converts failures into refusals using the same record's valid names, nearest match and redirects; a describer renders a short context line and full help; a walker test calls every record with sample arguments and compares results to declared fields. Anything that cannot be a record lives in one visible exceptions list, and any other list of operations is a bug."
+  },
+  "quiz": [
+    {
+      "id": "Q1",
+      "answer": "It binds: the call is accepted with a warning carrying spec.usualHint, and the warning travels with the bound call into the result the caller reads — not just a log. Hard limits refuse, usual ranges only warn, and both are checked in the declared unit before conversion at evaluation.",
+      "where": "Solution; Collaborations steps 2 and 4; Implementation note 2"
+    },
+    {
+      "id": "Q2",
+      "answer": "The walker test: registration is supposed to refuse a callable record with no samples, and the walk (TestSchemaProperty in goja-cv) checks that a row-returning result's keys are exactly the declared fields, with only optional ones missing.",
+      "where": "Structure (Walker); Collaborations 6; Sketch ('the walker test'); Implementation note 5"
+    },
+    {
+      "id": "Q3",
+      "answer": "Because a redirect added to one table is invisible to the others: help, the unknown-method refusal and the look/box redirect can each teach a different correction for the same near-miss, which is exactly the drift the registry exists to remove.",
+      "where": "Implementation note 4"
+    },
+    {
+      "id": "Q4",
+      "answer": "The binder (validates calls, produces warnings) and the describer (agent context line, full help); equally the diagnoser and the walker test.",
+      "where": "Structure; Collaborations 2–6"
+    }
+  ],
+  "transfer": [
+    {
+      "id": "T1",
+      "fits": true,
+      "why": "Three independent consumers (LLM tool description, app controls, hub-side validation) plus frequent third-party additions is the pattern's stated trigger; the registry is the only thing that keeps the voice assistant, the app and the hub from disagreeing about what set_temperature accepts.",
+      "participants": {
+        "Operation record": "set_temperature, dim_lights, lock_door, run_scene — on a device kind, with args, result/state fields, flags and run (or expand, e.g. run_scene = graph of other actions)",
+        "Argument spec": "target: number, unit C, min/max from the device class, usual [16,24] with hint, valueDocs for enum modes; level: 0–100 %; scene: enumeration with value docs",
+        "Flags": "class (climate/lighting/security), confirm for lock_door and run_scene, internal for hub housekeeping actions; the host sets confirm, a plug-in cannot lower it",
+        "Registry": "keyed by device kind + action name; validates plug-in records at hub start-up (defaults in limits, redirects exist, samples present, (kind,name) unique)",
+        "Binder": "shared by the voice bridge and the app: type/limit checks in declared units, usual-range warnings, cross-argument hooks (mode vs target)",
+        "Describer": "one context line per callable record for the LLM tool schema; argument specs drive one widget per argument in the app; full help on request",
+        "Diagnoser": "turns 'switch_lights'/'brightness' near-misses into refusals naming valid actions and the fix call, using the same records",
+        "Walker": "per-plug-in CI test: bind samples, run in a simulator, compare result/state fields to declared fields"
+      },
+      "sketch": "value OpRecord: name, on: DeviceKind, args: [ArgSpec], validate?(args) → ok | Failure,\n                returns: StateKind, fields(boundArgs) → [FieldSpec],\n                flags: {class, confirm?, internal?}, redirects?, samples, doc, run | expand\n\nregistry.register(rec) → ok | refuse(E_BAD_RECORD, …)\n  -- plug-in record validated like a built-in; default outside min/max, redirect to a missing\n  -- action, or no samples fails hub start-up\n  -- plug-in record may raise confirm but never lower it (lock_door, run_scene)\n\nbind(deviceKind, action, raw) → BoundCall(rec, args, warnings) | Failure    -- one path for voice and app\nexplain(failure)    → Refusal(valid actions, nearest name, fix)            -- same record\ntoolSchema(rec)     → context line for the language model (internal: false only)\ncontrolSpecs(rec)   → app widget per ArgSpec (type, unit, min/max, options, valueDocs)\n-- walker, run in plug-in CI: bind(samples) → run(simulator) → keys(v) vs fields(call.args)",
+      "key_notes": [
+        "Note 1 (validate structure and consistency) matters most: third-party records are the only unaudited input, so default-inside-limits, existing redirect targets and samples must fail registration at hub start-up, not reach a voice command later.",
+        "Note 2 (hard limits vs usual ranges, in the declared unit): a thermostat in °C and a dimmer in % must be checked before any conversion; out-of-usual targets bind with a spoken/app warning rather than being refused.",
+        "Flags / `confirm`: the host, not the plug-in, decides which actions need confirmation; otherwise a bad plug-in silently unlocks lock_door for a non-interactive voice run.",
+        "Note 6 (pluggable argument types): device-specific types (temperature with unit, colour, scene reference) must be addable by a plug-in without touching the binder core.",
+        "Note 7 (one record per receiver kind and name): light.dim and scene.dim are separate records with their own args; do not overload by argument type inside a kind.",
+        "Note 4 (redirects in the records): voice near-misses ('brightness', 'switch_lights') are the normal case, so option- and action-level redirects belong in the records so help and refusals teach the same correction.",
+        "Note 9 (exception list): device discovery and state-polling endpoints cannot be records; keep them in one list with a test that every name the assistant can reach is either registered or listed."
+      ],
+      "risk": "Letting each side keep a shadow copy: plug-ins shipping their own help/validation strings and the mobile app hard-coding an action list, so the registry becomes a third opinion rather than the only one — usually combined with trusting the plug-in's confirm/limit flags."
+    },
+    {
+      "id": "T2",
+      "fits": false,
+      "why": "The chapter's Applicability excludes exactly this case: when the platform already gives you the records (a typed RPC schema generating clients, docs and validation), use that schema as the registry instead of building a parallel one. A hand-built Go registry would be a second source of truth for the same methods and would drift from the .proto in the first week.",
+      "participants": {
+        "Operation record": "already the .proto method plus its annotations — not a new Go record",
+        "Argument spec": "already the .proto fields with constraint annotations",
+        "Describer / Binder": "already generated clients, generated docs and generated server-side validation"
+      },
+      "sketch": "",
+      "key_notes": [
+        "Applicability, third exclusion ('the platform already gives you the records'): the proposal is the anti-case; the correct move is to extend the .proto, not to add a Go table.",
+        "Note 1 still applies, relocated: rules the proto cannot express (cross-argument hooks) should be validated server-side at start-up next to the generated code, so there is one authority rather than two.",
+        "Note 8 (defaults are part of identity, renames need redirects) applies to the .proto: add fields with defaults, deprecate rather than rename, and keep the validation annotation in sync with the generated docs.",
+        "Note 5 style applies cheaply: a walker that reflects over the generated descriptors and calls every method with sample requests is worth having, but it reads the proto, not a second registry."
+      ],
+      "risk": "Building the Go registry 'just for help text', then re-implementing validation there because it is convenient, leaving two disagreeing validators and a documented default that the server does not apply."
+    }
+  ],
+  "review_notes": [
+    {
+      "section": "Sketch / registration vs Implementation note 5",
+      "kind": "wrong",
+      "severity": "high",
+      "note": "The sketch says registration checks 'samples present for every callable record' and the walker comment says 'registration guarantees samples exist', but note 5 says goja-cv keeps the walk's sample arguments in the test file and only suggests moving them into the record. A reader cannot tell whether a missing sample fails registration or is merely untested.",
+      "suggestion": "Pick one: either samples are a required record field validated at registration (and drop the goja-cv aside), or they are walker data and the sketch comment should say so."
+    },
+    {
+      "section": "Implementation note 5",
+      "kind": "too-long",
+      "severity": "medium",
+      "note": "One note carries five separate claims: help rendering in the walk, per-receiver-kind calls, TestSchemaProperty, where samples live, and what a walk does not prove. The important limitation ('coverage, not correctness') is buried at the end.",
+      "suggestion": "Split into a note on what the walker asserts and a short note on keeping the walk's data out of the test file (or in the record)."
+    },
+    {
+      "section": "Sketch (`bind`, HOOK case) vs Solution",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "Cross-argument hooks are called out as the escape hatch for rules that do not fit a table, but the chapter never says what a hook receives, how it names the offending argument, or how the diagnoser turns a hook failure into a refusal that points at a fix. The sketch's HOOK case passes only code/args/hint, losing `where` and `fix`.",
+      "suggestion": "Show one hook example (e.g. a box that must fit the image) and state that hook failures must return the same refusal shape: kind, offending arg names, and a fix."
+    },
+    {
+      "section": "Collaborations 5 / Describer",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The chapter says the describer renders two lengths and that goja-cv's full reference is eight times the short form, but says nothing about how the short form is chosen from sixty records: all of them? filtered by `internal`/class? grouped? That selection is the part a reader with a large catalogue will get wrong.",
+      "suggestion": "Add a short paragraph or implementation note on what goes into the standing context line and how operations are selected or grouped when they do not all fit."
+    },
+    {
+      "section": "Implementation note 1 (structural checks)",
+      "kind": "missing",
+      "severity": "low",
+      "note": "The list of structural checks omits duplicate positional slots: two specs may declare the same `position`, which makes positional binding order-dependent and silently ambiguous.",
+      "suggestion": "Add 'positions unique and contiguous' to the structural checks alongside unique argument names."
+    },
+    {
+      "section": "Implementation note 7 / Variations",
+      "kind": "other",
+      "severity": "medium",
+      "note": "Motivation uses a query engine and its 'no function matches the given argument types' error as a motivating case, while note 7 says a query engine must change the lookup to return candidate sets — an escape from the pattern's central invariant, tucked into an implementation note and left out of the sketch.",
+      "suggestion": "Move the overload discussion fully into Variations (or a dedicated subsection) and say explicitly that overloaded catalogues pay an extra cost in binding and refusal quality."
+    },
+    {
+      "section": "Implementation note 8 (records evolve)",
+      "kind": "missing",
+      "severity": "medium",
+      "note": "The note explains cache keys, renames and redirects, but not the harder case: a saved script calls an operation whose argument was removed or whose meaning changed. Only renames get a migration story.",
+      "suggestion": "State the policy for removed arguments and changed units (refuse with a fix? keep an accepting alias?) and note that saved scripts make this a compatibility question, not just a documentation one."
+    },
+    {
+      "section": "Motivation",
+      "kind": "too-specific",
+      "severity": "low",
+      "note": "The section carries a lot of goja-cv-specific scaffolding ('designed after a comparison of nine prototypes', 'two prototypes did not scale radii', the Editor lab) before reaching the general problem, and the same goja-cv numbers reappear in the implementation notes.",
+      "suggestion": "Compress the prototype history to one sentence and keep the four failure modes, since those (not the prototype count) are what makes the problem concrete."
+    },
+    {
+      "section": "Chapter head (rating line)",
+      "kind": "unclear",
+      "severity": "low",
+      "note": "The '★★ (close to invariant…)' line appears with no explanation of what the stars mean or what a reader should do differently for a two-star pattern; the Consequences do not connect to it.",
+      "suggestion": "Drop it to the overview or add one clause saying what a low rating implies (e.g. the value is in the details of validation and refusal quality, not the shape)."
+    }
+  ],
+  "ratings": {
+    "clarity": 4,
+    "reusability": 4,
+    "would_apply_it": 4,
+    "comment": "Structure, forces and the applicability exclusions make it genuinely reusable, but the samples/walker contradiction and the under-specified hook and context-line selection are the parts a reader would trip on when applying it."
+  }
+}

@@ -1,0 +1,64 @@
+17:04:02 start 01 a v1
+17:04:02 start 01 b v1
+17:05:18 end 01 b v1 exit 0
+17:05:57 end 01 a v1 exit 0
+17:08:00 start 01 a v2
+17:08:00 start 01 b v2
+17:08:06 start 02 a v1
+17:08:06 start 02 b v1
+17:08:51 end 01 a v2 exit 0
+17:08:55 end 01 b v2 exit 0
+17:09:06 end 02 b v1 exit 0
+17:09:42 end 02 a v1 exit 0
+17:11:25 start 01 a v3
+17:11:25 start 01 b v3
+17:12:15 end 01 a v3 exit 0
+17:12:45 end 01 b v3 exit 0
+17:14:52 start 02 a v2
+17:14:52 start 02 b v2
+17:15:58 end 02 b v2 exit 0
+17:16:03 end 02 a v2 exit 0
+17:22:14 start 04 a v1
+17:22:14 start 03 a v1
+17:22:14 start 04 b v1
+17:22:14 start 03 b v1
+17:22:58 end 04 b v1 exit 0
+17:23:03 end 03 a v1 exit 0
+17:23:07 end 03 b v1 exit 0
+17:23:22 end 04 a v1 exit 0
+17:23:22 start 05 a v1
+17:23:22 start 02 a v3
+17:23:22 start 05 b v1
+17:23:22 start 02 b v3
+17:24:07 end 05 a v1 exit 0
+17:24:14 end 02 a v3 exit 0
+17:24:42 end 02 b v3 exit 0
+17:24:55 end 05 b v1 exit 0
+17:28:33 start 03 a v2
+17:28:33 start 04 a v2
+17:28:33 start 04 b v2
+17:28:33 start 03 b v2
+17:28:59 end 03 a v2 exit 0
+17:29:12 end 04 a v2 exit 0
+17:29:29 end 03 b v2 exit 0
+17:29:33 end 04 b v2 exit 0
+17:29:33 start 05 a v2
+17:29:33 start 06 a v1
+17:29:33 start 05 b v2
+17:29:33 start 06 b v1
+17:30:27 end 05 b v2 exit 0
+17:30:30 end 05 a v2 exit 0
+17:30:35 end 06 a v1 exit 0
+17:30:42 end 06 b v1 exit 0
+17:30:42 start 01 a v4
+17:30:42 start 01 b v4
+17:31:42 end 01 b v4 exit 0
+17:31:52 end 01 a v4 exit 0
+17:33:59 start 03 a v2
+17:34:44 end 03 a v2 exit 0
+17:34:44 start 04 a v2
+17:35:56 end 04 a v2 exit 0
+17:35:59 start 05 a v3
+17:35:59 start 06 a v2
+17:35:59 start 06 b v2
+17:35:59 start 05 b v3
