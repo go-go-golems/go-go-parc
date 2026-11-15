@@ -82,7 +82,7 @@ def quiz_stats(n):
 def build_stats(n):
     out = []
     for f in sorted((VAL / "builds").glob(f"{n}-*-*-*.txt")):
-        m = re.match(rf"{n}-(\w+)-(v\d+)-(\w+)\.txt$", f.name)
+        m = re.match(rf"{n}-([a-z0-9]+)-(v\d+|r\d+|ctl)-(\w+)\.txt$", f.name)
         if not m:
             continue
         agent, tag, kind = m.groups()
@@ -94,11 +94,26 @@ def build_stats(n):
         total = int(ran[0])
         bad = sum(int(x) for x in re.findall(r"\d+", status[0][1])) if status[0][0] != "OK" else 0
         own = int(ran[-1]) if len(ran) > 1 else None
-        rec = {"agent": agent, "kind": kind, "passed": total - bad, "total": total, "own": own}
+        rec = {"agent": agent, "tag": tag, "kind": kind, "passed": total - bad, "total": total, "own": own}
         if kind != "build" and len(ran) >= 3 and len(status) >= 2:
             xbad = sum(int(x) for x in re.findall(r"\d+", status[1][1])) if status[1][0] != "OK" else 0
             rec["extra"] = (int(ran[1]) - xbad, int(ran[1]))
         out.append(rec)
+    return out
+
+
+def review_ranks(n):
+    """Mean rank (1 best of the set) of the chapter builds in each blind design review round."""
+    out = []
+    for rev in ("o1", "o2"):
+        f, k = VAL / "reviews" / f"{n}-{rev}.json", VAL / "reviews" / f"{n}-{rev}-key.json"
+        if not f.exists() or not k.exists():
+            continue
+        a, key = json.loads(f.read_text()), json.loads(k.read_text())
+        rk = a.get("ranking", [])
+        ranks = [rk.index(L) + 1 for L, v in key.items() if v["arm"] == "chapter" and L in rk]
+        if ranks:
+            out.append((rev, sum(ranks) / len(ranks), len(rk)))
     return out
 
 
@@ -145,20 +160,29 @@ def validation_block(c):
             f'<div><dt>Read and apply</dt><dd>{q["runs"]} agent runs on {q["versions"]} '
             f'version{"s" if q["versions"] != 1 else ""} · quiz {q["quiz"][0]}/{q["quiz"][1]} · '
             f'fit verdicts {q["fits"][0]}/{q["fits"][1]}</dd></div>')
-    builds = [b for b in c["builds"] if b["kind"] == "build"]
+    allb = [b for b in c["builds"] if b["kind"] == "build"]
     ext = [b for b in c["builds"] if b["kind"] != "build"]
-    if builds:
-        s = ", ".join(f'{b["passed"]}/{b["total"]}' for b in builds)
-        parts.append(f'<div><dt>Built by agents</dt><dd>{len(builds)} project{"s" if len(builds) != 1 else ""} · '
-                     f'hidden tests {s}</dd></div>')
+    latest = [b for b in allb if b["tag"].startswith("r")]
+    earlier = [b for b in allb if b["tag"].startswith("v")]
+    ctl = [b for b in allb if b["tag"] == "ctl"]
+    tests = lambda bs: ", ".join(f'{b["passed"]}/{b["total"]}' for b in bs)
+    builds = latest or earlier
+    if latest:
+        parts.append(f'<div><dt>Built with it</dt><dd>{len(latest)} builds on this version · hidden tests {tests(latest)}</dd></div>')
+    if earlier:
+        parts.append(f'<div><dt>{"Earlier version" if latest else "Built with it"}</dt><dd>{len(earlier)} builds · hidden tests {tests(earlier)}</dd></div>')
+    if ctl:
+        parts.append(f'<div><dt>Built without it</dt><dd>{len(ctl)} controls · hidden tests {tests(ctl)}</dd></div>')
+    rr = review_ranks(c["n"])
+    if rr:
+        s2 = " → ".join(f"{m:.1f}" for _, m, _ in rr)
+        parts.append(f'<div><dt>Blind review</dt><dd>chapter builds\' mean rank of {rr[-1][2]}: {s2} (1 is best)</dd></div>')
     if ext:
         s = ", ".join(f'{b["extra"][0]}/{b["extra"][1]}' for b in ext if "extra" in b)
         r = ", ".join(f'{b["passed"]}/{b["total"]}' for b in ext)
         parts.append(f'<div><dt>Change request</dt><dd>new hidden tests {s} · original tests still {r}</dd></div>')
     if not builds:
-        parts.append('<div><dt>Built by agents</dt><dd class="pending">builds running</dd></div>'
-                     if c["num"] in (3, 4, 6, 8) else
-                     '<div><dt>Built by agents</dt><dd class="pending">not yet</dd></div>')
+        parts.append('<div><dt>Built by agents</dt><dd class="pending">not built: no small build task yet</dd></div>')
     return '<dl class="validation">' + "".join(parts) + "</dl>"
 
 
@@ -217,14 +241,25 @@ method = f'''
       when at least two runs flag the same defect; isolated complaints are noted and left alone.</li>
     </ul>
     <p>Then agents built small, standard-library-only projects that need the pattern, each in its own directory, with
-    a diary and their own tests ({total_builds} builds scored so far, more running). Hidden acceptance tests were written against the
-    task and checked against a reference implementation before any agent saw them. A later change request (adding a new
-    kind of operation to the chapter 1 build) measured whether the structure grows in one place.</p>
-    <p>Pass rates show whether the code works, not whether the pattern helped. The next round adds builds without
-    the chapter as controls and a blind design review in the spirit of Alexander, Gabriel and Fowler: which forces
-    the code resolved, whether the structure fits its task or copies the sketch, whether similar seams emerged across
-    agents, whether a newcomer could live in the code and add the next operation locally, where it smells, and whether
-    a simpler control did as well with less.</p>
+    a diary and their own tests: {total_builds} builds over six tasks, three with each chapter version and two controls
+    per task built from the same task without the chapter. Hidden acceptance tests were written against the task and
+    checked against a reference implementation before any agent saw them. When every builder failed the same test, the
+    test was usually at fault: four tests were found unfair that way and fixed.</p>
+    <p>Pass rates show whether the code works, not whether the pattern helped, so every task's builds were also judged
+    blind, side by side, in the spirit of Christopher Alexander, Richard Gabriel and Martin Fowler: which forces the
+    code resolves, whether its structure fits the task or copies the sketch, whether similar seams emerge across
+    builders, whether a newcomer could live in it and add the next change locally, where it smells, and whether a
+    simpler control did as well with less.</p>
+    <ul>
+      <li><strong>First round.</strong> Chapter builds passed 98 % of hidden tests against 88 % for the controls and
+      resolved more forces, but in four of six tasks the controls were judged better adapted: builders turned each
+      chapter's participant table into one module per row and copied details of the originating projects.</li>
+      <li><strong>Revision.</strong> Every chapter now marks which participants are always needed and which only under
+      a condition, starts its variations with the smallest form, and keeps project specifics out of its sketch.</li>
+      <li><strong>Second round.</strong> The top-ranked build is a chapter build in five of six tasks (two before), and
+      the security holes the first chapter 8 builds had are gone. Two conditions read as optional made builders drop a
+      property the chapter needs; those conditions now ask a question about the system instead.</li>
+    </ul>
   </div>
 </section>'''
 
