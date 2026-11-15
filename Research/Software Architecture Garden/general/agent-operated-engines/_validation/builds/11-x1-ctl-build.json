@@ -1,0 +1,53 @@
+{
+  "summary": "labelbook is a standard-library Python 3 package whose Ledger keeps proposed labels and review decisions in two append-only JSON-lines files (labels.jsonl, decisions.jsonl) inside one directory, so a fresh Ledger on that directory replays to identical state. State, provenance, per-source acceptance rates and JSON exports are all derived by replaying those logs, with undo implemented as popping the latest effective decision so the audit trail is never rewritten. The suite has 103 unittest tests, including a randomised model check against an independent reference implementation, and the last run was green.",
+  "files": [
+    "DIARY.md",
+    "labelbook/__init__.py",
+    "labelbook/errors.py",
+    "labelbook/storage.py",
+    "labelbook/ledger.py",
+    "tests/__init__.py",
+    "tests/base.py",
+    "tests/test_labels.py",
+    "tests/test_decisions.py",
+    "tests/test_metrics.py",
+    "tests/test_export.py",
+    "tests/test_workflow.py",
+    "tests/test_persistence.py",
+    "tests/test_model_check.py"
+  ],
+  "design": {
+    "labelbook/storage.py (JsonlLog)": "The only module that touches files: appends one JSON object per line under a thread lock plus best-effort flock, then flush+fsync, and reads records back in file order. It exists so durability and cross-process safety are auditable in one ~150-line place and the ledger logic stays file-agnostic.",
+    "labelbook/storage.py (signature)": "Returns (path, size, mtime_ns, inode) so the ledger can cache a replay; any append changes the size, and mtime/inode catch truncation or replacement.",
+    "labelbook/storage.py (write_json_file)": "Atomic export via temp file + os.replace, so a reader never sees a half-written JSON document and a failed export leaves the previous file intact.",
+    "labelbook/errors.py": "LabelbookError base, LedgerFormatError for corrupt logs, and UnknownLabelError which subclasses both KeyError and ValueError because the task only promises ValueError for bad input while an unknown id is also a failed lookup.",
+    "labelbook/ledger.py (_Snapshot replay)": "Replays both logs into labels (file order = creation order), history (every decision and undo record with an undone flag) and stacks (entries still in force). It is the single source of truth for all reads, which is what makes 'a new Ledger on the same directory sees the same state' true by construction.",
+    "labelbook/ledger.py (status_and_label)": "Derives status from the top of the effective stack and the current label from the latest effective correction; used by state(), status(), current_label(), acceptance() and export() so those five can never disagree.",
+    "labelbook/ledger.py (decide)": "Validates decision/actor/new_label, verifies the label exists and that undo has something to cancel, then appends an event; it never rewrites earlier lines, which keeps every decision auditable.",
+    "labelbook/ledger.py (made_by / acceptance)": "made_by is an AND-match over maker fields; acceptance groups decided labels by a maker field and counts accepted+corrected over accepted+corrected+rejected. Together they are how the team measures a source and then names the labels to exclude.",
+    "labelbook/ledger.py (export)": "Writes only accepted and corrected labels as a JSON list of {item, label} in creation order, with an additive exclude= of label ids so ledger.export(p, ledger.made_by(model='broken')) drops a faulty source.",
+    "tests/test_model_check.py (Reference)": "A deliberately naive, independently written model (id/item/label/maker tuples and decision stacks) driven by the same random operation sequences as the ledger; it exists to catch interpretation drift between the docstrings and the replay code."
+  },
+  "tradeoffs": [
+    "Append-only event log replayed on every read instead of a mutated state file with an index: the log costs a full replay per read (mitigated by a file-signature cache) but gives free audit history, crash tolerance, and identical state for any new Ledger on the directory, which the task explicitly demands.",
+    "Two JSON-lines files (labels.jsonl, decisions.jsonl) instead of one combined event stream: two files make label records and review records readable on their own with cat and keep replay trivially ordered, at the cost of the reader having to load both (and of decisions referencing labels that must exist).",
+    "Undo is an appended event that pops the latest effective decision at replay time, rather than deleting the decision line: deleting would make the 'undo' invisible, so the audit trail (history() with an undone flag) would be lost; the cost is a slightly more complex replay.",
+    "actor defaults to None and is validated into ValueError, instead of being a required positional parameter: a required parameter would raise TypeError when omitted, which contradicts 'A missing actor is an error (ValueError)'.",
+    "UnknownLabelError subclasses both KeyError and ValueError: a caller expecting either exception style works, at the cost of a slightly unusual multiple-inheritance exception.",
+    "acceptance() skips sources that have no decided labels rather than reporting 0.0: a 0.0 would claim a source is bad when it has simply not been reviewed yet, at the risk of a caller expecting the key to exist.",
+    "state()['label'] after 'correct then reject' stays the corrected label: the correction is still in force, so reporting the original proposal would contradict the primitive 'the correction is applied until undone'; the alternative (reverting to the proposal on reject) was rejected as surprising.",
+    "Corrupt or unparseable log lines raise LedgerFormatError instead of being skipped: silently dropping records would quietly shrink an audit export, so the library fails loudly with file and line number instead of maximising robustness.",
+    "Values returned from state()/source_of()/history() are copied for mutable payloads: costs a JSON round-trip for non-scalar items, but stops a caller mutating the cached replay and makes the returned data safe to hold."
+  ],
+  "tests": "103 unittest tests across 7 test modules (labels, decisions/undo, metrics, export, persistence/corruption, end-to-end workflow, randomised model check); the last run of `python3 -m unittest discover -s tests` reported `Ran 103 tests in 0.244s` / `OK`. A deliberate mutation that broke undo replay was caught by 12 of them.",
+  "unclear": [
+    "What undo should do when the label has no decision left to cancel: I raise ValueError (and a second undo peels the previous decision rather than doing nothing).",
+    "Whether acceptance(by) must contain an entry for a source whose labels are all still pending: I omit it, since the share of zero decided labels is undefined rather than 0.0.",
+    "What state()['label'] should be when a corrected label is later rejected: I report the corrected label, since the correction is still in force.",
+    "Whether label ids must be human-checkable or deterministic (e.g. derived from content): I use opaque uuid4 hex strings and keep creation order separately.",
+    "Whether export() should include provenance: I kept rows to exactly {item, label} as specified and left auditing to source_of()/history().",
+    "Whether made_by() should also match nested maker fields, or the inputs list: I match top-level maker keys only, with exact equality.",
+    "Whether 'undo' may itself be undone, and whether decisions may be recorded on already-decided labels: I allow unlimited review rounds and treat every undo as peeling one more decision.",
+    "Whether reject after accept should also discard the earlier acceptance for the acceptance metric: I count only the latest effective decision."
+  ]
+}

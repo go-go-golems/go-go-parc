@@ -1,0 +1,7 @@
+== 06 ctl x2 build
+Ran 16 tests in 0.002s
+
+FAILED (failures=4)
+Ran 89 tests in 0.011s
+
+OK

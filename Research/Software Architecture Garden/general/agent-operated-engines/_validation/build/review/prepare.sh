@@ -28,6 +28,27 @@ for i, src in enumerate(runs):
     letter = chr(ord("A") + i)
     dst = out / "work" / f"impl-{letter}"
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".pytest_cache", "*.md"))
+    # Chapter builds cite the chapter in comments ("Chapter 3, note 8", "CHAPTER.md participant"); controls never do.
+    # Neutralise those references so the arms cannot be told apart by them (vocabulary itself stays: it is evidence).
+    import re
+    subs = [(r"CHAPTER\.md", "the design"),
+            (r"\bchapter(?:'s)?\s+(?:implementation\s+)?notes?\s+\d+(?:\s*(?:,|and|/)\s*\d+)*", "the design"),
+            (r"\bchapter\s+\d+(?:'s)?", "the design"),
+            (r"\bimplementation\s+notes?\s+\d+(?:\s*(?:,|and|/)\s*\d+)*", "the design"),
+            (r"\bnotes?\s+\d+(?:\s*(?:,|and|/)\s*\d+)*\b", "the design"),
+            (r"\bchapter(?:'s)?\b", "design"), (r"\bthe pattern\b", "the design"),
+            (r"\bgoja-cv\b|\bthe (?:Editor )?lab\b|\bchromobench\b", "a reference system")]
+    for f in dst.rglob("*"):
+        if f.is_file():
+            try:
+                t = f.read_text()
+            except (UnicodeDecodeError, OSError):
+                continue
+            t2 = t
+            for a, b in subs:
+                t2 = re.sub(a, b, t2, flags=re.I)
+            if t2 != t:
+                f.write_text(t2)
     tag, agent = src.parent.parent.name, src.parent.name
     key[letter] = {"tag": tag, "agent": agent, "arm": "control" if tag == "ctl" else "chapter"}
 keyf.write_text(json.dumps(key, indent=2))

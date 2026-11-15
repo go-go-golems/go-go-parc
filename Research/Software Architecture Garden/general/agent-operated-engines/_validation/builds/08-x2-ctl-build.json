@@ -1,0 +1,46 @@
+{
+  "summary": "jailfs is a standard-library package exposing Workspace(root, reads=()) with read, save, load, names and batch, backed by a Refused exception carrying a code (E_ACCESS, E_NOT_FOUND, E_DUPLICATE, E_SHADOW) and an actionable fix. Every lookup and write walks down from a realpath-ed root one component at a time with dir_fd and O_NOFOLLOW, so a link planted in the writable directory can never redirect a read or a write, and saves go through an exclusive temp file plus os.replace so no existing inode (including a hard-linked dataset file) is ever written through. On top of that policy layer, saves are refused when they hit a read-only root, shadow a dataset name, repeat inside one batch, or would replace a file this session read or a hard-linked file.",
+  "files": [
+    "jailfs/__init__.py",
+    "jailfs/errors.py",
+    "jailfs/fsops.py",
+    "jailfs/workspace.py",
+    "tests/support.py",
+    "tests/test_workspace.py",
+    "tests/test_security.py",
+    "DIARY.md"
+  ],
+  "design": {
+    "jailfs/errors.py": "Defines Refused(code, message, fix, path) and the four codes, so every denial is one exception type a runtime can pattern-match on and every refusal can carry the next step for the agent.",
+    "jailfs/fsops.py": "Mechanism layer: all os calls live here. Roots are realpath-ed once, then every walk opens one component at a time relative to the previous directory descriptor with O_NOFOLLOW, so links are refused structurally rather than by comparing strings; writes are exclusive temp file + os.replace by name, which replaces the directory entry and never writes through an existing inode.",
+    "jailfs/workspace.py": "Policy layer: construction validation (single writable root, existing directories, no writable/read-only overlap), the relative search order (writable root then reads in order), absolute-path containment against trusted root spellings, read protection by path and inode for the session, batch duplicate tracking, load() restricted to .py/.js UTF-8 text, and names() as sorted '/'-separated relative names of regular files in the writable root.",
+    "jailfs/__init__.py": "The public surface required by TASK.md: Workspace and Refused, plus the four code constants and ALL_CODES for callers that prefer names to literals.",
+    "tests/support.py": "Builds a throw-away base/root, data, lib and outside tree per test (realpath-ed for macOS), with put/content helpers that deliberately bypass the jail for fixtures and a refused(code, ...) helper that also asserts the fix string is non-empty.",
+    "tests/test_workspace.py": "Interface tests: construction refusals, round-trips, parent creation, Unicode and bytes paths, search order and precedence, absolute paths, names(), load(), batch semantics, and the Refused contract.",
+    "tests/test_security.py": "Boundary tests: traversal, links to datasets/outside/inside, linked directories, dangling links, links inside read directories, read-only roots, shadowing, hard links, read protection, and a planted-state scenario where a previous session leaves hostile links in the writable root."
+  },
+  "tradeoffs": [
+    "All link traversal below a root is refused, even a link that points back inside the same root; the alternative is to allow links whose realpath stays inside a root, but that either needs a racy realpath-then-open check or makes the rule 'links are followed only sometimes', and the task frames planted links as hostile.",
+    "The refusal code for construction-time problems (list/tuple root, overlapping roots) is E_ACCESS, because TASK.md offers only four codes and none is a configuration code; the alternative was a non-Refused ValueError, which would contradict 'all refusals raise Refused'.",
+    "Read protection is session-wide (the Workspace instance), not per batch, because TASK.md says 'a file this session read' and describes a batch separately as 'one agent program's run'; the cost is that a program cannot rewrite a file it has read unless the runtime starts a new session.",
+    "E_SHADOW is checked before the final-component link check, so a planted link whose name also exists in a read directory reports E_SHADOW; both refusals are true, and E_SHADOW's 'pick a different name' is the message that actually unblocks the agent.",
+    "A save over an existing file with st_nlink > 1 is refused with E_ACCESS even though TASK.md only names links it can see; the alternative (allow it, since os.replace only swaps the directory entry and leaves the other name intact) is safe for the dataset but would silently let an agent write 'through' a hard link, so the stricter rule wins.",
+    "Absolute paths match a root by either its configured spelling or its real path (needed because macOS exposes /var/... and /private/var/...), while everything below the matched prefix is still walked with O_NOFOLLOW; the alternative of realpath-ing the whole input path would have followed links below the root.",
+    "names() is recursive and returns sorted '/'-separated relative names, skipping links and directories; a top-level-only listing was the alternative, but nested relative names match the 'relative names of files' wording and are what an agent needs to find its own outputs.",
+    "save() with a non-bytes payload raises TypeError rather than Refused, treating it as a programming error (the signature says data: bytes) instead of a jail refusal; the alternative would blur the meaning of the four codes.",
+    "load() on a file that exists but is not .py/.js raises E_ACCESS rather than E_NOT_FOUND, because the file is visible but this entry point declines to hand it out; the alternative code was E_NOT_FOUND."
+  ],
+  "tests": "100 tests (64 interface tests in tests/test_workspace.py, 36 boundary tests in tests/test_security.py); last result of `python3 -m unittest discover -s tests` was `Ran 100 tests in 0.093s` / `OK`, and `python3 -m compileall -q jailfs tests` passed.",
+  "unclear": [
+    "Which code a construction refusal should use; I chose E_ACCESS for a list/tuple root and for overlapping writable/read-only roots, and E_NOT_FOUND for a root or read directory that does not exist or is not a directory.",
+    "Whether a one-element list as root is legal ('a list or tuple of several directories is refused'); I refuse any list or tuple.",
+    "Whether 'this session' in 'would replace a file this session read' means the Workspace lifetime or the current ws.batch() block; I chose the Workspace lifetime.",
+    "Precedence when a save would both shadow a dataset name and go through a planted link; I report E_SHADOW in that case and E_ACCESS for pure link cases.",
+    "Whether links that resolve inside a root should be allowed; I refuse every link below a root, and I treat a configured root that is itself a link as trusted configuration.",
+    "Whether names() should list nested files or only top-level ones; I list nested files recursively with '/' separators.",
+    "Whether load() on an existing non-.py/.js file is E_ACCESS or E_NOT_FOUND; I chose E_ACCESS.",
+    "Whether a save that replaces a hard-linked file (whose other name may be a dataset or an outside file) must be refused; I refuse it with E_ACCESS, which is stricter than the letter of the task.",
+    "Whether a save path ending in '/' should create the file or be refused; I refuse with E_ACCESS.",
+    "Whether a save over a file the session read should be allowed when the payload is identical; I refuse regardless."
+  ]
+}

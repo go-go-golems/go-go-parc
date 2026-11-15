@@ -1,0 +1,60 @@
+{
+  "summary": "I built hubreg, a standard-library-only Python package and CLI for a home-automation hub in which each of the four demo plug-in actions is described once as a data record, and every consumer — binder, refusal diagnoser, help, tool schemas, app controls and the test walker — reads only those records. Registration validates both structure (record keys, callable run, unique and typed args, enum values, samples) and consistency (defaults inside hard limits, usual ranges inside hard limits, argument and action redirects pointing at real targets, cross-record redirects checked at finalize), and binding refuses unknown options before missing ones, keeps hard limits separate from usual ranges (refuse vs. RANGE warning in the declared unit), never coerces a wrong type, and lets a host-required confirmation be raised but never lowered by a plug-in. 143 unittest tests cover registration, binding/refusals, warnings, run/confirmation, the three consumers, the walker, the CLI and a plug-in that adds a brand-new argument type, and they all pass.",
+  "files": [
+    "hubreg/__init__.py",
+    "hubreg/__main__.py",
+    "hubreg/errors.py",
+    "hubreg/types.py",
+    "hubreg/record.py",
+    "hubreg/binder.py",
+    "hubreg/diagnose.py",
+    "hubreg/describe.py",
+    "hubreg/walk.py",
+    "hubreg/registry.py",
+    "hubreg/demo.py",
+    "hubreg/surfaces.py",
+    "tests/support.py",
+    "tests/test_records.py",
+    "tests/test_bind.py",
+    "tests/test_run.py",
+    "tests/test_consumers.py",
+    "tests/test_walk.py",
+    "tests/test_cli.py",
+    "tests/test_types_plugin.py",
+    "tests/test_surfaces.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Operation record": "hubreg/record.py::OpRecord — name, receiver kind, args, cross-argument validate hook, result fields, flags (confirm), method-level redirects, samples, doc, run; one record per (kind, name) in hubreg/registry.py::Registry._records",
+    "Argument spec": "hubreg/record.py::ArgSpec — name, type, unit, doc, default/optional, hard min/max, usual range plus usual_hint, enum values, near-miss redirects; defaults and limits are stored in the declared unit",
+    "Flags": "hubreg/record.py flags dict ({'confirm': bool}) read only in hubreg/registry.py::Registry.needs_confirm (host set OR record flag); hubreg/surfaces.py::NON_RECORD_SURFACE is the one list of things that cannot be records",
+    "Registry": "hubreg/registry.py::Registry — register (structure + consistency), finalize (cross-record redirect checks), lookup/names/kinds/all, bind, run, tool_schemas, controls, help, context, walk",
+    "Argument types (pluggable)": "hubreg/types.py — ArgType with accepts/range_problem/alternatives/describe/describe_text, a module-level table plus register_type/get_type; number, string, bool and enum ship here, tests/test_types_plugin.py adds a colour type without touching the core",
+    "Binder": "hubreg/binder.py::bind_record — unknown keys → supplied/default/optional/missing → type → hard limits → usual-range warning → cross-argument hook; returns Call or Failure",
+    "Describer": "hubreg/describe.py — context_line (short form), help_text (full help), tool_schema (assistant), controls (app), rendered from the record only",
+    "Diagnoser": "hubreg/diagnose.py::explain — one entry point mapping Failure kinds to Refusal(code, message, valid, nearest, fix) with difflib nearest names, record-level and option-level redirects, and clamping fixes",
+    "Walker": "hubreg/walk.py::walk — calls every record's samples and the defaults-only call, compares result keys with declared fields, renders every consumer, and reports problems instead of raising; used by Registry.walk and tests/test_walk.py"
+  },
+  "notes_applied": [
+    "Note 1 (structure and consistency at registration, cross-record checks at end of start-up): OpRecord.from_dict refuses missing keys, non-callable run, duplicate/unknown-typed args, bad enum values, defaults outside limits or enum values, usual ranges outside hard limits, and redirects that shadow an option or point at an unknown option; Registry.finalize/_ensure_finalized then check that action redirects point at registered actions, so a redirect to an action registered later is legal.",
+    "Note 2 (hard limits vs. usual ranges, in the declared unit, only supplied values warn, unknown keys before missing): binder checks raw keys first, range_problem raises E_ARG_RANGE with a clamping fix, and only supplied values outside spec.usual produce Warning(code='RANGE'); a test shows a default outside the usual range binds without warning while help still shows the usual range.",
+    "Note 3 (nothing falls back to a default silently): a wrong type (including bool for a number and '40' for a number) is E_ARG_TYPE, enum values outside spec.values are E_ARG_TYPE with the allowed values in .valid, and unknown options are always refusals — plus I fixed a real leniency bug where `raw.get('flags') or {}` silently accepted `\"flags\": []`.",
+    "Note 4 (every near-miss redirect lives in the records): option redirects live in ArgSpec.redirects (temp→target, brightness→level, name→scene) and action redirects in the record's redirects (set_temp→set_temperature); the registry indexes them and validates them, and help renders them, so no redirect table exists outside the records.",
+    "Note 5 (walk the whole registry, results included; samples in the record so registration can require them): samples are part of the record and validated as argument dicts at registration, the walker runs every sample plus the defaults-only call and requires result keys to equal the declared fields (reporting missing and undeclared separately), and limits/redirects/warnings/optional arguments have their own tests generated from the demo records.",
+    "Note 6 (pluggable types, consumers outside the core): the binder asks type objects three questions; tests/test_types_plugin.py adds a 'colour' type and a plug-in using it in new files only and verifies the tool schema, controls, help and walk all pick it up.",
+    "Note 7 (one record per receiver kind and name): records are keyed by (kind, name), one record per name per kind, with no overload-by-type lookup.",
+    "Note 8 (rename with a redirect; defaults are part of identity): old action names are refused with a fix naming the new one rather than silently aliased, and a Call carries the resolved defaults in .args, so a default change shows up in the bound value every consumer uses.",
+    "Note 9 (enumerate the exceptions and test them separately): hubreg/surfaces.py::NON_RECORD_SURFACE lists the seven CLI verbs, and tests/test_surfaces.py requires the dispatch table to match that list, that no verb shadows an action name, and that every registered record has a run and samples.",
+    "Note 10 (composite operations are records too): the record's validate hook lets an action express rules that span arguments (tested with a low<=high rule), so such actions are still single records the consumers can render."
+  ],
+  "tests": "143 tests in 8 files (test_records, test_bind, test_run, test_consumers, test_walk, test_cli, test_types_plugin, test_surfaces) plus tests/support.py; last result: `python3 -m unittest discover -s tests` → Ran 143 tests in 0.547s, OK (0 failures, 0 errors). Three failures were hit on the way and fixed: a duplicate-redirect false positive in registration, a walk message that named no missing field, and the `or {}` leniency that accepted `\"flags\": []`.",
+  "chapter_feedback": [
+    "Helped: the Structure table and the bind/explain/walk pseudocode converted almost line-for-line into modules, and the split 'unknown keys before missing arguments' is exactly what makes the temp→target repair work; the note about checking defaults and usual ranges against the hard limits caught two of my own demo data mistakes immediately.",
+    "Helped: the walker-with-samples-in-the-record idea is the single most valuable part of the chapter for this task — putting samples in the record let registration require them and made walk() empty mean something.",
+    "Mislead: the sketch's ArgSpec has `position?`, but TASK.md's ArgSpec does not, so the chapter's structural check 'a required positional argument after an optional one' has no subject here; I left the field out rather than inventing it, and the chapter does not say what to do when the host's spec is narrower than its own.",
+    "Left to guess: where warnings should surface when the host's `run` must return the declared result fields. The chapter says warnings must reach the caller's reply, but TASK.md's run signature has nowhere to put them, so I kept them on Call.warnings and had the CLI write them to stderr next to the result — a judgement call a reviewer should confirm.",
+    "Left to guess: the code list in TASK.md has no code for 'value not in an enumeration', so I used E_ARG_TYPE with .valid holding the values and .nearest the closest one; the chapter's vocabulary (ARG_TYPE vs a value error) does not settle it either.",
+    "Left to guess: nothing in the chapter or task says whether an optional argument without a default should appear in the bound args as None or be absent; I chose absent so implementations never receive None where they expect absence, and documented it.",
+    "Slightly misleading: the chapter's note 4 says goja-cv keeps method/help/look redirects in three tables outside the registry as debt — for a small registry the harder part was that action-level redirects can only be validated after all plug-ins register, which note 1 mentions but the Sketch (which validates redirect targets at register) contradicts."
+  ]
+}

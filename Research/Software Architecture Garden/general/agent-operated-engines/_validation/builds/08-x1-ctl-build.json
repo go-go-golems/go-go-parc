@@ -1,0 +1,53 @@
+{
+  "summary": "I built `jailfs`, a standard-library-only Python package that gives an agent session one writable workspace root plus ordered read-only dataset directories, with `Workspace.read/save/load/names` and a `batch()` context manager, all refusals raised as `Refused(code, fix)`. Relative paths are resolved root-first then through the read directories with an `lstat`-plus-`O_NOFOLLOW` walk that never traverses a symlink, saves are atomic (temp file plus `os.replace` inside the target directory), and policy refusals are split across the documented `E_ACCESS`, `E_NOT_FOUND`, `E_DUPLICATE` and `E_SHADOW` codes. A 143-case `unittest` suite (120 distinct tests, the security cases run against both a `dir_fd` backend and a portable `lstat` backend) proves that planted links, `..` escapes, absolute paths outside the roots, shadowed dataset names, duplicate saves in one batch and read-before-write attempts are all refused while the dataset trees stay byte- and mtime-identical.",
+  "files": [
+    "jailfs/__init__.py",
+    "jailfs/errors.py",
+    "jailfs/paths.py",
+    "jailfs/fsio.py",
+    "jailfs/workspace.py",
+    "tests/__init__.py",
+    "tests/support.py",
+    "tests/test_construction.py",
+    "tests/test_read.py",
+    "tests/test_save.py",
+    "tests/test_load_names.py",
+    "tests/test_links.py",
+    "tests/test_hostile_input.py",
+    "tests/test_integrity.py",
+    "DIARY.md"
+  ],
+  "design": {
+    "Workspace (jailfs/workspace.py)": "The single policy object an agent program is given. It owns the ordered root list (canonical writable root first, then each read directory), the search order for reads, the read ledger that makes 'a save that would replace a file this session read' an E_ACCESS, and the per-batch set that turns a second save of the same path into E_DUPLICATE. Keeping policy here means fsio never has to know what a dataset is.",
+    "Read ledger keyed by (root index, components)": "Records every successful read and load. The key is a normalised component tuple rather than a string so `a/./b.txt` and `a/b.txt` are the same entry; without this an agent could launder a read-then-overwrite through a different spelling of the same path.",
+    "batch() context manager": "Marks one agent program's run, resetting on exit even when the body raises. It exists so duplicate-write detection is scoped to a single run instead of the whole session, which is what the task's E_DUPLICATE definition asks for and which lets a later batch legitimately rewrite a file it produced itself.",
+    "fsio._FdBackend": "POSIX `dir_fd`-relative syscalls: one directory descriptor at a time, `lstat` on every component, `O_NOFOLLOW` on every open and mkdir descent. This is the primary backend because a link swapped in between check and use cannot be followed, so a planted link cannot reach a dataset.",
+    "fsio._PathBackend": "The same surface implemented as an `lstat` walk over joined paths for platforms without `dir_fd` (plus a root check that refuses a root replaced by a link). It is weaker by construction (check-then-use), so it exists for portability and is exercised by the same security tests via a `_FORCE_PATH_BACKEND` hook rather than being untested dead code.",
+    "fsio.Linked / fsio.Obstructed": "Two `Refused` subclasses (still E_ACCESS) that let the search loop distinguish 'a link blocked me' (stop, it is an escape attempt) from 'a plain file sits where a directory was needed' (this root has no such file, keep searching). They exist so behaviour does not depend on string matching refusal messages.",
+    "paths.py": "Coerces str/bytes/PathLike, refuses NUL bytes, detects absolute spellings, and normalises relative paths lexically (resolving `.` and inner `..`, refusing a `..` that would climb above a root). Lexical normalisation is safe because the walk that follows never traverses a link; it also means `a/../b.txt` collapses deterministically instead of depending on what `a` is.",
+    "Absolute-path containment via realpath": "Roots are canonicalised with `realpath` at construction and absolute requests are canonicalised before comparison, then re-walked from the canonical root. This is required on this host, where `tempfile.mkdtemp()` returns a `/var/...` path whose real location is `/private/var/...`, and it makes a request that resolves outside the roots an E_ACCESS instead of a write.",
+    "errors.Refused": "One exception type carrying `code`, `fix`, `detail` and `path`, with the code list validated so a typo cannot invent a fifth code. Every layer raises it instead of leaking OSError, and a static AST test asserts every construction site passes a `fix`.",
+    "Atomic save (temp file plus os.replace with src_dir_fd/dst_dir_fd)": "A save either fully replaces the target or leaves it untouched, and because the rename is relative to the already-open parent descriptor it cannot be redirected by a link, nor can it follow a link at the destination name."
+  },
+  "tradeoffs": [
+    "Relative paths refuse to traverse any symlink at all, even one whose target is inside a root, instead of resolving it and checking containment: the alternative would be friendlier to internally-linked workspaces, but 'through a link' is listed as its own E_ACCESS cause and refusing outright is the simpler invariant to review.",
+    "Absolute paths are resolved with realpath and accepted if the final target lies in a root, so an absolute path may pass through a link while an equivalent relative path may not: the alternative (strict lexical containment only) would break on macOS `/var` versus `/private/var` and reject legitimate absolute reads under `tempfile` directories.",
+    "`save` accepts an absolute path that resolves inside the writable root, reading 'writes only inside the writable root' as a location rule: the alternative is to refuse every absolute save, which is stricter but would also refuse the natural `ws.save(os.path.join(ws.root, 'x'), ...)` spelling used in examples.",
+    "A save whose relative name exists in a read directory is refused with E_SHADOW even when the writable root already holds a file of that name: the alternative (allow the override once the root copy exists) is more permissive but makes dataset authority depend on session history.",
+    "`read` continues searching the read directories when a plain file in the writable root sits where a directory was needed, but stops on a link: the alternative (treat every obstruction as terminal) lets one careless `save('nested')` hide a dataset file for the rest of the session.",
+    "The read ledger is session-lifetime and unbounded rather than per-batch: the alternative (batch-scoped reads) would let a program read a file in one run and overwrite it in the next, which is exactly the case the task's E_ACCESS clause describes.",
+    "The library keeps two backends instead of one, paying for duplicated mechanics: the alternative is either to require `dir_fd` (failing on Windows) or to ship only the weaker path walk, and the duplication bought testability plus a race-free default.",
+    "Reading a directory, writing over a directory, and a non-directory in the middle of a save all report E_ACCESS rather than E_NOT_FOUND: the alternative (E_NOT_FOUND for 'no such file') hides that something real is in the way, which the agent can fix by renaming."
+  ],
+  "tests": "120 distinct test methods in 8 modules (`tests/test_construction.py`, `test_read.py`, `test_save.py`, `test_load_names.py`, `test_links.py`, `test_hostile_input.py`, `test_integrity.py` plus the `tests/support.py` fixture); 143 test cases execute because the link, integrity, hostile-input and round-trip suites are run once per backend. Last result: `python3 -m unittest discover -s tests` → `Ran 143 tests in 0.179s / OK` (same for `-v`, for bare `discover`, and for `discover -s tests -t .`). Earlier runs failed twice and were fixed: `Ran 130 tests ... FAILED (failures=7)` (all seven were bugs in my own assertions: a legal save of a new name counted as an attack, an `outside/` fixture directory assumed empty, wrong expected bytes) and later `AssertionError: 'E_ACCESS' != 'E_SHADOW'` on an over-long name, which exposed a real defect in the shadow probe.",
+  "unclear": [
+    "Whether `save` should accept an absolute path that lies inside the writable root, since the task only says 'writes only inside the writable root' (I accept it, and refuse absolute paths in read-only directories with E_ACCESS).",
+    "Whether 'this session' for the read-before-write rule means the lifetime of the Workspace or a single `batch()` block (I used the Workspace lifetime).",
+    "Whether a `..` component that normalises back inside a root (`sub/../a.txt`) should be allowed or refused (I allow it lexically, and refuse only a `..` that would climb above a root).",
+    "Which code an agent should see when a parent directory already exists as a regular file, or when `read` names a directory (I chose E_ACCESS for both).",
+    "What `names()` should do with symlinks and other non-regular entries in the writable root (I skip them, so a planted link never appears as a usable name).",
+    "Whether `load` should be restricted to helper files in the read-only directories or may also load files the session saved in its root (I allow both, with the root searched first, and reject any extension other than `.py`/`.js` with E_ACCESS).",
+    "Whether `read`/`load` should also work on a symlink whose target lies inside a root (I refuse all links on relative paths, but an absolute path that resolves inside a root is accepted).",
+    "Whether `Workspace(root)` should create a missing root directory (I create it) and whether a missing entry in `reads=` should be ignored rather than refused (I refuse it with E_NOT_FOUND so a mistyped dataset path is loud)."
+  ]
+}

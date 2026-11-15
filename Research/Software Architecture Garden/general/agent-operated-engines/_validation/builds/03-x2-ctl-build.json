@@ -1,0 +1,44 @@
+{
+  "summary": "gridflow is a standard-library-only package whose Engine builds lazy, structurally keyed pipelines over 2D float grids and evaluates them through a byte-budgeted LRU cache keyed by node and scale. Nodes are interned by content-addressed keys (operation, version, frozen args, input keys), so equal sources and repeated pipelines are the same node and share cached work, while runs(), stats(), per-node warnings and EvalError messages that name the failing operation make behaviour observable. within() binds a placeholder to the base grid at the same scale and merges the sub-pipeline result back through the 0/1 mask, and demo_engine() ships add, gain (neutral at k=1, folded at build time), scale-aware blur and threshold.",
+  "files": [
+    "gridflow/__init__.py",
+    "gridflow/errors.py",
+    "gridflow/grid.py",
+    "gridflow/cache.py",
+    "gridflow/engine.py",
+    "gridflow/demo.py",
+    "tests/test_engine.py",
+    "tests/test_demo.py",
+    "tests/test_within.py",
+    "tests/test_public_api.py",
+    "DIARY.md"
+  ],
+  "design": {
+    "structural node keys": "Node identity is ('op', name, version, frozen args, input keys) or ('source', blake2b digest of frozen content); the engine interns nodes by key, which is what makes 'two sources with equal content are the same node' true and lets indentical pipelines built in separate scripts share cache entries.",
+    "Engine._eval(node, scale, subs, warnings)": "One recursive routine handles sources, operations, within nodes and placeholders: it checks the placeholder binding, then the (node key, scale) cache entry, counts a hit or miss, computes on a miss, and stores the value plus the warnings produced anywhere in that node's subtree so hits replay warnings exactly like misses.",
+    "LRUCache with byte budget": "An OrderedDict-driven LRU that tracks current bytes and evictions; entries larger than the whole budget are skipped rather than stored (not counted as evictions), and cache_bytes=0 disables caching entirely while leaving evaluation correct.",
+    "immutable internal grids": "Values are stored as tuples of tuples of floats so cached values can be shared with many nodes safely, while Result.value and operation inputs are handed out as fresh lists of lists for ergonomic equality with plain Python grids.",
+    "identity folding": "A registered identity(args) that returns True makes Node.call return the first input node itself, so gain(k=1) performs no work, adds no cache entry, and is still exactly equal to its input at every scale.",
+    "within via placeholder substitution": "within() interns a placeholder keyed ('placeholder', base.key), runs build(placeholder) once, and evaluates the result with a substitution map binding that key to the base grid; the mask merge happens afterwards, so operations like blur inside the sub-pipeline see the full base grid and everything stays cacheable and deterministic.",
+    "Context and EvalError": "Operations receive ctx.scale and ctx.warn(message) for non-fatal notes, and every failure (unknown op, bad args, bad output grid, shape mismatch, exception inside fn) is re-raised as EvalError whose message names the failing operation."
+  },
+  "tradeoffs": [
+    "Identity arguments are folded at build time instead of being evaluated and aliased at run time: the alternative would still call fn once and then return the input's cached value, but folding is cheaper and keeps runs() at 0 for neutral calls; the cost is that node.call('gain', k=1) returns the input node rather than a distinct node.",
+    "The value cache counts every evaluated node, sources included, as a hit or miss, so a cached pipeline reports one hit per repeat evaluation and a first evaluation of source->op reports two misses; the alternative (not caching sources) would make misses equal the number of executed operations but would make the counter rules less uniform.",
+    "Re-registering any operation clears the whole value cache: per-operation invalidation would preserve more cached work, but clearing guarantees no stale result is ever served after an implementation change, which matters more for correctness than for throughput here.",
+    "Blur uses clipped border windows (mean over in-bounds cells only, no zero padding) and rounds radius*scale half-up, clamping to at least one cell with a warning when the proportional radius falls below one cell: padding would make edges darker and silent clamping would hide that scale had no effect, so I chose the transparent variant.",
+    "Warnings are de-duplicated in order at the Result level rather than repeated once per warning call; the alternative preserves multiplicity but makes pipelines that warn per node noisy and makes cache-hit behaviour harder to reason about.",
+    "Only grid values are byte-budgeted; the interned node table and runs counters grow for the lifetime of the engine. This keeps structural equality and runs() stable, at the cost of unbounded metadata for pathological workloads."
+  ],
+  "tests": "92 unittest tests across tests/test_engine.py, tests/test_demo.py, tests/test_within.py and tests/test_public_api.py; last run: `python3 -m unittest discover -s tests` -> Ran 92 tests, OK.",
+  "unclear": [
+    "How exactly a smaller scale should shrink a blur radius: the task says 'proportionally' but not how to round or whether a sub-cell radius should mean no blur, so I round half-up and clamp to at least one cell with a warning.",
+    "Whether the blur box mean should clip windows at the borders (my choice) or pad with zeros, since the task only says 'box mean'.",
+    "Whether stats hits/misses are meant to count cache lookups for source nodes and for nodes skipped by a parent's cached result, or only executed operations.",
+    "Whether Result.warnings should repeat identical messages emitted by different nodes, or be de-duplicated (I de-duplicate while preserving first-seen order).",
+    "Whether Result.value should be a list of lists (my choice) or may be tuples, given the task allows both as grid inputs.",
+    "Whether identity(args) should fold a call at build time (making node.call return the input node) or only be used during evaluation to reuse the first input's value.",
+    "Whether the sub-pipeline inside within should see the whole base grid under the placeholder (my choice, needed for neighbourhood operations) or only the masked region.",
+    "How invalidating cached values after re-registering an operation should behave, since the task only says the name is replaced."
+  ]
+}

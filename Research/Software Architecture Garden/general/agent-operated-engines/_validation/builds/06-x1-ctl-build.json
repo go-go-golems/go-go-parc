@@ -1,0 +1,51 @@
+{
+  "summary": "I built shopcli, a stdlib-only Python 3 library whose Shop().run(script) executes a line-oriented inventory language (item/price/report namespaces, repeat loops, aliases rm/delete/ls/inventory) and returns {ok, results, warnings, error}. Every failure is a structured repair payload with code, message, a breadcrumb path ending in '✗ <element>', where {line, source}, valid alternatives, a did-you-mean hint, an executable replacement line (fix) and host_name. The design is a vocabulary-free parser, a declarative option table that generates all type/range/usage diagnostics, and a fix renderer whose candidate lines are re-validated before being offered, verified by 94 tests including convergence tests that apply each fix and re-run until the script succeeds.",
+  "files": [
+    "shopcli/__init__.py",
+    "shopcli/codes.py",
+    "shopcli/errors.py",
+    "shopcli/parser.py",
+    "shopcli/diagnostics.py",
+    "shopcli/commands.py",
+    "shopcli/store.py",
+    "shopcli/shop.py",
+    "tests/test_language.py",
+    "tests/test_errors.py",
+    "tests/test_repair.py",
+    "DIARY.md"
+  ],
+  "design": {
+    "shopcli/codes.py — closed code vocabulary (CODES, WARNING_CODES)": "Single source of truth for E_SYNTAX, E_NAMESPACE, E_UNKNOWN_COMMAND, E_UNKNOWN_OPTION, E_ARG_MISSING, E_ARG_TYPE, E_ARG_RANGE, E_NOT_FOUND, E_STATE, E_HOST and RANGE; it exists so a grader (and my own test) can assert closure with `error['code'] in shopcli.CODES` instead of trusting prose.",
+    "shopcli/errors.py — Diagnostic + build_path": "One exception type carries the whole repair payload out of parsers and handlers, and build_path is the only place that renders the '✗'-prefixed last path element, so the TASK.md path convention can never be forgotten in one code path only.",
+    "shopcli/parser.py — tokenizer, repeat prefix, ParsedLine": "Keeps the grammar (quotes, `repeat N:`, `key=value`, duplicate options) completely free of command knowledge, so E_SYNTAX advice is about line shape while command advice is about vocabulary; ParsedLine also preserves the verbatim `repeat N: ` prefix so a rendered fix keeps the loop.",
+    "shopcli/commands.py — Option/Command registry, resolve, validate": "The option table (kind, required, minimum, usual_max) generates type errors, range errors, usage strings and valid lists; this is why repair advice is consistent across all seven commands instead of hand-written per command, and why 'usual range 0-1000' (a warning) is cleanly separated from 'minimum 0' (an error).",
+    "shopcli/commands.py — resolve(): near-miss resolution": "Ordered repair ladder for command words: exact name, alias, unknown verb in a known namespace (difflib over that namespace), unknown namespace (difflib over commands, then namespaces, then a verb table so `stock.add` finds `report.stock`), bare verb without namespace (`add` -> `item.add`), case fix; each rung fills valid/hint/fix so the agent gets an answer instead of a lecture.",
+    "shopcli/commands.py — validate(): cheapest-first ordering": "Unknown option -> missing option -> type -> range -> handler state, so a typo'd option is reported as a rename rather than as a cascade of 'missing' errors, and `item.add qty=abc` reports the missing `name` that actually blocks the retry.",
+    "shopcli/commands.py — _preview/_candidate_fix": "A fix is only offered if the candidate line parses and validates against the known spec (warnings suppressed, handler never called, store untouched), with unknown options renamed to their closest accepted name or dropped; this makes `fix` executable rather than plausible, and turns `item.remov naem=widget qty=1` into a one-round-trip repair.",
+    "shopcli/diagnostics.py — suggest/quote_value/render_line/fail": "The single renderer of repair text: difflib-based did-you-mean with a 0.6 cutoff, value re-quoting that round-trips the tokenizer (names with spaces survive a fix), and one fail() that stamps line, canonical command and host_name onto every command-level diagnostic.",
+    "shopcli/store.py — Store": "Pure data and arithmetic (items, prices, sorted listing, units) that never raises diagnostics; handlers decide whether an absence is E_NOT_FOUND-in-stock or E_NOT_FOUND-in-price, which keeps the store trivially testable and the repair vocabulary in one layer.",
+    "shopcli/shop.py — Shop.run loop, warning aggregation, E_HOST": "The only script-aware code: skips blanks, parses, repeats, keeps results/warnings from commands that already ran, breaks on the first Diagnostic, aggregates identical warnings per line into count:N, and converts any non-Diagnostic exception into E_HOST so the reply contract (JSON-safe dict) always holds."
+  },
+  "tradeoffs": [
+    "Fixes are re-validated by a silent preview pass (parse + validate against the known spec) instead of being emitted from a simple string substitution: it costs an extra validation and a no-op warning sink, but it guarantees the offered line is accepted, which matters more because a broken fix costs the agent another round trip.",
+    "When the correct value cannot be derived from the line (missing required option, fractional qty=2.5, unknown item with no close name) I emit fix: None plus an explicit hint instead of guessing a value; the alternative — inventing qty=1 or rounding 2.5 to 2 — would silently change the agent's intent, which is worse than one more exchange.",
+    "I added E_STATE beyond the nine required codes for 'report.margin on a zero-priced item' instead of reusing E_ARG_RANGE; the alternative would have pointed `path` at the `cost` argument even though the argument is fine and the store's state is not.",
+    "Aliases are legal and silent (no warning) rather than flagged with a deprecation warning; they resolve to canonical commands, appear in valid lists, and every rendered fix uses the canonical name, so an agent drifts towards the canonical spelling without paying for an extra warning channel that TASK.md never defines.",
+    "item.remove keeps a zero-quantity item in the store (and report.stock counts it in 'items') instead of deleting it; deletion would make price.get/margin on a sold-out item fail with E_NOT_FOUND, which explains the choice but is a reading TASK.md does not confirm.",
+    "Validation reports missing options before type errors; the alternative (report malformed values first) is equally defensible, but for `item.add qty=abc` the missing `name` is the blocker, so leading with it is the cheaper repair.",
+    "repeat is capped at 100000 with E_ARG_RANGE; TASK.md states no limit, but an unbounded count is a way to hang the process, and a cheap structured error beats a timeout for an agent.",
+    "Duplicate options (`qty=1 qty=2`) are E_SYNTAX with a fix that keeps the last value, instead of letting the last one silently win; silent acceptance would hide an agent mistake that the error path can repair for free."
+  ],
+  "tests": "94 tests across three files (tests/test_language.py 27, tests/test_errors.py ~45, tests/test_repair.py ~22), including behavioural convergence tests that apply each returned fix and re-run the script. Last result: `python3 -m unittest discover -s tests` -> `Ran 94 tests in 0.010s` / `OK`, after `python3 -m compileall -q shopcli tests` -> COMPILE_OK and an AST scan showing no unused imports.",
+  "unclear": [
+    "`host_name` is named but never defined in TASK.md; I defined it as the canonical command hosting the failure (e.g. 'item.remove' when the agent typed 'rm name=ghost'), and None when no command was resolved (E_SYNTAX, E_NAMESPACE, E_UNKNOWN_COMMAND).",
+    "`report.stock` returning {\"items\", \"units\"} is ambiguous: I read 'items' as the count of distinct items and 'units' as the total quantity, not a list of items.",
+    "Whether removing all of an item's stock should delete the item: I keep it at qty 0 so item.list and the price commands keep working.",
+    "Whether `price.set` requires the item to exist: I allow any name (a price may precede delivery), and `report.margin` needs only a price, not stock.",
+    "Whether the 'usual range 0-1000' applies to `item.remove qty` as well as `item.add qty`: I warn for both; no other option has a stated usual range.",
+    "Whether `repeat N:` may contain more than one command, or nest; I require exactly one command after the colon.",
+    "Whether `results` entries should carry their command name; I return the bare result values from the TASK.md table (so `item.list` contributes a list as a single entry and `repeat 3:` contributes three entries).",
+    "Whether using an alias should warn; I treat aliases as legal spellings and stay silent.",
+    "The DIARY-FORMAT.md template asks for the CHAPTER.md section behind each decision, but no CHAPTER.md exists in this directory, so I cite TASK.md sections instead."
+  ]
+}

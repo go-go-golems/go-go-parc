@@ -1,0 +1,50 @@
+{
+  "summary": "Built `gridflow`, a standard-library-only package implementing a lazy, interned node graph over small 2D float grids with a byte-budgeted LRU cache keyed by (structural node key, evaluation scale). The engine registers operations with optional identity (neutral-argument) short-circuiting, collects warnings per evaluation (cached alongside values so warm runs report identically), counts real operation runs per node, exposes hit/miss/byte/eviction stats, and supports masked sub-pipelines via `within(node, mask, build)`. A demo engine provides add, gain, blur (radius shrinking with scale) and threshold, and 97 unittest cases plus a package doctest all pass.",
+  "files": [
+    "gridflow/__init__.py",
+    "gridflow/engine.py",
+    "gridflow/node.py",
+    "gridflow/ops.py",
+    "gridflow/cache.py",
+    "gridflow/grid.py",
+    "gridflow/errors.py",
+    "gridflow/demo.py",
+    "tests/test_engine.py",
+    "tests/test_cache.py",
+    "tests/test_demo.py",
+    "DIARY.md"
+  ],
+  "design": {
+    "gridflow/grid.py": "Validation and representation. Normalises caller grids into immutable tuple-of-tuples of floats (rejecting empty, ragged and non-numeric input), models cache size as 8 bytes per cell, and provides argument freezing plus the scale->radius rule. Immutability is what makes cache hits, node interning and identity short-circuits safe to share without copying.",
+    "gridflow/node.py": "The interned graph handle. A Node stores only its definition (operation name, input nodes, kwargs, structural key); the engine memoises the effective key and the run count on the node. Interning by structural key implements 'two sources with equal content are the same node' and makes `runs()` unambiguous.",
+    "gridflow/engine.py": "The core: operation registry, node construction, and recursive demand-driven evaluation with caching. `_eff_key` derives a cache key from the *current* registry revision so replacing or re-versioning an operation invalidates exactly the affected entries; `_eval` checks the cache before touching inputs (so a hit short-circuits the whole subtree); `_apply` runs one operation with a fresh Context, normalises and validates its output, and normalises all failures into EvalError naming the operation.",
+    "gridflow/cache.py": "A byte-budgeted LRU with hit/miss/eviction counters. Each entry holds the value and the aggregate warnings of its subtree, which keeps Result.warnings deterministic across cold and warm evaluations. Entries larger than the whole budget are not stored rather than trashing the cache.",
+    "gridflow/ops.py": "Operation records (function, version, identity predicate, per-registration serial). The serial and version form the cache token, so re-registering a name cannot silently serve results produced by its predecessor.",
+    "gridflow/engine.py::Engine.within": "Implements masked sub-pipelines by giving `build` a placeholder identity-node over the base grid, so the sub-pipeline is an ordinary cacheable part of the graph, then blending its output with the base through the mask with the internal `__within__` operation. Nothing special-cases evaluation, so the whole construct inherits caching, warnings and error reporting.",
+    "gridflow/demo.py": "The four demo operations and `demo_engine()`. `gain` declares its neutrality predicate (k == 1) so neutral nodes are skipped and do not increment runs; `blur` is a clipped-window box mean whose radius is `radius * scale` truncated, which is the concrete meaning of `ctx.scale` for this library.",
+    "tests/": "Three modules, 97 cases: graph/laziness/evaluation/scale/runs/identity/errors/warnings/registry, cache stats and eviction behaviour, and the demo operations plus `within`. Every public requirement in TASK.md has at least one direct test."
+  },
+  "tradeoffs": [
+    "Cache key includes the evaluation scale: the alternative (scale-independent keys) would serve a scale-1 blur for a scale-0.5 request, since operations read ctx.scale; the cost is one cached copy per (node, scale) pair.",
+    "Nodes are interned and the engine retains them for its lifetime, so `runs()` and cache keys can rely on stable node identity; the alternative (letting nodes be garbage collected) would need weak references and make run counts unreliable.",
+    "`within` evaluates the sub-pipeline on the whole grid and blends afterwards: the alternative (evaluating only mask-selected cells) would require per-cell op semantics that a generic `fn(inputs, args, ctx)` cannot express; the cost is wasted work outside the mask, which is acceptable for the small grids gridflow targets.",
+    "Warnings are cached with values and aggregated per subtree: the alternative (re-emitting warnings only when a node actually runs) would make a warm `evaluate` silently lose its warnings; the cost is that a hit cannot distinguish which descendant warned, which no requirement asks for.",
+    "Failures are raised at `evaluate` time as EvalError naming the operation, not at `node.call` time: this keeps \"building a node never runs an operation\" true and lets an operation be registered after nodes referring to it exist; the cost is that a typo in an operation name is only caught on evaluation.",
+    "Run counts are cumulative per node object rather than per registration version: the alternative resets on re-registration, which hides that the operation ran again; cumulative matches 'how many times that node's operation actually ran'.",
+    "Neutral (`identity`) nodes return the first input's value without evaluating the remaining inputs and are cached under their own key: the alternative (always evaluating all inputs) wastes work for a provably no-op node; the cost is that a multi-input neutral op ignores its extra inputs.",
+    "`blur`'s radius is truncated to `radius * scale` (so radius 1 at half scale becomes 0, i.e. no blur): the alternative (round-half-up or a floor of 1) leaves small blurs unchanged at reduced scale, which contradicts 'the radius shrinks proportionally'.",
+    "Grids are normalised to immutable tuples internally and copied to lists only in `evaluate`: the alternative (caching the caller's mutable list) is one copy cheaper but lets a caller corrupt the cache."
+  ],
+  "tests": "97 unittest cases (43 engine/graph/evaluation/errors/warnings/registry, 14 cache/stats/eviction, 40 demo ops/blur scale/within) plus 4 doctests in the package docstring. Last result: `python3 -m unittest discover -s tests` -> `Ran 97 tests in 0.180s` / `OK`; doctests -> `TestResults(failed=0, attempted=4)`; `compileall` clean.",
+  "unclear": [
+    "`blur` edge handling is unspecified: I average only in-bounds cells (clipped window) instead of zero-padding or wrapping.",
+    "The exact rounding when shrinking a radius is unspecified: I truncate `radius * scale`, so radius 1 at scale 0.5 disables the blur.",
+    "Default arguments for the demo operations are unspecified: I chose add k=0, gain k=1, blur radius=1, threshold t=0.",
+    "`identity(args)` does not say what to do beyond 'output equals the first input': I short-circuit the whole node (no fn call, no run counted) and reuse the first input's cached value.",
+    "Whether `stats()['misses']` should count source materialisation and neutral-node lookups; I count every cache lookup that misses, including sources (which never count as runs).",
+    "What should happen when `evaluate` gets a scale outside (0, 1]: I raise ValueError (TypeError for non-numbers) instead of EvalError.",
+    "Whether `within` should compute the sub-pipeline only over masked cells or over the whole grid: I compute the whole grid and blend.",
+    "Whether `runs()` should reset when an operation is re-registered with a new version: I keep counts cumulative per node.",
+    "Whether errors for unregistered operations should surface at `node.call` time or at `evaluate` time: I chose evaluate time."
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "summary": "I built hubreg, a standard-library-only Python package that registers home-automation actions once and projects them for three consumers: JSON tool descriptions for an LLM assistant, per-argument controls for a mobile app, and a strict binder/runner for the hub itself. Registration validates records (types, ranges, defaults, enum values, redirects, result fields), binding rejects bad calls with stable codes plus valid/nearest/fix hints, and walk() exercises every action to report inconsistencies. A CLI (python3 -m hubreg describe|call|help|walk) drives the four demo plug-ins end to end, and 196 unit tests cover every required public name and both CLI commands.",
+  "files": [
+    "DIARY.md",
+    "hubreg/__init__.py",
+    "hubreg/__main__.py",
+    "hubreg/errors.py",
+    "hubreg/spec.py",
+    "hubreg/registry.py",
+    "hubreg/schema.py",
+    "hubreg/demo.py",
+    "hubreg/cli.py",
+    "tests/test_registration.py",
+    "tests/test_bind.py",
+    "tests/test_run.py",
+    "tests/test_projections.py",
+    "tests/test_cli.py",
+    "tests/test_edges.py",
+    "tests/test_validation_extra.py",
+    "tests/test_cli_helpers.py"
+  ],
+  "design": {
+    "hubreg/errors.py — RecordError and Refusal": "Two failure channels with stable machine-readable codes: RecordError for a plug-in's malformed/inconsistent record, Refusal for a caller command, carrying code, message, valid alternatives, nearest guess and a repair hint. They exist so the hub, the app and the assistant can all react programmatically instead of parsing prose.",
+    "hubreg/spec.py — normalisation and value checks": "normalize_record()/normalize_arg() turn a plug-in dict into a canonical record (optional keys filled, unit always present) and reject anything malformed or internally contradictory; value_problem() is the single place that decides whether a value matches an ArgSpec. This is the one contract every other module reads, so the three consumer views cannot drift apart.",
+    "hubreg/registry.py — Registry, Call, walk": "Registration (duplicate/name/index handling), action and option resolution (canonical name, prefix-free name, record and argument redirects, case-insensitive options), binding with defaults and RANGE warnings, confirmation-aware run() with E_CONFIRM and E_RESULT result checking, and walk() as a linter that binds/runs every sample and reports problems keyed by action.",
+    "hubreg/schema.py — three projections": "Pure functions producing the assistant's tool descriptions (JSON-schema with types, units, minimum/maximum, enum, defaults, required list), the app's one-control-per-argument list (name, type, unit, min, max, default, values) and human help text (ranges, usual hints, samples as runnable commands, confirmation state, redirects).",
+    "hubreg/demo.py — demo plug-ins": "The four actions required by TASK.md (thermostat.set_temperature, light.dim, door.lock_door, scene.run_scene) plus two redirects, registered by demo_registry() with door.lock_door in the host's confirm_required set.",
+    "hubreg/cli.py — command line": "describe prints the demo tool descriptions as a JSON list; call parses key=value using the action's argument types, binds, runs (with --confirmed) and prints a JSON envelope with ok/args/warnings/result or refusal, using exit codes 0/1/2; help and walk are conveniences built on the same registry."
+  },
+  "tradeoffs": [
+    "Samples are not bound at registration (only checked to be dicts); the alternative was to reject bad fixtures in register(). I chose walk() reporting because TASK.md calls samples 'argument dicts for testing' and walk() exists to find exactly those problems — otherwise its sample checks would be dead code.",
+    "A redirecting record/argument name resolves to the right target and adds a REDIRECT warning instead of refusing; refusing would be simpler, but the record explicitly declares the redirect mapping, so using it is the intent. Redirect cycles degrade to E_UNKNOWN_ACTION via a seen-set guard.",
+    "Confirmation is required when the host lists the action in confirm_required OR the record sets flags.confirm; the alternative (host set only) is stricter. Using OR lets a plug-in defend itself, while walk() still lints the dangerous direction (host requires but record does not declare).",
+    "Tool descriptions expose both 'input_schema' and an alias 'parameters' (same JSON-schema object), and use JSON-schema minimum/maximum with a vendor 'unit' key; this bloats describe output but keeps the schema recognisable to both OpenAI-style and Anthropic-style tool consumers. The action name keeps its dots ('thermostat.set_temperature') even though some provider APIs restrict names to [A-Za-z0-9_-].",
+    "controls() returns exactly the seven keys TASK.md lists (extra fields such as doc/optional/usual live in tool_schemas and help()), trading a little app convenience for a predictable dict shape.",
+    "run() raises RecordError('E_RESULT') for a non-dict result or a missing declared field but tolerates extra result keys (walk() lints them); the alternative of rejecting extra keys too would be stricter but would break plug-ins that return diagnostic extras.",
+    "Values outside an argument's usual range (including a value taken from a default) produce a RANGE warning and still bind/run; the alternative of treating 'usual' as a hard limit would make the hint meaningless.",
+    "The CLI prints a JSON envelope ({ok, args, warnings, result} or {ok:false, refusal:{...}}) rather than the bare result dict, so refusals and warnings are representable in the same stream; exit code 1 for any refusal, 2 for usage errors."
+  ],
+  "tests": "196 tests across 8 files under tests/, run with `python3 -m unittest discover -s tests`; last result: `Ran 196 tests in 0.717s — OK`.",
+  "unclear": [
+    "The exact shape of tool_schemas() entries: TASK.md only says 'name, description, input schema with types, units and ranges', so I guessed JSON-schema keys (properties/required/minimum/maximum/enum) and added a 'parameters' alias plus requires_confirmation/returns.",
+    "The exact key set of controls() (I used exactly name, type, unit, min, max, default, values, with None where not applicable).",
+    "What 'the result or the refusal' means for CLI output format and exit codes; I chose a JSON envelope on stdout with 0/1/2 exit codes.",
+    "Whether walk() should flag structural gaps (no samples) or only runtime failures; I flag both, so a record with no fixtures is reported.",
+    "Whether a sample that cannot bind is a registration error (malformed/inconsistent) or a walk() problem; I chose walk().",
+    "Whether 'nearest' must always be set (I set it only when difflib/substring/case matching finds a plausible candidate, otherwise None, with 'valid' always populated).",
+    "Whether invalid enum values should be E_ARG_TYPE or E_ARG_RANGE; I used E_ARG_TYPE with valid=[values] and nearest=closest value.",
+    "Whether confirmation is driven by the host's confirm_required set, the record's flags.confirm, or both; I used OR and lint only the host-requires/record-silent direction.",
+    "Whether registry lookups should be strict about the device kind when the action name is already fully qualified; I allow an unambiguous bare or fully-qualified name to resolve regardless of kind."
+  ]
+}

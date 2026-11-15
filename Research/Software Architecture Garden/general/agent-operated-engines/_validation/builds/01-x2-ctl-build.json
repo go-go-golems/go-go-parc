@@ -1,0 +1,50 @@
+{
+  "summary": "Built hubreg, a standard-library Python package plus CLI where device plug-ins register validated action records and three consumers are projected from that one record: JSON tool descriptions for the assistant, control dicts for the mobile app, and bind/run validation for the hub. Binding fills defaults, raises typed refusals (E_UNKNOWN_ACTION, E_UNKNOWN_OPTION, E_ARG_TYPE, E_ARG_RANGE, E_ARG_MISSING) with valid/nearest/fix hints, warns with RANGE outside an argument's usual window, and run() enforces confirmation before invoking the plug-in and checking its promised result fields. walk() re-binds, runs and audits every action (plus its redirects and views), the four demo plug-ins (thermostat, light, door, scene) ship in demo_registry(), and `python3 -m hubreg describe|call|help|controls|walk` exposes the same API from the shell.",
+  "files": [
+    "hubreg/__init__.py",
+    "hubreg/errors.py",
+    "hubreg/argspec.py",
+    "hubreg/registry.py",
+    "hubreg/schemas.py",
+    "hubreg/demo.py",
+    "hubreg/__main__.py",
+    "tests/support.py",
+    "tests/test_register.py",
+    "tests/test_bind.py",
+    "tests/test_run.py",
+    "tests/test_views.py",
+    "tests/test_walk.py",
+    "tests/test_demo.py",
+    "tests/test_cli.py",
+    "README.md",
+    "DIARY.md"
+  ],
+  "design": {
+    "hubreg/argspec.py — ArgSpec": "The single source of truth for one argument: type, unit, doc, default, optionality, hard limits, usual window and redirects. It validates the declaration once (min>max, default outside hard limits, enum without values, usual outside limits) so no consumer has to re-check a declaration and the three views cannot disagree.",
+    "hubreg/errors.py — RecordError vs Refusal": "Two error audiences kept apart: RecordError (.code, .where) is an authoring bug raised by register(); Refusal (.code, .message, .valid, .nearest, .fix) is a call that may not run, carrying the repair hints the assistant and the app use. valid always means 'the values that would have been accepted'.",
+    "hubreg/registry.py — register/bind/run": "register normalizes and stores a record; bind validates untrusted arguments (unknown keys, types, hard limits, enum membership, missing required), fills defaults in declaration order and attaches RANGE warnings; run applies the confirmation gate, invokes the plug-in and enforces the declared result fields, so no command from either consumer reaches a plug-in unvalidated.",
+    "hubreg/registry.py — walk()": "The audit: per action it checks that redirects still resolve, that tool schema/controls/help build and are JSON-serialisable and complete, and that every sample binds, runs and returns exactly the declared fields. Problems are dicts with action/on/name/problem/code, so an empty list is a real health claim.",
+    "hubreg/schemas.py — three views": "Pure builders (no registry access) that project one normalized action into the assistant's JSON tool description, the app's per-argument control dicts and readable help, which is why walk() can call them directly as a consistency check.",
+    "hubreg/__main__.py — CLI": "A thin shell over the same API: describe prints tool schemas, call parses key=value into typed values (ast.literal_eval, falling back to strings) so bind() can stay strict about JSON types, and refusals are printed as JSON with exit code 2."
+  },
+  "tradeoffs": [
+    "Refusals on a near-miss name are advisory-only: redirects fill nearest/fix instead of re-routing the call. The alternative (auto-applying the redirect) would silently change what the user asked for, which is unacceptable for a door lock or a heating target.",
+    "bind() never coerces types ('22' for a number is E_ARG_TYPE); the alternative was lenient coercion, but then a mobile app sending form strings and an assistant sending JSON would behave differently and real type bugs would be hidden. The CLI does the string->typed translation at the shell boundary instead.",
+    "The confirmation gate lives in run(), not bind(); the alternative is refusing at bind time, but run() is the last moment before the plug-in acts and lets the app hold a Call while it shows a 'confirm?' dialog.",
+    "Record-level validation is strict about declared inconsistencies (usual outside hard limits, enum default not in values, dangling redirects, dots in names) but tolerant of unknown extra keys and of unknown entries inside flags, because unknown keys are not inconsistencies and rejecting them would make plug-ins fragile.",
+    "Tool descriptions publish the input schema under both 'input_schema' and 'parameters', duplicating it in the JSON; the alternative was picking one, but tool-calling APIs disagree on the name and the duplication costs nothing.",
+    "walk() runs every sample with confirmed=True; the alternative is to refuse to exercise security actions, but then those actions would be unaudited. Acceptable here because the samples are plug-in-declared, and noted as a follow-up for real hardware.",
+    "When a typo is not textually close to anything, nearest falls back to the single candidate if the device has exactly one action; the alternative was leaving nearest empty, which is less helpful, but the fallback is deliberately disabled when there are several candidates to keep hints from becoming noise."
+  ],
+  "tests": "144 unittest tests across 7 files (registration errors, binding/reason codes, run and confirmation, the three views, walk, demo plug-ins, and a subprocess-driven CLI suite). Last result: `python3 -m unittest discover -s tests` -> Ran 144 tests in 0.673s, OK; `python3 -m hubreg walk` prints [].",
+  "unclear": [
+    "Tool description key names were unspecified ('input schema with types, units and ranges'); I used JSON-Schema 'minimum'/'maximum' plus 'unit'/'usual' annotations and also expose 'parameters'.",
+    "Whether redirects should rewrite a call or only hint at it; Refusal.fix strongly implied hinting, so redirects never auto-apply.",
+    "Whether confirm_required holds bare action names ('lock_door') or dotted ones ('door.lock_door'); I accept both.",
+    "What walk() should count as a problem: I chose missing samples for actions with required arguments, undeclared/missing result fields, plug-in exceptions, dangling or shadowed redirects, and view inconsistencies, and I do not count usual-range warnings.",
+    "The intended semantics of Refusal.valid for numeric range errors and for E_ARG_MISSING; I used it for missing names and enum values and left it empty for numeric ranges.",
+    "CLI output/exit-code contract beyond 'prints the result or the refusal': I print the result dict on stdout with exit 0, the refusal dict with exit 2, warnings on stderr, and usage errors with exit 1.",
+    "Whether a tool description's 'name' should be dotted ('thermostat.set_temperature') or bare ('set_temperature'); I used the dotted form and also emit on/action so routing does not depend on parsing it.",
+    "Whether bind() should raise TypeError or Refusal when args is not a dict; I chose Refusal with E_ARG_TYPE so a malformed JSON payload still yields a machine-readable refusal."
+  ]
+}

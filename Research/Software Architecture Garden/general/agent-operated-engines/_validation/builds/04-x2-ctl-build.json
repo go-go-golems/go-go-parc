@@ -1,0 +1,41 @@
+{
+  "summary": "I built stencilpipe, a standard-library Python 3 library that models a grid pipeline as lazily-built nodes (source plus operation nodes) and evaluates it on demand, so a requested window computes only the cells its footprint requires while returning exactly the values a whole-grid run would give. The five demo operations (add, box, dx, half, normalize) each declare their output extent, their input footprint and their per-cell formula, which makes windowed evaluation a strict subset of whole-grid evaluation and lets normalize request the whole input for its global maximum. Each node caches the cells it has computed as per-row x intervals, so overlapping windows and evaluate_many share work and every computed cell is counted exactly once, with reset_counters() clearing both the counter and the caches so measurements are reproducible.",
+  "files": [
+    "stencilpipe/__init__.py",
+    "stencilpipe/geometry.py",
+    "stencilpipe/engine.py",
+    "stencilpipe/ops.py",
+    "tests/references.py",
+    "tests/test_whole_grid.py",
+    "tests/test_windows.py",
+    "tests/test_counting.py",
+    "tests/test_api.py",
+    "tests/test_extensions.py",
+    "DIARY.md"
+  ],
+  "design": {
+    "stencilpipe/geometry.py (Rect, window_rect, EMPTY)": "Half-open rectangle algebra (clip, expand, scale) written once so window clipping, halo expansion and block mapping cannot drift apart between the engine and the operations; window normalisation lives here too.",
+    "stencilpipe/engine.py: Engine": "Owns the operation registry, the created nodes, and the cell counter; provides source/evaluate/evaluate_many/reset_counters/cells_computed and rejects nodes from other engines, so one engine is one self-contained measuring context.",
+    "stencilpipe/engine.py: OpNode.ensure": "The demand-propagation core: clip the request to the node extent, return early if everything is already known, ask the op for the input rect (plus any prepare-only rects), ensure those on the parent, then evaluate only the still-missing cells and add exactly those to the counter.",
+    "stencilpipe/engine.py: _Spans": "Per-row sorted x intervals of computed cells; it makes cells_computed() idempotent across overlapping requests, enables the no-work early exit, and makes evaluate_many share cells between windows.",
+    "stencilpipe/engine.py: SourceNode": "Wraps the user grid with the same ensure/get/read interface so the evaluator never special-cases leaves; sources contribute no computed cells, and reads outside the grid raise instead of silently returning garbage.",
+    "stencilpipe/engine.py: _Ctx and Op.prepare": "The read-only view an operation gets (parent reader, input extent, args, cached aggregate state); it exists so whole-input aggregates like normalize's maximum are computed once per node and reused by every window.",
+    "stencilpipe/ops.py: Op subclasses": "Each op keeps out_extent, input_rect and compute_cell side by side, with the formula copied from TASK.md, so the most error-prone parts (border means, block means, global max) are one screenful per operation; validate() checks arguments at build time without touching the grid.",
+    "tests/references.py": "Naive whole-grid implementations written from the task text, independent of the library, so windowed results are checked against an oracle that cannot inherit a library bug."
+  },
+  "tradeoffs": [
+    "Caching computed cells per node (and sharing them across evaluate/evaluate_many calls) instead of recomputing per request: it enables evaluate_many to share work and makes repeated windows free, at the cost that reset_counters() must also clear the caches to keep counts reproducible after a reset; the alternative, recomputing every request, would make counting simple but would throw away all the work sharing the task implies.",
+    "A footprint method on each operation rather than a generic dependency tracer or a fixed halo table in the engine: the per-op method keeps clipping and halo logic next to the formula and supports ops with different output geometry (half), at the cost that every new op must implement input_rect correctly; a generic tracer would need the ops written in a restricted style to be introspectable.",
+    "Dict-of-(y,x) storage plus interval bookkeeping instead of a dense per-node array: it needs no shape up front and keeps memory proportional to what was actually computed, at the cost of being slower per cell than a list of row lists; for the sizes involved the clarity and the exact minimality accounting won.",
+    "normalize declares its input rect to be the whole parent extent: the window genuinely needs the global maximum, so it is correct, but it means a window of normalize over an expensive parent computes that parent in full; the alternative of a separate cheap max pass would duplicate the upstream computation and double-count cells.",
+    "Degenerate/empty clipped windows return [] rather than a list of empty rows: it keeps the zero-work path trivial, at the cost that (x, y, 0, h) is indistinguishable from other empty requests."
+  ],
+  "tests": "62 unittest tests across five modules (whole-grid reference comparison, window/whole-grid equality with 120 randomised pipelines plus every-op/every-window matrices, cell counting and reset semantics, API/argument/error behaviour, and custom-op/multi-window extension tests); last run: `python3 -m unittest discover -s tests` => Ran 62 tests, OK (also clean under -W error).",
+  "unclear": [
+    "Whether cells_computed() should count work that is served from a cache between evaluate calls; I chose to count only newly computed cells and to let reset_counters() drop the caches, so a reset always yields the full reproducible count.",
+    "What normalize should do when the whole-grid maximum is 0 but some values are negative (division undefined); I made every output 0 in that case, reading '0 stays 0 if m is 0' as 'the grid is all zeros then'.",
+    "What shape an empty or zero-width clipped window should return; I return [] for anything with zero area.",
+    "Whether windows may be given as floats or only ints, and whether call arguments may be positional; I accept integral floats (truncated to int) and both positional and keyword arguments, rejecting duplicates and surplus arguments.",
+    "Whether the source grid may be mutated after eng.source(grid); the library does not copy it, so cached operation cells could become stale if it is."
+  ]
+}

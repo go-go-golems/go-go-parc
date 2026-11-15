@@ -89,7 +89,7 @@ class HostAndWarnings(unittest.TestCase):
         if e["code"] == "E_HOST":
             self.assertEqual(e["host_name"], "ZeroDivisionError")
         else:
-            self.assertIn(e["code"], ("E_ARG_RANGE", "E_ARG_TYPE", "E_NOT_FOUND"))
+            self.assertIn(e["code"], shopcli.CODES)        # the task allows codes of one's own (E_STATE seen)
             self.assertTrue(e["fix"] or e["hint"], "an anticipated failure must say how to repair it")
 
     def test_warnings_in_a_repeat_fold_with_count(self):

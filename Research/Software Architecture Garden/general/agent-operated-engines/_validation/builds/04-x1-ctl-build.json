@@ -1,0 +1,39 @@
+{
+  "summary": "stencilpipe is a standard-library Python 3 package whose pipelines over 2D float grids compute nothing at build time: evaluating a window runs a two-phase solver that first propagates the window's demand down the graph (per-op input-region mappings) and then computes exactly the demanded rectangles producer-first into a sparse per-evaluation store. Every operation counts each output cell it actually produces, so a 4x4 window of add->box(3)->dx on a 1000x1000 grid costs 160 cells instead of millions. Window values are bit-identical to whole-grid values because each cell uses the same formula a whole-grid implementation would use, with clamping at the edges and normalize's global maximum demanded explicitly.",
+  "files": [
+    "stencilpipe/__init__.py",
+    "stencilpipe/regions.py",
+    "stencilpipe/ops.py",
+    "stencilpipe/engine.py",
+    "stencilpipe/demo.py",
+    "tests/test_stencilpipe.py",
+    "DIARY.md"
+  ],
+  "design": {
+    "stencilpipe/regions.py": "Rect, clip, normalise (clip + drop empty + drop contained), window coercion and grid validation. It exists so that 'which cells are needed' is one vocabulary and clipping happens in exactly one place, as TASK.md requires windows to be clipped to the node's extent.",
+    "stencilpipe/ops.py (Op base class)": "Declares the laziness contract of an operation: static out_extent (so windows can be clipped before computing), input_region (the demand mapping that makes laziness correct), a per-evaluation prepare hook, and cell(ctx,x,y) computing one output cell from already-computed inputs. It also binds and validates parameters, giving readable TypeErrors for unknown/missing/duplicate arguments.",
+    "stencilpipe/ops.py (the five ops)": "Add, Box, Dx, Half, Normalize implement exactly the formulas in TASK.md; Box's input_region expands by r, Dx expands by 1 in x only, Half maps an output cell to its 2x2 block and shrinks extents with ceil, Normalize demands its whole input because its maximum is global.",
+    "stencilpipe/engine.py (Node)": "An immutable graph node: op, inputs, static extent, and either a source grid or nothing. Sharing nodes is free and safe because nothing mutates, which is what lets a diamond compute its shared region once.",
+    "stencilpipe/engine.py (_Solution)": "One evaluation of one node for one set of rectangles: _propagate walks consumers-first to turn output demands into per-node demanded rectangles, _compute walks producers-first and stores only newly computed cells, and rows() slices results. A fresh _Solution per call keeps counters reproducible and prevents any hidden cross-call cache.",
+    "stencilpipe/engine.py (Engine)": "Op registry, node builder (source/apply/call), counters, and the two public evaluators. It owns the rule that sources are read straight from the caller's grid and are never counted.",
+    "stencilpipe/demo.py": "demo_engine() registers exactly the five operations the task fixes; kept separate so the engine stays operation-agnostic and extensible."
+  },
+  "tradeoffs": [
+    "No caching between evaluate() calls (every call recomputes from scratch) instead of a persistent cache: it makes cells_computed() reproducible per call and never silently free, at the cost of recomputing when a caller re-asks for the same window.",
+    "evaluate_many() counts the union of demanded cells (shared/overlapping regions are computed once) instead of the sum over windows; this matches the 'never compute a cell twice' spirit but would read low for a caller expecting per-window costs.",
+    "normalize() demands its entire input region instead of approximating the maximum: this is the only way to guarantee window == whole-grid values, so a 2x2 window of normalize over a computed input legitimately costs the whole input grid. The alternative (window-local maximum) would be cheaper and wrong.",
+    "Store cells in sparse per-node dictionaries keyed by row then column instead of dense arrays: simple, supports arbitrary rectangle unions and makes the newly-computed check trivial, at the cost of memory/indirection on whole-grid evaluations where dense arrays would be faster.",
+    "Drop rectangles contained in a bigger one during demand normalisation instead of keeping them: safe because every demo op's demand mapping is monotone, and it removes redundant scanning without changing what is computed.",
+    "Validate source grids (rectangular, numeric) eagerly at source() time, naming the offending cell, instead of lazily on first read: better errors, at the cost of one O(W*H) pass when a large grid is wrapped (it does not touch the counter).",
+    "Keep the ops __init__ signature as (name, *args, **kwargs) accepting positional parameters as a convenience while the documented form is call(name, **args): node.call(name, k) can no longer be confused with a graph input because building splits inputs from parameters (Engine.apply vs Engine._build)."
+  ],
+  "tests": "40 tests in tests/test_stencilpipe.py across 7 TestCase classes (brute-force reference equality on 8 grids x 8 op configurations, exhaustive window-vs-whole-slice matrix, exact cells_computed expectations, evaluate_many de-duplication, diamonds via a test-only 2-input op, 400-node chain, error cases); last result: `python3 -m unittest discover -s tests` -> Ran 40 tests, OK.",
+  "unclear": [
+    "Whether evaluate_many should bill the union of computed cells or the sum over windows (I chose the union).",
+    "Whether a window that clips to empty should raise or return an empty grid (I return []), and what a zero-width grid's 'whole result' should be (I return [] rather than one empty row per input row).",
+    "Whether the cell counter should charge cells that were demanded but wasted by a shrinking op such as half (I charge exactly what is computed, which for odd sizes equals the cells demanded, so the two coincide here).",
+    "Whether 'rows of the window' are expected in window coordinates (what I return) or offset in the parent grid's coordinates.",
+    "Whether normalize's global maximum is allowed to force whole-input evaluation (TASK.md implies yes for value equality, but it does contradict 'compute only what the window needs' in the small).",
+    "Whether positional operation arguments need to be supported at all; TASK.md only documents call(name, **args)."
+  ]
+}

@@ -1,0 +1,7 @@
+== 03 ctl x2 build
+Ran 17 tests in 0.313s
+
+FAILED (failures=2)
+Ran 92 tests in 0.006s
+
+OK

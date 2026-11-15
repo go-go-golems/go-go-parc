@@ -1,0 +1,51 @@
+{
+  "summary": "I built shopcli, a standard-library-only Python 3 package whose Shop().run(script) executes a line-oriented inventory language (item.add/remove/list, price.set/get, report.stock/margin, plus the rm/delete/ls/inventory near-misses and repeat N:). Every failure returns a structured error document carrying the offending text, its line and source, the values that would have been accepted, a hint, and a fix line that the engine verifies against a clone of the store before offering it, so a fix that is not null always runs. The work is covered by 89 unittest cases in tests/, and DIARY.md records each phase, including the one failing assertion and the three build-time defects I fixed.",
+  "files": [
+    "shopcli/__init__.py",
+    "shopcli/__main__.py",
+    "shopcli/catalog.py",
+    "shopcli/commands.py",
+    "shopcli/engine.py",
+    "shopcli/errors.py",
+    "shopcli/store.py",
+    "shopcli/suggest.py",
+    "shopcli/syntax.py",
+    "tests/test_interface.py",
+    "tests/test_language.py",
+    "tests/test_errors.py",
+    "tests/test_warnings.py",
+    "tests/test_repair.py",
+    "DIARY.md"
+  ],
+  "design": {
+    "catalog.py (command table)": "Holds the seven commands as data (Option: kind, required, minimum, example; Command: usage, handler). It is the single source of truth so validation, the valid lists and the fix lines cannot drift apart.",
+    "syntax.py (grammar)": "Tokenizer that respects quotes, scalar parsing (int/float only when finite, quoted values stay text), repeat-line parsing, and a ParsedCommand that records stray/badkey/duplicate tokens as Problem records instead of raising, so repairs can be built from the full line.",
+    "engine.py (Shop, resolution, validation, repairs)": "Walks the script line by line, stops at the first error, keeps earlier results and warnings, resolves names (exact, alias, dotted namespace/verb, bare verb, fuzzy), validates arguments in a fixed precedence order, and turns any escaped exception into E_HOST. It ends every failing line with _finalize/_fix_runs, which replays the candidate fix on a cloned store and drops it if it would not run.",
+    "errors.py (vocabulary)": "CODES, WARNING_CODES, the ✗ marker and CommandError, whose to_dict() assembles path (script, line N, repeat segments, command, ✗ offending text) and where, guaranteeing the path invariant TASK.md requires.",
+    "commands.py (handlers)": "The seven behaviours plus their domain errors and warnings: item.add reports the new total and warns above the usual 0-1000 range, item.remove defaults to all and refuses to over-remove, report.margin lets a ZeroDivisionError escape so the engine can turn a zero price into E_HOST.",
+    "store.py (state)": "Two dicts (items, prices) with clone(); zero stock means the row is absent, which keeps report.stock and item.list consistent.",
+    "suggest.py (repair text)": "difflib-based did-you-mean plus value quoting, so hints name the near miss and any generated token re-parses as intended.",
+    "__main__.py (manual driver)": "python3 -m shopcli runs stdin (or a file) as a script and prints the reply as JSON, which is how I inspected behaviour by hand."
+  },
+  "tradeoffs": [
+    "results entries are the table's Result documents, flat (item.list yields a bare list), rather than wrapped as {line, command, result}: flat keeps results comparable to TASK.md's Result column, at the cost of making an agent count to map results back to lines.",
+    "I verify every generated fix by replaying it on a Store.clone() instead of trusting the repair logic: it costs one extra parse/run per failure and makes the guarantee 'a non-null fix runs' true, whereas the alternative would have been cheaper but could hand back a line that fails again.",
+    "host_name is the Python exception class for E_HOST and the hosting command name for other codes, because TASK.md uses the field generically; the consistent alternative (always the command name) would lose the exception identity the E_HOST code clearly wants.",
+    "Structural mistakes (stray tokens, duplicates, bare option names, positional values) are detected in the parser but reported by the engine, because only the engine knows the resolved command's real option names; this coupling buys option-aware messages like item.list taking no options and item.add apple 5 -> item.add name=apple qty=5.",
+    "A missing required string argument yields fix: null (the hint carries the template) while missing numeric arguments get a safe default, so I never invent business values such as an item name or a price, accepting that some errors offer no pasteable line.",
+    "item.add returns the new total stock rather than echoing the added quantity, reading the table's parenthetical as a description of the resulting state (parallel to item.remove's 'remaining')."
+  ],
+  "tests": "89 unittest cases across 5 modules (interface/shapes, language and commands, every error code, warnings, and the fix-runs property over a 35-case battery, plus a 4000-script fuzz run with zero crashes); last result: 'Ran 89 tests in 0.011s / OK'.",
+  "unclear": [
+    "Whether a results entry should be the bare Result document (my choice) or a wrapper carrying line/command.",
+    "What host_name names: the host exception for E_HOST only, the hosting command always, or something else entirely.",
+    "Whether a warning's count means occurrences (my choice, aggregated per line) or the offending value itself.",
+    "Whether E_ARG_MISSING's valid list should hold option names (my choice) or missing-argument names, and whether E_ARG_TYPE's valid should hold the expected type word, examples, or both (I include both).",
+    "Whether item.add's qty in the result is the new total or the amount just added.",
+    "Whether removing all stock should delete the item row (my choice) or keep a zero entry visible to item.list.",
+    "Whether exceeding the usual 0-1000 range applies to the added qty, the resulting stock, or both, and whether repeat counts have any usual range at all (I warn above 100).",
+    "Whether price.set should require the item to exist, and whether a bare unknown token like 'frobnicate' is E_NAMESPACE (my choice) or E_UNKNOWN_COMMAND.",
+    "Whether one long line with several problems should report the first bad token (my choice) or all of them at once.",
+    "Whether comments (#) should be supported; I treat them as ordinary text, so a '#' line is a syntax/namespace error."
+  ]
+}
