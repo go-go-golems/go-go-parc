@@ -98,6 +98,9 @@ Use it when:
 - there are many candidates to judge, more than the image budget allows one at a time;
 - the transport or model API limits the number or size of images.
 
+Within it, build sheets only when items outnumber the per-call budget, view presets only when one rendering does not
+carry the decision, and a deliverer only when programs can create pictures without returning them.
+
 Do not use it when:
 
 - the judgement is purely numeric (a threshold on a measured value); skip pictures entirely;
@@ -108,54 +111,60 @@ Do not use it when:
 
 ## Structure
 
-| Participant | Responsibility |
-| --- | --- |
-| **Item rows** | Measured candidates with stable ids and their numbers (position, size, scores), returned as a table. |
-| **Marked view** | A picture with each item drawn and labelled by its id. |
-| **Sheet** | A grid of small cells, one per item, each magnified and labelled by id, optionally with several views per item. |
-| **View presets** | Named renderings for decisions (the scene, a band-pass "speck" view, a colour view). |
-| **Budget** | Limits per call (count, bytes) and per conversation (count), stated in the agent's instructions. |
-| **Deliverer** | Delivers the pictures a call created, in order, within the budget; names the rest by line. |
+A participant is a responsibility, not a module; most of these are a function or an option on one.
+
+| Participant | Responsibility | Needed |
+| --- | --- | --- |
+| **Item rows** | Measured candidates with stable ids and their numbers (position, size, scores), returned as a table. | Always. |
+| **Marked picture** | A picture in which each item is drawn and labelled with its row's id: the items in place, or a sheet. | Always. |
+| **Sheet** | A grid of small cells, one per item, each magnified and labelled by id. | Only when there are more items to judge than the per-call budget allows one picture each. |
+| **View presets** | Named renderings for decisions (the scene, a detail view, a colour view), placed side by side in a cell. | Only when one rendering does not carry the decision. |
+| **Budget** | Limits per call and per conversation, derived from the transport and stated in the agent's instructions. | Always; at its smallest one number in the prompt. |
+| **Deliverer** | Delivers the pictures a call created, in order, within the budget, and names the rest by line. | Only when programs can create pictures they do not return ([Chapter 5](05-one-eval-tool-over-a-scripted-session.md)); otherwise the caller returns them and the budget is checked there. |
+| **Id check** | Maps the ids an answer cites to rows of pictures actually delivered, and refuses others. | Always when answers by id become data (labels, actions). |
 
 ## Collaborations
 
 1. The agent's program asks the engine for a measurement of candidates; the engine returns rows with ids, positions
    and scores. (The agent writes programs and decides; the engine measures, draws and delivers.)
-2. The program filters and sorts the rows, keeping the twelve to judge first; the others stay in the rows, so a
-   later sheet can show them.
-3. It asks for a sheet of those rows, with two views per item (the scene and the speck view); each cell is magnified
-   and labelled with the row's id.
-4. The deliverer attaches the sheet to the reply and counts it against the call and conversation budgets.
-5. The agent judges the cells and answers with ids; positions come from the rows, not from the picture.
-6. When the agent needs detail, it zooms one window; when it is near the budget, the instructions tell it to stop
-   looking and answer.
+2. The program filters and sorts the rows, keeping a sheet's worth to judge first; the others stay in the rows, so
+   a later sheet can show them.
+3. It asks for a marked picture of those rows: with many items, a sheet; *only where the decision needs it,* two
+   views per item (the scene and a detail view). Each cell is magnified and labelled with the row's id.
+4. The picture is attached to the reply and counted against the call and conversation budgets (by the deliverer,
+   when there is one).
+5. The agent judges the cells and answers with ids; the id check maps them to rows, so positions come from the rows,
+   not from the picture.
+6. *Optional:* when the agent needs detail, it zooms one window. When it is near the budget, the instructions tell it
+   to stop looking and answer.
 
 ## Sketch
 
 ```text
-value Item:   id, cx, cy, r, scores…                 -- numbers, from a measurement; id stable across filtering
+value Item:   id, x, y, size, scores…                -- numbers, from a measurement; id stable across filtering
 value Sheet:  cells: [Cell(itemId, views: [View], zoom)], labels: ids
 
-candidates = measure(peaks(view(img, "speck"), snr: 1))       -- rows with ids
-keep = sortBy(candidates, -score)[0:12]                        -- the agent filters in code
-sheet(keep, views: [img, view(img, "speck")], cell: 40 px, zoom: 4).look("top 12")
+-- in use (all numbers are placeholders; see notes 3 and 6 for how to choose them)
+candidates = measure(findCandidates(img))                      -- rows with ids
+keep = sortBy(candidates, -score)[0:N]                         -- the agent filters in code
+sheet(keep, views: [img, detail(img)], cell: C, zoom: Z)       -- second view only if the decision needs it
 
-deliver(callPictures, budget) → (delivered, warnings)
+deliver(callPictures, budget) → (delivered, warnings)          -- only when programs can create unreturned pictures
   delivered, warnings = [], []
   for p in returnedFirst(callPictures):
     if count(delivered) < budget.perCall and bytes(delivered) + bytes(p) ≤ budget.bytes
        and session.picturesSoFar < budget.perConversation:
       delivered = delivered ++ [p]; session.picturesSoFar += 1
     else:
-      warnings = warnings ++ [Warning(LOOKS, "not delivered: " ++ p.label ++ " (line " ++ p.line ++ ")",
+      warnings = warnings ++ [Warning(NOT_DELIVERED, "not delivered: " ++ p.label ++ " (line " ++ p.line ++ ")",
                                       fix: "fewer cells per sheet, or a smaller zoom")]
   return delivered, warnings
 
--- the agent's answer cites ids; the engine maps them to numbers, and refuses ids it never showed
-byId = { i.id: i for s in deliveredSheets(session) for i in s.items }   -- only what the agent actually saw
-for i in answer.dust:
-  if i not in byId: return refuse(E_UNKNOWN_ID, i, valid: keys(byId), hint: "cite ids from the last sheet")
-labels = [byId[i] for i in answer.dust]                          -- exact cx, cy, r
+-- the agent's answer cites ids; map them to numbers, and refuse ids it never saw
+byId = { i.id: i for s in deliveredPictures(conversation) for i in s.items }   -- only what was delivered
+for i in answer.ids:
+  if i not in byId: return refuse(E_UNKNOWN_ID, i, valid: keys(byId), hint: "cite ids from a delivered picture")
+labels = [byId[i] for i in answer.ids]                          -- exact x, y, size
 ```
 
 ## Implementation notes
@@ -164,15 +173,19 @@ labels = [byId[i] for i in answer.dust]                          -- exact cx, cy
    Positions read off ruler crops were off by 5 to 10 pixels; positions from rows are exact. Rulers remain useful for
    a person reading the same picture.
 2. **Ids in the picture must match ids in the rows.** goja-cv's overlays and sheets label items with the `id` field
-   of the rows they were given, so "7" in the picture is the row whose id is 7, wherever it sits in the table. Relabelling in the picture (1 to 12 by
-   position in the sheet) breaks the link the moment the agent filters the rows.
-3. **Sheets of small magnified cells beat single zooms.** A sheet of twelve to fifteen cells costs one image; twelve
-   zooms cost twelve. Each cell is a small crop shown magnified, so the sheet is many small looks in one picture, not
-   one large overview (note 8). goja-cv's helper caps sheets at fifteen cells so that each cell stays large enough to
-   judge after the API downscales the image; the right count depends on the API's image size limit.
+   of the rows they were given, so "7" in the picture is the row whose id is 7, wherever it sits in the table.
+   Relabelling in the picture (1 to 12 by position in the sheet) breaks the link the moment the agent filters the
+   rows.
+3. **Several small magnified looks beat one large overview, and beat single zooms.** APIs downscale large images
+   before the model sees them, which erases three-pixel specks; the pi subagents handbook records the same finding
+   for its judges. A sheet of twelve to fifteen cells costs one image, where twelve zooms cost twelve; each cell is a
+   small crop shown magnified, so the sheet is many small looks in one picture. An uncropped overview is not.
+   goja-cv's helper caps sheets at fifteen cells so that each cell stays large enough to judge after downscaling; the
+   right count depends on the API's image size limit (note 6), so the sketch's `N`, `C` and `Z` are yours to choose.
 4. **Put the views the decision needs side by side.** The annotators decided best with the scene and a band-pass view
    of the same cell next to each other: the scene shows what the object is, the band-pass view shows whether it
-   stands out from grain.
+   stands out from grain. In goja-cv the band-pass view is the "speck" view and candidates come from `peaks`; the
+   sketch's `detail` and `findCandidates` stand for whatever your domain uses.
 5. **Stretch each cell to its own range when contrast varies.** A faint speck next to a bright one disappears under one
    shared stretch; goja-cv's sheet option `stretch: "cell"` gives each cell its own.
 6. **Derive the budgets from the transport, and state them in the instructions.** The conversation budget comes from
@@ -183,24 +196,25 @@ labels = [byId[i] for i in answer.dust]                          -- exact cx, cy
 7. **Deliver every picture a call created, and name the ones left out.** goja-cv v1 delivered only returned pictures
    and silently dropped `x.look()` statements; v2 delivers all of them, returned ones first, up to its per-call budget
    (four pictures and 8 MiB, goja-cv's defaults), and names each omitted one by line in a `LOOKS` warning.
-8. **Several small magnified looks beat one large overview.** APIs downscale large images before the model sees them,
-   which erases three-pixel specks; the pi subagents handbook records the same finding for its judges. A sheet is the
-   way to show several small magnified looks in one image; an uncropped overview is not.
-9. **Check ids on the way back.** An agent may cite an id it was never shown: one it invented, or one from a sheet
+8. **Check ids on the way back.** An agent may cite an id it was never shown: one it invented, or one from a sheet
    the budget dropped. Map answers through the items of the sheets actually delivered, and refuse other ids with the
    valid ones. Ids stay stable across sheets, so an id from an earlier delivered sheet is fine.
-10. **Agents use what carries the work.** In the 39-agent study, `look` (223 calls), `sheet` (161) and `crop` (153) did
-   the work; documented views and charts that were never shown in examples were never used. Put the evidence tools in
-   the helpers and examples agents copy.
+9. **Agents use what carries the work.** In the 39-agent study, `look` (223 calls), `sheet` (161) and `crop` (153)
+   did the work; documented views and charts that were never shown in examples were never used. Put the evidence
+   tools in the helpers and examples agents copy.
 
 ## Variations
 
+- **Smallest form.** Item rows, one marked picture per decision (the items circled and numbered in place, or a few
+  crops labelled by id), a budget stated as one number in the prompt, and the id check. No sheets, presets or
+  deliverer. It gives up many candidates per image and views tailored to the decision. It is enough when each
+  decision involves fewer items than the per-call budget and the caller returns its pictures explicitly. Add sheets
+  when items outnumber the budget, and presets when one rendering keeps misleading the agent.
 - **Labelled grid instead of item marks.** Overlay a lettered grid and let the agent name cells. Works when there are
   no candidate items yet; coarser than ids.
-- **Numbers only.** Return measurements without pictures. Cheapest; fails when the decision depends on appearance
-  (dust versus a star in the scene).
-- **Pictures with a text description.** For models without vision, or as an accessible fallback: a caption that
-  states what each cell shows in words.
+- **Numbers only, or numbers with a text description.** Return measurements without pictures: cheapest, and it fails
+  when the decision depends on appearance (dust versus a star in the scene). For models without vision, or as an
+  accessible fallback, add a caption that states in words what each item would show.
 - **Progressive zoom.** Start with an overview sheet, then zoom only on items the agent marks as uncertain. Saves
   budget on easy items; needs the agent to follow the protocol.
 

@@ -88,6 +88,26 @@ describing how well the originating projects implement it, not how good the patt
 The implementation notes name the originating projects' real mistakes. Those notes are the most useful lines in the
 language: each one is a bug that shipped or a cost that was paid.
 
+### Roles, not modules
+
+A chapter describes forces and responsibilities, not a file layout. Agents that built software from these chapters
+showed what happens otherwise: given a table of participants, they wrote one module per row; given a sketch, they
+copied details that belonged to the originating project (a module loader into a library with no modules, a cost
+constant nobody had measured). Blind reviewers then judged the builds made without the chapter better adapted to their
+task, while the chapter builds resolved more of the forces. To keep the forces and lose the transcription, every
+chapter is written this way:
+
+- **The Structure table has a "Needed" column.** "Always" marks the core; "only when …" names the condition under
+  which a participant earns its place. A participant is a responsibility: in a small system it is a function, a field
+  or a row in a table, not a class or a module.
+- **Sketches show the shape, not the originating project.** Details that belong to goja-cv, the Editor lab or the dust
+  pipelines appear in the implementation notes and known uses, labelled as such. Numbers in a sketch are placeholders
+  unless a note says where they were measured.
+- **The first variation is the smallest form:** what the pattern looks like when only the "always" participants are
+  built, and when that is enough.
+
+Start from the smallest form and the forces your system actually has; add a participant when its condition shows up.
+
 ## Pseudocode conventions
 
 | Notation | Means |

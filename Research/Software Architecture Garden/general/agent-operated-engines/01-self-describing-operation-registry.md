@@ -82,14 +82,16 @@ the caller, often an agent, gets silent wrong behaviour instead of a precise ref
 
 ## Solution
 
-**Therefore: give every operation one record: its name, the kind of value it applies to, each argument with type,
-unit, default, hard limits, usual range and documentation, a hook for rules that span arguments, the kind and fields
-of its result, the flags that tell the rest of the system how to treat it, its documentation and its implementation.
-Validate each record when it is registered, for structure and for consistency (defaults within limits, redirect
-targets that exist). Make every consumer read the records: the binder checks calls and
-returns warnings with them, the describer renders help and the agent's reference, the diagnoser builds refusals with
-the valid alternatives, and a test walks every record and calls it. The few operations that cannot be records are
-listed in one place and tested separately; any other list of operations found outside the registry is a bug.**
+**Therefore: give every operation one record: its name, the kind of value it applies to, each argument with type, unit,
+default, hard limits and documentation, the kind and fields of its result, its documentation and its implementation; add
+a usual range, a cross-argument hook, flags or redirects only when something needs them. Validate each record when it is
+registered, and what spans records once registration is complete. Make every consumer read the records: the binder
+checks calls and returns warnings with them, the describer renders help, tool schemas and the agent's reference, the
+diagnoser builds refusals with the valid alternatives, and a test walks every record and calls it. A redirect never
+rewrites a call; it only gives the refusal a fix naming the intended call. Where host policy decides a flag (which
+operations need confirmation), the registry answers and every consumer asks it. The few operations that cannot be
+records are listed in one place and tested separately; any other list of operations found outside the registry is a
+bug.**
 
 ## Applicability
 
@@ -110,30 +112,36 @@ Do not use it when:
 
 ## Structure
 
-| Participant | Responsibility |
-| --- | --- |
-| **Operation record** | Name, receiver kind, arguments, a cross-argument validation hook, result kind and fields (a function of the bound arguments), flags, method-level redirects, sample arguments for the walker, documentation, and either an implementation or an expansion (a small graph of other operations). |
-| **Argument spec** | Name, type, unit, position (if it may be passed positionally), default or optional, hard limits, usual range with a hint, allowed option keys, value docs for enumerations, redirects for known near-misses. Defaults and limits are in the declared unit. |
-| **Flags** | Properties other participants act on. In goja-cv: the class of operation (pixel, geometric, decoration), `global` (needs its whole input), `internal` (not callable by agents), an identity predicate (neutral arguments return the input), a lossless-preview hint. A system with side effects would add `confirm`: the session refuses the call with a refusal that names the confirmation needed and whose fix is the same call, confirmed; a non-interactive run refuses outright. The host decides which operations need it; a plug-in's record cannot lower it. |
-| **Registry** | Validates and stores records, one per receiver kind and name; enumerates them. |
-| **Binder** | Turns a raw call into bound, checked arguments plus warnings, or a failure. |
-| **Describer** | Renders a short line per operation for the agent's context and full help on request. |
-| **Diagnoser** | Turns a failure into a refusal with the valid names, the nearest name and a fix (see [Chapter 6](06-repairable-errors.md)). |
-| **Walker** | A test that calls every record with sample arguments and compares each result with its declared fields. |
+| Participant | Responsibility | Needed |
+| --- | --- | --- |
+| **Operation record** | Name, receiver kind, arguments, result kind and fields, samples for the walker, doc, and an implementation or an expansion (a graph of other operations). | Always. Fields computed from the bound arguments only when an option adds fields; an expansion only for composites. |
+| **Argument spec** | Name, type, unit, default or optional, hard limits, doc; a usual range with a hint; a position. Defaults and limits are in the declared unit. | Always. A usual range only when a legal value can be unwise; a position only for positional calls. |
+| **Registry** | Validates and stores records, one per receiver kind and name; checks across records after start-up; enumerates them; answers what every consumer must answer alike ("needs confirmation?"). | Always. |
+| **Binder** | Turns a raw call into checked arguments plus warnings, or a failure. Never rewrites the call. | Always. |
+| **Describer** | Context line, full help, tool schemas. | Always: it is the second consumer. |
+| **Diagnoser** | Turns a failure into a refusal with valid names, nearest name and fix (see [Chapter 6](06-repairable-errors.md)). | Always. |
+| **Walker** | A test that calls every record with its samples and applies the one result check. | Always. |
+| **Argument type** | Accepts and checks a value, names the spec keys it allows, gives an example, parses text, describes itself. Its table belongs to one registry. | Only when types go beyond a few built-in ones, or plug-ins bring their own. |
+| **Flags** | Properties others act on (needs confirmation, needs its whole input, not callable by agents). Host policy may raise a flag; a record cannot lower it. | Only when a participant acts on the flag; add each with its first user. |
+| **Cross-argument hook** | `validate(args)` for a rule spanning arguments, in the diagnoser's vocabulary. | Only when a record has such a rule. |
+| **Redirects** | Observed near-misses (option, method, old name) mapped to the intended call, for the fix. | Only when near-misses have been seen (see [Chapter 13](13-measured-redesign-loop.md)). |
 
 ## Collaborations
 
-1. At start-up, each module registers its records; a malformed record fails registration before any call.
-2. The binder looks up a call's record by receiver kind and name, matches arguments, fills defaults, checks types
-   and limits in the declared units and runs the cross-argument hook. It returns the bound call with any warnings;
-   units are converted to the working scale later, at evaluation (see [Chapter 2](02-units-travel-with-values.md)).
-3. A failure goes to the diagnoser, which reads the same record for the valid names, the nearest match and a
-   redirect, and returns a refusal.
+1. At start-up, each module registers its records; a malformed record fails before any call. Then the registry
+   checks what spans records, such as redirect targets.
+2. The binder looks up the record by receiver kind and name, refuses unknown keys, fills defaults, checks types and
+   limits in the declared units and runs the cross-argument hook if there is one. Units are converted to the working
+   scale later, at evaluation (see [Chapter 2](02-units-travel-with-values.md)).
+3. A failure goes to the diagnoser, which reads the same record for the valid names, the nearest match and, if one
+   is declared, a redirect, and returns a refusal. The caller sends the corrected call.
 4. Warnings travel on the bound call; whatever runs the call copies them into the reply the caller reads (see
-   [Chapter 5](05-one-eval-tool-over-a-scripted-session.md)). A warning that reaches only a log is no warning.
-5. The describer renders the catalogue at two lengths: a short form for the agent's standing context and full help on
+   [Chapter 5](05-one-eval-tool-over-a-scripted-session.md)), around the result if its shape is fixed. A warning
+   that reaches only a log is no warning.
+5. Only with confirmation: the runner and the describer ask the registry the same question, "needs confirmation?".
+6. The describer renders the catalogue at two lengths: a short form for the agent's standing context and full help on
    request. goja-cv's full reference is about eight times the size of the instructions it keeps in every turn.
-6. In the test suite, the walker calls every record and compares each result with its declared fields.
+7. In the test suite, the walker calls every record and applies the result check to each result.
 
 ```mermaid
 flowchart LR
@@ -143,8 +151,8 @@ flowchart LR
   B -->|bound call + warnings| E[engine]
   B -->|failure| D[diagnoser]
   R --> D
-  D -->|refusal| C
-  R --> H[describer: context line, help]
+  D -->|refusal with fix| C
+  R --> H[describer: context line, help, tool schema]
   R --> W[walker test]
 ```
 
@@ -154,66 +162,77 @@ The registry sits in the middle; every arrow out of it is a consumer that would 
 
 ```text
 -- the records
-value ArgSpec:   name, type, unit, position?, default?, optional, min?, max?, usual?, usualHint?, options?,
-                 valueDocs?, redirects?, doc               -- default, min, max, usual are in `unit`
-value OpRecord:  name, on: Kind, args: [ArgSpec], validate?(args) → ok | Failure,
-                 returns: Kind, fields(boundArgs) → [FieldSpec], flags, redirects?, samples, doc,
-                 run | expand                              -- an implementation, or a graph of other operations
+value ArgSpec:   name, type, unit, default?, optional, min?, max?, doc,  -- default, min, max are in `unit`
+                 usual?, usualHint?,          -- only when a legal value can be unwise
+                 values?, position?,          -- only if the type allows values; only if calls are positional
+                 redirects?                   -- only for observed near-misses: wrong key → intended call
+value OpRecord:  name, on: Kind, args: [ArgSpec], returns: Kind, fields(boundArgs) → [FieldSpec],
+                 samples, doc, run | expand,  -- an implementation, or a graph of other operations
+                 validate?(args) → ok | Failure, flags?, redirects?   -- each only when something needs it
+
+-- argument types (only when they multiply): everything type-specific lives here
+value ArgType:   name, keys,                  -- the spec keys it allows: number → min, max, usual
+                 accepts(v) → bool, check(v, spec) → ok | Failure(why, valid?, suggestion?),
+                 example(spec) → v,           -- for fixes and generated probes
+                 parse(text) → v | Failure,   -- only when some caller sends text (a command line)
+                 describe(spec, consumer)     -- a schema fragment, a help phrase
+registry.types: name → ArgType                -- one table per registry, never module-global
 
 registry.register(rec) → ok | refuse(E_BAD_RECORD, …)
-  -- structural: exactly one implementation, a result kind, unique arg names, required before optional, typed args
-  -- semantic:   default within limits, usual range within limits, redirect targets exist, (on, name) unique,
-  --             samples present for every callable record
+  -- structural: one of run/expand, a result kind, unique typed args, required before optional,
+  --             spec keys allowed by the type, samples present
+  -- semantic:   default passes its type's check, usual range within limits, (on, name) unique
+registry.finalize() → ok | refuse(E_BAD_RECORD, …)   -- once all modules have registered:
+  -- every redirect target exists, every sample binds
 
 -- binding a call
 bind(on, name, raw) → BoundCall(rec, args, warnings) | Failure
   rec = registry.lookup(on, name)
-  if rec is none: return Failure(UNKNOWN_METHOD, name, on)
+  if rec is none: return Failure(UNKNOWN_METHOD, name, on)          -- even if a redirect exists: never follow it
   args, warnings = {}, []
   for key in unknownKeys(raw, rec): return Failure(UNKNOWN_OPTION, key, rec)    -- first: a near-miss beats "missing"
-  -- positional values fill specs with a position, in order; a spec given both positionally and by name is
-  -- Failure(ARG_DUPLICATE), never a silent override
+  -- if positional: a spec given both positionally and by name is Failure(ARG_DUPLICATE), never an override
   for spec in rec.args:
-    v = take(raw, spec) else spec.default else (spec.optional ? none : return Failure(ARG_MISSING, spec))
-    if not spec.type.accepts(v):      return Failure(ARG_TYPE, spec, v)        -- never coerce to a zero value
-    if outside(v, spec.min, spec.max): return Failure(ARG_RANGE, spec, v)
-    if supplied(raw, spec) and outside(v, spec.usual):                         -- defaults never warn
+    v = take(raw, spec) else spec.default else (spec.optional ? skip : return Failure(ARG_MISSING, spec))
+                                                 -- optional without a default: absent from args
+    if not spec.type.accepts(v): return Failure(ARG_TYPE, spec, v)   -- never coerce to a zero value
+    check = spec.type.check(v, spec); if check is Failure: return Failure(ARG_VALUE, spec, v, check)
+    if supplied(raw, spec) and outside(v, spec.usual):               -- defaults never warn
       warnings = warnings ++ [Warning(RANGE, spec, spec.usualHint)]
     args = args ⊕ {spec.name: v}
   if rec.validate: check = rec.validate(args); if check is Failure: return check
   return BoundCall(rec, args, warnings)
 
--- the diagnoser: one entry point
-explain(failure, registry) → Refusal
-  match failure.kind:                              -- a known redirect beats the nearest name; show both when they differ
-    UNKNOWN_METHOD → r = registry.redirectFor(failure.on, failure.name)          -- record-level redirects
-                     refuse(E_UNKNOWN_METHOD, fix: r.call if r else none,
-                            valid: registry.names(failure.on), nearest: closest(failure.name, registry.names(failure.on)))
+-- confirmation (only with side effects): one answer; run, tool schemas, help and context line all ask it
+needsConfirm(rec) = rec.name in host.confirmPolicy or rec.flags.confirm   -- host raises; a record cannot lower
+run(call, confirmed) → result | refuse(E_CONFIRM, fix: the same call, confirmed)
+
+-- the diagnoser: one entry point; a redirect only ever becomes a fix
+explain(failure, registry) → Refusal              -- a known redirect beats the nearest name; show both
+  match failure.kind:
+    UNKNOWN_METHOD → r = registry.redirectFor(failure.on, failure.name); names = registry.names(failure.on)
+                     refuse(E_UNKNOWN_METHOD, fix: r.call or none, valid: names, nearest: closest(failure.name, names))
     UNKNOWN_OPTION → r = redirectFor(failure.key, failure.rec)
-                     refuse(E_UNKNOWN_OPTION, failure.key, fix: r.call if r else none, valid: optionNames(failure.rec))
-    ARG_RANGE      → refuse(E_ARG_RANGE, failure.spec, fix: clamp(failure.value, failure.spec))
-    ARG_DUPLICATE  → refuse(E_ARG_DUPLICATE, failure.spec, fix: "pass it once")
+                     refuse(E_UNKNOWN_OPTION, failure.key, fix: r.call or none, valid: optionNames(failure.rec))
+    ARG_TYPE       → refuse(E_ARG_TYPE, failure.spec, fix: failure.spec.type.example(failure.spec))
+    ARG_VALUE      → refuse(E_ARG_RANGE, failure.spec, valid: failure.check.valid, fix: failure.check.suggestion)
     HOOK           → refuse(failure.code, args: failure.args, hint: failure.why)   -- hooks use the same vocabulary
 
--- describing: two renderings of the same records
-contextLine(rec) → "name(arg, …) → Kind: first sentence of doc"
-help(name)       → doc, every arg (type, unit, default, limits, value docs), fields(defaults)
+contextLine(rec) → "name(arg, …) → Kind: first sentence of doc"   -- help(rec) is the long rendering
 
--- the walker test
-for rec in registry.all():
-  call = bind(rec.on, rec.name, rec.samples)                     -- registration guarantees samples exist
-  v = run(call)
-  declared = rec.fields(call.args)
-  if declared is empty: assert v has kind rec.returns             -- images and scalars: kind only
-  else:
-    assert keys(v) ⊆ names(declared)                              -- nothing undeclared
-    assert required(declared) ⊆ keys(v)                           -- nothing declared and missing
+-- the result check: one function; the walker calls it, and run may too
+checkResult(rec, args, v) → ok | Failure(E_RESULT)  -- the record author's fault, never the caller's
+  declared = rec.fields(args)
+  if declared is empty: v has kind rec.returns                     -- values without fields: kind only
+  else: keys(v) ⊆ names(declared) and required(declared) ⊆ keys(v)
 
--- in use
-registry.register(OpRecord(name: "blur", on: Image, returns: Image,
-    args: [ArgSpec(name: "sigma", type: number, unit: docPx, default: 2, min: 0, max: 200, usual: [0.5, 20],
-                   usualHint: "for structures larger than 20 px, downsample first")],
-    flags: {class: pixel}, doc: "Gaussian blur of sigma document pixels", run: blurKernel))
+for rec in registry.all():                                         -- the walker test
+  call = bind(rec.on, rec.name, rec.samples); assert checkResult(rec, call.args, run(call)) is ok
+
+-- in use (numbers are placeholders)
+OpRecord(name: "blur", on: Image, returns: Image, samples: {sigma: 2}, run: blurKernel, doc: "Gaussian blur",
+         args: [ArgSpec(name: "sigma", type: number, unit: px, default: 2, min: 0, max: 200, usual: [0.5, 20],
+                        usualHint: "above 20 px, downsample first")])
 ```
 
 ## Implementation notes
@@ -222,65 +241,77 @@ registry.register(OpRecord(name: "blur", on: Image, returns: Image,
    of an implementation and an expansion, with no result kind, with a duplicate argument, with a required positional
    argument after an optional one, or with an untyped argument. It does not check that a default lies within the
    limits or that a redirect points at an existing operation, and such mistakes reach agents before anyone notices.
-   Both kinds of check belong to the pattern. Checks that look across records (a redirect to an action another
-   plug-in registers later) run once registration is complete, at the end of start-up, not record by record.
+   Both kinds of check belong to the pattern. Checks across records (a redirect to an action another plug-in
+   registers later) run at the end of start-up, not record by record.
 2. **Separate hard limits from usual ranges, both in the declared unit.** A value outside the hard limits is a
    refusal; a value outside the usual range binds with a warning that says what to do instead. goja-cv's `heal`
-   takes a radius from 0 to 200 document pixels but warns outside 0.5 to 20. The check applies to the value as the
-   caller wrote it; conversion to the engine's working scale happens at evaluation. Only values the caller supplied
-   warn; a default outside the usual range is the record author's choice and belongs in help, not in every reply.
-   Check unknown keys before missing arguments, so a near-miss (`temp` for `target`) gets its repair rather than a
-   report that `target` is missing.
+   takes a radius from 0 to 200 document pixels but warns outside 0.5 to 20. Both apply to the value as written.
+   Only values the caller supplied warn; a default outside the usual range is the record author's choice and belongs
+   in help, not in every reply.
+   Check unknown keys before missing arguments, so a near-miss (`temp` for `target`) gets its repair.
 3. **Nothing falls back to a default silently.** Unknown keys are refusals, and a value of the wrong type is a
    refusal, not a zero. goja-cv v1 read an encoding given as a parameter object as an empty string and applied the
-   default; v2 makes options literals and makes accessors fail loudly on a wrong type. Silent acceptance is the worst
-   outcome for an agent, because the result looks plausible.
-4. **Keep every near-miss redirect in the records.** Option-level redirects live in argument specs (`{ min }` → use
-   `above`); method-level ones (`look({ box })` → use `crop`, a misremembered method name) live in the operation
-   record or the registry. goja-cv has the first kind in its specs but keeps method, help and look redirects in three
-   tables outside the registry. That is debt: a redirect added to one table is invisible to the others.
-5. **Walk the whole registry, results included, and know what the walk does not prove.** goja-cv's `TestRegistryWalk`
-   renders help for every record and calls every operation on each receiver kind it accepts; `TestSchemaProperty`
-   requires the keys of every row-returning result to be exactly the declared fields, with only optional ones
-   allowed to be missing. Fields are a function of the bound arguments, because some options add columns. One
-   happy-path call per record does not exercise limits, redirects, warnings or optional arguments; those need their
-   own tests, generated from the records where possible. Put the sample arguments in the record, so that registration
-   can require them; goja-cv keeps its walk's samples in the test file, which is why its registration cannot.
-6. **Make argument types pluggable before they multiply, and keep consumers outside the core.** goja-cv's binder is
-   the largest file in its graph package and mixes generic types (numbers, enumerations, objects) with image ones
-   (boxes, points, colour names). A small interface per type (accept, check, describe) keeps the core small and lets a
-   domain add types without touching it; `describe` renders the type for each consumer, for example as the base
-   JSON-schema type plus a pattern and the domain type's name in a tool schema. Consumers (help, tool schemas,
-   controls, a new one added later) are modules that read records; the core is registration, binding and storage.
-   When agents building a small registry from this chapter were later asked to add a new argument type, a plug-in
-   using it and a fifth consumer, the type and the plug-in were new files only, and the consumer needed a two-line
-   delegate on the registry's public interface.
+   default; v2 makes options literals and makes accessors fail loudly on a wrong type. Silent acceptance is worst for
+   an agent: the result looks plausible.
+4. **Keep every near-miss redirect in the records, and only ever refuse with it.** Option-level redirects live in
+   argument specs (`{ min }` → use `above`); method-level ones (`look({ box })` → use `crop`, a misremembered method
+   name) live in the operation record or the registry. goja-cv has the first kind in its specs but keeps method,
+   help and look redirects in three tables outside the registry. That is debt: a redirect added to one table is
+   invisible to the others. A redirect or a case-insensitive match is never followed, only offered as the fix; in
+   construction experiments, a build that followed them could run an action the caller had not named.
+5. **Walk the whole registry, check results in one place, and know what the walk does not prove.** goja-cv's
+   `TestRegistryWalk` renders help for every record and calls every operation on each receiver kind it accepts;
+   `TestSchemaProperty` requires every row-returning result to have exactly the declared fields, optional ones excepted.
+   Fields depend on the bound arguments, because some options add columns. Write the result check once; if `run` also
+   checks results, it calls the same function and reports a mismatch as the operation's fault, not the caller's. One
+   happy-path call per record does not exercise limits, redirects, warnings or optional arguments; generate those probes
+   from the records. Put the samples in the record, so registration can require them; goja-cv keeps them in the test
+   file, which is why its registration cannot.
+6. **Make argument types pluggable before they multiply; give the type everything type-specific.** goja-cv's binder
+   is the largest file in its graph package and mixes generic types (numbers, enumerations, objects) with image ones
+   (boxes, points, colour names). Accept, check and describe are not enough: in construction experiments, every
+   build with pluggable types still switched on `number` and `enum` by name for which spec keys apply, for example
+   values in fixes and for parsing command-line text. So the type also names its spec keys, gives an example and
+   parses text. Keep the type table in the registry, not in a module: two builds with a global table leaked types
+   between registries and tests. Consumers (help, tool schemas, controls) are modules that read records; the core is
+   registration, binding and storage. A new type is then one new file, a new consumer a two-line delegate.
 7. **One record per receiver kind and name.** goja-cv keys records by receiver kind and name, so `measure` on an
-   image and `measure` on regions are two records with their own arguments. It does not overload one name by argument
-   types within a kind; a query engine that needs "no function matches the given argument types" must make the lookup
-   return a set of candidates and let the binder choose (see Variations).
+   image and `measure` on regions are two records. It does not overload a name by argument types within a kind; a
+   query engine that does must let the lookup return candidates and the binder choose (see Variations).
 8. **Records evolve, and their defaults are part of identity.** Bound defaults enter the hash of a call (see
    [Chapter 3](03-content-keyed-lazy-graph.md)), so changing a default changes cache keys and the meaning of saved
    scripts. Rename with a redirect from the old name, not with a silent alias: the old name is refused with a fix
-   naming the new one, so callers learn the new name and there is still one way to say each thing. Validate redirects
-   at registration, and treat a changed default as a change of behaviour that the tests and the documentation show.
+   naming the new one, so callers learn the new name and there is still one way to say each thing. Treat a changed
+   default as a change of behaviour that the tests and the documentation show.
 9. **Enumerate the exceptions and test them separately.** A few parts of an API cannot be records: goja-cv binds
    `cv.open` by hand and writes the "Globals" section of its reference as fixed text. Keep such parts in one visible
-   list, with a test that every name reachable from the agent appears either in the registry or in that list. The
-   Editor lab shows the cost of not doing this: it generates its agent's view of layer kinds from its table but writes
-   the reference for its own API functions by hand, and nothing checks that the two agree.
+   list, with a test that every name the agent can call appears either in the registry or in that list. This means
+   the operations and globals of the agent's language, not the host tool's own command line or admin commands. The
+   Editor lab generates its agent's view of layer kinds from its table but writes the reference for its own API
+   functions by hand, and nothing checks that the two agree.
 10. **Composite and user-defined operations are records too.** goja-cv defines some operations as small graphs of
     others (a difference of Gaussians is two blurs and a subtraction); each still has a record, so help, errors and
-    the reference treat it like any operation. The Editor lab normalises the settings of a user's JavaScript layer
-    into the same specs its built-in kinds use, and goja-cv reads a helper function's parameter list and the first
-    comment of its body from its source, so user code appears in the agent's context with a signature and a doc line.
+    the reference treat it like any operation. The Editor lab normalises a user's JavaScript layer settings into the
+    specs its built-in kinds use; goja-cv reads a helper's parameter list and first comment from its source, so user
+    code appears in the agent's context with a signature and a doc line.
+11. **A flag that host policy decides has one answer, asked by every consumer.** goja-cv's flags are its own:
+    `Global` (needs the whole image), `Internal` (not callable from JavaScript, used by `convert`), an `Identity`
+    predicate (neutral arguments return the input) and `Lossless` (looks default to PNG). A system with side effects
+    adds confirmation, decided by the host. The registry combines host policy and the record's flag into one answer
+    that the runner, tool schemas, help and context line all ask. In construction experiments, two of three chapter
+    builds rendered tool schemas from the record's flag and told the assistant a host-guarded action was safe.
 
 ## Variations
 
-- **Code-first records** derived from annotations, decorators or struct tags. Less boilerplate, but limits, usual
-  ranges and redirects fit awkwardly into annotations.
-- **Schema-first records** in an external file (YAML, TableGen, protobuf) with code generation. Language-neutral and
-  reviewable, at the cost of a build step and generated code to read.
+- **Smallest form.** Only the "always" participants, with a closed switch over a few built-in argument types. It
+  gives up pluggable types, the hook, flags, usual ranges and redirects. It is enough while the types are few and
+  no plug-in brings its own: in construction experiments, the smallest build refused unknown names, bad limits and
+  bad defaults as well as the larger ones. Add argument types when a new one would mean editing switches in several
+  places.
+- **Code-first or schema-first records.** Records derived from annotations, decorators or struct tags need less
+  boilerplate, but limits, usual ranges and redirects fit awkwardly into annotations. Records in an external file
+  (YAML, TableGen, protobuf) with code generation are language-neutral and reviewable, at the cost of a build step
+  and generated code to read.
 - **Overload sets.** The lookup returns every record with the name, and the binder picks the one whose argument
   types match, as query engines and many languages do. More flexible; refusals must then explain why each candidate
   failed.

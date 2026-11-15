@@ -73,7 +73,8 @@ input, and the only safe way to compute less is to know exactly what each operat
 - **Exactness against economy.** Computing less is only acceptable if the window comes out exactly as in a
   whole-image computation; any shortcut that changes values near the edge is a bug.
 - **Small requests against shared work.** Computing exactly the requested window is cheapest once, but overlapping
-  windows then compute their overlap twice; tiles share work at the cost of rounding requests up.
+  windows then compute their overlap twice; tiles or a per-cell memo share work, at the cost of rounding requests up
+  or of memory.
 - **Tile size against reach.** Small tiles waste little on small requests; large reaches make small tiles read many
   times their own area.
 - **Local against global.** Statistics over the whole image (percentiles, histograms, connected components) cannot
@@ -88,12 +89,12 @@ For point operations it is the window itself; for neighbourhood operations the w
 axis when the operation is directional); for operations that move pixels (resize, rotation, a pyramid level) the
 window mapped back through the transformation; for global operations, the whole input. Let an evaluation carry a
 window. When a node is asked for a window, it asks each input for its footprint, clipped to the input's extent,
-computes on what it receives, and returns only the window. Global operations stop the request and read their whole
-input; split an operation whose parameters are global but whose application is local into a global statistic and a
-local application, so windows pass through the application. Prefer an existing whole result when one is cached, and
-evaluate whole when the footprints would cost about as much as the whole. Prove the scheme with one test: for every
-operation, alone and in chains, at several scales, the window computed this way equals the same window cut from a
-whole computation.**
+computes exactly the window from what it receives, and returns it. A global operation stops the request at its own
+input and reads it whole; split an operation whose parameters are global but whose application is local into a
+statistic node and a local operation that takes the statistic as an ordinary input, so windows pass through the
+application. Prefer an existing whole result when one is cached. Prove the scheme with one test: for every operation,
+alone and in chains, the window computed this way is bit for bit equal to the same window cut from a whole
+computation.**
 
 ## Applicability
 
@@ -113,132 +114,155 @@ Do not use it when:
 
 ## Structure
 
-| Participant | Responsibility |
-| --- | --- |
-| **Footprint** | Per operation and input: the input window needed for an output window. Usually the output window grown by the reach (in buffer pixels at the evaluation scale, per axis if needed); mapped through the transform for resampling operations; whole for global ones. |
-| **Window** | A rectangle in the shared coordinate system that a request asks for. A request may hold several (the neighbourhoods of scattered items); each is evaluated on its own or merged with near neighbours. |
-| **Region evaluator** | Propagates windows down the graph, widened by reach and clipped to each input's extent; computes each node on its window; cuts results back. |
-| **Global barrier** | Where a global operation stops a window request and evaluates its input whole. |
-| **Statistic node** | The global half of a split operation (a percentile, a histogram) whose value parameterises a local half. |
-| **Tile grid** (optional) | Rounds windows to fixed tiles so overlapping requests share computed tiles. |
-| **Invariance test** | Checks, for every non-global operation, that windowed and whole-then-cut results agree. |
+| Participant | Responsibility | Needed |
+| --- | --- | --- |
+| **Footprint** | Per operation and input: the input window read for an output window (grown, mapped back, or whole). | Always |
+| **Window** | A rectangle in the source's coordinates that a request asks for. | Always |
+| **Region evaluator** | Propagates windows down the graph, widened and clipped at each node; computes each node on its window. | Always |
+| **Invariance test** | Checks that windowed and whole-then-cut results are equal, per operation and in chains. | Always |
+| **Footprint guard** | Cuts each input, sources included, to its footprint; a read outside raises. | Always in tests |
+| **Global barrier** | Where a global operation reads its input whole. | Only when some operation is global |
+| **Statistic node** | The global half of a split operation, wired in as an ordinary input of the local half. | Only when a global parameter sits in a local chain |
+| **Cost rule** | Evaluates a node whole when its footprints for one window cost about as much as its whole inputs. | Only when whole runs are cheaper per pixel than windowed ones |
+| **Scale conversion** | Turns a reach declared in source pixels into buffer pixels at the evaluation scale. | Only when evaluation happens at more than one scale |
+| **Tile grid** or **cell memo** | Shares computed work between overlapping requests. | Only when overlapping requests are common |
 
 ## Collaborations
 
-1. A request names a node and a window (a crop's box, a zoomed look's view, the neighbourhoods of measured items).
-2. The evaluator checks the cache for the node's whole value; if present, it cuts the window from it and stops.
-3. If any input's footprint is whole (a global operation), or the footprints would cost about as much as the whole,
-   the node is evaluated whole and the window cut from it.
-4. Otherwise the evaluator asks each input for its footprint, clipped to the input's extent: the window itself for a
-   point operation, the window grown by the reach for a neighbourhood operation, the window mapped back for one that
-   moves pixels.
-5. The operation runs on the inputs' windows. Its result is exact inside the requested window, because every output
-   position there read only computed inputs; positions in the margin may not be exact and are discarded.
-6. The windowed value is cached under the node's key plus the window (or per tile, with a grid).
+1. A request names a node and one or more windows (a crop's box, a zoomed look's view, the neighbourhoods of measured
+   items). Each window is evaluated on its own; close ones may be merged, never replaced by their bounding box.
+2. Only when whole values are cached: the evaluator checks the cache for the node's whole value; if it is there, it
+   cuts the window from it and stops.
+3. The evaluator asks each input for its footprint, clipped to the input's extent: the window itself for a point
+   operation, the window grown by the reach for a neighbourhood operation, the window mapped back for one that moves
+   pixels, the whole extent for a global one. A whole footprint makes that input evaluate whole; the node's other
+   inputs stay windowed.
+4. Only when there is a cost rule: if this node's footprints for this window would cost about as much as its whole
+   inputs, the node is evaluated whole and the window cut from it.
+5. The operation computes its output for exactly the window, reading its inputs through the guard. The result is
+   exact because every position read only computed inputs, with arithmetic that does not depend on where a buffer
+   starts.
+6. Only when windows are cached: the windowed value is stored under the node's key plus the window (or per tile).
 
 ```mermaid
 flowchart TB
-  R[request: node + 64 px window] --> C{whole value cached?}
+  R[request: node + window] --> C{whole value cached?}
   C -->|yes| X[cut window]
-  C -->|no| G{global, or footprints cost ≈ the whole?}
+  C -->|no| P[ask each input for its footprint, clipped; whole = its extent]
+  P --> G{cost rule: footprints ≈ the whole?}
   G -->|yes| W[evaluate whole, cut]
-  G -->|no| P[ask each input for its footprint, clipped]
-  P --> O[run op on inputs' windows]
-  O --> K[cut to window, cache]
+  G -->|no| O[compute exactly the window through guarded inputs]
+  O --> K[return, cache if caching]
 ```
 
 ## Sketch
 
 ```text
-value Window:    x, y, w, h                                  -- document coordinates
+value Window:    x, y, w, h                                   -- in the source's coordinates
 value Footprint: (window, inputIndex) → Window | whole
 
--- declared in each operation's record (Chapter 1); reach is in buffer px at the evaluation scale
-footprint(gaussian(σ), w, i, scale)  = grow(w, ceil(ceil(3σ·scale) / scale))     -- reach → doc px, rounded out
-footprint(motionBlurX(len), w, i, s) = grow(w, x: len, y: 0)                      -- directional
-footprint(exposure, w, i, s)         = w                                          -- point operation
-footprint(resize(f), w, i, s)        = expand(inverseMap(w, f), filterSupport)   -- moves pixels: map, not grow
-footprint(stats, w, i, s)            = whole                                      -- global
+-- declared in each operation's record (Chapter 1)
+footprint(gaussian(σ), w, i)      = grow(w, ceil(3σ))          -- reach: the kernel's truncation radius
+footprint(motionBlurX(len), w, i) = grow(w, x: len, y: 0)       -- directional
+footprint(exposure, w, i)         = w                           -- point operation
+footprint(resize(f), w, i)        = expand(inverseMap(w, f), filterSupport)   -- moves pixels: map, not grow
+footprint(percentile(p), w, i)    = whole                       -- global
+-- only when evaluating at several scales: declare reach in source px, convert in one place, round outward
 
-evaluate(n, window, scale) → Value
-  if window is none: return evaluateWhole(n, scale)
-  if cache.has(key(n, scale)): return cut(cache.get(key(n, scale)), window)       -- best case: already whole
-  fps = [footprint(n.op, window, i, scale) for i in indices(n.inputs)]
-  if any(fp is whole for fp in fps): return cut(evaluateWhole(n, scale), window)
-  fps = [clip(fp, input.extent) for (fp, input) in zip(fps, n.inputs)]
-  if sum(area(fp) for fp in fps) > 0.6 × sum(area(i.extent) for i in n.inputs):   -- cost, not window size
-    return cut(evaluateWhole(n, scale), window)
-  ins = parallel([evaluate(input, fp, scale) for (input, fp) in zip(n.inputs, fps)])
-  v = n.op.run(ins, n.args)                                   -- each input buffer carries its own origin
-  return cache.put(key(n, scale, window), cut(v, window))     -- same byte budget as whole values
+evaluate(n, window) → Value
+  if window is none: return evaluateWhole(n)
+  if cache.has(key(n)): return cut(cache.get(key(n)), window)   -- only when whole values are cached
+  fps = [footprint(n.op, window, i) for i in indices(n.inputs)]
+  fps = [inp.extent if fp is whole else clip(fp, inp.extent) for (fp, inp) in zip(fps, n.inputs)]
+  if sum(area(fp) for fp in fps) > FRACTION × sum(area(inp.extent) for inp in n.inputs):
+    return cut(evaluateWhole(n), window)        -- only with a cost rule; per node and window; FRACTION: measure it
+  ins = [guard(evaluate(inp, fp), fp) for (inp, fp) in zip(n.inputs, fps)]    -- sources included
+  v = n.op.run(ins, window)                     -- computes exactly the window, indexing absolute coordinates
+  return cache.put(key(n, window), v)           -- only when windows are cached
 
--- splitting an operation with global parameters
-stretch(img)  →  levels(img, black: 0, white: 5 × p99(img))
-  becomes: s = statistic("p99", img)                          -- global: evaluated whole, cached once
-           levels(img, black: 0, white: 5 × s)                -- local: windows pass through
+evaluateMany(n, windows) = [evaluate(n, w) for w in windows]   -- each on its own, never their bounding box
+guard(v, fp) = v read in absolute coordinates; any read outside fp raises
 
--- the invariance test, for every non-global operation, alone and in chains, at several scales
-for op in registry.nonGlobal(), for c in [op alone, op after a blur, a blur after op], for s in [1, 0.5, 0.37]:
-  full = evaluate(c, none, s)
+-- a global parameter inside a local chain: the statistic is an ordinary input
+stretch(img) = divide(img, percentile(img, 99))
+footprint(divide, w, 0) = w
+footprint(divide, w, 1) = whole                 -- the statistic's extent: one value, evaluated whole once
+
+-- the invariance test: every non-global op, alone and in chains, on a fresh engine (no cache, no memo)
+for op in registry.nonGlobal(), for c in [op alone, op after a blur, a blur after op]:   -- × each scale, if several
+  full = evaluate(c, none)
   for w in [interior, each edge, each corner, 1 × 1, the whole extent]:
-    assert close(evaluate(c, w, s), cut(full, w))
+    assert evaluate(fresh(c), w) == cut(full, w)               -- equal, not close
 
 -- in use
-spot = img.as("linear").gaussian(32).crop([3000, 2000, 64, 64])
-await spot.stats()          -- reads (64 + 2·96)² = 65,536 input pixels instead of 24 million
+spot = crop(gaussian(img, σ: 32), [3000, 2000, 64, 64])
+stats(spot)          -- reads (64 + 2·96)² = 65,536 input pixels instead of 24 million
 ```
 
 ## Implementation notes
 
 1. **The footprint must be exact, and only a test can say so.** If an operation reads one pixel further than it
    declares, the outermost ring of every window differs slightly from the whole-image result, and no visual check
-   notices. Test every operation at the largest arguments agents use, alone and in chains, at full and reduced
-   scales (a footprint that is right at scale 1 and short at 0.37 is the likeliest bug), on windows at the interior,
-   edges and corners.
-2. **Border rules apply only at the real border.** goja-cv mirrors the image at its edge; the lab extends the edge
-   pixel. Either works with windows, because a window grown by the reach and clipped to the extent meets the real
-   border exactly where a whole computation would. An operation that applies its border rule at the edge of its
-   buffer, whatever that buffer is, breaks this; such kernels must be told where the real border is.
-3. **Reaches add up along a chain.** A blur of reach 6 feeding an erosion of reach 4 needs inputs within 10 pixels.
+   notices. Test every operation at the largest arguments agents use, alone and in chains, on windows at the
+   interior, edges and corners, each on a fresh engine: a cache filled by an earlier window hides a short footprint.
+   With several scales, test them all; a footprint right at scale 1 and short at 0.37 is the likeliest bug.
+2. **Exactness also needs arithmetic that ignores the buffer's origin.** A prefix sum or summed-area table built over
+   the buffer adds values in a different order for every window, so the last bits differ even with a correct
+   footprint. Compute each output position by the same arithmetic as the whole run, and test exact equality. In
+   construction experiments, two builds used prefix sums with tolerance tests, which hid that most windowed cells
+   differed. Where exactness is impossible (a reduction in varying order), say so per operation, with its tolerance.
+3. **Guard every read.** Cut every input, sources included, to its declared footprint and raise on reads outside it.
+   A short reach then fails at once instead of shifting edge values. Handing kernels the whole source loses this
+   check exactly above the sources.
+4. **Border rules apply only at the real border.** goja-cv mirrors the image at its edge; the lab extends the edge
+   pixel; an average may count only the cells inside. All work with windows, because a window grown by the reach and
+   clipped to the extent meets the real border where a whole computation would. A kernel that applies its border
+   rule at the edge of its buffer breaks this; such kernels must be told where the real border is.
+5. **Reaches add up along a chain.** A blur of reach 6 feeding an erosion of reach 4 needs inputs within 10 pixels.
    The evaluator gets this for free by widening at each node; a planner that computes the total ahead of time must
    sum the reaches itself.
-4. **Reach scales with the evaluation, and its unit must be explicit.** A blur of σ 8 document pixels has a reach of
-   24 buffer pixels at full scale and 12 at half scale; in document pixels it is 24 either way, rounded outward to
-   whole buffer pixels. Say which unit a footprint function returns, and convert in one place (see
+6. **Convert units only when there are several scales.** With one scale a reach is a count of pixels and needs no
+   conversion. With several, a blur of σ 8 source pixels has a reach of 24 buffer pixels at full scale and 12 at half
+   scale; declare reach in one unit, convert in one place, round outward (see
    [Chapter 2](02-units-travel-with-values.md)).
-5. **Find the hidden global operations.** goja-cv marks `stats`, `histogram` and connected components as global, but
-   its speck view hides one inside a local chain: its display stretch is five times the 99th percentile of the
-   whole residual. An unmarked global operation evaluated on a window silently uses the window's percentile, so the
-   same speck looks different in two zooms. Audit every operation; split global parameters from local application.
-6. **Keep the best case: cut from what is cached.** Today, goja-cv's second window of the same view costs nothing,
-   because the whole view is cached. A window design that recomputes from inputs every time would make that case
-   slower. Check the cache for the whole value first.
-7. **Windows first, tiles second.** A window request computes exactly the window plus margins and is the smaller
-   change; it already needs reach, propagation and the invariance test. Tiles add a grid, per-tile keys and assembly,
-   and pay off once overlapping requests are common (sheets of nearby items, repeated zooms).
-8. **Choose the tile size by measuring.** Each tile of an operation with reach `m` reads `(T + 2m)²` pixels to write
-   `T²`, so large reaches favour large tiles while small local requests favour small ones. The lab's bench found a
-   different best size for different workloads; make the size a setting and measure.
-9. **Align tiles to the source, not to each node.** If the grid follows each node's own extent, two crops of one scan
-   that start at different offsets never share a tile. A grid in the source's coordinates makes them meet.
-10. **Measurements around items are window requests too.** goja-cv's `measure` reads a core and a ring around each
+7. **Find the hidden global operations, and wire the statistic as an input.** goja-cv marks `stats`, `histogram` and
+   connected components as global, but its speck view hides one inside a local chain: its display stretch is five
+   times the 99th percentile of the whole residual. Evaluated on a window, an unmarked global uses the window's
+   percentile, so the same speck looks different in two zooms. Split it as `divide(img, stat(img))`: the statistic
+   is an ordinary input with a one-value extent, so the evaluator needs no hook. Keep it exact (whole, cached); a
+   coarse pyramid level is cheaper but needs its own validation.
+8. **The cost rule is per node and per window.** Compare one window's footprints with that node's whole inputs. Never
+   apply it to the bounding box of a request's windows: two scattered probes then compute the whole image. The
+   fraction in the sketch is a placeholder; measure where windowed and whole runs cost the same. Per-cell evaluation
+   (see Variations) has no such crossover and needs no rule.
+9. **Keep the best case, and measure cold.** goja-cv's second window of a view costs nothing today, because the
+   whole view is cached; check the cache first. A cache makes the same request cost different amounts, so give
+   measurement a cold mode (a fresh cache).
+10. **Windows first, tiles second.** A window request computes exactly the window plus margins and is the smaller
+    change. Tiles add a grid, per-tile keys and assembly, and pay off once overlapping requests are common. A tile
+    with reach `m` reads `(T + 2m)²` pixels to write `T²`; the lab's bench found a different best size per workload,
+    so measure. Align the grid to the source, or two crops at different offsets never share a tile.
+11. **Measurements around items are window requests too.** goja-cv's `measure` reads a core and a ring around each
     item. The request is the set of the items' neighbourhoods, not their bounding box, which for scattered items is
-    nearly the whole scan; evaluate each neighbourhood (or each cluster of close ones) as its own window. For probes on
-    a large scan this is almost the whole saving.
-11. **Decide which global statistics may be approximated.** A percentile for a display stretch can come from a coarse
-    level of the image pyramid at a fraction of the cost, but its value changes slightly. Keeping it exact (computed
-    once, whole, and cached) preserves every existing result; approximating it needs its own validation.
+    nearly the whole scan; evaluate each neighbourhood (or each cluster of close ones) as its own window. For probes
+    on a large scan this is almost the whole saving.
 
 ## Variations
 
+- **Smallest form.** Footprints, a recursive evaluator that widens at each node, the guard and the exact invariance
+  test, at one scale. No cache, no cost rule, no tiles; a statistic node only if a global parameter exists. It gives
+  up shared work between requests and the speed of whole-image kernels on large windows. It is enough when requests
+  are few and small compared with the input.
+- **Per-cell demand with a memo.** Each output cell is computed by the whole-grid formula over absolute coordinates;
+  a node computes only the missing cells of the demanded window and remembers them (as row spans, say). Results are
+  exact by construction, overlapping windows share work without rounding, and there are no buffer origins or cost
+  rule. The memo costs memory per cell, often many times a pixel array, and per-cell code forgoes vectorised kernels.
+  For small grids it can be the smallest correct form.
 - **Tiled demand-driven evaluation** (the lab, libvips): every request is rounded to tiles; tiles are the unit of
   work, caching and parallelism.
 - **Scheduled fusion** (Halide): a compiler chooses, per stage, whether to store intermediates, recompute them per
-  output, or tile with overlap, from the declared footprints of each stage.
-- **Chunked arrays with overlap** (Dask's `map_overlap`): the array is split into chunks once; each chunk is extended
-  by a declared depth from its neighbours before a function is applied.
-- **Region of interest only at the source**: read a window of the input with a margin chosen by hand. Cheap and
-  error-prone; the margin is the caller's guess, and global statistics change.
+  output, or tile with overlap, from the declared footprints of each stage. Dask's `map_overlap` is a fixed schedule
+  of this kind: chunks extended by a declared depth.
 
 ## Consequences
 
@@ -246,10 +270,11 @@ await spot.stats()          -- reads (64 + 2·96)² = 65,536 input pixels instea
 - \+ Memory use drops with it for local chains; only global operations still read their whole input.
 - \+ Results are exact, because the scheme is a statement about what each operation reads.
 - \+ Parallelism by region becomes available alongside parallelism by input.
-- − Every operation needs a correct reach, and a wrong one fails silently at window edges.
+- − Every operation needs a correct reach, and a wrong one fails silently at window edges unless reads are guarded.
 - − Global operations and hidden global parameters must be found and split.
-- − Overlapping requests repeat work until tiles are added, and tiles waste work on margins.
-- − Kernels that convert indices to coordinates must read their buffer's origin, which whole-image code never needed.
+- − Overlapping requests repeat work until tiles or a memo are added, and tiles waste work on margins.
+- − Window kernels must read their buffer's origin, which whole-image code never needed, and their arithmetic must not
+  depend on it.
 
 ## Known uses
 

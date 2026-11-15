@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Prepare a blind design review of all builds of one task (chapter runs and controls).
-# usage: prepare.sh NN REV
+# usage: prepare.sh NN REV [TAGS]   (TAGS: comma-separated build tags to include, e.g. "v3,ctl"; default all)
 #   collects ~/pattern-validation/builds/NN/*/*/snapshot-build (code and tests only: diaries, notes, the chapter and
 #   answers removed), shuffles them into impl-A, impl-B, ... (seeded by NN and REV), and writes the reviewer's
 #   directory ~/pattern-validation/reviews/NN/REV/work with CHAPTER.md, TASK.md, RUBRIC.md and NEXT.md.
@@ -8,7 +8,7 @@
 # The reviewer is then an Opus subagent (the user's choice) or review.sh's pi run; either writes REVIEW.json in work/.
 set -euo pipefail
 unset CDPATH
-N=$1; REV=$2
+N=$1; REV=$2; TAGS=${3:-}
 HERE=$(cd "$(dirname "$0")" && pwd); VAL=$(cd "$HERE/../.." && pwd)
 BUILDS=~/pattern-validation/builds/$N
 OUT=~/pattern-validation/reviews/$N/$REV; rm -rf "$OUT"; mkdir -p "$OUT/work" "$VAL/reviews"
@@ -18,10 +18,11 @@ cp "$CH" "$OUT/work/CHAPTER.md"
 cp "$HERE/../tasks/$N-TASK.md" "$OUT/work/TASK.md"
 cp "$HERE/RUBRIC.md" "$OUT/work/RUBRIC.md"
 cp "$HERE/NEXT-$N.md" "$OUT/work/NEXT.md"
-python3 - "$BUILDS" "$OUT" "$REV" "$VAL/reviews/$N-$REV-key.json" <<'PY'
+python3 - "$BUILDS" "$OUT" "$REV" "$VAL/reviews/$N-$REV-key.json" "$TAGS" <<'PY'
 import json, pathlib, random, shutil, sys
 builds, out, rev, keyf = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]), sys.argv[3], pathlib.Path(sys.argv[4])
-runs = sorted(p for p in builds.glob("*/*/snapshot-build") if p.is_dir())
+tags = [t for t in sys.argv[5].split(",") if t] if len(sys.argv) > 5 else []
+runs = sorted(p for p in builds.glob("*/*/snapshot-build") if p.is_dir() and (not tags or p.parent.parent.name in tags))
 random.Random(f"{builds.name}-{rev}").shuffle(runs)
 key = {}
 for i, src in enumerate(runs):

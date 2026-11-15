@@ -50,15 +50,15 @@ The naive alternatives fail in specific ways:
   abandons, and computes the same chain again in the next round.
 - **Caching by variable** (remembering the value of `view`) does not survive a new program, and returns stale values
   when the agent rebinds the variable to something else.
-- **Caching by source text** of a function or expression returns stale results when the text refers to a variable
-  whose value changed. Several of the nine prototypes that preceded goja-cv keyed functions by their source and did
-  exactly that.
+- **Caching by source text or object identity** of a function returns stale results when the function refers to a
+  variable whose value changed. Several of the nine prototypes that preceded goja-cv keyed functions by their source
+  and did exactly that.
 
 goja-cv and the Editor lab (a browser photo editor descended from the same prototypes) both solve this with the
-same structure. In goja-cv a node is created per distinct call
-and a value is cached per signature; the second round's `view("speck")` is the first round's node, and its windows
-cost nothing. In the lab, every tile of every layer has a key made of the layer's settings, the pixel revisions it
-reads and the keys of the tiles below; moving a slider recomputes only the tiles whose keys changed.
+same structure. In goja-cv a node is created per distinct call and a value is cached per signature; the second
+round's `view("speck")` is the first round's node, and its windows cost nothing. In the lab, every tile of every
+layer has a key made of the layer's settings, the pixel revisions it reads and the keys of the tiles below; moving
+a slider recomputes only the tiles whose keys changed.
 
 The same structure solves other problems:
 
@@ -80,20 +80,22 @@ on each request wastes most of the work, and caching them by name or by source t
 - **Structural keys against output keys.** Keys built from inputs need no data to look up; keys built from outputs
   let a rebuild stop early when a value did not change, but cost a hash of every output.
 - **Memory against recomputation.** Every cached value is memory; every evicted one is work to redo.
+- **Bounded values against a growing graph.** The byte budget bounds cached values; the interned nodes and the
+  sources they hold grow outside it with every distinct call and file.
 - **Sharing against isolation.** Sharing nodes and values across callers multiplies hits, and makes any mutation of a
   shared value a bug that corrupts other callers' results.
 - **Functions as arguments against hashability.** Callers want to pass functions ("apply this inside the mask"), but
-  a function's behaviour cannot be hashed from its text.
+  a function's behaviour cannot be hashed from its text or its identity.
 
 ## Solution
 
 **Therefore: make every operation call return a node instead of a value, and intern nodes by a hash of the
-operation, its bound arguments and its input nodes, so that equal calls are one node. Compute a node only when a
-value is requested. Give each value a key built from the node's hash, the parameters of the evaluation (such as
-scale) and the keys of its inputs, recursively; look the key up in a byte-budgeted cache before computing, share
-in-flight computations of the same key, and store with each value everything its computation reported. Never modify
-a cached value. Turn functions passed as arguments into graph nodes when the call is built, so that keys never depend
-on a function's text.**
+operation, its canonical arguments and its input nodes, so that equal calls are one node. Refuse any argument that
+has no canonical form, and turn a function argument into an ordinary subgraph when the call is built. Compute a node
+only when a value is requested. Give each value a key built from the node's hash, the operation's version, the
+evaluation parameters (quantised where the request enters) and the keys of its inputs, recursively; look the key up
+in a byte-budgeted cache before computing, and store with each value everything its computation reported. Store
+values frozen, and copy one only where it leaves the graph for a caller.**
 
 ## Applicability
 
@@ -108,49 +110,51 @@ Do not use it when:
 
 - operations have side effects or depend on hidden state (time, randomness without a seed, a mutable global); their
   keys would lie;
+- callers must pass arguments that have no canonical form and cannot become subgraphs (live handles, callbacks that
+  read the world);
 - every computation is cheap and requested once; the graph and the cache cost more than they save;
 - inputs change constantly at fine grain and most changes leave outputs unchanged; keys built from inputs then
   recompute everything downstream, and verifying keys with early cutoff fit better (see Variations).
 
 ## Structure
 
-| Participant | Responsibility |
-| --- | --- |
-| **Node** | An operation, its bound arguments and its input nodes; immutable; identified by a structural hash. |
-| **Builder** | Interns nodes by hash (equal calls return the existing node); turns function arguments into subgraphs. |
-| **Source** | A leaf whose identity includes what it reads (file location, size and modification time, or content revisions). |
-| **Signature** | The cache key: the node's hash, the evaluation parameters (quantised), the operation's implementation version and the input signatures. Nodes are interned independently of how they will be evaluated; the signature adds the evaluation. |
-| **Evaluator** | Computes a requested node: memo, cache, shared in-flight work, parallel inputs, identity short-cut. |
-| **Run memo** | A map from signature to value (and from node to signature) for one evaluation request, so a value used twice in one request is found without touching the shared cache. Discarded when the request ends. |
-| **Value cache** | Stores values with their side information (warnings) under signatures, across requests, within a byte budget and an eviction policy. |
-| **In-flight group** | Ensures concurrent requests for one signature share one computation. |
+| Participant | Responsibility | Needed |
+| --- | --- | --- |
+| **Node** | An operation, its canonical arguments and its input nodes; immutable; identified by a structural hash. | Always |
+| **Builder** | Interns nodes by hash; refuses arguments with no canonical form; substitutes inputs into function arguments' subgraphs. | Always; substitution only when operations take functions |
+| **Source** | A leaf whose identity includes what it reads (file location, size and modification time, or content revisions). | Always |
+| **Signature** | The cache key: the node's hash, the operation's version, the quantised evaluation parameters and the input signatures. | Always |
+| **Evaluator** | Computes a requested node: memo, cache, identity short-cut, freeze and store. | Always; parallel inputs only when computations are long |
+| **Run memo** | Signature to value for one request, so a value used twice is found without the shared cache. | Only when the cache may evict a value one request uses twice, or warnings are reported once per request |
+| **Value cache** | Frozen values and their warnings under signatures, across requests, within a byte budget and a policy. | Always |
+| **In-flight group** | Makes simultaneous requests for one signature share one computation. | Only when there are concurrent callers, parallel inputs included |
 
 ## Collaborations
 
 1. The script calls operations. The builder binds each call against its record (see
-   [Chapter 1](01-self-describing-operation-registry.md)), hashes it with its inputs and returns the existing node
-   if there is one.
-2. The script asks for a value (by awaiting it, saving it or looking at it). The evaluator computes the node's
-   signature from its hash and the signatures of its inputs.
-3. If the signature is in the run's memo or the cache, the value is returned and its stored warnings are reported
-   again.
-4. Otherwise the evaluator joins any computation of the same signature already in flight, or starts one: it
-   evaluates the inputs in parallel, applies the operation, stores the value and its warnings in the cache, and
-   returns it.
+   [Chapter 1](01-self-describing-operation-registry.md)), refuses arguments with no canonical form, substitutes the
+   real input into any function argument's subgraph, hashes the call and returns the existing node if there is one.
+2. The script asks for a value (by awaiting it, saving it or looking at it). The request quantises the evaluation
+   parameters; the evaluator computes the node's signature from its hash and the signatures of its inputs.
+3. If the signature is in the run's memo (where there is one) or the cache, the value is returned and its stored
+   warnings are reported again.
+4. Otherwise the evaluator computes it (joining a computation already in flight, when there are concurrent callers):
+   it evaluates the inputs, applies the operation, freezes the value and stores it with its warnings. A neutral call
+   returns its input's value, uncached. The caller gets a copy only if it may change the value.
 5. When memory runs short, the cache evicts entries by its policy; an evicted value is recomputed on the next
    request, from inputs that are probably still cached.
 
 ```mermaid
 flowchart LR
-  S[script call] --> B[builder: bind, hash, intern]
+  S[script call] --> B[builder: bind, refuse, substitute, intern]
   B --> N((node))
-  Q[value request] --> E[evaluator]
+  Q[value request: quantise] --> E[evaluator]
   N --> E
   E --> K{signature in memo or cache?}
   K -->|yes| V[value + stored warnings]
-  K -->|no| F[join or start computation]
-  F --> I[inputs in parallel]
-  I --> O[run op]
+  K -->|no| F[compute; join in-flight if concurrent]
+  F --> I[inputs]
+  I --> O[run op, freeze]
   O --> C[(cache)]
   C --> V
 ```
@@ -159,125 +163,151 @@ flowchart LR
 
 ```text
 value Node:   op, args, inputs: [Node], hash
-value Entry:  value, warnings, bytes, cost
+value Entry:  value, warnings, bytes             -- value is frozen: no operation or caller can write to it
 
 -- building
 intern(op, args, inputs) → Node
   h = hash(op.name, canonical(args), [i.hash for i in inputs])
   return nodes.get(h) else nodes.put(h, Node(op, args, inputs, h))
 
--- functions as arguments: run once at build time against a placeholder, keep the subgraph
-withinMask(img, mask, f) → Node
-  hole = placeholder(kind: Image)
-  inner = f(hole)                              -- e.g. hole.exposure(-0.4); builds nodes, computes nothing
-  return intern(op: within, args: {}, inputs: [img, mask, subgraph(inner, hole)])
+canonical(x) → Text
+  match x:
+    number, text, boolean, null, list, map: one spelling (keys sorted, 1 and 1.0 equal)
+    function, handle, any other object:     refuse(E_ARG, "no canonical form")
+
+-- function arguments (only when operations take them): substitute when the call is built
+within(img, mask, f) → Node
+  hole = placeholder()                           -- evaluating it is an error
+  inner = f(hole)                                -- builds nodes, computes nothing
+  return intern(within, {}, [img, mask, substitute(inner, hole, img)])
+
+substitute(n, hole, x) → Node                    -- memoize per node on a graph with shared parts
+  if n == hole: return x
+  return intern(n.op, n.args, [substitute(i, hole, x) for i in n.inputs])
 
 -- evaluating
-signature(n, params) → Key                                   -- memoized per (node, params) in the run memo
-  return hash(n.hash, n.op.version, quantize(params), [signature(i, params) for i in n.inputs])
+request(n, rawParams) → Value                    -- the one place a value leaves the graph
+  params = quantize(rawParams)                   -- before the key or the computation sees it
+  memo = {}
+  return thaw(evaluate(n, params))               -- a copy the caller may change, or the frozen value itself
+
+signature(n, params) → Key                       -- memoized per node for the request
+  return hash(n.hash, n.op.version, params, [signature(i, params) for i in n.inputs])
 
 evaluate(n, params) → Value
   k = signature(n, params)
   if memo has k:  return memo[k]
-  if cache has k: report(cache[k].warnings); return cache[k].value
-  return inflight.once(k, () →
-    ins = parallel([evaluate(i, params) for i in n.inputs])
+  if cache has k: report(cache[k].warnings); memo[k] = cache[k].value; return memo[k]
+  return inflight.once(k, () →                   -- only with concurrent callers; otherwise call directly
+    ins = [evaluate(i, params) for i in n.inputs]    -- in parallel only where that pays
     if n.op.identity(n.args):
-      return withMetadata(copyOf(ins[0]), n)                    -- never write to an input's cached value
-    t0 = now(); warnings = []
-    v = n.op.run(ins, n.args, warn: w → warnings = warnings ++ [w])
-    cache.put(k, Entry(v, warnings, bytes(v), cost: now() - t0))
+      return copy(ins[0], meta: n.meta)          -- shares the input's frozen data; not cached
+    warnings = []
+    v = freeze(n.op.run(ins, n.args, params, warn: w → warnings = warnings ++ [w]))
+    cache.put(k, Entry(v, warnings, bytes(v)))   -- warnings of this node and its inputs (note 8)
     report(warnings)
+    memo[k] = v
     return v)
 
 -- in use
 a = img.as("linear").view("speck")             -- round 1: builds nodes
 b = img.as("linear").view("speck")             -- round 2, new program: a and b are the same node
-await a.crop(w1).stats()                        -- computes the view once
+await a.crop(w1).stats()                        -- a request: computes the view once
 await b.crop(w2).stats()                        -- cache hit for the view; only the crop is new
 ```
 
 ## Implementation notes
 
-1. **Intern at build time.** goja-cv's builder returns the existing node for an equal call, so common subexpressions
-   cost nothing and the graph an agent inspects has no duplicates. Hash the bound arguments in canonical form
-   (defaults filled, units declared), or two spellings of the same call become two nodes.
-2. **Put the evaluation parameters in the key, quantized, and compute at the quantized value.** goja-cv rounds the
-   evaluation scale to 10⁻⁴ before anything uses it, so nearly equal scales share entries and produce identical
-   buffer sizes. Quantising only the key while computing at the raw value would store one value under another's key.
-   Any parameter that changes the value (scale, precision, device) belongs in the key; any that does not, does not.
-   So does the operation's implementation version: goja-cv's cache lives in one process and is rebuilt when the code
-   changes, but a cache that survives a deploy or is shared between machines must key on the code too, or a fixed
-   kernel keeps serving the old values.
-3. **Make the key wide enough.** A collision returns a wrong value and nothing reports it. The lab's book applies the
-   birthday bound: a long session creates about 10⁵ tile keys; at 32 bits that gives about 1.2 expected collisions,
-   at its 52-bit keys about 10⁻⁶. goja-cv uses 256-bit SHA-256 signatures per node, which costs little because there
-   are far fewer nodes than tiles.
-4. **Leave out of the key what cannot affect the value.** The lab's key for an opaque fill that covers the whole
-   tile ignores the layers below it; a hidden layer takes the key of what is below it; a pass-through group at full
-   opacity takes the key of its top child. Each rule raises the hit rate, and each is a correctness obligation: a
-   rule that is wrong in one case returns a stale picture in that case.
-5. **Never key a function by its text.** Prototypes that keyed functions by source returned stale results when a
-   captured variable changed. goja-cv runs a function argument once, when the call is built, against a placeholder
-   node, and keeps the subgraph it builds; evaluating the placeholder anywhere else is an error (`E_PLACEHOLDER`).
-   This requires the function to be data-independent: it may build any graph, but it cannot branch on values it has
-   not seen (`img.width > 1000 ? …`). Data-dependent choices become operations in the graph (a select, a threshold)
-   or explicit arguments, which are hashed. The placeholder hashes to a constant, so two equal function arguments
-   intern to one subgraph; what it stands for is bound per evaluation, never stored in the shared node. Where the
-   host allows it, substituting the real input when the call is built is simpler and keeps the evaluator unaware of
-   placeholders; all three builders who implemented this pattern from the chapter tripped on the sketch's version.
-6. **Share in-flight work and evaluate inputs in parallel.** goja-cv wraps each computation in a single-flight
-   group keyed by signature, so two requests for the same value compute it once, and evaluates a node's inputs
-   concurrently. It counts runs per node, so a test can assert what was recomputed and what was not. In a host
-   without an asynchronous runtime, a bounded worker pool deadlocks once evaluations wait for inputs queued behind
-   them; use a thread per distinct input signature, or evaluate inputs in order and keep the single-flight group.
-7. **Never modify a cached value.** goja-cv's identity short-cut returns the input's value for neutral arguments, and
-   the evaluator then sets the node's own metadata (frame, encoding) on the result. It copies the value first when
-   the value belongs to an input, because writing to it would change another node's cached result.
-8. **Store what the computation reported with the value.** goja-cv keeps the warnings raised while computing a
-   value in the cache entry and reports them whenever the value is served, once per evaluation. Without this, a
-   warning appears on the first request and silently disappears on every cached one. A hit on a node serves none
-   of its inputs, so its entry carries the warnings of the whole subgraph below it, not only its own. A value too
-   large to cache reports its warnings immediately, since nothing will replay them.
-9. **Budget the cache and treat the eviction policy as a setting.** goja-cv caps its value cache at 2 GiB with LRU
-   eviction and keeps decoded sources outside the cap. The lab offers LRU and GreedyDual-Size (priority =
-   clock + cost / size); on its bench, undo-heavy editing recomputed a quarter as many tiles under GreedyDual-Size,
-   while a brush stroke recomputed a third more. Neither policy wins; measure on your workloads.
-10. **Know what keys built from inputs cannot do.** They cannot stop a rebuild early when an operation's output did
-    not change. The lab measured a third to a half of the recomputation after editing a masked layer as avoidable,
-    and none after a global edit; hashing outputs to allow early cutoff cost 15 % to 22 % of a cheap layer's work.
-    goja-cv's sources do not change during a session, so the waste is rare there; an editor should weigh it.
-11. **Source identity decides how far the cache can travel.** goja-cv identifies a file by location, size and
-    modification time: cheap, and valid within one machine and session. A cache shared between machines or kept
-    across checkouts needs a content hash of the source, computed once per file.
-12. **Make evaluation points explicit.** Laziness means a statement that only builds a node does nothing. goja-cv
-    computes on `await`, `look()` and `cv.save`, and refuses to read a property of an unevaluated node
-    (`E_NOT_AWAITED`). Its first version also dropped bare `x.look()` statements silently; the second delivers every
-    look created in an eval. A lint for "node built but never used" was tried and deleted, because it fired on
-    legitimate code more than on mistakes.
+1. **Intern at build time, and refuse what has no canonical form.** goja-cv's builder returns the existing node for
+   an equal call, so common subexpressions cost nothing and the graph has no duplicates. Hash the bound arguments in
+   canonical form (defaults filled, units declared), or two spellings of the same call become two nodes. Refuse an
+   argument with no canonical form (a function, a handle, an opaque object). In construction experiments, three of
+   five builds keyed such arguments by identity or printed form and served stale values when a captured variable
+   changed: the Motivation's failure, one layer down.
+2. **Quantise the evaluation parameters where the request enters, and compute at the quantised value.** goja-cv
+   rounds the evaluation scale to 10⁻⁴ before anything uses it, so nearly equal scales share entries. Quantising only
+   the key while computing at the raw value would store one value under another's key. Any parameter that changes the
+   value (scale, precision, device) belongs in the key; any that does not, does not.
+3. **What the key holds decides how far the cache can travel.** goja-cv's cache lives in one process, is rebuilt when
+   the code changes, and identifies a file by location, size and modification time: cheap, and valid within one
+   machine and session. A cache that survives a deploy or is shared between machines must key on the operation's
+   implementation version, or a fixed kernel keeps serving old values, and on a content hash of each source.
+4. **Make the key wide enough, then stop.** A collision returns a wrong value and nothing reports it. The lab's book
+   applies the birthday bound: a long session creates about 10⁵ tile keys; at 32 bits that gives about 1.2 expected
+   collisions, at its 52-bit keys about 10⁻⁶. goja-cv's 256-bit SHA-256 signatures cost little, since nodes are far
+   fewer than tiles, and need no collision detection or salting.
+5. **Leave out of the key what cannot affect the value.** The lab's key for an opaque fill that covers the whole tile
+   ignores the layers below it; a hidden layer takes the key of what is below it; a pass-through group at full
+   opacity takes the key of its top child. Each rule raises the hit rate and is a correctness obligation: a rule
+   wrong in one case returns a stale picture in that case.
+6. **Turn a function argument into an ordinary subgraph when the call is built.** goja-cv runs a function argument
+   once, against a placeholder node, then substitutes the call's receiver for the placeholder throughout the
+   subgraph, re-interning each node on the path. `img.within(mask, i => i.exposure(-0.4))` thus shares nodes and
+   cache entries with `img.exposure(-0.4)`, and the evaluator never sees a placeholder; evaluating one that escaped
+   its builder is an error (`E_PLACEHOLDER`). The function must be data-independent: it cannot branch on values it
+   has not seen (`img.width > 1000 ? …`). Data-dependent choices become operations (a select, a threshold) or
+   explicit arguments, which are hashed. Builders who bound the placeholder at evaluation instead (see Variations)
+   first recursed forever on nested calls, and lost the sharing.
+7. **Store values frozen; copy out where a value leaves the graph.** A cached value is shared by every later request.
+   Store it in a form nothing can write to (read-only arrays, tuples), hand operations that form, and copy only at
+   the request, for a caller that may change it. The identity short-cut then needs no copy, and its result is not
+   cached: it is its input's value, and caching it charges the budget twice. goja-cv's Go buffers are writable, so it
+   relies on operations only creating values. Four of five experimental builds froze values unprompted; the one that
+   copied only on the identity path, as an earlier sketch did, let a probe corrupt the cache.
+8. **Store what the computation reported with the value.** goja-cv keeps the warnings raised while computing a value
+   in the cache entry and reports them whenever the value is served, once per evaluation; otherwise a warning appears
+   on the first request and silently disappears on every cached one. A hit on a node serves none of its inputs, so
+   its entry carries the warnings of the whole subgraph below it. A value too large to cache reports its warnings
+   immediately, since nothing will replay them.
+9. **Share in-flight work only when there are concurrent callers.** A single-flight group keeps two simultaneous
+   requests for one signature from computing it twice; with one caller it is dead weight. Parallel inputs create
+   concurrent callers (a diamond's shared input is asked for twice at once) and bring the group with them. goja-cv
+   evaluates inputs concurrently and keys a group by signature. Without an asynchronous runtime, a bounded worker
+   pool deadlocks once evaluations wait for inputs queued behind them; use a thread per distinct input signature, or
+   evaluate inputs in order.
+10. **Budget the cache, make the policy a setting, and know what the budget does not bound.** goja-cv caps its value
+    cache at 2 GiB by default with LRU eviction. The lab offers LRU and GreedyDual-Size (priority = clock + cost /
+    size); on its bench, undo-heavy editing recomputed a quarter as many tiles under GreedyDual-Size, while a brush
+    stroke recomputed a third more. Neither policy wins; measure on your workloads. A size-aware policy must evict
+    before inserting, or it can evict the value it was asked to store. The budget bounds values, not the graph: the
+    node table and its sources need their own release rule (end of session, or nodes no live script can reach).
+    goja-cv pins decoded sources outside the cap; that is its decoder's arrangement, not part of the pattern.
+11. **Make evaluation points explicit.** goja-cv computes on `await`, `look()` and `cv.save`, and refuses to read a
+    property of an unevaluated node (`E_NOT_AWAITED`). Its first version also dropped bare `x.look()` statements
+    silently; the second delivers every look created in an eval. A lint for "node built but never used" was tried and
+    deleted: it fired on legitimate code more than on mistakes.
 
 ## Variations
 
-- **Dirty bits instead of keys.** Each node is marked dirty when an input changes and recomputed on demand, as
-  spreadsheets do. Cheap to maintain in place; no sharing across sessions or users.
+- **Smallest form.** Node, builder, source, a signature of node hash, version and quantised parameters, an evaluator
+  and a byte-budgeted LRU cache of frozen values. No run memo, in-flight group, parallel inputs or function
+  arguments. It gives up deduplicating simultaneous requests, and recomputes a shared input within one request when
+  the cache cannot hold the request's working set. Enough for one caller and modest graphs. Smaller still is
+  call-level memoization by canonical arguments: no laziness or inspection, good when calls are coarse and few.
+- **Placeholder bound at evaluation.** Keep the placeholder in the graph and bind it to the real input per
+  evaluation, when the input is only known then (a function applied to each item of a list computed later). The
+  placeholder hashes to a constant; the binding enters every signature below it, never the shared node; nested
+  calls need a rule for a placeholder bound to itself. The subgraph shares no entries with the same pipeline
+  written directly.
 - **Verifying keys with early cutoff.** Record the hashes of each computation's inputs and output; after a change,
-  recompute bottom-up and stop where an output hash is unchanged. Saves the waste of note 10; costs an output hash
-  per computation.
+  recompute bottom-up and stop where an output hash is unchanged. Keys built from inputs cannot do this: the lab
+  measured a third to a half of the recomputation after editing a masked layer as avoidable, and none after a global
+  edit, while hashing outputs cost 15 % to 22 % of a cheap layer's work. goja-cv's sources do not change during a
+  session, so the waste is rare there; an editor should weigh it.
 - **Persistent and shared caches.** Store values by key on disk or on a server so that later sessions and other
-  users hit them, as build systems' remote caches do. Needs keys that include every environmental input.
-- **Call-level memoization without a graph.** Memoize each function by its arguments. Much simpler, no laziness or
-  inspection; good when calls are coarse and few.
+  users hit them, as build systems' remote caches do. Needs keys with every environmental input (note 3).
 
 ## Consequences
 
 - \+ Repeated and overlapping requests cost almost nothing after the first.
 - \+ Programs can be written naively (rebuilding chains each round) without paying for it.
 - \+ The graph is inspectable: what will be computed, from what, and what was cached.
-- \+ Independent inputs can be evaluated in parallel without extra bookkeeping.
+- \+ Independent inputs can be evaluated in parallel where that pays.
 - − Memory is spent on values that may never be asked for again; the budget and policy need tuning.
+- − The budget bounds values, not the graph; long sessions need a release rule for nodes.
 - − Laziness confuses authors who expect a statement to act; evaluation points must be explicit.
 - − Every operation must be deterministic and every relevant input must reach the key; one hidden input (a global, a
-  clock, a mutable buffer) produces silently stale results.
+  clock, a mutable buffer, a captured variable) produces silently stale results.
 - − Keys built from inputs waste work when a change does not change an output.
 
 ## Known uses
@@ -290,7 +320,8 @@ await b.crop(w2).stats()                        -- cache hit for the view; only 
 - **Dask** builds task graphs whose keys are derived from the operation and its arguments (`tokenize`), and computes
   them on demand.
 - **darktable** keys its pixel-pipeline cache by a hash chained through the modules of the pipeline.
-- **Excel** recalculates only cells marked dirty by a change, the dirty-bit variation.
+- **Excel** recalculates only cells marked dirty by a change: dirty bits in place of keys, cheap in place, with no
+  sharing across sessions.
 
 ## Related chapters
 

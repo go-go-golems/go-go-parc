@@ -74,6 +74,8 @@ pays for each guess with a round trip and part of its context.**
 - **Precision against noise.** A rich error repairs the call; a long one buries the important line.
 - **Suggestion against misdirection.** A nearest-name suggestion helps when it is right and costs more than silence
   when it is confidently wrong.
+- **Runnable against right.** A fix the agent can paste must bind, but a fix that binds is not a fix that is right.
+  Filling a gap with a plausible value makes the fix run and quietly changes what the agent asked for.
 - **Generic against mined.** Edit distance works for any name; the near-misses that matter most are conceptual
   ("zoom" for a look option) and only transcripts reveal them.
 - **Errors against warnings.** Refusing is safe and blocks work; warning lets work continue and is easily ignored.
@@ -84,13 +86,15 @@ pays for each guess with a round trip and part of its context.**
 
 **Therefore: give every failure one structured shape: a stable code from a closed list, a one-sentence message, the
 path of operations from the source to the failing one, the line in the agent's program, the valid alternatives, a
-hint that explains the concept behind the refusal, and a fix written as code the agent can paste, using the agent's
-own names where possible. Build suggestions in one fixed order, from certain to guessed: the same name inside a
-namespace, names agents demonstrably typed (mined from transcripts) with their literal fixes, a near spelling within
-an edit budget, and finally the same name on another kind of value. Translate failures from the host language into the same shape, with a code from the closed list and the host's
-own error name kept as a field.
-Raise warnings with the same fields at the line that caused them, fold repeats into one with a count, and deliver
-everything that was produced before a failure.**
+hint that explains the concept behind the refusal, and a fix written as code the agent can paste. A fix rewrites
+only the failing part of the agent's line, in the agent's names and line structure. When the right value cannot be
+derived from the agent's own input, give a hint and no fix, never an invented value. Build suggestions in one fixed
+order, from certain to guessed: the same name inside a namespace, names agents demonstrably typed (mined from
+transcripts) with their literal fixes, a near spelling within an edit budget, and, only where values come in kinds
+with their own methods, the same name on another kind. Translate failures from the host language into the same
+shape, with one code from the closed list and the host's own error name kept as a field. Raise warnings with the
+same fields at the line that caused them, fold repeats into one with a count, and deliver everything that was
+produced before a failure.**
 
 ## Applicability
 
@@ -110,150 +114,160 @@ Do not use it when:
 
 ## Structure
 
-| Participant | Responsibility |
-| --- | --- |
-| **Refusal** | Code (from the closed list), message, path, where (the line and its source), valid alternatives (at most a handful, nearest first), hint, fix, and the host error's own name when it came from the host. Crosses into the agent's language as an error object with those fields. |
-| **Code list** | The closed vocabulary of error and warning codes, each documented once (and tested in the documentation; see [Chapter 12](12-executable-documentation-with-outcome-contracts.md)). |
-| **Suggester** | Produces a hint and a fix for a name that does not exist: redirects first, then structural relatives, then a near spelling. |
-| **Redirect table** | Names agents demonstrably typed, each with a hint and a literal fix; mined from transcripts. |
-| **Translator** | Turns host-language failures (a type error from calling a method on plain data) into refusals. |
-| **Site tracker** | Records the line in the agent's program for every call, so refusals and warnings point at it. |
-| **Warning folder** | Collects warnings with their lines and folds identical ones raised in a loop. |
+| Participant | Responsibility | Needed |
+| --- | --- | --- |
+| **Refusal** | Code, message, path, where (the line and its source), valid alternatives (a handful, nearest first), hint, fix, and `hostName`: the host's own error class (`TypeError`), empty unless the code is the host-failure code. | Always |
+| **Code list** | The closed vocabulary of error and warning codes, each documented once and tested ([Chapter 12](12-executable-documentation-with-outcome-contracts.md)). | Always |
+| **Fix renderer** | Rewrites the agent's line, changing only the failing part; no fix when the right value is not in the agent's input. | Always |
+| **Suggester** | Produces a hint and a fix for a name that does not exist, in the fixed order. | Always, where names can be mistyped |
+| **Redirect table** | Names agents demonstrably typed, each with a hint and a literal fix; one per registry, checked against it. | Only when transcripts show repeated near-misses |
+| **Translator** | Turns host-language failures into refusals, keeping `hostName`. Receiver lookup only where agent code calls host objects. | Only when agent code runs in a host language that raises its own errors |
+| **Site tracker** | Finds the agent's line for a failure raised inside host calls. | Only where agent code calls host objects; otherwise the parser's line number is the site |
+| **Warning folder** | Folds identical warnings at one line into one with a count. | Only when warnings can repeat (loops); otherwise a list |
 
 ## Collaborations
 
-1. The binder or evaluator detects a failure and builds a refusal with its code, message and path; the site tracker
-   adds the line.
+1. The binder or evaluator detects a failure and builds a refusal with its code, message, path and line. The parser
+   knows the line; only where agent code calls host objects does a site tracker find it.
 2. For an unknown name, the suggester consults, in order: a namespaced member of the same name
-   (`img.luminance` → `img.mask.luminance`, its own code `E_NAMESPACE`), the redirect table (a typed name with a
-   literal fix), a near spelling within an edit budget that grows with the name's length, and the same name on
-   another kind of value. The first that answers wins.
-3. For a failure raised by the host language, the translator matches its message, finds the receiver in the source
-   line, and adds a hint that explains the concept and a fix that uses the agent's variable. goja-cv answers
-   `rows.count()` on an awaited array with the hint "rows is plain data here (awaited regions are an array), so it
-   has no count(); its length is the count" and the fix `rows.length` (it still reports the host's `TypeError` as the
-   code; note 4).
-4. Warnings raised during the program are folded by line and appended to the reply; on failure, the reply still
+   (`img.luminance` → `img.mask.luminance`, its own code `E_NAMESPACE`), the redirect table, a near spelling
+   within an edit budget, and the same name on another kind of value. The first that answers wins. The fourth step
+   needs values of several kinds with their own methods (an image, an awaited array). In a flat command language,
+   skip it: rewriting the agent's command into another that takes the option is a confident wrong fix.
+3. The fix renderer turns the answer into the agent's line with only the failing part changed. If the change needs
+   a value the agent did not write, the refusal carries the hint and no fix.
+4. Only where agent code runs in a host language: the translator maps a host failure to the host-failure code, keeps
+   the host's error name in `hostName`, and adds a concept hint where it recognizes the failure (note 3).
+5. Warnings raised during the program are folded by line and appended to the reply; on failure, the reply still
    carries the warnings and pictures produced before it.
-5. Refusal shapes and codes are documented once, in pages whose examples are tested to raise exactly those codes.
+6. Refusal shapes and codes are documented once, in pages whose examples are tested to raise exactly those codes.
 
 ```mermaid
 flowchart LR
-  F[failure] --> R[refusal: code, message, path]
-  S[site tracker] -->|line| R
+  F[failure] --> R[refusal: code, message, path, line]
   R --> Q{unknown name?}
   Q -->|yes| SG[suggester]
   SG --> RT[(redirect table)]
-  SG --> NS[namespace / other kinds]
-  SG --> ED[near spelling]
-  Q -->|no| H[hint + fix from the record]
-  SG --> OUT[reply]
-  H --> OUT
+  Q -->|no| H[hint from the record]
+  SG --> FX[fix renderer]
+  H --> FX
+  FX --> OUT[reply]
 ```
 
 ## Sketch
 
 ```text
-value Refusal:    code, message, path: [label], where?, valid: [name], hint?, fix?, hostName?
-value Suggestion: code, hint, fix
+value Refusal:    code, message, path: [label], where, valid: [name], hint?, fix?,
+                  hostName?                -- the host's error class, e.g. "TypeError"; empty unless code is E_HOST
+value Suggestion: code, hint, change?      -- change: what to replace in the agent's line
 
--- recv is the expression the agent called the method on, read from the call site ("img" in "img.zoom(4)")
-suggest(kind, name, recv) → Suggestion | none
-  for m in registry.methods(kind):
-    if namespaceOf(m) ≠ none and memberOf(m) == name:              -- img.luminance → img.mask.luminance
-      return Suggestion(E_NAMESPACE, "it lives in the " ++ namespaceOf(m) ++ " namespace", recv ++ "." ++ m ++ "(…)")
-  if redirects has name:                                           -- mined from transcripts: a literal fix
-    return Suggestion(E_UNKNOWN_METHOD, redirects[name].hint, redirects[name].fix)
-  c = closest(name, registry.methods(kind), budget: max(1, min(3, len(name) / 3)))
-  if c: return Suggestion(E_UNKNOWN_METHOD, "did you mean " ++ c ++ "?", recv ++ "." ++ c ++ "(…)")
-  for k in registry.kinds() where k ≠ kind and registry.has(k, name):
-    return Suggestion(E_UNKNOWN_METHOD, name ++ " applies to " ++ k ++ ", not " ++ kind, crossKindFix(k, name, recv))
+-- call is the agent's parsed line: its prefix (a loop, an assignment), the name it used, its arguments
+suggest(kind, name, call) → Suggestion | none
+  for m in registry.methods(kind):                                -- 1. a structural fact
+    if namespaceOf(m) ≠ none and memberOf(m) == name:
+      return Suggestion(E_NAMESPACE, "it lives in the " ++ namespaceOf(m) ++ " namespace", rename(m))
+  if registry.redirects has name:                                 -- 2. a known answer, mined from transcripts
+    return Suggestion(E_UNKNOWN_METHOD, registry.redirects[name].hint, registry.redirects[name].change)
+  c = closest(differingSegment(name), registry.methods(kind),    -- 3. a guess: "drop" vs "add", not "item.drop"
+              budget: max(1, min(3, len / 3)))                    --    goja-cv's budget, not measured (note 2)
+  if c: return Suggestion(E_UNKNOWN_METHOD, "did you mean " ++ c ++ "?", rename(c))
+  for k in registry.kinds() where k ≠ kind and registry.has(k, name):   -- 4. only with kinds of value
+    return Suggestion(E_UNKNOWN_METHOD, name ++ " applies to " ++ k ++ ", not " ++ kind, crossKind(k, name))
   return none
 
-unknownMethod(kind, name, recv, path, where) → Refusal
-  s = suggest(kind, name, recv)
-  return Refusal(code: s ? s.code : E_UNKNOWN_METHOD, message: kind ++ " has no method " ++ name,
-                 path: path ++ ["✗ " ++ name], where: where,
-                 valid: s ? [] : nearestFirst(registry.methods(kind), name)[0:8], hint: s?.hint, fix: s?.fix)
+-- rewrite only the failing part; the prefix, the order and the other arguments stay as the agent wrote them
+renderFix(call, change) → text | none
+  if change needs a value that call does not contain: return none      -- a hint, never an invented value
+  return call.prefix ++ render(apply(change, call.command))
 
-translate(hostError, sourceLine) → Refusal
-  r = Refusal(code: E_HOST, hostName: hostError.name, message: hostError.message, where: hostError.where)
-  match hostError:
-    TypeError("no member m") →
-      recv = receiverOf(sourceLine, m)                        -- "rows" in "return rows.count()"
-      if recv and m == "count": r = copy(r, hint: recv ++ " is plain data here; its length is the count",
-                                         fix: recv ++ ".length")
-      elif recv and registry.isMethodOfNodes(m):
-        r = copy(r, hint: recv ++ " is plain data here, not a node", fix: "img." ++ m ++ "(" ++ recv ++ ", …)")
-  return r
+unknownMethod(kind, name, call, path, where) → Refusal
+  s = suggest(kind, name, call)                       -- valid: the nearest names, only when nothing answers
+  return Refusal(code: s?.code or E_UNKNOWN_METHOD, path: path ++ ["✗ " ++ name], where: where,
+                 valid: s ? [] : nearest(registry.methods(kind), name), hint: s?.hint, fix: renderFix(call, s?.change))
 
-foldWarnings(ws) → [Warning]                                  -- a call in a loop warns once, with a count
+translate(hostError, where) → Refusal                 -- only when agent code runs in a host language
+  r = Refusal(code: E_HOST, hostName: hostError.name, message: hostError.message, where: where)
+  h = hostHints.match(hostError, where.source)        -- optional: concept hints
+  return h ? copy(r, hint: h.hint, fix: h.fix) : r
+
+foldWarnings(ws) → [Warning]                          -- only when a call can repeat
   return [w with count = n for (w, n) in groupBy(ws, (code, line, message))]
 
 -- in use
-img.zoom(4)                → E_UNKNOWN_METHOD, hint: "Zoom is a look option…", fix: "node.crop([x, y, w, h]).look({ zoom: 8 })"
-img.luminance({above: .5}) → E_NAMESPACE, fix: "img.mask.luminance(…)"
-rows.count()               → E_HOST (hostName TypeError), hint: "rows is plain data here…", fix: "rows.length"
+repeat 3: item.ad name=w     → E_UNKNOWN_COMMAND, fix: "repeat 3: item.add name=w"    -- prefix kept
+item.add name=w qty=abc      → E_ARG_TYPE, hint: "qty is a whole number", no fix      -- nothing to derive it from
 ```
 
 ## Implementation notes
 
-1. **Mine redirects from transcripts.** goja-cv's method redirects are "the wrong method names agents demonstrably
-   typed", collected by a script over pi transcripts (`zoom`, `resample`, `meta`, eight names for saving). Each has a
-   hint that names the concept and a literal fix. No edit-distance rule would map `zoom` to `crop(…).look({ zoom })`.
+1. **Mine redirects from transcripts, and decide what a redirect does.** goja-cv's method redirects are "the wrong
+   method names agents demonstrably typed", collected by a script over pi transcripts (`zoom`, `resample`, `meta`,
+   eight names for saving). Each has a hint that names the concept and a literal fix. No edit-distance rule would map
+   `zoom` to `crop(…).look({ zoom })`. A mined name can refuse with a fix (goja-cv; it teaches but costs a round
+   trip), run as a legal alias (it teaches nothing, and aliases accumulate), or run and warn with the canonical form.
+   Refuse when the redirect changes the concept or needs a value the agent did not write.
 2. **Suggest in one fixed order, from most to least certain, and state it once.** A namespaced member of the same
-   name is a structural fact, a mined redirect a known answer, a near spelling a guess, a match on another kind a
-   hint about a different mistake. goja-cv's code checks them in exactly that order. Its edit budget,
-   `max(1, min(3, len/3))`, allows one edit for names up to five letters, so short names get only the closest
-   misspellings; it cannot tell a typo from a different word one letter away (`crop` and `drop`), which is why the
-   mined redirects come first.
-3. **Fixes are code, in the agent's names.** A fix the agent can paste beats prose. goja-cv's translator finds the
-   variable a failing method was called on in the source line, so the fix for `rows.count()` is `rows.length`, not a
-   generic template.
-4. **Keep one shape and one closed code list for every layer.** Binding errors, evaluation errors, kernel failures,
-   timeouts and host-language errors all become the same record. goja-cv's `E_INTERNAL` marks a panicking operation as
-   a bug, with the path, so even a crash is reported in the shape the agent already reads. goja-cv still reports a
-   host `TypeError` under the host's own name as its code; a closed list needs one code for host failures with the
-   host's name as a separate field, so callers can branch on codes reliably.
+   name is a structural fact, a mined redirect a known answer, a near spelling a guess. goja-cv checks them in
+   exactly that order. Its edit budget, `max(1, min(3, len/3))`, allows one edit for names up to five letters; it
+   cannot tell a typo from a different word one letter away (`crop` and `drop`), which is why the mined redirects
+   come first. Apply the budget to the segment that differs: the shared prefix makes `item.drop` and `item.add` look
+   close (one build suggested exactly that).
+3. **Fixes are code, in the agent's names and line structure.** A fix the agent can paste beats prose. goja-cv's
+   translator finds the variable a failing method was called on, so `rows.count()` on an awaited array gets the fix
+   `rows.length`. Rewrite only the failing part; keep the loop, the assignment and the other arguments. In
+   construction experiments four of five builds dropped a `repeat N:` prefix, so pasting the fix changed what ran.
+4. **Keep one shape and one closed code list for every layer.** Binding, evaluation, kernel and host failures all
+   become the same record. goja-cv still reports a host `TypeError` under the host's own name as its code; a closed
+   list needs one code for host failures, with the host's name in `hostName`, so callers can branch on codes. Fill
+   `hostName` only then; one build stored the command name there.
 5. **The path is part of the message.** `open(scan.tif) → exposure → ✗ gaussian` tells the agent which step of a long
    chain failed. goja-cv leaves conversions it inserted itself out of the path, because the agent did not write them.
 6. **The line is in the agent's program, not the engine's.** goja-cv's site tracker records the first stack frame
-   outside the engine for every call and quotes the source line (`where: 'line 2: return img.zoom(4)'`); a line
-   inside a loaded script is named by file and line. A refusal then points at what the agent can edit.
-7. **Warn at the line, and fold repeats.** A range warning inside a loop over 500 candidates is one warning with a
-   count, not 500 lines. Every warning carries its line and, where possible, a hint.
-8. **A warning that is usually wrong is worse than none.** goja-cv deleted its unused-node lint after it fired 19
-   times in an annotator study, 18 of them on correct code. Each warning should be measured on real transcripts
-   before it ships (see [Chapter 13](13-measured-redesign-loop.md)).
-9. **Deliver what was produced before the failure.** goja-cv's failure reply still carries the pictures and warnings
+   outside the engine for every call and quotes the source line (`where: 'line 2: return img.zoom(4)'`). It earns
+   its place because agent JavaScript calls host objects. In a line-oriented language the parser's line number is
+   the site.
+7. **Warn at the line, fold repeats, and measure each warning.** A range warning inside a loop over 500 candidates is
+   one warning with a count. A warning that is usually wrong is worse than none: goja-cv deleted its unused-node lint
+   after it fired 19 times in an annotator study, 18 of them on correct code. Measure each warning on real
+   transcripts before it ships (see [Chapter 13](13-measured-redesign-loop.md)).
+8. **Deliver what was produced before the failure.** goja-cv's failure reply still carries the pictures and warnings
    created before the exception; they are often what the agent needs to see why it failed.
-10. **Keep redirect tables in one place.** goja-cv has method redirects in its graph package, help redirects and member
-    fixes in its module, and look redirects among its operations. A redirect added to one table is invisible to the
-    others; one table, owned by the registry, avoids it (see [Chapter 1](01-self-describing-operation-registry.md)).
+9. **One redirect table per registry, checked against it.** goja-cv has method redirects in its graph package, help
+   redirects and member fixes in its module, and look redirects among its operations; a redirect added to one is
+   invisible to the others. Keep the table on the registry instance and check at load that each fix names
+   operations the registry has ([Chapter 1](01-self-describing-operation-registry.md)); in one build,
+   module-level tables leaked across registries.
+10. **Never invent a value to complete a fix.** When the right value is not in the agent's input, give the hint and
+    the valid alternatives, and either no fix or a placeholder that cannot bind (goja-cv's `[x, y, w, h]`,
+    `qty=<whole number>`), marked so the reply can tell it from a runnable fix. In construction experiments three
+    builds made fixes bind by inventing values: `qty=0` for `qty=abc`, `name=widget` for a missing name, and a fix
+    that turned "remove all" into "remove one".
 11. **Test codes and fixes.** goja-cv's documentation marks examples that must fail with a given code
-    (`js error=E_CODE`) and runs them; a code no example raises is probably dead. Fixes deserve the same: a fix that
-    is itself wrong is the most damaging output the pattern can produce, because the agent pastes it and fails again.
-    For each redirect and each templated fix, a test can run the fix and expect it to bind.
+    (`js error=E_CODE`) and runs them; a code no example raises is probably dead. A fix that is itself wrong is the
+    most damaging output the pattern can produce, because the agent pastes it and fails again. For each redirect and
+    each templated fix, test two things: the fix binds, and it differs from the agent's line only in the failing part.
 
 ## Variations
 
+- **Smallest form.** Refusal, code list, fix renderer and a near-spelling suggester over the registry's names; the
+  line comes from the parser and warnings are a plain list. It gives up mined conceptual fixes, host translation and
+  folding. It is enough for a command language run by the engine's own interpreter, before transcripts exist. In
+  construction experiments the smallest build, with no translator, tracker or folder class, was judged best.
+- **Run and warn.** A mined near-miss runs as its canonical form and the reply warns with that form ("rm is
+  item.remove; ran item.remove name=w"). Work continues and the agent learns the name. Use it only when the mapping
+  is exact and needs no value from the agent.
 - **Fix-its applied by tools.** Compilers attach machine-applicable edits to diagnostics; editors apply them on
   request. Stronger than a pasteable fix; needs a structured edit format.
-- **Errors with links.** HTTP APIs include a documentation URL per error type. Cheap; useful only if the caller follows
-  links, which agents in a sandbox often cannot.
 - **Uniform refusals** for security-sensitive failures: one code and message for every reason, logged in detail on the
   server side only.
-- **Ask-back errors.** The engine returns a question with choices ("did you mean A or B?") and continues with the
-  answer. Suits interactive callers; adds a round trip.
 
 ## Consequences
 
 - \+ Most failed calls are repaired in the next attempt without reading documentation.
 - \+ Transcripts become a source of API improvements: every repeated near-miss becomes a redirect.
 - \+ One error shape makes failures from every layer equally legible.
-- \+ Warnings at the right line, folded, are actually read.
 - − Building good hints and fixes is work per error, and they drift as the API changes unless tested.
-- − A wrong suggestion, stated confidently, misleads; suggestion budgets and ordering need care.
+- − A wrong suggestion, stated confidently, misleads, and a fix that binds can still change what was asked.
 - − Rich errors take context; the reply must stay short when nothing is wrong.
 
 ## Known uses

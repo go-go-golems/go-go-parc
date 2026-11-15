@@ -82,7 +82,7 @@ scale produces a plausible result instead of an error.**
 how its numbers are read, on three separate axes: the unit of its lengths, the coordinate frame of its positions, and
 the space (scale or encoding) of its samples. Declare the conversions between tags in one catalogue, each with its
 cost and whether it loses information. Give every operation a rule: it follows its input's space, or works in a
-declared space; it needs its inputs in one frame or not. Let the graph builder, not the kernels, satisfy the rules,
+declared space; it needs its inputs in one frame or not. Let the builder, not the kernels, satisfy the rules,
 inserting lossless conversions from the catalogue as ordinary cached steps and refusing where a conversion is missing
 or lossy. Numeric arguments carry declared units and are converted to the scale the engine runs at. Results are
 reported in the one coordinate system every value shares.**
@@ -96,96 +96,104 @@ Use it when:
 - values cross boundaries where the reader cannot see where they came from (an agent, a saved file, another team);
 - a mistake would produce a plausible but wrong result rather than a crash.
 
+Within it, insert conversions automatically only when explicit ones would crowd every script, and scale arguments
+only when the engine evaluates at more than one scale.
+
 Do not use it when:
 
 - every value has one representation and always will; tags would be ceremony;
 - the tags would have to be checked per element in a performance-critical loop; tag the container instead, and check
   once per operation;
-- the domain's conversions are mostly lossy or ambiguous; then use explicit conversions only (see Variations).
+- the domain's conversions are mostly lossy or ambiguous; then use the smallest form, with explicit conversions
+  only (see Variations).
 
 ## Structure
 
-| Participant | Responsibility |
-| --- | --- |
-| **Tagged value** | A container plus its tags: space (scale or encoding of samples; `none` for masks, labels and tables, which are read as stored and never converted), frame (the rectangle it covers in the shared coordinate system), and the unit of the coordinates and lengths it holds (document pixels for goja-cv's regions). |
-| **Conversion catalogue** | Declares each directed conversion between tags, with its cost and whether it is lossless for a given precision (encoded↔linear is lossless in float, lossy into 8 bits). Conversions may take parameters from the value's own tags (the file's transfer curve, a transaction's date). With more than two spaces, the builder inserts the cheapest path of lossless steps. |
-| **Operation rule** | Per operation: the space it works in (follows its receiver, physical/linear, display/encoded), whether its inputs must share a frame, the space of its result (follows its receiver unless the operation is itself a conversion). |
-| **Argument unit** | The declared unit of each numeric argument: document pixels, document pixels squared, fraction of the extent, or a level read on the work space's scale. A bare number is in the declared unit. |
-| **Builder** | Resolves rules when the graph is built; inserts conversions, raises warnings, or refuses. |
-| **Scale binder** | Converts argument units to the buffer scale an evaluation runs at. |
+A participant is a responsibility, not a module; in a small engine most of these are a field or a function.
+
+| Participant | Responsibility | Needed |
+| --- | --- | --- |
+| **Tagged value** | A container plus its tags, one per axis the domain has: space (scale or encoding of samples; `none` for masks, labels and tables, which are read as stored), frame (the rectangle it covers in the shared coordinate system), unit (what its coordinates and lengths mean). | Always; tag only the axes that vary in your system. |
+| **Conversion catalogue** | Declares each directed conversion between tags, with whether it is lossless for a given precision (encoded↔linear is lossless in float, lossy into 8 bits). Conversions may take parameters from the value's tags (a transfer curve, a transaction's date). | Always; with two spaces it is a pair of functions. Costs and a cheapest-path search only when there are more than two spaces. |
+| **Operation rule** | Per operation: the space it works in (follows its receiver, physical/linear, display/encoded), whether its inputs must share a frame, the space of its result. | Always; a field in the operation's registry entry ([Chapter 1](01-self-describing-operation-registry.md)). |
+| **Argument unit** | The declared unit of each numeric argument: a length, an area, a fraction of the extent, or a level read on the work space's scale. A bare number is in the declared unit. | Only when numeric arguments mean lengths or levels that could be read on more than one scale. |
+| **Builder** | Resolves rules when an operation is called or a graph is built; inserts conversions, raises warnings, or refuses. | Only when conversions are inserted automatically; without it, the operation checks tags and refuses. |
+| **Scale binder** | Converts argument units to the scale an evaluation runs at. | Only when the engine evaluates at more than one scale (previews, pyramids, zoom levels). |
 
 ## Collaborations
 
-1. A source opens with tags from its file: goja-cv's `cv.open` returns file units, and its frame in document
-   coordinates. A tile opened with its origin keeps the full scan's coordinates.
-2. The agent calls an operation. The builder computes the work space from the rule: a physical operation (exposure,
-   healing, conversion to grey by Rec. 709 weights) works in linear light; a display operation (drawing a look)
-   works on encoded values; any other operation follows its receiver.
-3. The builder checks frames: the image inputs of an operation that combines them must cover identical rectangles,
-   or it refuses (`E_FRAME`) with a fix that crops them to a common box. Two disjoint tiles have no common box; the
-   fix there is to open the region of the scan that covers both.
-4. The builder converts each input to the work space with catalogue conversions, inserted as ordinary nodes, and
-   raises an `ENCODING` warning where encodings are mixed in encoded space on purpose. It converts the result back to
-   the receiver's space.
-5. At evaluation, the scale binder converts length arguments from document pixels to buffer pixels; all buffers of
-   one evaluation share its scale, which is part of every cache key. A level is read on the work space's scale. For an
+1. A source opens with tags from its file: its space from the file's declared encoding, its frame in the shared
+   coordinate system. A piece opened with its origin (a tile of a larger scan) keeps the whole's coordinates.
+2. The agent calls an operation. The work space comes from the rule: a physical operation (exposure, healing,
+   conversion to grey) works in linear light; a display operation (drawing an overlay) works on encoded values; any
+   other operation follows its receiver.
+3. *Only for operations that combine inputs:* their frames must be identical, or the operation refuses (`E_FRAME`)
+   with a fix that crops them to a common box. Two disjoint pieces have no common box; the fix there is to open the
+   region that covers both.
+4. Each input is converted to the work space by catalogue conversions, and the result back to the receiver's space.
+   With a builder, the conversions are inserted as ordinary (cached) steps; without one, a mismatch is a refusal whose
+   fix is the explicit conversion. *Only where mixing encodings is sometimes intended:* an `ENCODING` warning.
+5. *Only when the engine evaluates at more than one scale:* the scale binder converts length arguments to the scale
+   of the evaluation, and that scale is part of every cache key. A level is read on the work space's scale; for an
    operation that follows its receiver, the agent chooses that scale by choosing the receiver's space, and
-   measurements (`stats`) report on the same scale; a physical operation's levels are in linear light, and its help
-   says so.
-6. Results report positions in document coordinates, which every value shares.
+   measurements report on the same scale. A physical operation's levels are in linear light, and its help says so.
+6. Results report positions in the coordinate system every value shares.
 
 ## Sketch
 
 ```text
-value Tags:    space: Space, frame: Rect in document coordinates, unit: Unit
-value Image:   data, tags: Tags
-value Conv:    from: Space, to: Space, lossless(precision) → bool, cost, params(tags) → Params  -- e.g. the curve
+value Tags:    space: Space, frame: Rect in shared coordinates, unit: Unit   -- only the axes your domain has
+value Value:   data, tags: Tags
+value Conv:    from: Space, to: Space, lossless(precision) → bool, params(tags) → Params   -- e.g. a curve
 value OpRule:  works: follows | physical | display, sameFrame: bool, result: follows | declared(Space)
 
-build(op, receiver, args) → Node | Refusal
+apply(op, receiver, args) → Value | Refusal                    -- at call time, or when a graph node is built
   rule = op.rule(args)
   work = match rule.works:
     physical → linear
     display  → encoded
     follows  → receiver.space
-  inputs = [receiver] ++ imageArgs(args)
-  if rule.sameFrame:
+  inputs = [receiver] ++ valueArgs(args)
+  if rule.sameFrame:                                           -- only for operations that combine inputs
     for x in inputs[1:]:
       if x.frame ≠ receiver.frame:
-        return refuse(E_FRAME, frames: [receiver.frame, x.frame],
-                      fix: "crop both to the same box: a.crop(box), b.crop(box)", where: callSite())
-  if work == encoded and mixesEncodings(inputs): warn(ENCODING, where: callSite())   -- before converting
+        return refuse(E_FRAME, frames: [receiver.frame, x.frame], fix: "crop both to one box", where: callSite())
+  if work == encoded and mixesEncodings(inputs):               -- only if mixing is sometimes intended
+    warn(ENCODING, where: callSite())
   converted = []
   for x in inputs:
-    c = (x.space == none) ? x : convertTo(x, work)            -- masks and tables are read as stored
-    if c is Refusal: return c                                 -- refusals propagate; nothing is built
+    c = (x.space == none) ? x : convertTo(x, work)            -- masks and tables are read as stored;
+                                                              -- without a builder: refuse, fix "x.as(work)"
+    if c is Refusal: return c                                 -- refusals propagate; nothing is computed
     converted = converted ++ [c]
-  n = node(op, converted, args)
+  r = op.run(converted, args)
   return match rule.result:
-    follows     → convertTo(n, receiver.space)                 -- back to what the caller had
-    declared(s) → withSpace(n, s)                              -- the op is itself a conversion (as, encode)
+    follows     → convertTo(r, receiver.space)                 -- back to what the caller had
+    declared(s) → withSpace(r, s)                              -- the op is itself a conversion
 
-convertTo(x, s, acceptLoss: false) → Node | Refusal           -- the explicit as(s) op and saves pass acceptLoss
+convertTo(x, s, acceptLoss: false) → Value | Refusal           -- the explicit as(s) and saves pass acceptLoss
   if x.space == s: return x                                    -- no step for an identity
-  path = catalogue.cheapestPath(x.space, s)
+  path = catalogue.path(x.space, s)                            -- a direct lookup with two spaces;
+                                                               -- cheapest path only with more
   if path is none: return refuse(E_SPACE, from: x.space, to: s, valid: catalogue.reachable(x.space))
   if not all(c.lossless(x.precision) for c in path) and not acceptLoss:
     return refuse(E_LOSSY, from: x.space, to: s, fix: "x.as(\"" + s + "\") converts on purpose")
-  for c in path: x = node("as", [x], {to: c.to, params: c.params(x.tags)})   -- hash-consed, cached
+  for c in path: x = c.run(x, c.params(x.tags))                -- with a lazy graph: a cached node instead
   return x
 
+-- only when the engine evaluates at more than one scale
 bindArg(arg, scale, extent) → number                           -- at evaluation time
   match arg.unit:
-    docPx    → arg.value × scale
-    docPx2   → arg.value × scale²
-    fraction → arg.value × extent                              -- extent of the receiver's frame, in buffer px
+    length   → arg.value × scale
+    area     → arg.value × scale²
+    fraction → arg.value × extent                              -- extent of the receiver's frame
     level    → arg.value                                       -- on the work space's scale (step 5)
 
--- in use
-img   = open("tile.tif", origin: [2048, 1024])                 -- file units; frame [2048, 1024, 1024, 1024]
-glow  = img.exposure(+1)                    -- as(linear) → exposure → as(file units), inserted by the builder
-spots = img.as("linear").peaks(radius: 3)   -- 3 doc px at any scale; spot positions in scan coordinates
-mask  = img.as("linear").mask.luminance(above: 0.05)           -- 0.05 in linear light, as stats() reported it
+-- in use (all numbers are placeholders)
+img   = open("piece.tif", origin: [X0, Y0])                    -- space from the file; frame from the origin
+glow  = img.exposure(+1)                    -- converted to linear, exposed, converted back
+spots = img.as("linear").peaks(radius: 3)   -- 3 length units at any scale; positions in shared coordinates
+mask  = img.as("linear").above(0.05)        -- 0.05 in linear light, on the scale stats() reported
 ```
 
 ## Implementation notes
@@ -193,25 +201,28 @@ mask  = img.as("linear").mask.luminance(above: 0.05)           -- 0.05 in linear
 1. **Kernels never convert.** goja-cv's builder inserts conversion nodes and its kernels assume their declared
    space, so conversion code exists once, is cached, and appears in the graph an agent can inspect. The Editor lab
    converts inside each physical kernel (exposure and temperature convert to linear and back in their loops); every
-   new kernel must remember to.
+   new kernel must remember to. Without a builder, the rule still holds: the call refuses, and the fix names `as()`.
 2. **Put the space on the value, not in the caller's head.** goja-cv v1 chose the scale per call through options; v2
-   made the space a property of the image, set by `cv.open` and changed only by `as()`, with every other operation
-   returning its result in its receiver's space.
-3. **Keep the three axes separate.** Space (how samples are scaled), frame (where a value lies) and unit (what a
-   length means) fail differently and convert differently. One combined "type" tag hides which axis a refusal is
-   about.
+   made the space a property of the image, set by `cv.open` (which returns "file units") and changed only by `as()`,
+   with every other operation returning its result in its receiver's space. goja-cv's lengths are document pixels
+   (`DocPx`), and its frames are rectangles in document coordinates; the sketch's `length` and "shared coordinates"
+   are those, renamed.
+3. **Keep the axes separate, and tag only the ones that vary.** Space (how samples are scaled), frame (where a value
+   lies) and unit (what a length means) fail differently and convert differently. One combined "type" tag hides which
+   axis a refusal is about. A system with one coordinate system and one evaluation scale needs only the space tag;
+   a ledger needs only currency.
 4. **A level is read where it is measured.** A threshold could be converted between spaces through the transfer
    curve, but goja-cv deliberately reads it on the work space's scale and reports statistics on the same scale. An
    agent picks thresholds from measurements; keeping both on one scale makes the choice explicit
    (`img.as("linear")…`) and the number consistent.
 5. **Areas scale with the square.** goja-cv's `DocPx2` unit scales by the square of the evaluation scale. A minimum
    area given in document pixels squared would otherwise be a hundred times too strict at one-tenth scale.
-6. **Share one coordinate system and refuse mismatched extents.** goja-cv's frames are rectangles in document
-   coordinates. A crop keeps them, and so does a tile opened with its origin; the dust project opens every tile that
-   way, so agents, gold labels and the review tool share positions. Combining images whose rectangles are not
-   identical is refused (`E_FRAME`) rather than resampled or padded, because resampling shifts masks against images by fractions of a pixel,
-   which matters for specks three pixels wide. Domains with several coordinate systems (map projections) add
-   reprojection to the conversion catalogue.
+6. **Share one coordinate system and refuse mismatched extents.** In goja-cv a crop keeps document coordinates, and
+   so does a tile opened with its origin; the dust project opens every tile that way, so agents, gold labels and the
+   review tool share positions. Combining images whose rectangles are not identical is refused (`E_FRAME`) rather
+   than resampled or padded, because resampling shifts masks against images by fractions of a pixel, which matters
+   for specks three pixels wide. Domains with several coordinate systems (map projections) add reprojection to the
+   conversion catalogue.
 7. **Conversions may need parameters from the value.** The transfer curve between file units and linear light comes
    from the file's declared encoding, a tag. A currency conversion needs the transaction's date. Such parameters come
    from the value's tags or arguments and enter the conversion node's key; a build-time constant would be wrong for
@@ -230,13 +241,17 @@ mask  = img.as("linear").mask.luminance(above: 0.05)           -- 0.05 in linear
 
 ## Variations
 
+- **Smallest form: tags checked, conversions explicit.** Keep the tagged value, a conversion catalogue (often one
+  pair of functions), and a rule per operation, checked when the operation is called. A mismatch is a refusal whose
+  fix is the explicit `as()`; nothing is converted automatically. It gives up the builder, cached conversions and
+  argument scaling, and scripts are more verbose. It is enough with two spaces and one evaluation scale, and it is
+  the right form for domains where most conversions lose information. Add the builder when explicit conversions
+  crowd every script, and the scale binder when previews appear.
 - **Static units in the type system** (units of measure checked by the compiler). Errors before running and no
   run-time cost; needs a language that supports it, and does not cover data loaded at run time.
 - **One internal space, tags only at the boundary.** Convert everything to one scale on load and back on save. The
   degenerate case of this pattern: simplest, and it breaks as soon as two internal scales are both needed (linear for
   physics, encoded for display).
-- **Explicit conversions only.** Tags are checked but never converted automatically; every mismatch is a refusal with
-  a fix. Fully transparent and verbose; suits domains where most conversions lose information.
 - **Tags as schema metadata** for stored data, without run-time enforcement. Catches the dataset problems of note 9,
   not the computation ones.
 

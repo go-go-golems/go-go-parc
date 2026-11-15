@@ -48,8 +48,9 @@ labelled train tiles and judged detector candidates. Three problems appeared:
   the grain peaks around it. Gold dust sat at iso 2 to 16, the over-eager keeps at 0.9 to 2.3. Gating small spots at
   iso ≥ 2 made one annotator plus the gate (recall 75 %, precision 71 % against a person's 150 points) better than a
   two-agent annotator-and-validator pipeline (64 %, 70 %) on six calibration tiles. The threshold was chosen on the
-  same tiles, so the comparison flatters the gate; the project recorded it as needing a held-out check. Gated-out points became "ignore" for training, not
-  negatives, because the gate removes doubtful positives, not certain negatives.
+  same tiles, so the comparison flatters the gate; the project recorded it as needing a held-out check. Gated-out
+  points became "ignore" for training, not negatives, because the gate removes doubtful positives, not certain
+  negatives.
 - **Judges had to be compared, and could not be trusted blindly.** Each judge saw 360 candidates per variant with 60
   controls mixed in, blind. The controls gave each model and prompt version an AUC, an accuracy and a calibration
   score on the same items. Thresholds where the controls reached 85 % precision decided which answers were usable.
@@ -90,9 +91,9 @@ calibrate it on labelled data and apply it as a deterministic gate; what it remo
 Mix controls with known answers into every judging batch, with every item given a blind id, and score each judge,
 model and prompt version on the same controls: ranking quality, accuracy and calibration. Set acceptance thresholds
 where the controls reach the precision you need; accept answers beyond them, and send the middle band, plus a random
-audit sample of the accepted ones, to a person who sees the item but not the verdict. When judges agree confidently against a control,
-have a person check the control. Size the middle band to the people available: review the most uncertain items first
-and leave the rest unknown, never accepted by default.**
+audit sample of the accepted ones, to a person who sees the item but not the verdict. When judges agree confidently
+against a control, have a person check the control. Size the middle band to the people available: review the most
+uncertain items first and leave the rest unknown, never accepted by default.**
 
 ## Applicability
 
@@ -111,28 +112,38 @@ Do not use it when:
   mostly leave items unknown, so improve the judge first;
 - the items are so few that a person can label them faster than the pipeline can be built.
 
+The stages are not all needed. A proposer is needed only when agents generate the candidates rather than judging
+items you already have; a gate only when a cheap measured criterion exists; ranking and calibration scores only when
+judges or prompt versions are compared; the check of the controls only when they come from earlier labels.
+
 ## Structure
 
-| Participant | Responsibility |
-| --- | --- |
-| **Proposer** | An agent or detector that produces candidate items (positions, labels, verdicts). |
-| **Gate** | A deterministic criterion calibrated on labelled data; keeps, or marks as unknown. |
-| **Judge** | An agent run (see [Chapter 9](09-sealed-agent-run.md)) that answers per item with a verdict and a probability. |
-| **Controls** | Items with known answers, mixed in blind, from both sides of the decision. |
-| **Scorer** | Per judge and variant: ranking quality (AUC), accuracy, calibration (Brier), thresholds at the target precision, the share of real items they make usable. |
-| **Router** | Accepts answers beyond the thresholds; sends the middle band and an audit sample to review. |
-| **Review queue** | Items for a person, shown without the agent's verdict; decisions go to the ledger (see [Chapter 11](11-lineage-ledger.md)). |
+| Participant | Responsibility | Needed |
+| --- | --- | --- |
+| **Judge** | An agent run (see [Chapter 9](09-sealed-agent-run.md)) that answers per item with a verdict and a probability. | Always |
+| **Controls** | Items with known answers, mixed in blind, from both sides of the decision. | Always |
+| **Scorer** | Sets thresholds where the controls reach the target precision and reports the share of real items beyond them. | Always; AUC and Brier only when judges or variants are compared |
+| **Router** | Accepts answers beyond the thresholds; sends the middle band and an audit sample to review. | Always |
+| **Review queue** | Items for a person, shown without the agent's verdict; decisions are recorded (see [Chapter 11](11-lineage-ledger.md)). | Always |
+| **Proposer** | An agent or detector that produces candidate items (positions, labels, verdicts). | Only when candidates are generated, not given |
+| **Gate** | A deterministic criterion calibrated on labelled data; keeps, or marks as unknown. | Only when a cheap measured criterion separates good proposals from bad |
+| **Control check** | Sends controls that judges confidently contradict to a person; corrected controls rerun the scorer. | Only when controls come from earlier labels, not from items with certain answers |
+
+A participant is a responsibility, not a module. In the smallest form the scorer is a function, the router a loop
+and the review queue a list.
 
 ## Collaborations
 
-1. Proposers produce candidates. The gate scores each; small spots below the threshold are marked unknown.
+1. *Where agents generate candidates:* proposers produce them. *Where a gate exists:* it scores each, and candidates
+   below its threshold are marked unknown.
 2. A batch is built: real items plus controls, shuffled, each with a blind id; runs of a few items each go to judges.
-3. The scorer compares the judges' answers on the controls with the known answers, per model and prompt version.
+3. The scorer compares the judges' answers on the controls with the known answers (per model and prompt version,
+   when several are compared).
 4. Thresholds are set where the controls reach the required precision, at the high and the low end.
 5. The router accepts real items beyond the thresholds; the middle band and a random sample of accepted items go to
    the review queue, blind.
-6. Review decisions are recorded; controls on which judges agree confidently against the known answer go to a person
-   too, and corrected controls update the scores.
+6. Review decisions are recorded. *When controls come from earlier labels:* controls on which judges agree
+   confidently against the known answer go to a person too, and corrected controls update the scores.
 
 ```mermaid
 flowchart LR
@@ -152,25 +163,27 @@ flowchart LR
 ## Sketch
 
 ```text
+-- The constants (GATE_THRESHOLD, N_CTRL, CHUNK, TARGET, AUDIT, DOUBT) are placeholders: set them from your data,
+-- batch sizes, review capacity and required precision. Notes 2 and 4 give the dust project's values and their limits.
 value Item:     id (blind), payload, truth?                    -- truth only for controls, never shown
 value Verdict:  itemId, label, p                               -- p = the judge's probability
--- several classes: score each class one-versus-rest on its own controls, with its own hi_c and lo_c; accept class c
--- for an item only if p_c ≥ hi_c and every other class is at or below its lo; otherwise the item goes to review
+-- only when there are several classes: score each class one-versus-rest on its own controls, with its own hi_c and
+-- lo_c; accept class c only if p_c ≥ hi_c and every other class is at or below its lo; otherwise review
 
--- 1. gate: calibrated on labelled data, applied deterministically
+-- 1. gate (only when a cheap measured criterion exists): calibrated on held-out labelled data, then frozen
 gate(c) → keep | unknown
-  if c.kind == smallSpot and isolation(c) < 2.0: return unknown  -- threshold chosen on gold, then frozen
+  if metric(c) < GATE_THRESHOLD: return unknown                -- unknown, never "no"
   return keep
 
 -- 2. batches with controls
-batch = shuffle(realItems ++ sample(controlsPositive, 30) ++ sample(controlsNegative, 30))
-runs  = chunks(batch, 6)                                       -- one sealed run per chunk (Chapter 9)
+batch = shuffle(realItems ++ sample(controlsPositive, N_CTRL) ++ sample(controlsNegative, N_CTRL))
+runs  = chunks(batch, CHUNK)                                   -- one sealed run per chunk (Chapter 9)
 
--- 3. score each variant on the controls
-score(verdicts, controls) → { auc, accuracyAt05, brier, hi, lo, precisionHi, precisionLo, usableShare }
+-- 3. score on the controls (auc and brier only when judges or variants are compared)
+score(verdicts, controls) → { hi, lo, precisionHi, precisionLo, usableShare, auc?, brier? }
   fit, check = stratifiedHalves(controls)                       -- choose on one half, report on the other
-  hi = min { t in sorted(p of fit) : precision(fit items with p ≥ t are yes) ≥ 0.85 }   -- none if never reached
-  lo = max { t in sorted(p of fit) : precision(fit items with p ≤ t are no)  ≥ 0.85 }
+  hi = min { t in sorted(p of fit) : precision(fit items with p ≥ t are yes) ≥ TARGET }   -- none if never reached
+  lo = max { t in sorted(p of fit) : precision(fit items with p ≤ t are no)  ≥ TARGET }
   precisionHi, precisionLo = the same precisions measured on check, with their counts
 
 -- 4. route
@@ -178,29 +191,34 @@ for v in verdicts of real items:
   if v.p ≥ hi:  accept(v.itemId, yes)
   elif v.p ≤ lo: accept(v.itemId, no)
   else:          review.enqueue(v.itemId, showVerdict: false)
-for v in randomSample(accepted, 0.10): review.enqueue(v.itemId, showVerdict: false)   -- the audit
+for v in randomSample(accepted, AUDIT): review.enqueue(v.itemId, showVerdict: false)   -- the audit
 
--- 5. check the yardstick
-for c in controls where agreeCount(judges, against: c.truth, p > 0.8) ≥ 2:
+-- 5. check the yardstick (only when controls come from earlier labels)
+for c in controls where agreeCount(judges, against: c.truth, p > DOUBT) ≥ 2:
   review.enqueue(c.id, showVerdict: false, reason: "control under doubt")
 ```
 
 ## Implementation notes
 
-1. **What the gate removes is unknown, not negative.** The dust gate removes doubtful small positives; marking them as
-   negatives would teach a detector that faint dust is clean film. They become "ignore" regions in training.
+1. **What the gate removes is unknown, not negative.** The dust gate (dust-specific: small spots with an isolation
+   below 2.0 are unknown) removes doubtful small positives; marking them as negatives would teach a detector that
+   faint dust is clean film. They become "ignore" regions in training.
 2. **Calibrate the gate on data it will not be scored on.** The dust gate's threshold (iso 2.0) was chosen on the same
    six tiles it was then scored on; the project recorded this as needing a held-out check. A gate tuned and scored on
-   the same items overstates itself.
+   the same items overstates itself. The metric and its threshold belong to your domain; do not carry another
+   project's over.
 3. **A cue that helps one stage may not help another.** The isolation number gated annotator over-keeps well, but as
    a cue for judges it separated the judge controls poorly (AUC 0.63), and a prompt that taught it lowered the
    judge's AUC from 0.78 to 0.71. Measure every cue on the controls of the stage that will use it.
 4. **Controls must be blind, alike and built deliberately.** Controls get the same kind of blind ids as real items
    and come from the same distribution (the dust judges' controls were detections of the same detector), or judges
    learn to tell them apart and the scores measure that instead. Stratify them across classes, balance the two sides,
-   and keep enough beyond each threshold to estimate precision there: with thirty controls a side, the precision at an
-   extreme threshold rests on a handful of items. When the only known answers are older labels from a different
-   source, treat them as a weaker yardstick and check a sample by hand.
+   and keep enough beyond each threshold to estimate precision there. The dust judges used thirty controls a side in
+   batches of 360, runs of six items and a target precision of 85 %; with thirty a side, the precision at an extreme
+   threshold rests on a handful of items, and sixty controls gave AUC values with an uncertainty of about ±0.06, so
+   smaller differences between judges are suggestive at best. Compare variants on identical items. When the only
+   known answers are older labels from a different source, treat them as a weaker yardstick and check a sample by
+   hand.
 5. **Score calibration, not only ranking, and get probabilities from somewhere real.** AUC says whether a judge ranks
    well; the Brier score and accuracy at 0.5 say whether its probabilities can be used as thresholds. Overconfident
    models scored worst on calibration. A model's stated confidence is a weak probability; repeated sampling (the share
@@ -213,22 +231,24 @@ for c in controls where agreeCount(judges, against: c.truth, p > 0.8) ≥ 2:
    that moved go back through the router.
 8. **Review blind, and audit the confident.** The review queue shows the item, not the agent's verdict, so the review
    measures the agent rather than echoing it; a random sample of accepted items goes to review too, or the accepted
-   band is never checked.
-   The audit sample of accepted items measures the accepted band's real precision;
-   when it falls below the target, withdraw the threshold and send the band back to review, rather than only
-   recording the number.
-9. **Small control sets are noisy.** Sixty controls gave AUC values with an uncertainty of about ±0.06; differences
-   smaller than that between judges are suggestive at best. Compare variants on identical items.
-10. **Rank review queues by uncertainty, and size them to the reviewers.** The project's review queue for detector
-    output ranked candidates by their distance from the decision threshold, so a person's time goes to the items whose
-    label changes the most. When the middle band exceeds what people can review, review the top of that ranking and
-    leave the rest unknown, not accepted; a better judge or prompt, not more acceptance, is how the band shrinks.
-11. **Define each metric once.** The dust project computed its isolation metric in two Python scripts and once more in
+   band is never checked. The audit sample measures the accepted band's real precision; when it falls below the
+   target, withdraw the threshold and send the band back to review, rather than only recording the number. Size the
+   audit share to what the reviewers can afford; this language has no measured value for it.
+9. **Rank review queues by uncertainty, and size them to the reviewers.** The project's review queue for detector
+   output ranked candidates by their distance from the decision threshold, so a person's time goes to the items whose
+   label changes the most. When the middle band exceeds what people can review, review the top of that ranking and
+   leave the rest unknown, not accepted; a better judge or prompt, not more acceptance, is how the band shrinks.
+10. **Define each metric once.** The dust project computed its isolation metric in two Python scripts and once more in
     JavaScript for the judges, and copied its control-scoring code between two scripts. Three definitions of the
     gate's metric can drift apart; keep one implementation and test the others against it.
 
 ## Variations
 
+- **Smallest form.** Keeps a judge, constructed controls with certain answers on both sides, one threshold pair set
+  where the controls reach the target precision, a router and a blind review list with its audit sample. It gives up
+  the gate (the controls and thresholds carry the whole weight), the comparison of judges and prompt versions, and
+  the check of the controls. Enough for one judge on one kind of item when no cheap criterion exists; add a gate when
+  a measured criterion appears, and a control check as soon as controls come from earlier labels.
 - **Validator stage instead of a gate.** A second agent reviews the first agent's proposals. More context-aware and
   more expensive; in the dust project a single annotator plus a deterministic gate scored better on the gate's own
   calibration tiles, which needs a held-out check before it counts.
@@ -236,7 +256,6 @@ for c in controls where agreeCount(judges, against: c.truth, p > 0.8) ≥ 2:
   the runs and still needs controls to know whether the consensus is right.
 - **Active learning loop.** Reviewed items retrain the proposer; the next batch's uncertain middle moves. Suits
   long-running labelling projects.
-- **No gate.** When no cheap criterion exists, the controls and thresholds carry the whole weight.
 
 ## Consequences
 

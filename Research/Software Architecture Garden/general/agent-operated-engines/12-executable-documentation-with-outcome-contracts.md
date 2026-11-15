@@ -105,30 +105,39 @@ Do not use it when:
   against recorded fixtures, or mark them as fragments and test the underlying calls elsewhere;
 - the cost of a fixture per example exceeds the value of the example; keep fewer, better examples.
 
+Several parts are conditional. Sections that can be read alone, with a declared setup, matter only when readers fetch
+pieces; quote references only when prose quotes source code; a corpus checker only when the corpus has rules that
+several writers must follow; a doc server only when more than one kind of reader needs the same text.
+
 ## Structure
 
-| Participant | Responsibility |
-| --- | --- |
-| **Topic** | A document with a title, a summary paragraph and named sections; listable, searchable, readable section by section. |
-| **Example block** | A code block with an info string: the language, its contract clauses, and a machine-readable `needs=` list naming the setup it assumes. |
-| **Contract** | Owns the contract grammar. Each project declares its clauses (goja-cv's: clean, `error=CODE`, `warns=CODE`, `looks=N`, `fragment`; other projects add `stdout=…`, `exit=N`, `compile_fail`); the parser accepts exactly those, refuses any other word, and checks an outcome against every clause of a block. |
-| **Fixture** | What examples run against: a planted test input, a fresh session per topic. |
-| **Example runner** | Part of the test suite: runs blocks in order, checks each against its contract, reports topic, line and difference. |
-| **Quote reference** | A placeholder naming a source symbol or range, filled at build time; a test checks that each resolves. |
-| **Corpus checker** | Rules over the whole corpus: structure, links and references that exist, numbering, vocabulary. |
-| **Doc server** | Serves topics and sections to people (help commands), agents (an in-session `docs` API, MCP resources) and tools. |
+| Participant | Responsibility | Needed |
+| --- | --- | --- |
+| **Example block** | A code block whose info string names its language and its contract clauses. | Always |
+| **Contract** | Owns the clause grammar: accepts exactly the project's declared clauses, refuses any other word, checks an outcome against every clause. | Always (at first: clean, `error=CODE`, `fragment`) |
+| **Fixture** | What examples run against: a fixed test input, a fresh session per document. | Always |
+| **Example runner** | Part of the test suite: runs blocks in order, checks each against its contract, reports document, line and difference. | Always |
+| **Topic structure** | A title, a summary paragraph and named sections, listable and searchable; a `needs=` list per section naming its setup. | Only when readers fetch single topics or sections |
+| **Quote reference** | A placeholder naming a source symbol or range, filled at build time; a test checks that each resolves. | Only when prose quotes source code |
+| **Corpus checker** | Rules over the whole corpus: structure, links and references that exist, numbering, vocabulary. | Only when several writers must follow shared rules |
+| **Doc server** | Serves topics and sections to people (help commands), agents (an in-session docs API) and tools. | Only when more than one kind of reader needs the text |
+
+A participant is a responsibility, not a module. In the smallest form the contract is a small parsing function and
+the runner one test that loops over the blocks.
 
 ## Collaborations
 
-1. A writer adds a topic with examples and marks each example's expected outcome.
-2. The test suite builds the fixtures, starts one session per topic and runs its examples in order, so later examples
-   can use what earlier ones built.
+1. A writer adds a document with examples and marks each example's expected outcome.
+2. The test suite builds the fixtures, starts one session per document and runs its examples in order, so later
+   examples can use what earlier ones built. *When sections are read alone:* each section runs a second time, alone,
+   from its declared setup.
 3. Each example's outcome is compared with its contract: clean success, the named warning, the named error code, the
-   number of artefacts. A mismatch fails the suite with the topic, the block's line and what differed.
-4. At build time, quote references are filled from the source; a missing symbol fails the build.
-5. The corpus checker runs its rules; violations fail the suite.
-6. The doc server exposes the same topics to `help`, to agents inside a session (`docs.search`, `docs.read`) and as
-   resources, so every reader sees the tested text.
+   number of artefacts. A mismatch fails the suite with the document, the block's line and what differed.
+4. *When prose quotes source:* at build time, quote references are filled from the source; a missing symbol fails
+   the build.
+5. *When a corpus checker exists:* it runs its rules; violations fail the suite.
+6. *When a doc server exists:* it exposes the same topics to `help`, to agents inside a session and as resources, so
+   every reader sees the tested text.
 
 ```mermaid
 flowchart LR
@@ -145,36 +154,36 @@ flowchart LR
 ## Sketch
 
 ```text
-value Block:    topic, section, line, lang, contract: Contract, needs: [setupName], code
-value Outcome:  ok, errorCode?, warnings: [code], looks: n
+value Block:    doc, section, line, lang, contract: Contract, needs: [setupName]?, code
+value Outcome:  ok, errorCode?, warnings: [code], artefacts: n   -- whatever your readers can see; note 4
 
 parseContract(infoString, project.clauses) → Contract | refuse(E_CONTRACT, "unknown clause " ++ word)
-  -- the project's clause list is closed at any moment and extended deliberately; a typo such as eror= fails
+  -- project.clauses: the project's own closed list, extended deliberately (note 4); a typo such as eror= fails
 
-runTopic(topic) → [Failure]
-  session = freshSession(fixtures)                          -- one per topic; blocks share it in order
+runDoc(doc) → [Failure]
+  session = freshSession(fixtures)                          -- one per document; blocks share it in order
   failures = []
-  for b in blocks(topic):
+  for b in blocks(doc):
     if b.contract.fragment: failures ++= syntaxCheck(b); continue   -- not run, but still parsed
     o = session.run(b.code)
-    failures ++= b.contract.check(o)                       -- every clause: clean, error, warns, looks
+    failures ++= b.contract.check(o)                       -- every clause the block declares
   return failures
 
-runSectionAlone(section) → [Failure]                        -- piecewise readers start here
+runSectionAlone(section) → [Failure]          -- only when readers fetch single sections
   session = freshSession(fixtures); session.run(setupFor(section.needs))
   return [f for b in blocks(section) if not b.contract.fragment for f in b.contract.check(session.run(b.code))]
 
-fillQuotes(text, source) → text | BuildError
-  for ref in references(text):                              -- {{src:TileCache.prototype.evict}}
+fillQuotes(text, source) → text | BuildError  -- only when prose quotes source code
+  for ref in references(text):                              -- {{src:SomeSymbol}}
     body = source.symbol(ref) else return BuildError("unresolved quote " ++ ref)
     text = replace(text, ref, body)
   return text
 
 -- in the test suite
-assert all(runTopic(t) == [] for t in topics)
-assert all(runSectionAlone(sec) == [] for t in topics for sec in sections(t))
-assert all(fillQuotes(t, source) is not BuildError for t in topics)
-assert checkCorpus(topics) == []
+assert all(runDoc(d) == [] for d in docs)
+assert all(runSectionAlone(sec) == [] for d in docs for sec in sections(d))   -- only with piecewise readers
+assert all(fillQuotes(d, source) is not BuildError for d in docs)             -- only with quotes
+assert checkCorpus(docs) == []                                                -- only with a corpus checker
 ```
 
 ## Implementation notes
@@ -192,10 +201,11 @@ assert checkCorpus(topics) == []
    still parsed (Rust distinguishes `ignore` from `compile_fail` for the same reason), and the count of fragments per
    topic is reported, so `fragment` does not become the quiet way to turn a failing suite green.
 4. **Contracts cover what readers see, and the grammar has one owner.** For an agent-facing engine that includes
-   warnings and pictures, not only errors: `warns=RANGE` and `looks=2` check that the guide's explanation of a warning
-   or a picture is still true. Each project declares its own clauses (printed output, exit codes, compile failure in
-   other domains); one parser accepts exactly those and refuses any other word, so `eror=E_RANGE` fails loudly instead
-   of running as a plain example.
+   warnings and pictures, not only errors. goja-cv's clauses (goja-cv-specific) are clean, `error=CODE`,
+   `warns=CODE`, `looks=N` (pictures delivered to the agent) and `fragment`; `warns=RANGE` and `looks=2` check that
+   the guide's explanation of a warning or a picture is still true. Other projects need other clauses (`stdout=…`,
+   `exit=N`, `compile_fail`). Declare only the clauses your readers can observe; one parser accepts exactly those and
+   refuses any other word, so `eror=E_RANGE` fails loudly instead of running as a plain example.
 5. **Quote source, never copy it.** The lab's book fills code quotes from the running page at build time and has a test
    that all 21 quotes resolve. A copied function in a guide is wrong the day after a refactor.
 6. **Generate references, write guides.** goja-cv's operation reference is generated from its registry (see
@@ -220,9 +230,14 @@ assert checkCorpus(topics) == []
 
 ## Variations
 
+- **Smallest form.** Keeps example blocks, a contract with three clauses (clean, `error=CODE`, `fragment`), one fixed
+  fixture and a runner that executes each document's blocks in order inside the existing test suite. It gives up
+  piecewise reading, source quotes, corpus rules and a doc server. Enough for one or a few guides that people read top
+  to bottom; add a clause when readers can observe something new, and section setups when agents start fetching
+  sections.
 - **Doc tests in the source** (examples in docstrings or comments, run by the test tool). Close to the code, fine for
-  references; awkward for long guides.
-- **Notebooks as documentation**, executed in CI. Rich output; harder to diff and to read piecewise.
+  references; awkward for long guides. Notebooks executed in CI are a relative: rich output, harder to diff and to read
+  piecewise.
 - **Recorded outputs** compared with the example's printed output (expected-output contracts). Strong for text
   output; brittle for timestamps and floating point unless normalised.
 - **Agent-validated documentation**: isolated agents read the text and do tasks with it; their answers and builds are

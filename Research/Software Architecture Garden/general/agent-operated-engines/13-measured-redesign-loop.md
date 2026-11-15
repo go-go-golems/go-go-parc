@@ -106,18 +106,32 @@ Do not use it when:
 - usage is too rare to count (a handful of sessions a month); read every transcript instead;
 - the change is a correctness or security fix; ship it, then measure the side effects.
 
+Some parts depend on the system. Counting warnings and their true positives matters only when the system emits
+warnings; counting pastes only when agents write code; counting unused operations only when there is a list of
+operations to compare against. A growing tail of scenarios and a separate decision log pay off only when comparisons
+span many versions or many people.
+
 ## Structure
 
-| Participant | Responsibility |
-| --- | --- |
-| **Transcript store** | Keeps every session's events: calls, arguments, results, errors, timing. |
-| **Miner** | Scripts that turn transcripts into counts per operation, option, code, typed name, warning and paste. |
-| **Reader** | A person (or agent) who reads the transcripts behind surprising counts and states the reason. |
-| **Decision log** | Each count-driven change with its evidence (see [Chapter 11](11-lineage-ledger.md)). |
-| **Scenario set** | Fixed tasks with known answers or measurable outcomes, run before and after every change: a frozen core used for every comparison over time, and a growing tail of scenarios added from new failures, versioned. |
-| **Runner** | Sealed agent runs over the scenario set (see [Chapter 9](09-sealed-agent-run.md)). |
-| **Results ledger** | One row per run: system version, side (before or after), model, prompt or chapter version, scenario and scenario-set version, run number, metrics, links to the run. |
-| **Decision rule** | Fixed before looking. Each metric has a direction (fewer calls is better, more gold points located is better). A metric improves on a scenario when every after-run beats every before-run (the ranges do not overlap); two runs per side can show large effects only, so use more runs for small ones. A change is kept when its target metric improves on most core scenarios and no guardrail metric gets worse by the same test. |
+| Participant | Responsibility | Needed |
+| --- | --- | --- |
+| **Transcript store** | Keeps every session's events: calls, arguments, results, errors, timing. | Always |
+| **Miner** | Scripts that turn transcripts into counts per operation, option, error code and typed name. | Always (at first: calls and errors) |
+| **Reader** | A person (or agent) who reads the transcripts behind surprising counts and states the reason. | Always |
+| **Scenario set** | Fixed tasks with known answers or measurable outcomes, run before and after every change; versioned. | Always (a frozen core) |
+| **Runner** | Sealed agent runs over the scenario set (see [Chapter 9](09-sealed-agent-run.md)). | Always |
+| **Results ledger** | One row per run: system version, side, model, prompt version, scenario and set version, run number, metrics, links. | Always (a file of rows) |
+| **Decision rule** | Fixed before looking: each metric's direction, what counts as an improvement, when a change is kept. | Always |
+| **Scenario tail** | Scenarios added from new failures, reported beside the core and promoted into a new core deliberately. | Only when real use keeps finding failures the core lacks |
+| **Decision log** | Each count-driven change with its evidence (see [Chapter 11](11-lineage-ledger.md)). | Only when decisions must outlive their authors; otherwise the commit message |
+
+A participant is a responsibility, not a module. In the smallest form the miner is one script, the ledger a CSV file
+and the decision rule a paragraph written before the first run.
+
+One decision rule that works with few runs, and the one the sketch uses: a metric improves on a scenario when every
+after-run beats every before-run (the ranges do not overlap); a change is kept when its target metric improves on
+most core scenarios and no guardrail metric gets worse by the same test. Two runs per side can show large effects
+only; use more runs for small ones.
 
 ## Collaborations
 
@@ -127,7 +141,8 @@ Do not use it when:
    appends a row to the ledger.
 4. The comparison uses only rows that differ in the change, scenario by scenario, and applies the decision rule; a
    bundle of changes is judged as a bundle, or taken apart by running each part alone.
-5. Accepted changes and their numbers go into the decision log; the scenario set grows when a new failure is found.
+5. Accepted changes and their numbers are recorded (in the decision log, where one exists). *When a new failure is
+   found in real use:* it becomes a scenario in the tail.
 
 ```mermaid
 flowchart LR
@@ -154,28 +169,30 @@ mine(transcripts) → Counts
   options  = countBy(allCalls(transcripts), c → (c.op, c.options))
   failures = countBy(errors(transcripts), e → e.code)
   typed    = countBy(unknownNames(transcripts), n → n)            -- candidates for redirects
-  warnings = [(w.code, labelledTrue(w) / labelled(w)) for w in warningsByCode(transcripts)]   -- a person labels firings
-  pasted   = [b for b in largeRepeatedBlocks(agentCode(transcripts))]
-  unused   = [op for op in registry if calls[op] == 0]
-  return Counts(calls, failures, typed, warnings, pasted, unused)
+  -- only when the system emits warnings: precision per warning, from a person's labels on its firings
+  warnings = [(w.code, labelledTrue(w) / labelled(w)) for w in warningsByCode(transcripts)]
+  pasted   = [b for b in largeRepeatedBlocks(agentCode(transcripts))]   -- only when agents write code
+  unused   = [op for op in operations if calls[op] == 0]                -- only when operations are listed somewhere
+  return Counts(calls, options, failures, typed, warnings, pasted, unused)
 
 decide(counts) → [Change]
   -- zero uses: delete (after checking it was ever shown); heavy overrides: move into the default or the data;
-  -- repeated typed names: redirect with a fix; warnings with low precision: fix or delete; pastes: a loader
+  -- repeated typed names: redirect with a fix; warnings with low precision: fix or delete; pastes: a library
+  -- a person reads the transcripts behind each count before the change is proposed
 
 value Metric: name, direction (lower | higher)
 
 improved(m, before, after) → bool                         -- every after-run beats every before-run
   return m.direction == lower ? max(after) < min(before) : min(after) > max(before)
 
-compare(change, core, target: Metric, guards: [Metric], runs) → keep | revise
+compare(change, core, target: Metric, guards: [Metric], runs) → keep | revise   -- runs: two finds large effects only
   for s in core, for side in [before, after], for r in 1..runs:
     ledger.append(Row(system: version(side), side, change: change.id, model: M, scenario: s, setVersion: core.version,
                       run: r, metrics: runScenario(s, side)))
   values(s, m, side) = [row.metrics[m.name] for row in ledger.rows(change, s, side)]
   wins  = count(s in core where improved(target, values(s, target, before), values(s, target, after)))
   harms = count(s in core, g in guards where improved(g, values(s, g, after), values(s, g, before)))   -- reversed
-  return (wins > len(core) / 2 and harms == 0) ? keep : revise
+  return (wins > len(core) / 2 and harms == 0) ? keep : revise         -- the rule, written down before the runs
 ```
 
 ## Implementation notes
@@ -189,8 +206,8 @@ compare(change, core, target: Metric, guards: [Metric], runs) → keep | revise
 3. **A zero count needs a reason.** Agents never used several documented operations; some were useless, others were
    simply never shown in an example they copied. Read before deleting.
 4. **Judge a warning by its true positives, and label them.** The unused-node lint fired 19 times in the annotator
-   study; each firing was read and classified, and one was a true positive; it was deleted. Precision needs those labels: label
-   every firing of a new warning until its precision is clear, then a sample.
+   study; each firing was read and classified, and one was a true positive; it was deleted. Precision needs those
+   labels: label every firing of a new warning until its precision is clear, then a sample.
 5. **Same scenarios, same model, before and after.** goja-cv's run table uses one question file and one model per
    ticket, two runs per side. Without a fixed scenario set, before and after are different experiments.
 6. **Repeat runs, report ranges, and state the rule before looking.** In this pattern language's own validation,
@@ -213,10 +230,14 @@ compare(change, core, target: Metric, guards: [Metric], runs) → keep | revise
 
 ## Variations
 
-- **Telemetry instead of transcripts.** Count calls and errors in production without full transcripts. Cheaper and
-  wider; no access to why.
-- **A/B tests with real users** instead of fixed scenarios. Realistic; needs volume and time, and mixes in user
-  variance.
+- **Smallest form.** Keeps the stored transcripts, one script counting calls and errors, a person reading behind the
+  surprising counts, a frozen handful of scenarios run before and after with the same model, a results file of rows
+  and a decision rule written down first. It gives up warning precision, paste detection, the growing tail and a
+  separate decision log. Enough while one person redesigns one interface; add the rest when the system emits
+  warnings, agents write code, or the comparisons start to span many versions.
+- **Production evidence instead of runs.** Telemetry counts calls and errors in production without full transcripts:
+  cheaper and wider, with no access to why. A/B tests with real users replace fixed scenarios: realistic, but they
+  need volume and time, and mix in user variance.
 - **Offline replay.** Replay recorded sessions against the new version and diff the results. Precise for
   deterministic systems; agents do not replay deterministically.
 - **Document variants** instead of system variants: the same loop measures guides, playbooks and pattern chapters
