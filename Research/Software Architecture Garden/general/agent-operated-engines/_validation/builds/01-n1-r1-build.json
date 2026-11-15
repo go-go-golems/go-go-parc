@@ -1,0 +1,53 @@
+{
+  "summary": "Built hubreg, a standard-library Python package and CLI where one validated record per hub action drives argument checking (bind), execution policy including confirmation (run), the assistant's JSON tool schemas, the app's control descriptions, generated help and a self-test (walk). Registration normalises each record into frozen Arg/Action objects and refuses anything self-contradictory (defaults violating their own limits, redirects to missing options, samples that do not bind), so every consumer reads the same facts and cannot drift. Refusals always carry a machine-readable code, the valid names, the nearest acceptable name and a corrected call such as light.dim(level=75), and the CLI prints either the result or that refusal as JSON.",
+  "files": [
+    "hubreg/__init__.py",
+    "hubreg/__main__.py",
+    "hubreg/errors.py",
+    "hubreg/values.py",
+    "hubreg/spec.py",
+    "hubreg/suggestions.py",
+    "hubreg/call.py",
+    "hubreg/binder.py",
+    "hubreg/describe.py",
+    "hubreg/registry.py",
+    "hubreg/demo.py",
+    "tests/__init__.py",
+    "tests/support.py",
+    "tests/test_records.py",
+    "tests/test_bind.py",
+    "tests/test_run.py",
+    "tests/test_consumers.py",
+    "tests/test_walk.py",
+    "tests/test_demo.py",
+    "tests/test_cli.py",
+    "tests/test_interface.py",
+    "README.md",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Operation record (op table entry, single source of truth)": "hubreg/spec.py: build_action(record) -> frozen Action whose fields (name, on, doc, args, fields, samples, run, confirm, redirects) are the only description of the operation; Registry._by_key in hubreg/registry.py is the op table",
+    "ArgSpec (typed parameter specification)": "hubreg/spec.py: frozen Arg (type, unit, doc, default, optional, min, max, usual, usual_hint, values, redirects), read by every consumer and by hubreg/values.py: coerce/outside_limits/inside_usual",
+    "Type Object (for operation kinds)": "hubreg/values.py: coercing and checking dispatch on Arg.type ('number'/'string'/'enum'/'bool') and Arg.values, so no other module knows what a type means",
+    "Consumers of the record": "hubreg/binder.py: check (the hub's validator), hubreg/describe.py: tool_schema / controls / help_text (assistant, app, help), hubreg/registry.py: _walk_action (the catalogue's own tests)",
+    "Validation of presets / the record also drives the tests": "hubreg/spec.py: build_action binds each declared sample against the record (E_SAMPLE) and Registry.walk() re-runs every sample and compares the result keys with the declared 'fields'",
+    "Near-miss refusal that names the intended call": "hubreg/suggestions.py: nearest_name/example_value/fix_for plus Arg.redirects and Action.redirects, surfaced as Refusal.nearest/.fix/.valid in hubreg/errors.py"
+  },
+  "notes_applied": [
+    "Documentation promised what did not exist: every action and argument needs a doc at registration (E_RECORD_DOC/E_ARG_DOC), the assistant's description and the help text are generated from the record only, and walk() proves each declared action runs and returns exactly its declared result fields.",
+    "Lengths had no stated unit: every ArgSpec carries 'unit', which the tool schema, the app control and the help all print; a number without a unit is registrable (the interface allows unit: None) but walk() reports it as a problem, so it cannot pass unnoticed.",
+    "A wrong default was taken silently: defaults are validated against the same type/enum/limit spec the caller is checked against (E_ARG_DEFAULT), and coercion never widens a declared type (a bool is not a number; '75' for a string argument stays text), so a wrong default or a wrong-typed value cannot be read as something else.",
+    "Agents typed near-misses: the record holds option redirects (brightness -> level) and action redirects (lock -> lock_door); an unknown name is matched with difflib against real names and aliases, and the refusal names the intended call with the caller's own value, e.g. 'light.dim has no option brightness; ... Try light.dim(level=75).'",
+    "One record per operation drives the tests: the record's 'samples' are bound at registration and re-executed by walk(), which also flags dangling or shadowing redirects, a usual range without hard limits, and samples that teach an unusual value.",
+    "Editor-lab shape (one table of typed parameter specifications drives sliders, defaults, kinds() and preset validation): controls() derives name/type/unit/min/max/step/values/default from the same Arg objects, and Registry.kinds()/actions() answer from the table."
+  ],
+  "tests": "141 tests in 9 files under tests/ (record validation, every refusal code, usual-range warnings, confirmation, the three consumers and their mutual agreement, walk() diagnostics, the four demo plug-ins, the public interface contract, and the CLI through subprocess). Last run: `python3 -m unittest discover -s tests` -> 'Ran 141 tests ... OK' (also OK with `-t .`); doctest of hubreg/__init__ -> 5 passed.",
+  "chapter_feedback": [
+    "CHAPTER.md is truncated at line 63, mid-sentence in the Forces list ('A small core against a growing type system.'): there is no Solution, Structure or Consequences section, so the participant names used in this report are inferred from Intent, 'Also known as' and the Editor-lab paragraph rather than quoted.",
+    "Because the rest of the chapter is missing, the 'implementation notes' TASK.md asks about can only be the four Motivation failure stories; the near-miss paragraph and the unit/default paragraphs were the most useful parts and I built one mechanism per story.",
+    "The chapter shows near-misses ('box', 'min') but never says whether the right behaviour is to refuse informatively or to auto-apply the intended meaning. I chose refuse-with-a-corrected-call (Refusal.code plus .nearest/.fix) and documented it; a reviewer might reasonably prefer silent repair with a warning.",
+    "The Forces admit that 'two arguments that must agree, a result shape that depends on an argument' do not fit a table, but the (missing) part that would say what to do instead left me to guess: I kept such rules out of the record and enforced the declared result shape in run() and walk() instead.",
+    "The image-specific examples (radii scaled on export, 'min: 0.6' meaning 'above 0.6') do not map one-to-one onto hub actions; the transferable idea was clear, but the chapter gives no guidance on how strict registration should be relative to what the interface admits (e.g. unit: None), which I resolved by making it a walk() problem rather than a RecordError.",
+    "Rating references 'the overview', which is not in this directory, so the pattern's place among alternatives is unavailable; the Intent and Motivation alone were enough to design against."
+  ]
+}

@@ -214,3 +214,32 @@ vocabulary, and unlocked sequential ids lose a third of the labels under four wr
 (chapter vocabulary remains, deliberately). Next: revise the chapters (responsibilities not modules, optional parts
 marked, known-use details out of the sketches, a smallest form, the probe defects), then rerun the same builds,
 controls and reviews on the new versions.
+
+## Step 10 — revised chapters (r1): rebuilds and a second blind review
+
+The chapters revised after step 9 (roles, not modules; a Needed column; smallest form first; project specifics out of
+the sketches; the probe-confirmed fixes) were frozen as `r1` and rebuilt, three builders per task; the controls are
+the same as in step 9. One blind Opus reviewer per task again (`reviews/NN-o2.json`, keys beside them).
+
+**Hidden tests.** r1 chapter builds 275/282 (v-round 276/282; controls 165/188). Two regressions shared by all
+three builders, both caused by the revision's conditional wording: chapter 3 dropped single-flight ("only when there
+are concurrent callers"; the task never says so), chapter 4 dropped the cut-from-whole path ("only when whole values
+are cached"). Chapters 6, 8 and 11 went to 48/48, 54/54 and 27/27. Builds shrank for 03 (1,245 → 963 lines), 04
+(923 → 744) and 08 (1,195 → 888); grew for 11 (784 → 1,237) and 01 (2,137 → 2,300).
+
+**Design review, chapter arm (mean rank among five, 1 best), round 1 → round 2:** 01 2.0 → 2.0; 03 2.0 → 2.7;
+04 3.7 → 3.3; 06 3.7 → 2.0; 08 3.3 → 2.0; 11 3.3 → 2.0. The top-ranked build is a chapter build in five of six tasks
+(was two); chapter builds take the top three in 01, 06, 08 and 11. Adapted and wholeness narrowed but chapter builds
+still trail controls on "adapted" in four tasks; the chapter 11 reviewer saw near-identical docstrings across the
+chapter builds ("transcribed rather than generated"). Chapter 8: all three chapter builds now avoid both security
+holes; the only build with both is a control.
+
+**Caveat.** The controls are the same code in both rounds, yet their scores moved (06 control mean rank 2.0 → 4.5):
+reviewers rank within the set, so a better set pushes the same control down. Read round-to-round changes as about one
+point of noise; the convergent findings (which builds have which bugs) are firmer than the scores.
+
+**Text fixes after round 2 (no rerun):** chapter 4 makes the cut-from-whole step unconditional; chapter 3 asks
+"can two requests for one value overlap?" instead of "concurrent callers", and keys on an operation's registration,
+not only its declared version (a reviewer reproduced stale values after re-registration with the same version);
+chapter 1's walker runs against a test host, never a live one (all five hub self-tests actuated every action).
+Patterns are done for now unless something egregious turns up.

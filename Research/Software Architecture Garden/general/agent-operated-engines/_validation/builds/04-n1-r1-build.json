@@ -1,0 +1,49 @@
+{
+  "summary": "I built stencilpipe, a standard-library grid-pipeline engine in which every operation declares a footprint (the input window it reads for an output window) and a region evaluator propagates a requested window down the graph, growing it by the reach, mapping it back through half(), or stopping it at a global barrier. The five demo operations (add, box, dx, half, normalize) each compute exactly the requested window from guarded input buffers that raise on any read outside the declared footprint, and normalize is split into a whole-input max statistic node plus a local divide so windows pass through it. A 43-test unittest suite proves, against an independent whole-grid reference, that every window is bit-for-bit equal to the same window cut from a whole run, and that a small request costs small work (a 32x32 window of a box(r=8) chain on a 1200x800 grid computed 2048 cells instead of 1,920,000, 1164x faster, exactly equal).",
+  "files": [
+    "stencilpipe/__init__.py",
+    "stencilpipe/windows.py",
+    "stencilpipe/buffers.py",
+    "stencilpipe/operations.py",
+    "stencilpipe/engine.py",
+    "tests/references.py",
+    "tests/test_operations.py",
+    "tests/test_invariance.py",
+    "tests/test_guard.py",
+    "tests/test_interface.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Footprint": "stencilpipe/windows.py: Footprint(.of/.whole/.resolve) plus one footprint(index, out_window, in_extents) method per operation in stencilpipe/operations.py (AddOp: the window; BoxOp: grown by r both axes; DxOp: grown by 1 in x only; HalfOp: mapped back to 2x; MaxStatOp: Footprint.whole())",
+    "Window": "stencilpipe/windows.py: Window namedtuple with grow(), intersect(), contains(), area, empty; clipped at every hop by Footprint.resolve and Engine.evaluate",
+    "Region evaluator": "stencilpipe/engine.py: Node.evaluate_window (asks each input for its clipped footprint, computes exactly the window, counts cells) and Engine.evaluate / evaluate_many as the request entry point",
+    "Invariance test": "tests/test_invariance.py: 17 chains x 8 grids x ~15 windows on fresh engines, compared both with the library's whole run cut to the window and with the independent reference cut (bit-for-bit ==)",
+    "Footprint guard": "stencilpipe/buffers.py: Buffer.at(x, y) addresses absolute coordinates and raises FootprintError (an IndexError) on any read outside the declared footprint; exercised by tests/test_guard.py",
+    "Global barrier": "MaxStatOp.footprint -> Footprint.whole() in stencilpipe/operations.py: the request stops there and the input is read whole",
+    "Statistic node": "DivideStatOp.wire in stencilpipe/operations.py builds a MaxStatOp node as an ordinary second input of the local divide, exposing normalize() as divide(grid, max(grid)) with a one-cell extent",
+    "Cost rule": "not implemented (chapter: only when whole runs are cheaper per pixel); documented in DIARY.md Step 6",
+    "Scale conversion": "not applicable: one scale only, reaches are plain pixel counts",
+    "Tile grid / cell memo": "not implemented (chapter: only when overlapping requests are common); evaluate_many evaluates each window on its own and never their bounding box"
+  },
+  "notes_applied": [
+    "Note 1 (exact footprint, proven by test): every operation alone and in chains, at interior/edge/corner/1x1/whole/oversized/empty windows, each on a fresh engine, with grids whose low bits move under re-association.",
+    "Note 2 (arithmetic ignores the buffer origin): each run() iterates y then x ascending and never re-associates a reduction; no prefix sums. Verified by a deliberate prefix-sum mutation, which produced 13 exact-equality failures.",
+    "Note 3 (guard every read, sources included): operations only ever see a Buffer closed over the declared footprint; a deliberately short reach fails immediately with FootprintError instead of shifting edge values.",
+    "Note 4 (border rules only at the real border): box() counts only cells inside the grid and dx() clamps to the input extent taken from in_extents, not from the buffer, so a grown-and-clipped window meets the real border exactly where a whole run does.",
+    "Note 5 (reaches add up along a chain): the evaluator widens at each node, so box(3)->half->dx->box(2) needs no precomputed total; the chain tests cover depth-5 pipelines.",
+    "Note 7 (find the hidden global, wire the statistic as an input): normalize() is split into MaxStatOp (footprint whole, one-cell output) plus DivideStatOp (window footprint on input 0, whole/one-cell on input 1), so the same cell looks identical in every zoom.",
+    "Note 8/11 (per window, never the bounding box): evaluate_many evaluates each window separately; a test asserts two scattered 1x1 probes of a box() chain cost 2 cells, not the area of the rectangle between them.",
+    "Note 9 (measure cold): all invariance cases and the timing measurement use a fresh engine, and the library holds no cache at all, so a stale whole result cannot mask a short footprint.",
+    "Note 12 / 'size follows the request': cells_computed() counters double as the test oracle (whole run of box = W*H; a 4x3 window = 12; scattered probes = 2)."
+  ],
+  "tests": "43 tests in 5 files (tests/references.py holds the independent whole-grid oracle): 9 operation tests, 3 invariance tests (17 chains x 8 grids x ~15 windows each, fresh engine per case, compared against both the whole run cut and the reference cut), 6 guard tests, 25 interface/Window tests. Last result: `python3 -m unittest discover -s tests` -> Ran 43 tests in 0.988s, OK.",
+  "chapter_feedback": [
+    "The sketch's evaluate()/footprint() pseudo-code mapped onto the required API almost line for line; the only translation needed was that guard(...) is best implemented as a closed Buffer rather than a wrapper around a returned value.",
+    "The chapter's claim that a windowed result must be 'equal, not close' is the single most useful sentence: it forced an order-stable inner loop and turned a subtle-looking design into a one-line assertion.",
+    "Unclear at first whether half() is a 'moves pixels' footprint or a 'neighbourhood' one; the Solution text settles it (map back, do not grow), but the examples only show resize, so a downsampler example next to gaussian/motionBlur would help. A grow-based footprint for half() silently loses a column of every window, which is exactly the failure mode the chapter warns about but does not illustrate.",
+    "TASK.md's 'eng.evaluate(node, window) -> the rows of the window' is ambiguous between 'the window's block' and 'whole rows containing the window'; the chapter's invariance test (cut(full, w)) implies the block, which is what I return, but a sentence in TASK.md would remove the guess.",
+    "Note 7 says to split a hidden global, which for normalize() means inventing a statistic operation the task never names; the chapter does not say whether such an internal node should be visible in the public registry, so I kept it internal (MaxStatOp/DivideStatOp) and exposed only normalize().",
+    "The cost rule and whole-value cache are listed as 'only when...' participants, and dropping them makes the smallest-form library much easier to test; but the chapter gives no guidance on how the counter/evidence should distinguish cached from computed cells, which matters if the interface later requires a hit/miss report.",
+    "The 'cell memo' variation reads like an easier route for small grids; for this task the tile-free window evaluator was clearly the smaller change (note 10), and the chapter's ordering of the two is accurate."
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "summary": "stencilpipe is a standard-library-only Python 3 library for pipelines over large 2D float grids in which every operation declares a footprint (the input window it reads for an output window), and a recursive region evaluator propagates a requested window down the graph, clipping and widening at each node so a request computes only its window and margin. Each of the task's operations declares its reach (add = the window, box(r) = grown by r, dx = grown by 1 in x only, half = the window mapped back through the scale, normalize = a global maximum split into a statistic node wired as an ordinary input of a local divide), reads its inputs only through a footprint guard that raises on any read outside the declared footprint, and computes every cell with arithmetic that ignores the buffer's origin. The chapter's one proof is built in: bit-for-bit equality between a windowed evaluation on a fresh engine and the same window cut from a whole evaluation, for every operation alone and in chains, on interior, edge, corner, 1x1 and whole-extent windows.",
+  "files": [
+    "stencilpipe/__init__.py",
+    "stencilpipe/window.py",
+    "stencilpipe/footprint.py",
+    "stencilpipe/values.py",
+    "stencilpipe/operations.py",
+    "stencilpipe/engine.py",
+    "stencilpipe/invariance.py",
+    "tests/__init__.py",
+    "tests/helpers.py",
+    "tests/test_operations.py",
+    "tests/test_windows.py",
+    "tests/test_costs.py",
+    "tests/test_pattern_parts.py",
+    "tests/test_footprint_audit.py",
+    "tests/test_interface.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Window": "stencilpipe/window.py — `Window` NamedTuple (a window is literally the tuple (x,y,w,h)) with clip/grow/scale/cut/area/default_windows, all in absolute source coordinates",
+    "Footprint": "stencilpipe/operations.py — `Operation.footprint(window, index, input_extents)` on each op (Add/Box/Dx/Half/MaxAll/Divide), plus `Operation.output_extent`; resolved and clipped in stencilpipe/footprint.py::resolve/footprints",
+    "Region evaluator": "stencilpipe/engine.py — `Engine._evaluate(node, window, memo)` (resolve footprints, optional cost rule, guarded recursive evaluation, run op on exactly the window, count, memoize); public entry points `evaluate`, `evaluate_many`",
+    "Invariance test": "stencilpipe/invariance.py::check_invariance (fresh engine per window, exact ==, first-differing-cell message) used by tests/test_windows.py, tests/test_costs.py, tests/test_footprint_audit.py",
+    "Footprint guard": "stencilpipe/values.py — `Guarded` (read view limited to the footprint, carrying the input's real `bounds`) and `Buffer.get` bounds checks; `FootprintError` raised on any read outside the footprint, sources included (engine wraps every input, sources too)",
+    "Global barrier": "stencilpipe/footprint.py::WHOLE + `resolve` turning it into the input's whole extent; declared by `MaxAll.footprint` (and `Divide` for its statistic input), so that input evaluates whole while the node's other inputs stay windowed",
+    "Statistic node": "stencilpipe/operations.py::MaxAll (1x1 extent, reads its input whole) wired by `Normalize.build` as second input of `Divide`, so `normalize()` is literally `divide(in, max_all(in))` and needs no evaluator hook",
+    "Cost rule": "stencilpipe/engine.py::Engine._costs_like_whole + the `cost_rule_fraction` flag (per node and per window, never per request; `is_whole` suppresses self-recursion)",
+    "Cell memo / window cache": "stencilpipe/engine.py::Engine._evaluate per-request `memo` keyed by (node, window) (shares work between branches of one request, never across requests); optional whole-value cache via `Engine(whole_cache=True)` with `clear_cache()` for cold measurement",
+    "Self-describing registry (Ch.1)": "stencilpipe/operations.py::REGISTRY / register() / demo_operations(), `Operation.spec()` (name, kind, reach, global, params), `Engine.operations()/describe()`",
+    "Scale conversion": "not needed — this library evaluates at one scale; reaches are declared as plain cell counts, so no conversion point exists (documented in DIARY.md Step 1/3)",
+    "Tile grid": "not used — requests here are few and small, so windows-first (note 10) with a per-request memo; documented in DIARY.md"
+  },
+  "notes_applied": [
+    "Note 1 (exactness needs a test): `check_invariance` builds a fresh engine per window (a cache filled by an earlier window would hide a short footprint) and compares with `==`, never a tolerance; one test also compares `float.hex()`.",
+    "Note 2 (no buffer-origin arithmetic): every op works in absolute coordinates via `Buffer.get(y, x)`, no prefix sums/summed-area tables, and each cell is summed in a fixed dy/dx (or yy/xx) order identical to the whole run.",
+    "Note 3 (guard every read, sources included): the evaluator wraps *every* input, sources too, in `Guarded` limited to the resolved footprint; `test_sources_are_guarded_too` and `test_short_footprint_raises_instead_of_shifting_values` prove a short reach raises `FootprintError` instead of shifting edge values.",
+    "Note 4 (border rules only at the real border): `Guarded.bounds` carries the input node's full extent, so `box` counts only cells inside the grid and `dx` clamps to `min(x+1, W-1)/max(x-1, 0)` of the real grid — never of the buffer (mutation-tested).",
+    "Note 5 (reaches add up): each node widens its own ask; `box(4)` under `box(3)` is asked for 7x7 when the consumer wants 1x1, asserted as exactly 1 + 49 = 50 computed cells.",
+    "Note 7 (hidden globals split, statistic as an input): `normalize()` is built as `divide(in, max_all(in))`, the statistic is a 1x1 node read whole and cached per request; `test_window_maximum_is_not_used` and the mutation that reads the statistic locally both fail loudly.",
+    "Note 8 (cost rule per node and per window): `cost_rule_fraction` compares one window's footprint areas with that node's whole input areas; never applied to a request's bounding box; off by default so counts stay predictable.",
+    "Note 9 (keep the best case, measure cold): opt-in whole-value cache checked before any computation, with `clear_cache()` for cold measurement; tests assert a second request costs 0 cells and that caching does not change a single value.",
+    "Note 11 (measurements are window requests, not their bounding box): `evaluate_many` evaluates each window on its own; `test_scattered_probes_do_not_compute_their_bounding_box` asserts 8 cells for two far-apart probes instead of the ~78x58 bounding box.",
+    "Forces — declared against discovered reach: `tests/test_footprint_audit.py` records the cells each op actually reads by wrapping the guards (no production hook) and compares them with the declared footprint, catching an over-long reach as well as a short one.",
+    "Structure — 'Invariance test' as a participant: shipped in the package (`stencilpipe.check_invariance`), not only in the test suite."
+  ],
+  "tests": "84 tests in six files (test_operations 14, test_windows 12, test_costs 18, test_pattern_parts 22, test_footprint_audit 7, test_interface 11); last result: `python3 -m unittest discover -s tests` → Ran 84 tests in 3.058s, OK. Four deliberate mutations of the library (box reach one short, box reach one long, dx clamping at the buffer, normalize using the window's statistic) were each caught, then reverted (file verified byte-identical).",
+  "chapter_feedback": [
+    "The Sketch translated almost line for line into `Engine._evaluate`, which made the design fast to get right; the `WHOLE`-resolves-to-the-input-extent step is the single detail the sketch leaves implicit and the one that made the global barrier trivial.",
+    "Step 3 of Collaborations (\"A whole footprint makes that input evaluate whole; the node's other inputs stay windowed\") is what makes the statistic-node design work, but it is only stated in prose; the Sketch's `fps = [inp.extent if fp is whole ...]` was what I implemented.",
+    "'The cost of a request follows its size' is easy to state and hard to test: `cells_computed` counts *output cells per operation*, so the reach shows up in the inner node's ask and in the (uncounted) source reads. The chapter's example 'reads (64 + 2*96)^2 = 65,536 input pixels' counts reads, while TASK.md's counter counts output cells — a mismatch worth one sentence in the chapter.",
+    "Implementation note 10 (windows first, tiles second) was the right call here, but the chapter never says when a per-request memo is enough; I had to reason from 'no shared work between requests' and requests being few.",
+    "The invariance test as a participant (not a test-file detail) was the most useful part of the chapter: shipping `check_invariance` in the package made every operation's exactness claim a one-liner, and the 'fresh engine per window' remark in note 1 is exactly the trap I would otherwise have fallen into.",
+    "The chapter says nothing about a footprint that is too long (only too short); the audit participant would be a natural addition, since over-declaring silently wastes work and no guard can see it.",
+    "The chapter's `footprint(resize(f), w, i) = expand(inverseMap(w, f), filterSupport)` is stated for continuous mappings; `half()` needed `scale(window, 2, 2, 2, 2)` plus an existence test per 2x2 block at the trailing edge of odd grids, which is the case a sketch tends to hide."
+  ]
+}

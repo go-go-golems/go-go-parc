@@ -127,7 +127,7 @@ Do not use it when:
 | **Evaluator** | Computes a requested node: memo, cache, identity short-cut, freeze and store. | Always; parallel inputs only when computations are long |
 | **Run memo** | Signature to value for one request, so a value used twice is found without the shared cache. | Only when the cache may evict a value one request uses twice, or warnings are reported once per request |
 | **Value cache** | Frozen values and their warnings under signatures, across requests, within a byte budget and a policy. | Always |
-| **In-flight group** | Makes simultaneous requests for one signature share one computation. | Only when there are concurrent callers, parallel inputs included |
+| **In-flight group** | Makes simultaneous requests for one signature share one computation. | When two requests for one value can overlap: several users, a server, or parallel inputs |
 
 ## Collaborations
 
@@ -231,7 +231,10 @@ await b.crop(w2).stats()                        -- cache hit for the view; only 
 3. **What the key holds decides how far the cache can travel.** goja-cv's cache lives in one process, is rebuilt when
    the code changes, and identifies a file by location, size and modification time: cheap, and valid within one
    machine and session. A cache that survives a deploy or is shared between machines must key on the operation's
-   implementation version, or a fixed kernel keeps serving old values, and on a content hash of each source.
+   implementation version, or a fixed kernel keeps serving old values, and on a content hash of each source. Even
+   in one process, a declared version is only as good as the discipline behind it: an operation registered again
+   with new code and the same version keeps serving the old values. Key on the registration itself (a counter bumped
+   at every registration), or clear the operation's entries when it is replaced.
 4. **Make the key wide enough, then stop.** A collision returns a wrong value and nothing reports it. The lab's book
    applies the birthday bound: a long session creates about 10⁵ tile keys; at 32 bits that gives about 1.2 expected
    collisions, at its 52-bit keys about 10⁻⁶. goja-cv's 256-bit SHA-256 signatures cost little, since nodes are far
@@ -259,8 +262,11 @@ await b.crop(w2).stats()                        -- cache hit for the view; only 
    on the first request and silently disappears on every cached one. A hit on a node serves none of its inputs, so
    its entry carries the warnings of the whole subgraph below it. A value too large to cache reports its warnings
    immediately, since nothing will replay them.
-9. **Share in-flight work only when there are concurrent callers.** A single-flight group keeps two simultaneous
-   requests for one signature from computing it twice; with one caller it is dead weight. Parallel inputs create
+9. **Share in-flight work when two requests for one value can overlap.** A single-flight group keeps two
+   simultaneous requests for one signature from computing it twice; with one caller it is dead weight. Ask the
+   question of the system, not of the task statement: an engine that several people, an assistant or a server use,
+   or that evaluates inputs in parallel, has overlapping requests even when nobody wrote "concurrent" down (in
+   construction experiments, all three builders of a revised version left the group out for that reason). Parallel inputs create
    concurrent callers (a diamond's shared input is asked for twice at once) and bring the group with them. goja-cv
    evaluates inputs concurrently and keys a group by signature. Without an asynchronous runtime, a bounded worker
    pool deadlocks once evaluations wait for inputs queued behind them; use a thread per distinct input signature, or

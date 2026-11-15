@@ -1,0 +1,56 @@
+{
+  "summary": "shopcli is a stdlib-only Python package that runs a small inventory command language (namespace.verb key=value, with repeat N:) and turns every failure into one structured refusal carrying a code from a closed list, a one-sentence message, the operation path ending in the failing part, the agent's line and source, valid alternatives, a concept hint, a pasteable fix and host_name for Python failures. Refusals are built by the parser, the binder (types, ranges, missing options), the kernels (not found, stock limits) and a host translator, all through the same record, so execution stops at the first refusal while results and folded warnings produced before it are still delivered. Fixes only ever rewrite a command name or an option key (never a value, so nothing is invented), keep the repeat prefix and the agent's argument order, and are tested to bind and to differ from the agent's line in exactly one token.",
+  "files": [
+    "shopcli/__init__.py",
+    "shopcli/codes.py",
+    "shopcli/refusal.py",
+    "shopcli/registry.py",
+    "shopcli/parser.py",
+    "shopcli/suggest.py",
+    "shopcli/fixes.py",
+    "shopcli/kernels.py",
+    "shopcli/engine.py",
+    "tests/helpers.py",
+    "tests/test_reply.py",
+    "tests/test_refusals.py",
+    "tests/test_fixes.py",
+    "tests/test_suggestions.py",
+    "tests/test_codes.py",
+    "tests/test_registry.py",
+    "README.md",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Refusal": "shopcli/refusal.py: Refusal dataclass (code, message, path, where, valid, hint, fix, host_name) + Warning; only Shop._seal fills where, and every layer returns this one record",
+    "Code list": "shopcli/codes.py: CODES, WARNING_CODES and CODE_DOCS/WARNING_DOCS (each code documented once with runnable examples, executed by tests/test_codes.py)",
+    "Fix renderer": "shopcli/fixes.py render_fix() plus Call.render() in shopcli/parser.py; it can only replace the command name or one option key, so a fix never invents a value",
+    "Suggester": "shopcli/suggest.py: suggest_command() and suggest_option() in the fixed order (structural E_NAMESPACE fact, mined redirect, near spelling within max(1,min(3,len/3)) of the differing segment), with closest() refusing ties; step 4 (cross-kind) skipped with a comment because the language is flat",
+    "Redirect table": "shopcli/registry.py: Redirect records held per Registry instance (command_redirects rm/delete/ls/inventory; option_redirects quantity/amount/product/sku/price/cost) and validated in Registry.check() at construction",
+    "Translator": "Shop._translate in shopcli/engine.py: any escaping Python exception becomes E_HOST with host_name = type(exc).__name__, plus concept hints for ZeroDivisionError and generic host failures",
+    "Site tracker": "the line loop in Shop.run (shopcli/engine.py) with parse_line(line, source); in a line-oriented language the parser's line number is the site, so where = {line, source} needs no traceback walking",
+    "Warning folder": "shopcli/refusal.py fold_warnings(), applied in Shop.run; identical warnings at one line fold into one with a count, and are delivered even when a later line fails"
+  },
+  "notes_applied": [
+    "Note 1 (mine redirects, decide what they do): the four near-misses the task names refuse with a hint and a literal fix (rm/delete -> item.remove, ls -> item.list, inventory -> report.stock), so the concept is taught and no command the agent did not write is ever run; a fifth mined set of option names does the same for keys.",
+    "Note 2 (one fixed order, budget on the differing segment): suggest_command/suggest_option try a structural fact first (E_NAMESPACE: same verb in another namespace), then the mined table, then a near spelling using max(1,min(3,len/3)) applied to the verb (or the whole name when the namespace is not real) — 'item.ad' vs 'item.add', never 'item.drop' vs 'item.add'; ties yield no guess.",
+    "Note 3 (fixes are code in the agent's line structure): Call keeps the repeat prefix, the option order and the raw value text; render_fix returns prefix + rewritten name/key, and tests assert every fix differs from the agent's line in exactly one token (e.g. 'repeat 3: item.add name=w').",
+    "Note 4 (one shape, one closed code list, hostName only for host failures): parser, binder, kernels and translator all produce Refusal; host_name is filled only by _translate and asserted None for every other layer.",
+    "Note 5 (the path is part of the message): path is built as ['repeat 2', '<command as written>', '✗ qty'] and collapses to ['✗ stock'] when the whole command is the failure.",
+    "Note 6 (the line is in the agent's program): where.source is the agent's whole line including the repeat prefix, where.line is the line of the script, taken from the line loop, not from a Python traceback.",
+    "Note 7 (warn at the line, fold repeats, measure before shipping): exactly one warning kind (RANGE for item.add qty outside the usual 0-1000); it warns but runs, carries a concept hint, and is folded per (code, line, message) with a count ('repeat 4: item.add qty=2000' -> one warning, count 4).",
+    "Note 8 (deliver what was produced before the failure): results are appended per executed command and warnings accumulate per run, so a failure on line 2 still returns line 1's results and warnings (tested, including a repeat that fails on its third iteration).",
+    "Note 9 (one redirect table per registry, checked at load): both tables live on the Registry and check() raises ValueError for an unknown target, a redirect shadowing a real command, a missing hint, an option target that exists nowhere, or a self-redirect; a registry built without the mined names demonstrably loses them.",
+    "Note 10 (never invent a value): fixes are only name/key renames; E_ARG_TYPE, E_ARG_MISSING, E_ARG_RANGE, E_NOT_FOUND and E_HOST carry a hint and fix: None, and a test sweeps those cases asserting no fix exists.",
+    "Note 11 (test codes and fixes): tests/test_codes.py runs every CODE_DOCS example and requires exactly that code, and tests/test_fixes.py requires each of 26 fixes to bind in a shop where the agent's earlier lines ran and to change exactly one token."
+  ],
+  "tests": "127 unittest tests in 7 files (tests/test_reply.py 24, test_refusals.py 38, test_fixes.py 9 methods over 26 fix cases + 9 no-fix cases, test_suggestions.py 18, test_codes.py 8, test_registry.py 30, helpers.py shared); last run: `python3 -m unittest discover -s tests` -> Ran 127 tests in 0.032s, OK.",
+  "chapter_feedback": [
+    "Helped most: the Structure table and Collaborations steps gave a checklist that mapped almost one-to-one onto modules, and the sketch of unknownMethod/renderFix prevented the classic mistake of returning a whole rewritten line instead of a minimal change.",
+    "Note 2's budget is stated in edits but not in metric: with plain Levenshtein, 'qyt' for 'qty' costs two edits and got no fix, so the budget was useless for the most common typo. I kept the budget and changed the metric to count a swapped neighbouring pair as one edit — the chapter should say which distance it means.",
+    "Ambiguous: 'the same name on another kind of value' and 'a namespaced member of the same name' assume a language whose values have methods. In a flat command language these collapse into 'the verb lives in another namespace' and 'the option belongs to another command', and the chapter's advice to skip the fourth step leaves the second only a hint — the mapping took a judgement call, which I documented in suggest.py.",
+    "Misleading: the sketch has 'the first suggestion that answers wins', but a step can answer with a hint and no change (an option owned by another command), which then beats a mined redirect that would have produced a fix ('price.set name=w cost=3'). I kept the order but let a fix-less note be a fallback rather than an answer; the chapter could say that a note is not an answer.",
+    "Under-specified: what 'valid' should hold for argument failures (type, range, missing). I used the missing option names for E_ARG_MISSING, the existing names for E_NOT_FOUND, and [] for type/range, following 'a handful, nearest first' as far as it goes.",
+    "Left to guess: whether item.remove of more than the stock is a refusal or a silent clamp. The chapter's Null Object remark pushed me to a refusal (E_ARG_RANGE with the stock on hand in the hint, no fix), but the task does not decide it.",
+    "The final warning (note 7) that a usually-wrong warning is worse than none is well placed: it is why this build ships exactly one warning kind, and why an unused-option lint and a 'did you mean' fix for item names were left out."
+  ]
+}

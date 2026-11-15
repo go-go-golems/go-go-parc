@@ -1,0 +1,237 @@
+{
+  "implementations": {
+    "A": {
+      "summary": "A registry of Command/Option records with an instance-owned redirect table, a parser that keeps character offsets, a suggester in a fixed order and a span-splicing fix renderer, all feeding one Refusal value that checks its own invariants. The kernels are methods on Shop behind a second, hand-kept handler table, and an executable docs.py holds one example per code.",
+      "scores": {"forces": 4, "adapted": 4, "wholeness": 4, "habitability": 4, "growth": 2, "smells": 3, "tests": 5},
+      "forces_resolved": [
+        "One place against many: every layer raises Failure and only Shop._refuse builds a Refusal, whose __post_init__ enforces the closed code, the ✗ tail and host_name only for E_HOST (impl-A/shopcli/engine.py:231-263, impl-A/shopcli/refusal.py:34-45)",
+        "Suggestion against misdirection: namespace, then redirect, then a budgeted guess. The budget counts only the verb segment, and `valid` is left empty when one answer is known (impl-A/shopcli/suggest.py:43-80, :97-112; impl-A/tests/test_refusals.py:129-133)",
+        "Generic against mined: the four task names are Redirects with concept hints, checked against the registry at load (impl-A/shopcli/registry.py:180-188, :324-343)",
+        "Precision against noise: a fix is the agent's line with only the failing token spliced in, so the repeat prefix and spacing survive (impl-A/shopcli/fix.py:17-32, impl-A/shopcli/parse.py:41-51)",
+        "Errors against warnings: a hard minimum refuses and a soft `usual` range warns; both live on the Option record (impl-A/shopcli/registry.py:29-30, impl-A/shopcli/engine.py:187-212); warnings are folded by (code, line, message) (impl-A/shopcli/warnings.py:26-33)",
+        "Host translation: E_HOST keeps type(exc).__name__, and a concept hint is looked up per host class from the registry (impl-A/shopcli/engine.py:216-227, impl-A/shopcli/registry.py:348-353)"
+      ],
+      "forces_in_tension": [
+        "Fixes are code: kernels get only `bound`, not the parsed line, so a kernel failure can never carry a fix. E_NOT_FOUND for a misspelled item lists `valid` but offers no fix even when one name is within budget (impl-A/shopcli/engine.py:96, :324-333)",
+        "Warning folding: the remove-overflow message embeds the current stock, so repeats of one line fold only partly (impl-A/shopcli/engine.py:285)"
+      ],
+      "forces_unnoticed": [
+        "The cross-kind suggestion step was dropped on purpose (impl-A/shopcli/suggest.py:10-13), so it was noticed, not missed; no force is wholly unaddressed"
+      ],
+      "dead_or_ornamental": [
+        "impl-A/shopcli/suggest.py:40: Suggestion.valid is never set or read",
+        "impl-A/shopcli/registry.py:128: Registry.verbs() has no caller",
+        "impl-A/shopcli/warnings.py:39-42: WarningFolder.raised is read only by a test",
+        "impl-A/shopcli/engine.py:39: registry.validate() runs again although Registry.__init__ already ran it (registry.py:112)",
+        "impl-A/tests/test_invariants.py:67-68: a loop that draws random choices and asserts nothing"
+      ],
+      "next_change_touches": [
+        "impl-A/shopcli/registry.py: _COMMANDS gets Command('item.rename', name, to); _REDIRECTS gets 'mv'",
+        "impl-A/shopcli/engine.py: a new _item_rename method plus an entry in the _handlers dict (__init__ asserts the two agree)",
+        "impl-A/shopcli/codes.py: a new code (e.g. E_EXISTS) in CODES and CODES_DOC",
+        "impl-A/shopcli/docs.py: EXAMPLES needs an example for the new code, because test_every_code_has_a_runnable_example enforces it",
+        "impl-A/shopcli/fix.py + engine.py:_run_line/handler signature: a pasteable fix for the collision has to rewrite a value or emit another command; fix.py can only replace a command or a key, and handlers never see ParsedLine, so this is a core edit"
+      ],
+      "smells": [
+        {"smell": "duplicated knowledge", "where": "impl-A/shopcli/engine.py:42-50", "why": "the handler table repeats every registry name; adding a command takes two edits, kept honest only by an assert"},
+        {"smell": "duplicated code", "where": "impl-A/shopcli/engine.py:346-352", "why": "_nearest_items and _nearest_priced are the same function over two dicts"},
+        {"smell": "duplicated knowledge", "where": "impl-A/shopcli/registry.py:231,254,276,294,308", "why": "the same 'name is the item's id' type_hint is written five times"},
+        {"smell": "misleading name", "where": "impl-A/shopcli/errors.py:1-66", "why": "errors.py holds edit-distance helpers, not errors"},
+        {"smell": "data clump / tramp data", "where": "impl-A/shopcli/refusal.py:82-94", "why": "Failure carries repeats and command_raw only so _refuse can rebuild the path"}
+      ],
+      "best_thing": "The fix is a splice of the agent's own line at recorded offsets, with a test asserting that only the failing span changed (impl-A/shopcli/fix.py:17-32, impl-A/tests/test_fixes.py:74-82).",
+      "worst_thing": "Kernels cannot attach a fix because they never see the parsed line, so every new state-dependent refusal (rename collision, unknown item) needs core plumbing (impl-A/shopcli/engine.py:96)."
+    },
+    "B": {
+      "summary": "A single commands.py holds the option tables, the handlers, a 125-line resolve() that does all name suggestion with difflib, and validate(). Diagnostic is the one exception type; a Frame renders full replacement lines, and _preview validates each candidate fix before it is offered.",
+      "scores": {"forces": 3, "adapted": 3, "wholeness": 4, "habitability": 2, "growth": 4, "smells": 2, "tests": 4},
+      "forces_resolved": [
+        "One place against many: parser, resolver, validator and handlers all raise Diagnostic, and only Shop.run serialises it (impl-B/shopcli/errors.py:35-59, impl-B/shopcli/shop.py:69-75)",
+        "Fixes are code and must bind: a candidate fix is re-parsed and validated before it is offered, and unknown keys are renamed or dropped (impl-B/shopcli/commands.py:350-397)",
+        "Warnings folded at the line: the warn closure keys on (line, code, message) (impl-B/shopcli/shop.py:52-67)",
+        "Deliver what came before: results from earlier repeat iterations survive (impl-B/tests/test_errors.py:79-85)"
+      ],
+      "forces_in_tension": [
+        "Host translation: host_name is filled with the canonical command name for every command-level error, and E_HOST also stores the command name rather than the exception class, which goes only into the message (impl-B/shopcli/diagnostics.py:63, impl-B/shopcli/shop.py:106); a test enshrines this (impl-B/tests/test_errors.py:64-70)",
+        "Suggestion against misdirection: E_ARG_RANGE for qty=-3 offers the fix qty=0, an invented value that runs and silently changes intent (impl-B/shopcli/commands.py:613-624)",
+        "Generic against mined: rm/delete/ls/inventory are silent aliases that execute, so the mined names never refuse or teach the real name (impl-B/shopcli/commands.py:49-54, :408-409)",
+        "Suggest in one fixed order: the order is spread across a dozen branches of resolve() using one difflib cutoff, not a budget (impl-B/shopcli/commands.py:403-529, impl-B/shopcli/diagnostics.py:19-27)",
+        "Precision against noise: the path repeats where.line as ['script', 'line N', ...] and omits the repeat prefix (impl-B/shopcli/errors.py:20-32)"
+      ],
+      "forces_unnoticed": [
+        "E_NAMESPACE as a structural fact: here it means an unknown namespace, and a bare verb such as `list` gets E_UNKNOWN_COMMAND (impl-B/shopcli/commands.py:508-519)"
+      ],
+      "dead_or_ornamental": [
+        "impl-B/shopcli/commands.py:127-139: Frame.with_arg has no caller",
+        "impl-B/shopcli/commands.py:71: Option.doc is set and never read",
+        "impl-B/shopcli/shop.py:52: the _source parameter of warn is never used"
+      ],
+      "next_change_touches": [
+        "impl-B/shopcli/commands.py: a new cmd_item_rename handler, a COMMANDS entry and ALIASES['mv'] (mv will run silently, not refuse)",
+        "impl-B/shopcli/codes.py: a new code in CODES",
+        "impl-B/shopcli/commands.py:cmd_item_rename: the collision fix is local through frame.fix(to=...), which handlers already receive",
+        "impl-B/tests/test_errors.py:95: test_every_code_is_reachable must gain a case"
+      ],
+      "smells": [
+        {"smell": "long function", "where": "impl-B/shopcli/commands.py:403-529", "why": "resolve() is 125 lines of branches, each with its own hint and fix logic"},
+        {"smell": "duplicated knowledge", "where": "impl-B/shopcli/commands.py:44", "why": "NAMESPACES is hand-listed although COMMANDS defines it"},
+        {"smell": "god module", "where": "impl-B/shopcli/commands.py:1-696", "why": "records, handlers, suggestion, fix preview and validation all live in one file"},
+        {"smell": "wrong abstraction", "where": "impl-B/shopcli/diagnostics.py:49-64", "why": "fail() always sets host_name to the command, so the field cannot mean what the task says"},
+        {"smell": "repeated work", "where": "impl-B/shopcli/shop.py:71-72", "why": "resolve and validate run again on every repeat iteration"}
+      ],
+      "best_thing": "A fix is offered only after it re-parses and validates (impl-B/shopcli/commands.py:350-365), and a convergence loop tests the whole repair cycle (impl-B/tests/test_repair.py:73-98).",
+      "worst_thing": "host_name carries the command name instead of the host exception class, so callers cannot branch on host failures as the task requires (impl-B/shopcli/diagnostics.py:63, impl-B/shopcli/shop.py:106)."
+    },
+    "C": {
+      "summary": "A catalog of Command/Option records with module-level aliases, a syntax module that collects structural Problems, and a 735-line engine that resolves names, validates, generates fixes and replays each fix against a cloned store before offering it. Handlers receive a _Call facade for failing, warning and rendering replacements.",
+      "scores": {"forces": 2, "adapted": 3, "wholeness": 3, "habitability": 2, "growth": 3, "smells": 2, "tests": 3},
+      "forces_resolved": [
+        "Host translation: E_HOST keeps the exception class and adds a concept hint for zero-price margins (impl-C/shopcli/engine.py:695-713)",
+        "Fixes must run: _finalize replays each fix on a cloned store and drops it if the replay fails (impl-C/shopcli/engine.py:716-735)",
+        "Deliver what came before: the repeat path is prefixed and earlier results are kept (impl-C/shopcli/engine.py:226-230)"
+      ],
+      "forces_in_tension": [
+        "Suggestion against misdirection: fixes invent values. qty=abc becomes qty=0, a missing qty is filled with qty=0, and qty=-3 becomes qty=0 (impl-C/shopcli/engine.py:574, :681, :602). The replay check passes these because they run (impl-C/shopcli/engine.py:726-735)",
+        "Fixes in the agent's line: a refusal inside `repeat N:` returns a fix without the prefix, because the body is run and rendered alone (impl-C/shopcli/engine.py:226-228; probe: 'repeat 3: item.ad ...' gives fix 'item.add name=w qty=1')",
+        "Warn and fold: the stock-total warning embeds a running total, so `repeat 8: item.add qty=300` yields five unfolded warnings (impl-C/shopcli/commands.py:90-95)",
+        "A warning that is usually wrong is worse than none: `repeat 0` always warns (impl-C/shopcli/engine.py:210-216)",
+        "Generic against mined: the task names are silent aliases, and the hint text repeats them as a hard-coded string (impl-C/shopcli/catalog.py:130-135, impl-C/shopcli/engine.py:323-324, :358-359)",
+        "Suggest in one fixed order: three ad hoc difflib routines with different cutoffs (impl-C/shopcli/engine.py:270-313)"
+      ],
+      "forces_unnoticed": [
+        "E_NAMESPACE as a structural fact: an unknown bare word (`mv`) gets E_NAMESPACE (impl-C/shopcli/engine.py:268), while a bare known verb gets E_UNKNOWN_COMMAND",
+        "Executable code documentation: there are no per-code examples, and a code no example raises would go unnoticed"
+      ],
+      "dead_or_ornamental": [
+        "impl-C/shopcli/syntax.py:156-158: ParsedCommand.strays has no caller",
+        "impl-C/shopcli/catalog.py:25: Option.description is never read",
+        "impl-C/shopcli/syntax.py:190: Repeat.count_text is never read outside the parser",
+        "impl-C/shopcli/__main__.py:1-30: a CLI the task does not ask for"
+      ],
+      "next_change_touches": [
+        "impl-C/shopcli/catalog.py: _COMMANDS gets Command('item.rename', ...) and ALIASES gets 'mv'",
+        "impl-C/shopcli/commands.py: a new item_rename handler; the collision fix is local through call.replace('to', ...)",
+        "impl-C/shopcli/errors.py: a new code in CODES",
+        "impl-C/shopcli/engine.py:323-324, :358-359: the hard-coded hint 'rm, delete, ls and inventory' must be edited to mention mv (shotgun surgery)"
+      ],
+      "smells": [
+        {"smell": "long module / god class", "where": "impl-C/shopcli/engine.py:150-735", "why": "Shop holds resolution, syntax repair, positional guessing, coercion, samples and fix replay"},
+        {"smell": "duplicated code", "where": "impl-C/shopcli/commands.py:28-74", "why": "_item_not_found and _price_not_found are near copies"},
+        {"smell": "duplicated knowledge", "where": "impl-C/shopcli/engine.py:324", "why": "the alias list is restated in prose"},
+        {"smell": "speculative generality", "where": "impl-C/shopcli/engine.py:439-464", "why": "positional-argument guessing fills missing numbers with defaults the agent never wrote"},
+        {"smell": "sloppy valid list", "where": "impl-C/shopcli/commands.py:113", "why": "valid can list '0' twice"}
+      ],
+      "best_thing": "A fix is replayed against a clone of the store before it is offered (impl-C/shopcli/engine.py:726-735).",
+      "worst_thing": "Fixes invent values (qty=0) and drop the repeat prefix, so the agent pastes a line that runs but does something other than what it asked (impl-C/shopcli/engine.py:574, :681, :226-228)."
+    },
+    "D": {
+      "summary": "A Registry of Command/Option/Redirect records, validated at construction, with a suggester in fixed order (namespace, redirect, budgeted spelling) and a span-tracking parser. Shop.render_change splices one token (name, key or value) into the agent's source and offers it only if _binds() accepts it; kernels raise CommandFailure and receive a Context that can build a value fix.",
+      "scores": {"forces": 4, "adapted": 4, "wholeness": 4, "habitability": 4, "growth": 4, "smells": 3, "tests": 4},
+      "forces_resolved": [
+        "Suggest in one fixed order: structural home, then redirect, then a guess budgeted per segment, each returning a Suggestion with a code and a change (impl-D/shopcli/suggest.py:134-178)",
+        "Suggestion against misdirection: a structural home must be unique, and a namespace must sit within its budget before it is rewritten (impl-D/shopcli/suggest.py:108-131); a suggestion is dropped when its fix would not bind, but the hint stays (impl-D/shopcli/shop.py:337-338, impl-D/tests/test_fixes.py:122-124)",
+        "Fixes in the agent's line: name, key or value is spliced at its recorded span, so the prefix, the other arguments and the spacing survive (impl-D/shopcli/shop.py:309-338, impl-D/shopcli/parsing.py:36-46)",
+        "Kernels can repair from state: Context.fix_value lets item.remove offer qty=<stock> through the same splice and bind check (impl-D/shopcli/commands.py:71-77, :146-156)",
+        "Code list documented once with executable examples (impl-D/shopcli/codes.py:32-92, impl-D/tests/test_catalogue.py:39-56)",
+        "Host translation keeps type(error).__name__ (impl-D/shopcli/shop.py:282-306)"
+      ],
+      "forces_in_tension": [
+        "Precision against noise: the path label invents a call syntax the agent never wrote, 'item.add(name=w, qty=abc)', and E_NOT_FOUND tails are bare values such as '✗ w' (impl-D/shopcli/parsing.py:67-76, impl-D/shopcli/commands.py:96)",
+        "One place against many: hard range checks live in the kernels, not in the Option record, so the binder cannot see them (impl-D/shopcli/commands.py:115-121, :139-145, :177-183; Option has no minimum, impl-D/shopcli/registry.py:21-27)"
+      ],
+      "forces_unnoticed": [
+        "Warning hints from the record: there is no usual range on Option, so a RANGE warning exists only where a kernel remembers to raise it (impl-D/shopcli/commands.py:122-127)"
+      ],
+      "dead_or_ornamental": [
+        "impl-D/shopcli/registry.py:157-158: Registry.summary() has no caller",
+        "impl-D/shopcli/parsing.py:53: ParsedLine.count_token is stored and never read after parsing",
+        "impl-D/shopcli/suggest.py:95-96: the docstring says item.drop is close to item.add, contradicting suggest.py:10-11"
+      ],
+      "next_change_touches": [
+        "impl-D/shopcli/commands.py: build_registry gets Command('item.rename', name, to); REDIRECTS gets Redirect('mv', 'item.rename', hint)",
+        "impl-D/shopcli/commands.py: a new item_rename kernel that raises CommandFailure with valid and fix=ctx.fix_value('to', ...) or a state-derived alternative; this is local and checked by _binds",
+        "impl-D/shopcli/codes.py: a new code in CODES, CODE_DOCS and CODE_EXAMPLES (the catalogue tests force all three)"
+      ],
+      "smells": [
+        {"smell": "duplicated code", "where": "impl-D/shopcli/commands.py:115-121,139-145", "why": "the qty >= 0 check is written twice in kernels instead of once on the record"},
+        {"smell": "primitive obsession", "where": "impl-D/shopcli/refusal.py:101", "why": "a change is a (kind, text) tuple switched on strings in render_change (shop.py:325-336)"},
+        {"smell": "surprising side effect", "where": "impl-D/shopcli/commands.py:160-162", "why": "removing all units also deletes the price"},
+        {"smell": "control-flow exceptions", "where": "impl-D/shopcli/shop.py:22-31", "why": "_Stop and _BadValue wrap refusals only to unwind"}
+      ],
+      "best_thing": "One render_change splices a name, key or value at its span and offers it only if _binds accepts it, and kernels can use it through Context (impl-D/shopcli/shop.py:309-364, impl-D/shopcli/commands.py:71-77).",
+      "worst_thing": "Range rules live in the kernels, not in the Option record, so the binder, the docs and the warnings cannot see them (impl-D/shopcli/commands.py:115-183)."
+    },
+    "E": {
+      "summary": "A Registry of Operation/Param records with usual ranges and two redirect tables (commands and options), a parser whose Call keeps the prefix and re-renders the line, and a suggester that refuses ties. Kernels in a separate module raise Fault, and the engine seals Refusals with where and path.",
+      "scores": {"forces": 4, "adapted": 3, "wholeness": 3, "habitability": 4, "growth": 2, "smells": 3, "tests": 4},
+      "forces_resolved": [
+        "Suggestion against misdirection: a tie inside the budget is refused, not guessed, and an ambiguous verb is listed in valid instead of picked (impl-E/shopcli/suggest.py:77-95, :117-123)",
+        "Suggest in one fixed order, with prose-only notes as fallbacks (impl-E/shopcli/suggest.py:98-162, :165-215)",
+        "Errors against warnings: Param holds both the hard minimum and the usual range, and the binder raises or warns from the record (impl-E/shopcli/registry.py:21-43, impl-E/shopcli/engine.py:110-146)",
+        "One closed list with executable examples per code (impl-E/shopcli/codes.py:44-140)",
+        "Host translation keeps the exception class (impl-E/shopcli/engine.py:249-269)",
+        "The repeat prefix survives in fixes (impl-E/shopcli/parser.py:57-66)"
+      ],
+      "forces_in_tension": [
+        "Fixes are code: Fault has no fix field and render_fix forbids value changes, so no kernel refusal can carry a fix; even item.remove beyond stock gets a hint only (impl-E/shopcli/refusal.py:69-85, impl-E/shopcli/fixes.py:17-24, impl-E/shopcli/kernels.py:64-71)",
+        "Generic against mined: the option-redirect table (quantity, amount, product, sku, price, cost) is invented, not mined from transcripts (impl-E/shopcli/registry.py:256-270)",
+        "Precision against noise: the path repeats the whole body as an element, duplicating where.source (impl-E/shopcli/parser.py:76-83)",
+        "Host hint: the ZeroDivisionError hint names report.margin whatever command raised it (impl-E/shopcli/engine.py:252-256)"
+      ],
+      "forces_unnoticed": [
+        "Fixes are never checked at runtime; binding is guaranteed only by tests over a fixed case list (impl-E/tests/test_fixes.py:57-65)"
+      ],
+      "dead_or_ornamental": [
+        "impl-E/shopcli/codes.py:35: HOST_CODE has no reader",
+        "impl-E/shopcli/registry.py:28: Param.maximum is never set by any record",
+        "impl-E/shopcli/registry.py:26: Param.default is always None",
+        "impl-E/shopcli/registry.py:52: Operation.result is documentation text that nothing renders",
+        "impl-E/shopcli/registry.py:256-270: option redirects with no evidence behind them"
+      ],
+      "next_change_touches": [
+        "impl-E/shopcli/registry.py: default_registry gets Operation('item', 'rename', 'item_rename', ...) and a command Redirect('mv', ...)",
+        "impl-E/shopcli/kernels.py: a new item_rename kernel plus its KERNELS string key",
+        "impl-E/shopcli/codes.py: a new code in CODES and CODE_DOCS with an example (tests enforce it)",
+        "impl-E/shopcli/refusal.py:Fault, engine.py:_run_call, fixes.py:render_fix, suggest.py:Change: a collision fix needs a fix or change on Fault, a value or command change kind, and the engine passing it through; these are core edits"
+      ],
+      "smells": [
+        {"smell": "duplicated knowledge", "where": "impl-E/shopcli/kernels.py:124-132", "why": "kernels are looked up by a string named in each Operation (registry.py:50), a second table keyed by hand"},
+        {"smell": "speculative generality", "where": "impl-E/shopcli/registry.py:256-270", "why": "six option redirects with no transcripts behind them"},
+        {"smell": "temporal coupling", "where": "impl-E/shopcli/engine.py:271-279", "why": "Refusal.where is Optional and the path may be empty until _seal patches them"},
+        {"smell": "duplicated knowledge", "where": "impl-E/shopcli/registry.py:188,198,214,224,238", "why": "the same name doc sentence is written five times"}
+      ],
+      "best_thing": "The suggester refuses a tie inside the budget, which handles the misdirection force with a rule that is a single line (impl-E/shopcli/suggest.py:91-95).",
+      "worst_thing": "Kernel refusals cannot carry a fix at all, so the next state-dependent error has to change four core modules (impl-E/shopcli/refusal.py:69-85, impl-E/shopcli/engine.py:82-89)."
+    }
+  },
+  "generativity": {
+    "shared_seams": [
+      {"seam": "one internal exception raised by every layer and serialised once into the public record (Failure / Diagnostic / CommandError / CommandFailure+LineProblem / Fault+Refused)", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "warning folder keyed on (code, line, message)", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "registry instance owning a redirect table, checked against its commands at load", "in": ["A", "D", "E"]},
+      {"seam": "module-level alias dict that silently executes the mined names", "in": ["B", "C"]},
+      {"seam": "suggester module in fixed order (namespace fact, redirect, budget max(1,min(3,len//3)) on the differing segment), with the cross-kind step skipped on purpose", "in": ["A", "D", "E"]},
+      {"seam": "difflib cutoff 0.6 scattered through resolve branches", "in": ["B", "C"]},
+      {"seam": "Suggestion value (code, hint, change or fix)", "in": ["A", "D", "E"]},
+      {"seam": "span-preserving fix splice from recorded offsets", "in": ["A", "D"]},
+      {"seam": "re-rendered fix line from parsed parts", "in": ["B", "C", "E"]},
+      {"seam": "runtime fix verification before offering", "in": ["B", "C", "D"]},
+      {"seam": "per-code executable examples tested to raise exactly that code", "in": ["A", "D", "E"]},
+      {"seam": "kernels receive a context that can render a fix", "in": ["B", "C", "D"]},
+      {"seam": "transposition-aware distance (OSA), near-identical code", "in": ["A", "E"]}
+    ],
+    "groups": [["A", "D", "E"], ["B", "C"]],
+    "notes": "A, D and E share the chapter's participants nearly one for one (Refusal, Code list with examples, Suggester, Redirect table on the registry, Translator, Warning folder) and the same rule that a fix never invents a value. They differ in where the fix is built: A and E build it only in the binder, so kernels cannot repair, while D's Context lets kernels splice a value fix that is then bind-checked. B and C share another shape: aliases instead of refusals, difflib suggestions inside long resolve functions, and generous fixes checked at runtime that invent values (qty=0). C also loses the repeat prefix. Within A/D/E, A and E are close at the level of whole functions (distance, budget, docs examples); D differs in detail (plain Levenshtein, a one-token splice for names, keys and values, runtime _binds)."
+  },
+  "worse_is_better": "D reaches A's repair quality with fewer parts. It has no separate docs.py, fix.py, warnings.py or errors.py modules, no host-hint table and no load-time assertion layer on the Refusal, and its one render_change+_binds replaces A's two splice helpers plus a test-only changed_span. A's extras (Registry.documented, docs.describe, WarningFolder.raised, __post_init__ invariants) mostly serve its tests, not the task. E carries more than either: option redirects, notes, Param.maximum/default and a string-keyed kernel table that no current need uses. B is smallest in modules but buys it with a 125-line resolve() and a wrong host_name, so it is simpler without being as good.",
+  "ranking": ["D", "A", "E", "B", "C"],
+  "chapter_lessons": [
+    "Say where a fix may come from: three implementations (A, D, E) read the chapter as 'never invent a value' and kept fixes out of kernels, while two (B, C) invented qty=0. The chapter should separate a value the agent wrote, a value derived from state (qty=<stock>, an existing name) and an invented value, and allow the second explicitly. The next change (a rename collision) needs a state-derived or multi-line fix, and A and E have no seam for one.",
+    "A fix that binds is not a correct fix: C replays fixes on a clone and still offers qty=0 for qty=abc (impl-C/shopcli/engine.py:574, :726-735). Note 11 should say that binding is necessary but not sufficient, and that a fix must keep the agent's intent: same prefix, same values, one changed token.",
+    "Mined names: refuse or execute? B and C execute rm/ls silently as aliases, and A, D and E refuse with a fix. The chapter assumes refusal; it should name the trade-off (one round trip saved against an agent that never learns the canonical name) and say when an alias with a warning is the right choice.",
+    "The cross-kind fourth suggestion step and the multi-step path are machinery for object languages. All three suggester implementations skipped the fourth step with the same justification. The flat language made the path degenerate, and the implementations padded it with 'script, line N' (B, C), invented call syntax (D) or the whole body (E). The chapter should say what path means when there is no chain, or allow it to be just [prefix, command, ✗ failing part].",
+    "Folding keys on the message breaks when the message embeds state that changes per iteration (impl-C/shopcli/commands.py:92, impl-A/shopcli/engine.py:285). The chapter should tell implementers to fold on code, line and a message template, or to keep varying numbers out of the folded message.",
+    "host_name needs a sharper definition: B filled it with the command name for every error (impl-B/shopcli/diagnostics.py:63). The chapter should state that host_name is the host exception class and is null for every other code.",
+    "Put limits on the record: D put hard ranges in kernels and E/A put them on Param/Option; only the record placement lets the binder, the docs and the warnings share them. Note 10's 'one table owned by the registry' should cover ranges and usual ranges too, not only redirects."
+  ]
+}

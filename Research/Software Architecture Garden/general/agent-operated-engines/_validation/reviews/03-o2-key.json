@@ -1,0 +1,27 @@
+{
+  "A": {
+    "tag": "ctl",
+    "agent": "x1",
+    "arm": "control"
+  },
+  "B": {
+    "tag": "ctl",
+    "agent": "x2",
+    "arm": "control"
+  },
+  "C": {
+    "tag": "r1",
+    "agent": "n2",
+    "arm": "chapter"
+  },
+  "D": {
+    "tag": "r1",
+    "agent": "n1",
+    "arm": "chapter"
+  },
+  "E": {
+    "tag": "r1",
+    "agent": "n3",
+    "arm": "chapter"
+  }
+}

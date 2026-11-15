@@ -1,0 +1,226 @@
+{
+  "implementations": {
+    "A": {
+      "summary": "A pull evaluator: each Op declares input_rect and a per-cell compute_cell formula, and each OpNode keeps a per-row span set plus a (y,x)->value dict of cells already computed, so overlapping windows and later calls reuse cells until reset_counters. normalize asks for its whole input and caches its maximum in a per-node prepare state, with no separate statistic node.",
+      "scores": {"forces": 4, "adapted": 4, "wholeness": 3, "habitability": 4, "growth": 5, "smells": 3, "tests": 3},
+      "forces_resolved": [
+        "exactness against economy: the per-cell formula is the whole-grid formula in absolute coordinates, with borders taken from in_extent (impl-A/stencilpipe/ops.py:149-162, impl-A/stencilpipe/engine.py:274-282), so it is bit-identical to the naive reference",
+        "small requests against shared work: _Spans records computed x-intervals per row and ensure computes only the gaps, so overlapping windows and evaluate_many count each cell once (impl-A/stencilpipe/engine.py:40-61, 276-281, 385-394)",
+        "local against global: normalize's footprint is the whole input and its maximum is computed once per node in _state (impl-A/stencilpipe/ops.py:214-228, impl-A/stencilpipe/engine.py:270-271); three windows cost 412 cells against 1227 in B/D",
+        "keep the best case: cells already computed are reused across evaluate calls (impl-A/stencilpipe/engine.py:255-256)",
+        "declared against discovered reach (implicit): reading an op cell that was never computed raises (impl-A/stencilpipe/engine.py:284-291), so a short footprint over an op node crashes instead of drifting"
+      ],
+      "forces_in_tension": [
+        "memory: the cache is an unbounded per-cell dict keyed by (y,x) tuples (impl-A/stencilpipe/engine.py:223, 279) and has no budget; the chapter's 'same byte budget' is ignored",
+        "measurement against state: reset_counters also drops every cache (impl-A/stencilpipe/engine.py:401-410), so the free second window disappears whenever someone measures",
+        "declared reach over sources is never checked: SourceNode.get serves any in-grid cell (impl-A/stencilpipe/engine.py:187-193)"
+      ],
+      "forces_unnoticed": [
+        "split of global parameter from local application: there is no statistic node, the op carries the global read itself",
+        "cost rule (evaluate whole when the footprint is about the whole)",
+        "tile size against reach (spans stand in for tiles; never discussed)"
+      ],
+      "dead_or_ornamental": [
+        "impl-A/stencilpipe/geometry.py:42 Rect.cells, :58 translate, :79 cell_rect: never called",
+        "impl-A/stencilpipe/engine.py:180-185 SourceNode.ensure clips a rect and then returns None on both branches",
+        "impl-A/stencilpipe/ops.py:69-72 extra_input_rects: a hatch whose only user is a test op (impl-A/tests/test_extensions.py:11-29)",
+        "impl-A/stencilpipe/engine.py:158 SourceNode slots op/parent/args set to None or {} only so it looks like an OpNode"
+      ],
+      "next_change_touches": [
+        "impl-A/stencilpipe/ops.py: new DyOp (input_rect Rect(x, y-1, w, h+2), compute_cell clamped on y) next to DxOp at :165",
+        "impl-A/stencilpipe/ops.py: new Up2Op with out_extent (2W, 2H), an input_rect written by hand with floor/ceil (Rect.scale at impl-A/stencilpipe/geometry.py:65 only multiplies), and compute_cell ctx.get(x//2, y//2)",
+        "impl-A/stencilpipe/ops.py:237 DEMO_OPERATIONS: add both",
+        "impl-A/stencilpipe/__init__.py:18-43: two explicit export lists, if the classes are to be public",
+        "impl-A/tests/references.py:86-92, 101: REFERENCE and the random_pipeline op tuple"
+      ],
+      "smells": [
+        {"smell": "primitive obsession / feature envy", "where": "impl-A/stencilpipe/engine.py:223", "why": "the node's value is a dict of (y,x) tuples, and ops reach through _Ctx.get into the parent's dict for every read"},
+        {"smell": "speculative generality", "where": "impl-A/stencilpipe/ops.py:42-57", "why": "positional-argument binding and extra_input_rects serve no task requirement"},
+        {"smell": "duplicated code", "where": "impl-A/stencilpipe/engine.py:310-320", "why": "__repr__ formats op(args) twice, inline"},
+        {"smell": "temporal coupling", "where": "impl-A/stencilpipe/engine.py:401-410", "why": "resetting a counter clears cached values"}
+      ],
+      "best_thing": "Compute cells, not buffers: each op gives one cell's value from the whole-grid formula in absolute coordinates, and a sparse memo of computed cells makes overlap sharing and exactness come for free.",
+      "worst_thing": "An unbounded per-cell dict cache that only reset_counters can clear; on a 6000x4000 scan a few whole-node requests fill memory with Python tuples."
+    },
+    "B": {
+      "summary": "A recursive region evaluator: each Op declares footprint(index, window) as a Footprint value (a window or whole), and the engine evaluates each input on exactly that window and hands the op guarded Buffers that raise FootprintError outside the declared window. normalize is wired as DivideStatOp over (parent, MaxStatOp(parent)), with no caching of any kind.",
+      "scores": {"forces": 3, "adapted": 4, "wholeness": 4, "habitability": 4, "growth": 5, "smells": 3, "tests": 4},
+      "forces_resolved": [
+        "exactness against economy: run reads by absolute coordinate in a fixed order, and bit-exactness is tested against both the engine's own whole run and an independent reference (impl-B/stencilpipe/operations.py:155-176, impl-B/tests/test_invariance.py:99-114)",
+        "declared against discovered reach: every input, sources included, is a Buffer whose at() raises outside the footprint (impl-B/stencilpipe/buffers.py:31-39, impl-B/stencilpipe/engine.py:45-49)",
+        "local against global: global parameter split from local application through Op.wire, which adds a 1x1 statistic node as an ordinary input (impl-B/stencilpipe/operations.py:305-307, 264-293)",
+        "directional reach: dx grows only in x (impl-B/stencilpipe/operations.py:191-193)",
+        "measurements around items: evaluate_many evaluates each window, never their bounding box (impl-B/stencilpipe/engine.py:110-116)"
+      ],
+      "forces_in_tension": [
+        "keep the best case: there is no cache, so the max statistic and its whole input are recomputed for every window (three normalize windows cost 1227 cells against 412 in A/E); the split buys nothing without a cache",
+        "small requests against shared work: overlapping windows and diamond-shaped graphs recompute (impl-B/stencilpipe/engine.py:116); DivideStatOp evaluates its parent twice, once whole and once as the window"
+      ],
+      "forces_unnoticed": [
+        "cost rule (evaluate whole when footprints cost about as much as the whole)",
+        "tile size against reach / tiles"
+      ],
+      "dead_or_ornamental": [
+        "impl-B/stencilpipe/engine.py:55 Node.whole_window: never called",
+        "impl-B/stencilpipe/windows.py:107-111 Footprint __eq__/__hash__: no caller",
+        "impl-B/stencilpipe/engine.py:147-149 demo_engine returns a bare Engine(); the engine owns no registry, so the 'demo' is the module-global REGISTRY",
+        "impl-B/stencilpipe/buffers.py:42-48 Buffer.empty/area: unused"
+      ],
+      "next_change_touches": [
+        "impl-B/stencilpipe/operations.py: new DyOp with footprint grow(0, 1) and run mirroring DxOp (:182-204)",
+        "impl-B/stencilpipe/operations.py: new Up2Op with extent and a hand-written floor/ceil map-back footprint like HalfOp's inline arithmetic (:229-236); Window has no map helper",
+        "impl-B/stencilpipe/operations.py:328-334 REGISTRY: two entries",
+        "impl-B/stencilpipe/__init__.py:20-53 and operations.py:25-35: explicit export lists"
+      ],
+      "smells": [
+        {"smell": "global mutable state", "where": "impl-B/stencilpipe/operations.py:328", "why": "the module-level REGISTRY is the engine's registry; tests monkey-patch it with a decorator (impl-B/tests/test_guard.py:45-64)"},
+        {"smell": "middle man", "where": "impl-B/stencilpipe/windows.py:77-105", "why": "Footprint only wraps Optional[Window], with of/whole/resolve"},
+        {"smell": "duplicated code", "where": "impl-B/stencilpipe/operations.py:117-120", "why": "each op calls _bind and super().__init__ by hand; the argument schema is repeated per class"},
+        {"smell": "long line / dense test", "where": "impl-B/tests/test_guard.py:110", "why": "rebuilds the four-op chain inside a nested loop on one line"}
+      ],
+      "best_thing": "The guarded Buffer: every input, including sources, is cut to its declared footprint, so a short reach raises at once, and the guard tests prove it with deliberately wrong ops (impl-B/tests/test_guard.py:77-96).",
+      "worst_thing": "No cache anywhere: the split statistic and its whole input are recomputed for every window, so the expensive case the chapter targets (many small windows of a normalised view) costs a whole grid each time."
+    },
+    "C": {
+      "summary": "A recursive region evaluator over plain (x,y,w,h) tuples: ops declare footprint(window, index), and the engine passes guarded Regions (which raise FootprintError) to op.run, which must report its own cell count through a callback. normalize is built as Normalize(parent, MaxStat(parent)), and only nodes flagged cache_whole (the statistic) keep their whole value.",
+      "scores": {"forces": 4, "adapted": 4, "wholeness": 4, "habitability": 4, "growth": 4, "smells": 3, "tests": 4},
+      "forces_resolved": [
+        "declared against discovered reach: Region guards every input, sources included, and the error names the consumer (impl-C/stencilpipe/geometry.py:140-157, impl-C/stencilpipe/engine.py:126-130)",
+        "local against global: MaxStat is a 1x1 node with a WHOLE footprint, wired by _build_normalize (impl-C/stencilpipe/engine.py:161-169, impl-C/stencilpipe/ops.py:208-237)",
+        "keep the best case, where it matters: the statistic's exact whole value is cached once per engine (impl-C/stencilpipe/engine.py:107-110, 135-136); three normalize windows cost 425 cells",
+        "border at the real border: Region carries the whole extent and Half asks it whether 2x+1 exists (impl-C/stencilpipe/ops.py:146-148, 162)",
+        "windows first, tiles second, as a stated decision: no cost rule, no tiles, no memo (impl-C/stencilpipe/__init__.py:32-33)"
+      ],
+      "forces_in_tension": [
+        "exactness against the fixed whole-grid definition: Box and Half sum row slices first (impl-C/stencilpipe/ops.py:107-109, 173), so 445 of 600 box cells differ in the last bits from the naive TASK formula; the whole-grid tests were loosened to isclose (impl-C/tests/support.py:166-175, impl-C/tests/test_operations.py:40,52). Window equals whole only against its own whole run",
+        "small requests against shared work: overlapping windows recompute (impl-C/stencilpipe/engine.py:84-86)"
+      ],
+      "forces_unnoticed": [
+        "tile size against reach (explicitly declined, not weighed)"
+      ],
+      "dead_or_ornamental": [
+        "impl-C/stencilpipe/ops.py:26,216 is_global: set, never read",
+        "impl-C/stencilpipe/geometry.py:65 cut_grid: its docstring says cached values use it, but the engine uses Region.from_grid; exported only",
+        "impl-C/stencilpipe/__init__.py:37-70 exports ten geometry helpers that no caller needs"
+      ],
+      "next_change_touches": [
+        "impl-C/stencilpipe/ops.py: new Dy (footprint grow_window(window, 0, 1)) and Up2 (output_size, floor/ceil footprint, run); each must remember to call count(w*h)",
+        "impl-C/stencilpipe/engine.py:20 import, and :172-178 BUILDERS gets two _build_unary entries",
+        "impl-C/stencilpipe/__init__.py:48, 50-70: imports and exports"
+      ],
+      "smells": [
+        {"smell": "duplicated knowledge / shotgun surgery", "where": "impl-C/stencilpipe/ops.py:69,111,138,176,204,236", "why": "every op ends with count(w*h); counting belongs to the evaluator, and an op that forgets undercounts silently"},
+        {"smell": "divergent change", "where": "impl-C/stencilpipe/engine.py:172-178", "why": "an op's builder lives in engine.py, away from its class in ops.py, so each new op is two edits in two files"},
+        {"smell": "primitive obsession", "where": "impl-C/stencilpipe/geometry.py:24-62", "why": "windows are bare 4-tuples unpacked by index (is_empty uses window[2], window[3])"},
+        {"smell": "dead flag", "where": "impl-C/stencilpipe/ops.py:26", "why": "is_global duplicates what the WHOLE footprint already says"}
+      ],
+      "best_thing": "Cache only the statistic node's exact whole value (cache_whole): the one cache the split needs, a few lines, without a general cache.",
+      "worst_thing": "Optimising the summation order inside Box/Half changed whole-grid values, and the tests were relaxed to hide it, although the task fixes the whole-grid formula."
+    },
+    "D": {
+      "summary": "A recursive region evaluator laid out as the chapter's participant list: Window, a WHOLE footprint sentinel with resolve/footprints, Buffer plus a Guarded view, a self-describing Operation registry (NAME/KIND/REACH/IS_GLOBAL/spec), a statistic split (Divide over MaxAll), a per-request window memo, and an invariance checker shipped inside the library. A cost rule and a whole-value cache exist as Engine options, both off in demo_engine.",
+      "scores": {"forces": 4, "adapted": 3, "wholeness": 2, "habitability": 3, "growth": 4, "smells": 2, "tests": 5},
+      "forces_resolved": [
+        "declared against discovered reach, both directions: the guard catches a short reach (impl-D/stencilpipe/values.py:79-82) and the audit test records actual reads and asserts they equal the declared footprint, which also catches an over-wide one (impl-D/tests/test_footprint_audit.py:73-79, 95-102)",
+        "exactness: check_invariance compares fresh-engine windows to whole-then-cut with == (impl-D/stencilpipe/invariance.py:19-48), plus a bit-level hex comparison (impl-D/tests/test_windows.py:140-156)",
+        "local against global: Normalize.build wires divide(in, max_all(in)) (impl-D/stencilpipe/operations.py:245-252)",
+        "border at the real border: ops read Guarded.bounds (impl-D/stencilpipe/operations.py:94-103)",
+        "cost rule: per node and per window (impl-D/stencilpipe/engine.py:187-191, 207-211)"
+      ],
+      "forces_in_tension": [
+        "keep the best case: the whole cache is off by default (impl-D/stencilpipe/engine.py:108, 219-221), so the demo engine recomputes max_all and its whole input for every window (1227 cells for three normalize windows)",
+        "small requests against shared work: the memo lasts one request (impl-D/stencilpipe/engine.py:160) and evaluate_many does not share (:163-165)"
+      ],
+      "forces_unnoticed": [
+        "tile size against reach (no tiles, no comment on it)"
+      ],
+      "dead_or_ornamental": [
+        "impl-D/stencilpipe/operations.py:29-32 KIND/IS_GLOBAL/REACH: read only by spec()/describe(), never by the evaluator",
+        "impl-D/stencilpipe/engine.py:105-109 whole_cache and cost_rule_fraction: no caller outside tests",
+        "impl-D/stencilpipe/window.py:62-67 empty_at and area(): unused",
+        "impl-D/stencilpipe/values.py:84-92 Guarded.get_all and the window alias: unused",
+        "impl-D/stencilpipe/engine.py:54-64 Node.evaluate and Node.spec: convenience with no caller in the library",
+        "impl-D/stencilpipe/invariance.py and window.py:107-133 default_windows: test machinery inside the shipped package"
+      ],
+      "next_change_touches": [
+        "impl-D/stencilpipe/operations.py: two classes, each with NAME, KIND, REACH, params, footprint and run; REACH must be kept in step with footprint by hand",
+        "impl-D/stencilpipe/window.py:91-94: scale(fx, fy, fw, fh) only multiplies; Up2 needs a floor/ceil inverse map, which means a new helper or inline arithmetic",
+        "impl-D/stencilpipe/operations.py:269 register tuple",
+        "impl-D/tests/helpers.py:36-70, 91-164: OP_CASES, CHAINS and the reference class"
+      ],
+      "smells": [
+        {"smell": "duplicated knowledge", "where": "impl-D/stencilpipe/operations.py:86-90", "why": "Box sets REACH=(r,r) and also footprint grow(r,r); Dx does the same at :120,125-126; the two can drift"},
+        {"smell": "speculative generality", "where": "impl-D/stencilpipe/engine.py:105-109", "why": "cost rule and whole cache are off in the only engine the task uses"},
+        {"smell": "refused bequest", "where": "impl-D/stencilpipe/operations.py:254-255, 269", "why": "Normalize's run raises NotImplementedError, and divide/max_all are registered as user-callable, but call('divide') on one input fails with an IndexError"},
+        {"smell": "silent defaults", "where": "impl-D/stencilpipe/operations.py:66, 82", "why": "add() without k and box() without r are accepted (k=0, r=1), although the task signatures require them"},
+        {"smell": "middle man", "where": "impl-D/stencilpipe/values.py:62-82", "why": "Guarded wraps Buffer, which already bounds-checks; there are two guard layers per read"}
+      ],
+      "best_thing": "The footprint audit: record the cells an op actually reads and assert they equal its declared footprint, which turns 'declared against discovered reach' into a law (impl-D/tests/test_footprint_audit.py:59-79).",
+      "worst_thing": "Building every participant and optional variation named in the chapter, with metadata (REACH/KIND) that duplicates the footprint code and options no caller turns on."
+    },
+    "E": {
+      "summary": "A two-phase solver per request: demand propagation walks the graph consumer-first, collecting each node's input_region rectangles (deduplicated by containment), then compute walks producer-first and fills a sparse per-node store cell by cell, counting each cell once. normalize asks for its whole input and computes its maximum in a prepare hook once per request.",
+      "scores": {"forces": 3, "adapted": 4, "wholeness": 4, "habitability": 4, "growth": 5, "smells": 4, "tests": 3},
+      "forces_resolved": [
+        "exactness: per-cell formula identical to the whole-grid definition, in absolute coordinates (impl-E/stencilpipe/ops.py:122-135, 146-148)",
+        "small requests against shared work: within one request, overlapping windows, evaluate_many and diamonds compute each cell once (impl-E/stencilpipe/engine.py:157-166, 300-314; impl-E/tests/test_stencilpipe.py:356-362, 409-435)",
+        "reaches add along a chain: demand is propagated per node in topological order, iteratively, so a 400-deep chain works (impl-E/stencilpipe/engine.py:131-143, 190-207; impl-E/tests/test_stencilpipe.py:544-550)",
+        "local against global: whole-input demand, and the maximum is computed once per request even for several windows (impl-E/stencilpipe/ops.py:187-199; impl-E/tests/test_stencilpipe.py:552-557)"
+      ],
+      "forces_in_tension": [
+        "keep the best case: nothing survives a request; the tests assert recomputation (impl-E/tests/test_stencilpipe.py:333-344), so a repeated normalize window again costs the whole input",
+        "declared against discovered reach: no guard; ctx.get reads sources directly (impl-E/stencilpipe/engine.py:110-115), so a short reach over a source goes unnoticed, and over an op node it surfaces as a bare KeyError",
+        "regions.normalise assumes every footprint is monotone (impl-E/stencilpipe/regions.py:64-71); this is stated but not checked"
+      ],
+      "forces_unnoticed": [
+        "split of global parameter from local application (no statistic node)",
+        "cost rule",
+        "tile size against reach"
+      ],
+      "dead_or_ornamental": [
+        "impl-E/stencilpipe/engine.py:272-274 combine: an alias of apply with no caller",
+        "impl-E/stencilpipe/engine.py:57-67 width/height/shape alongside extent: four names for one fact",
+        "impl-E/stencilpipe/demo.py:1-12: a module for a three-line function"
+      ],
+      "next_change_touches": [
+        "impl-E/stencilpipe/ops.py: new Dy (input_region Rect(x, y-1, w, h+2), cell clamped on y) beside Dx at :138",
+        "impl-E/stencilpipe/ops.py: new Up2 (out_extent, floor/ceil input_region, cell ctx.get(0, x//2, y//2)) beside Half at :151",
+        "impl-E/stencilpipe/ops.py:208 DEMO_OPS tuple",
+        "impl-E/stencilpipe/__init__.py:16, 19-30: explicit import and export lists"
+      ],
+      "smells": [
+        {"smell": "feature envy", "where": "impl-E/stencilpipe/engine.py:110-115", "why": "_Context.get reaches into solution.stores[source][y][x] and the source's raw grid"},
+        {"smell": "alternative names", "where": "impl-E/stencilpipe/engine.py:248-274", "why": "apply, combine and Node.call all build nodes"},
+        {"smell": "unchecked assumption", "where": "impl-E/stencilpipe/regions.py:66-71", "why": "dropping contained rectangles is correct only for monotone footprints, and nothing enforces that"}
+      ],
+      "best_thing": "Separate demand from compute: union each node's demanded rectangles first, then compute each cell once. This gives shared work for evaluate_many and diamonds without a persistent cache.",
+      "worst_thing": "No guard and no cross-request reuse: a new op's short reach is only noticed when it sits above another op, and a global statistic is recomputed whole on every call."
+    }
+  },
+  "generativity": {
+    "shared_seams": [
+      {"seam": "per-op footprint method mapping an output rect to an input rect (input_rect / footprint / input_region)", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "per-op static output extent (out_extent / extent / output_size / output_extent), so building computes nothing", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "evaluator clips every footprint to the input's extent; ops apply border rules from the whole extent, not the buffer", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "reads in absolute coordinates", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "explicit guarded buffer raising FootprintError, sources included", "in": ["B", "C", "D"]},
+      {"seam": "global split: 1x1 max statistic node wired as a second input of a local divide", "in": ["B", "C", "D"]},
+      {"seam": "global read kept inside one op: whole-input footprint plus a prepare/state hook", "in": ["A", "E"]},
+      {"seam": "per-cell formula plus a sparse store of computed cells (dedup, implicit guard)", "in": ["A", "E"]},
+      {"seam": "op.run computes a whole window as rows", "in": ["B", "C", "D"]},
+      {"seam": "invariance test on fresh engines against whole-then-cut", "in": ["B", "C", "D"]}
+    ],
+    "groups": [["A", "E"], ["B", "C", "D"]],
+    "notes": "Every implementation converged on the same core: declared footprint, clip to extent, absolute coordinates, border from the whole extent. They split on the unit of work. A and E compute cells into a sparse absolute-keyed store. That gives sharing for overlapping windows, and a short footprint becomes a crash, not silent drift, so they never needed a guard. B, C and D compute window buffers. They needed an explicit guard and an explicit statistic node, and they differ only in caching: none in B, the statistic only in C, optional and off by default in D. Within the groups, A's cache persists across calls (spans) while E's lasts one request (two-phase demand/compute). D is B/C plus every optional participant. Up2 in NEXT.md exposes a common gap: none has an inverse-map helper with floor/ceil rounding, because half was mapped back by multiplication alone in every implementation."
+  },
+  "worse_is_better": "C reaches D's quality on the forces this task has: an explicit guard on sources, a split and cached statistic, and fresh-engine invariance tests, in about 650 library lines against D's 880. It does without D's cost rule, optional whole cache, per-request memo, spec/describe/KIND/REACH metadata, two-layer Buffer+Guarded and in-package invariance checker. None of those is needed: the demo ops are cheap per cell, the cost rule and cache are off in demo_engine, and REACH duplicates footprint(). B is smaller still, but it shows where 'less' becomes too little: without C's few lines of statistic caching, every normalize window recomputes a whole grid. In the other group, E reaches A's sharing and exactness without A's interval-merging _Spans and its unbounded cross-call cache.",
+  "ranking": ["A", "C", "B", "E", "D"],
+  "chapter_lessons": [
+    "The chapter treats storage as tiles or windows, but the code shows a third option it should name. A per-cell sparse store keyed by absolute coordinates (A, E) gives overlap sharing without a tile grid. It also turns the chapter's main risk, a short footprint that fails silently at window edges, into a crash, because an uncomputed cell simply is not there. The footprint guard is needed only for dense, offset-addressed buffers (B, C, D).",
+    "Tie the statistic split to its cache explicitly. B and D split normalize into a max node and a divide, but without a cache they recompute the max and its whole input for every window (1227 cells against 412-425 for A, C, E on three windows). The split matters for windows only if the statistic's whole value is kept.",
+    "Mark the optional participants (cost rule, whole cache, tiles, self-describing reach metadata) as optional with a test for when to build them. D built them all, off by default, with only tests as callers, and its REACH metadata duplicates footprint().",
+    "Give the rounding rule for inverse maps: floor the start, ceil the end. Every implementation mapped half back by multiplication and none has a helper that up2 (or any non-integer resample) can reuse.",
+    "Say that 'exact' means equal to the fixed whole-grid definition, not only to the engine's own whole run, and test against an independent reference with ==. C reordered summation for speed, stayed window-equals-whole, but drifted from the task formula and loosened its tests to isclose.",
+    "Note 1's warning that caches hide footprint errors needs a concrete rule: evaluate each test window on a fresh engine. A's per-op window test reuses one engine and asks for the whole extent first (impl-A/tests/test_windows.py:43-56), so every later window is served from cache."
+  ]
+}

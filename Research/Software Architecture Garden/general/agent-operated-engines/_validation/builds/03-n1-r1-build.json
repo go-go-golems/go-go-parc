@@ -1,0 +1,56 @@
+{
+  "summary": "gridflow is a standard-library Python 3 package that implements the Content-Keyed Lazy Graph: every operation call returns an interned node (op name + canonical arguments + input hashes), nothing runs until eng.evaluate(), and values are stored frozen in a SHA-256-signature-keyed, byte-budgeted LRU cache and replayed with the warnings of their whole subgraph. eng.within() turns a function argument into an ordinary subgraph by substitution, so a sub-pipeline shares nodes and cache entries with the same pipeline written directly. The suite of 140 unittest tests passes (python3 -m unittest discover -s tests -> Ran 140 tests, OK).",
+  "files": [
+    "gridflow/__init__.py",
+    "gridflow/errors.py",
+    "gridflow/canonical.py",
+    "gridflow/node.py",
+    "gridflow/ops.py",
+    "gridflow/cache.py",
+    "gridflow/engine.py",
+    "gridflow/demo.py",
+    "tests/test_canonical.py",
+    "tests/test_build.py",
+    "tests/test_evaluate.py",
+    "tests/test_within.py",
+    "tests/test_cache.py",
+    "tests/test_demo.py",
+    "tests/test_integration.py",
+    "README.md",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Node": "gridflow/node.py: Node (immutable, __slots__, structural .hash), make_node(), node_hash(); kinds source / op / placeholder",
+    "Builder": "gridflow/engine.py: Engine._build (bind against the record, refuse non-canonical args, intern by hash), Engine.source, Engine.within/_substitute; the refusal rule itself is gridflow/canonical.py: canonical()",
+    "Source": "gridflow/engine.py: Engine.source() — a leaf whose identity is a content digest (canonical.py: grid_digest/freeze_grid), so equal content is one node",
+    "Signature": "gridflow/engine.py: Engine._signature() = SHA-256(node.hash, op.version, registration serial, quantised params, input signatures), with quantize_scale() rounding scale to 1e-4 at the request",
+    "Evaluator": "gridflow/engine.py: Engine.evaluate() / _evaluate() (memo, cache, identity short-cut, run + freeze + store), _Ctx (ctx.scale, ctx.warn), _merge_warnings, Result",
+    "Run memo": "gridflow/engine.py: the per-request `memo` (signature -> Entry) and `signatures` dict created in Engine.evaluate() and threaded through _evaluate",
+    "Value cache": "gridflow/cache.py: ValueCache + Entry — OrderedDict LRU, byte budget, evicts before inserting, refuses an entry larger than the budget, keeps hits/misses/bytes/evictions",
+    "In-flight group": "Deliberately omitted: no concurrent callers in this API (chapter note 9). Documented in the Engine module docstring",
+    "Operation record (Chapter 1)": "gridflow/ops.py: OpRecord / OpRegistry (name, fn, version, identity predicate, registration serial)"
+  },
+  "notes_applied": [
+    "Note 1 (intern at build time, refuse what has no canonical form): canonical() gives one spelling per value (1 == 1.0, list == tuple, dict order irrelevant, -0.0 == 0.0) and raises E_ARG for callables/opaque objects; _build returns the existing node for an equal call.",
+    "Note 2 (quantise where the request enters, compute at the quantised value): quantize_scale() rounds to 1e-4 in evaluate() before the key or the operation sees it; Result.scale and ctx.scale are the rounded value, tested to share an entry for 0.5 vs 0.50004.",
+    "Note 3 (keys must identify the implementation): the signature mixes the operation version *and* a per-name registration serial, so re-registering a name (which TASK.md allows) can never serve a predecessor's value.",
+    "Note 4 (wide keys, no collision bookkeeping): SHA-256 through canonical.py: digest().",
+    "Note 6 (function arguments become subgraphs): within() runs build(placeholder) once, then _substitute() re-interns every node on the path, so within(m, p => p.gain(2)) shares the gain node and its cache entry with a direct pipeline; evaluating an escaped placeholder raises E_PLACEHOLDER.",
+    "Note 7 (store values frozen, copy only where a value leaves the graph): values are tuples of tuples; evaluate() returns thaw_grid() copies; the identity short-cut returns the input's frozen value without copying and without caching.",
+    "Note 8 (store what the computation reported with the value): entries carry the de-duplicated warnings of the whole subgraph below plus the node's own, replayed on every hit; an entry too large to cache still reports its warnings.",
+    "Note 9 (share in-flight work only with concurrent callers): not applicable and omitted, recorded in the diary.",
+    "Note 10 (budget the cache, evict before inserting, budget bounds values not the graph): ValueCache evicts LRU before insert so it can never evict the entry it is storing; node_count() is exposed and the intern table's release rule is end-of-session (clear_cache() drops values only).",
+    "Note 11 (make evaluation points explicit): evaluate() is the only place a value leaves the graph; building runs nothing (tested via runs() == 0 and stats()).",
+    "Note 5 (leave out of the key what cannot affect the value): partially — only node hash, op version, params and input signatures enter the key, and neutral calls are excluded from the cache entirely."
+  ],
+  "tests": "140 tests across 7 modules (test_canonical 20, test_build 23, test_evaluate 36, test_within 23, test_cache 11, test_demo 20, test_integration 7); last run: `python3 -m unittest discover -s tests` -> Ran 140 tests in 0.026s, OK.",
+  "chapter_feedback": [
+    "Helped: the Structure table and the sketch determined the module split and the exact evaluation order (signature -> memo -> cache -> compute -> freeze -> store), and notes 7 and 8 (freeze; warnings stored with the value and replayed) gave behaviours I would probably have skipped.",
+    "Misled: the sketch says a placeholder 'hashes to a constant'. In a builder that interns, that is a live bug: nodes built on two different holes are interned as one node holding the first hole, so the second hole's substitution finds nothing to replace (I hit E_PLACEHOLDER on nested within and two unequal nodes for equal within calls). Unique placeholder hashes plus dropping the scaffolding nodes fixed both.",
+    "Misled: the sketch's evaluate() checks the cache before the identity short-cut, so every neutral call counts as a cache miss; I check identity first so a neutral call is neither hit nor miss, which matches 'A neutral call returns its input's value, uncached'.",
+    "Inconsistent: the sketch's identity path returns `copy(ins[0], meta: n.meta)` while note 7 says the identity short-cut 'needs no copy'. I followed note 7 (no copy; the caller gets a copy at the request boundary).",
+    "Left to guess: what stats should count — sources, neutral nodes and run-memo hits are all undefined in the chapter; I documented my choice in Engine.stats and the diary.",
+    "Left to guess: error classes for out-of-range parameters. The chapter names E_ARG/E_PLACEHOLDER/E_NOT_AWAITED but says nothing about evaluation-parameter validation, so scale range errors are a ParameterError that is both an EvalError and a ValueError, and build refusals are a BuildError that is both an EvalError and a TypeError.",
+    "Left to guess: whether within should compute the sub-pipeline only inside the mask (the whole grid is computed here). The chapter defers region keys to Chapter 4 but does not say what a non-region implementation should do, so the cost is documented rather than hidden."
+  ]
+}

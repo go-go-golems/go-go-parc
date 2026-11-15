@@ -1,0 +1,55 @@
+{
+  "summary": "Built gridflow, a standard-library-only Python package where every operation call returns an interned node (structural SHA-256 hash of the operation, its canonical arguments and its input hashes) and no value exists until Engine.evaluate is called; each value is cached as frozen tuples under a signature built from the node hash, the operation version, the quantised evaluation scale and the input signatures, in an LRU cache with a byte budget. Engine.within runs a builder once against a placeholder node and substitutes the real input throughout the subgraph, re-interning each node, so masked edits share nodes and cache entries with the same pipeline written directly. Demo operations (add, gain with an identity rule, scale-aware blur, threshold) plus 88 tests cover laziness, interning, cache hits, scale quantisation, warning replay, eviction arithmetic and every refusal the chapter requires.",
+  "files": [
+    "gridflow/__init__.py",
+    "gridflow/errors.py",
+    "gridflow/canonical.py",
+    "gridflow/engine.py",
+    "gridflow/demo.py",
+    "tests/test_build.py",
+    "tests/test_evaluate.py",
+    "tests/test_cache.py",
+    "tests/test_scale.py",
+    "tests/test_within.py",
+    "tests/test_errors.py",
+    "tests/test_demo.py",
+    "tests/test_api.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Node": "gridflow/engine.py: class Node (op, canonical args, input nodes, structural hash; a source node has op None); built only by Engine._intern, immutable by convention, holds no value",
+    "Builder": "gridflow/engine.py: Engine._build (binds a call against its registry record, validates inputs, refuses non-canonical arguments via canonical.canonical, interns by hash) plus Engine._substitute and Engine.within (function arguments turned into ordinary subgraphs)",
+    "Source": "gridflow/engine.py: Engine.source -- a leaf whose identity is a hash of its content (canonical.freeze_grid + digest), so equal content is one node",
+    "Signature": "gridflow/engine.py: Engine._signatures -- bottom-up hash of node hash, operation version, quantised params and input signatures; a source's signature is its own content hash",
+    "Evaluator": "gridflow/engine.py: Engine.evaluate (quantises the scale, builds the signature table, thaws the copy that leaves the graph) and Engine._eval (run memo, cache lookup, identity short-cut, in-order input evaluation, warn collection, freeze, store)",
+    "Run memo": "gridflow/engine.py: the `memo` dict created per request in Engine.evaluate and threaded through Engine._eval -- signature to (value, warnings), so a diamond's shared input is computed once even with cache_bytes=0",
+    "Value cache": "gridflow/engine.py: Engine._cache (OrderedDict of _Entry: frozen value, subgraph warnings, byte size) with Engine._store and Engine._evict_until (LRU, evict before insert, refuse values larger than the whole budget)",
+    "In-flight group": "deliberately absent (gridflow/engine.py, comment in Engine._eval): evaluation is single-threaded and in order, so single-flight work-sharing would be dead weight (note 9)",
+    "Function-argument substitution": "gridflow/engine.py: Engine.within, Engine._substitute, the singleton placeholder node (constant hash, evaluation raises E_PLACEHOLDER) and the internal 'within' operation (_within_fn)",
+    "Chapter 1's operation registry": "gridflow/engine.py: class Operation and Engine.op -- name, fn, version, identity rule, per-registration revision, internal flag"
+  },
+  "notes_applied": [
+    "Note 1 (intern at build time, refuse what has no canonical form): canonical.canonical() gives one spelling per value (1 == 1.0, -0.0 == 0.0, sorted map keys, list/tuple identical) and raises ArgumentError with E_ARG for functions, sets, iterators, bytes and opaque objects, at build time; Engine._hash_call then interns on op/internal flag, name, version, revision, canonical args and input hashes.",
+    "Note 2 (quantise where the request enters, compute at the quantised value): Engine.evaluate calls _quantise() before anything else and the same quantised number is what ctx.scale returns and what enters every signature, so key and work can never disagree; scale <= 0, > 1, NaN, bools and non-numbers are refused.",
+    "Note 3 (the key must carry the implementation version): the operation's version and a per-registration revision are in the node hash, so replacing an operation under the same name cannot serve values computed by the old implementation (test_replacing_an_operation_changes_future_nodes).",
+    "Note 4 (make the key wide enough, then stop): all node hashes and signatures are 256-bit SHA-256 over canonical text, so no collision detection or salting is needed.",
+    "Note 5 (leave out of the key what cannot affect the value): a source's signature is its content hash only -- content does not depend on the scale -- and the neutral short-cut is decided from the arguments alone.",
+    "Note 6 (turn a function argument into an ordinary subgraph at build time): Engine.within runs build() once against a constant-hash placeholder, memoized recursive Engine._substitute re-interns only nodes on the changed path, and an escaped placeholder raises PlaceholderError (E_PLACEHOLDER) instead of yielding a value; nested within inside a builder is tested.",
+    "Note 7 (store frozen, copy out where a value leaves the graph): canonical.freeze_grid returns tuples of tuples (operations receive that form and mutation fails with TypeError), the cache stores only frozen values, Engine.evaluate returns a fresh list-of-lists via thaw_grid, and the identity short-cut returns its input's frozen value without caching it.",
+    "Note 8 (store what the computation reported with the value): each _Entry keeps the warnings of its whole subgraph plus its own, replayed on every cache hit; a diamond reports a shared input's warnings once; ctx.warn de-duplicates within one evaluation; a value too large to cache still reports its warnings at once.",
+    "Note 9 (share in-flight work only with concurrent callers): no single-flight group; inputs are evaluated in order in one thread, which the diary records as a deliberate omission.",
+    "Note 10 (budget the cache, make the policy a setting, know what the budget does not bound): LRU with a byte budget, _store evicts before inserting and refuses values larger than the whole budget, stats() reports hits/misses/bytes/evictions, and the node table is deliberately unbounded (a 3000-node chain still evaluates).",
+    "Note 11 (make evaluation points explicit): a Node holds no grid and exposes no value; Engine.evaluate is the only place a value is produced, which is why building a node leaves runs() == 0 and stats()['bytes'] == 0."
+  ],
+  "tests": "88 tests in 8 files under tests/ (build, evaluate, cache, scale, within, errors, demo, api) including a 40-case seeded brute-force reference for blur; last run `python3 -m unittest discover -s tests` -> Ran 88 tests in 0.016s, OK.",
+  "chapter_feedback": [
+    "The participant table mapped almost one-to-one onto the required interface, which made the design phase fast; the one gap was that `within(node, mask, build)` is a masked blend, not just a function argument, so the chapter's 'within(img, mask, f)' sketch had to be extended with what the mask means at the edges (blend, not multiply).",
+    "Note 7's 'copy one only where it leaves the graph' was the single most useful sentence: it settles what operations receive, what the cache holds, what the identity path returns and what evaluate() hands back, and getting it wrong in either direction silently breaks either correctness or sharing.",
+    "The chapter says warnings of 'the whole subgraph below it' are stored per entry but does not say what happens when the same signature appears twice under one node (a diamond). I chose to report a shared input's warnings once; a sentence on diamond de-duplication would remove the guess.",
+    "Note 2's scale quantisation was clear, but the chapter does not say what to do when a scale quantises to zero (round(0.00004, 4) == 0.0), which would divide by zero in a proportional-radius operation; I clamp to 1e-4 and test it.",
+    "The 'Smallest form' variation lists exactly the features the task does not require (no run memo, no in-flight group, no function arguments), but the task *does* require function arguments, so I built the smallest form plus `within` plus a run memo -- the chapter could say which combination of variations is the common floor.",
+    "Note 9 warns that a bounded worker pool deadlocks and suggests a thread per signature; for a synchronous library the useful advice would be that in-order evaluation is the right default, which I inferred rather than read.",
+    "Leaving out 'output keys / early cutoff' (Variations) was easy to justify here because gridflow's sources never change within a session, and the chapter says as much for goja-cv -- that cross-reference saved a design detour.",
+    "Nothing in the chapter tells you how to make `stats()` meaningful (are memo hits 'hits'?), so I defined hits as value-cache hits and misses as actual operation executions and documented that choice; a one-line definition in the chapter would prevent divergent implementations."
+  ]
+}

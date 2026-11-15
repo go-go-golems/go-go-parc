@@ -1,0 +1,53 @@
+{
+  "summary": "labelbook is a standard-library-only Python package that stamps every proposed label with a provenance record (maker kind and identifiers, inputs with sha256 content hashes, code version, time), appends every review decision as an immutable event ordered by a sequence number assigned inside a file lock, and derives state through one shared fold that owns the status vocabulary. Lineage queries (source_of, made_by, acceptance) all read maker fields through a single matcher, and exports are themselves stamped creating paths: plain {\"item\",\"label\"} rows plus a sidecar bound to the bytes by a content hash that names the exported label ids and their makers. Everything lives in one directory as JSON lines beside a schema.json, so a second Ledger on the same directory sees the same state.",
+  "files": [
+    "labelbook/__init__.py",
+    "labelbook/schema.py",
+    "labelbook/storage.py",
+    "labelbook/provenance.py",
+    "labelbook/model.py",
+    "labelbook/folding.py",
+    "labelbook/lineage.py",
+    "labelbook/exporting.py",
+    "labelbook/ledger.py",
+    "tests/test_api.py",
+    "tests/test_fold_азаңдаlaws.py",
+    "tests/test_export.py",
+    "tests/test_concurrency.py",
+    "README.md",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Provenance record": "labelbook/provenance.py: stamp() returns {kind, ids, inputs[{ref,hash,size,mtime}], version, at}; stored on every line of labels.jsonl via labelbook/model.py: Artefact",
+    "Stamper": "labelbook/provenance.py: stamp() — called by Ledger.add_label for labels and by provenance.stamp_program() in Ledger.export (exports are creating paths too)",
+    "Schema": "labelbook/schema.py: build_schema()/ensure_schema() write schema.json (fields, units, allowed makerKinds, decisions, statusOf, decided, accepting, foldVersion, policy.anonymous) beside the data; check_maker_kind()/check_decision() enforce every allowed-value list at creation",
+    "Lineage queries": "labelbook/lineage.py: source_of(), made_by(), acceptance(), exclude_from(); ledger.source_of / made_by / acceptance / unstamped delegate to them",
+    "Maker matcher": "labelbook/lineage.py: matches() plus field_value() — the only place that knows provenance layout; used by made_by, acceptance and export exclusion",
+    "Decision event": "labelbook/ledger.py: Ledger.decide() builds {seq, label_id, decision, actor, at, reason, new_label}; undo is one of them",
+    "Decision log": "decisions.jsonl, appended by labelbook/storage.py: append_under_lock() — one os.write with O_APPEND under flock, seq allocated inside the same lock",
+    "Fold": "labelbook/folding.py: fold() owns STATUS_OF/status vocabulary, the label in force (last live correction else original), undo marking, and returns (states, problems) with FOLD_VERSION; Ledger.state/acceptance/export read only through it",
+    "Locked append": "labelbook/storage.py: file_lock() (flock + thread lock) and append_record()/append_under_lock(); ids from provenance.new_id() (uuid4), never max+1",
+    "Export + sidecar": "labelbook/ledger.py: Ledger.export() + labelbook/exporting.py: save_stamped()/load_stamped() — content hash binds the sidecar, carries names each exported label's maker"
+  },
+  "notes_applied": [
+    "Note 1 (stamping impossible to forget): Artefact's constructor refuses a provenance record without a kind, add_label is the only label-creating path and always stamps, exports are stamped and logged in exports.jsonl, and lines without provenance read back as kind: unknown and are listed by Ledger.unstamped().",
+    "Note 3 (undo is an event, order is a sequence number): undo marks the latest live decision undone and history keeps it; fold sorts by seq, never by clock.",
+    "Note 4 (define the label in force, test it as laws): corrections overlay the original, the label in force is the last live correction else the original, status from the last live decision; tests/test_fold_laws.py checks the laws plus 120 random sequences against an independent reference model.",
+    "Note 5 (one fold owns the vocabulary): labelbook/folding.py is the only mapping from decision to status and from live decisions to label; unknown decisions and 'correct without new_label' are reported with the event and foldVersion, never guessed or folded as rejections.",
+    "Note 6 (match makers in one place): matches()/field_value() in labelbook/lineage.py back made_by, acceptance and export exclusion; maker identifiers win over stamp fields with the same name (e.g. a maker's own 'version').",
+    "Note 7 (several writers need atomic appends and collision-free ids): uuid4 ids plus one os.write with O_APPEND under flock (and a thread lock); seq allocated under the same lock; tests/test_concurrency.py runs 4 forked processes writing 100 labels and 40 decisions and checks no id or seq is shared.",
+    "Note 8 (record who decided, unless policy forbids): decide() refuses a missing or blank actor with ValueError, and schema.json records policy.anonymous = false with a note about roles/pseudonyms.",
+    "Note 9 (schema beside the data, enforce the lists): schema.json is written into the ledger directory and read back; unknown maker kinds and decisions raise ValueError at creation.",
+    "Note 10 (bind a sidecar to its content and to the labels it carries): <export>.provenance.json holds contentHash of the exact bytes, the export's provenance, and carries[{id, item, maker{kind, ids}, at}]; load_stamped() treats a missing or hash-mismatched sidecar as unstamped.",
+    "Note 11 (hash inputs that may change): each input is recorded as {ref, sha256 hash, size, mtime}; a missing file is recorded with null hash rather than a bare path."
+  ],
+  "tests": "46 tests in 4 modules (test_api.py 25, test_fold_laws.py 11, test_export.py 9, test_concurrency.py 2) covering the public interface, error cases, lineage queries, fold laws against a reference model, export sidecars and four concurrent processes; last run: python3 -m unittest discover -s tests -> Ran 46 tests, OK.",
+  "chapter_feedback": [
+    "The chapter's participant table and sketch were directly translatable into modules; the 'one fold, one matcher, one stamper' notes made the boundaries obvious and checkable, which is the most useful part of the chapter.",
+    "It left me guessing on one point the task needs: whether artefacts the system itself creates (exports) may use a maker kind outside person/agent/detector. I kept 'program' in the schema's makerKinds but restricted add_label to the task's three kinds, which is a decision the chapter does not make.",
+    "The chapter's acceptance formula divides by count(decided), so a maker value whose labels are all pending is undefined; I chose to report 0.0 instead of omitting the key, and documented it — a small ambiguity in the sketch.",
+    "It does not say what error semantics decide() should have for an unknown label id (the fold merely reports 'event for unknown artefact'). I raise ValueError at write time and keep the fold's problem reporting for foreign/corrupt logs.",
+    "Reading and writing the same directory concurrently is covered only by note 7; the chapter does not mention that read order between artefact log and decision log matters for avoiding phantom problems, which I had to reason about myself.",
+    "The named laws in note 4 ('correct then accept keeps the correction', 'undoing a correction restores the one before', 'replay gives equal state') were the most valuable lines in the chapter: they became three tests plus a reference model, and no law broke in this build."
+  ]
+}

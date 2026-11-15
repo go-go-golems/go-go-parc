@@ -48,6 +48,9 @@ for i, src in enumerate(runs):
             t2 = t
             for a, b in subs:
                 t2 = re.sub(a, b, t2, flags=re.I)
+            # inside identifiers too (TestTheChapterScenario), keeping case; and quoted section names
+            t2 = t2.replace("CHAPTER", "DESIGN").replace("Chapter", "Design").replace("chapter", "design")
+            t2 = re.sub(r"implementation notes", "design notes", t2, flags=re.I)
             if t2 != t:
                 f.write_text(t2)
     tag, agent = src.parent.parent.name, src.parent.name

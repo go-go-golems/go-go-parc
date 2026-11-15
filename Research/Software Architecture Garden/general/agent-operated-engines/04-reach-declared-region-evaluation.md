@@ -131,8 +131,10 @@ Do not use it when:
 
 1. A request names a node and one or more windows (a crop's box, a zoomed look's view, the neighbourhoods of measured
    items). Each window is evaluated on its own; close ones may be merged, never replaced by their bounding box.
-2. Only when whole values are cached: the evaluator checks the cache for the node's whole value; if it is there, it
-   cuts the window from it and stops.
+2. If the node's whole value is in the cache, the evaluator cuts the window from it and stops. Keep this step even in
+   the smallest form whenever whole values are computed at all: it is the best case (every later window of a value an
+   agent already looked at is free), and construction experiments showed builders dropping it when it read as
+   optional.
 3. The evaluator asks each input for its footprint, clipped to the input's extent: the window itself for a point
    operation, the window grown by the reach for a neighbourhood operation, the window mapped back for one that moves
    pixels, the whole extent for a global one. A whole footprint makes that input evaluate whole; the node's other
@@ -171,7 +173,7 @@ footprint(percentile(p), w, i)    = whole                       -- global
 
 evaluate(n, window) → Value
   if window is none: return evaluateWhole(n)
-  if cache.has(key(n)): return cut(cache.get(key(n)), window)   -- only when whole values are cached
+  if cache.has(key(n)): return cut(cache.get(key(n)), window)   -- always, if whole values are ever cached
   fps = [footprint(n.op, window, i) for i in indices(n.inputs)]
   fps = [inp.extent if fp is whole else clip(fp, inp.extent) for (fp, inp) in zip(fps, n.inputs)]
   if sum(area(fp) for fp in fps) > FRACTION × sum(area(inp.extent) for inp in n.inputs):

@@ -141,7 +141,10 @@ Do not use it when:
 5. Only with confirmation: the runner and the describer ask the registry the same question, "needs confirmation?".
 6. The describer renders the catalogue at two lengths: a short form for the agent's standing context and full help on
    request. goja-cv's full reference is about eight times the size of the instructions it keeps in every turn.
-7. In the test suite, the walker calls every record and applies the result check to each result.
+7. In the test suite, the walker calls every record and applies the result check to each result. It runs against a
+   test host (fakes, a dry-run mode, a copy of the data): records whose operations act on the world (unlock a door,
+   delete a file, send a message) must never be walked against a live one. In construction experiments, all five
+   self-tests of a home-automation hub ran every action for real, confirmation granted.
 
 ```mermaid
 flowchart LR
@@ -226,8 +229,9 @@ checkResult(rec, args, v) → ok | Failure(E_RESULT)  -- the record author's fau
   if declared is empty: v has kind rec.returns                     -- values without fields: kind only
   else: keys(v) ⊆ names(declared) and required(declared) ⊆ keys(v)
 
-for rec in registry.all():                                         -- the walker test
+for rec in registry.all():                                         -- the walker test, against a test host:
   call = bind(rec.on, rec.name, rec.samples); assert checkResult(rec, call.args, run(call)) is ok
+                                                                   -- never a live one (actions have effects)
 
 -- in use (numbers are placeholders)
 OpRecord(name: "blur", on: Image, returns: Image, samples: {sigma: 2}, run: blurKernel, doc: "Gaussian blur",

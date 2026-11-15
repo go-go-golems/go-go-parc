@@ -1,0 +1,57 @@
+{
+  "summary": "shopcli is a standard-library-only Python 3 package in which every failure of an inventory command language comes back as one structured refusal: a code from a closed list, a message, the path of operations, the agent's own line, valid alternatives, a concept hint, and a paste-ready fix. The suggester is ordered from certain to guessed (structural namespace fact, mined redirects for rm/delete/ls/inventory, near spelling within max(1, min(3, len//3)) applied to the differing segment, cross-kind step deliberately skipped), fixes are spliced into the agent's original source so a repeat prefix and untouched arguments survive and are only offered when they bind, and Python exceptions are translated to E_HOST with the host class kept in host_name. Warnings are raised at their line, folded with a count, and everything produced before a failure is still returned.",
+  "files": [
+    "DIARY.md",
+    "README.md",
+    "shopcli/__init__.py",
+    "shopcli/codes.py",
+    "shopcli/refusal.py",
+    "shopcli/registry.py",
+    "shopcli/suggest.py",
+    "shopcli/parsing.py",
+    "shopcli/commands.py",
+    "shopcli/shop.py",
+    "tests/test_commands.py",
+    "tests/test_reply_shape.py",
+    "tests/test_error_codes.py",
+    "tests/test_suggestions.py",
+    "tests/test_fixes.py",
+    "tests/test_warnings.py",
+    "tests/test_catalogue.py",
+    "tests/test_registry.py",
+    "tests/test_parsing.py"
+  ],
+  "pattern_mapping": {
+    "Refusal": "shopcli/refusal.py (Refusal dataclass with code, message, path, where, valid, hint, fix, host_name; to_dict), built in one place by Shop._refusal / _from_problem / _from_failure / _translate in shopcli/shop.py",
+    "Code list": "shopcli/codes.py (CODES tuple, CODE_DOCS one description each, CODE_EXAMPLES one executable example per code, WARNING_CODES/WARNING_EXAMPLES); LineProblem, CommandFailure and Shop._refusal all assert the code is in CODES; exercised by tests/test_catalogue.py",
+    "Fix renderer": "Shop.render_change in shopcli/shop.py: splices the replacement into parsed.source at the failing token's span (command token, option key, or option value) and returns None unless Shop._binds accepts the candidate",
+    "Suggester": "shopcli/suggest.py (suggest_command, suggest_option, edit_budget, closest_name, nearest_names); order is structural fact, redirect, near spelling, then stop",
+    "Redirect table": "shopcli/registry.py (Redirect dataclass, Registry._redirects per instance, validated in Registry.__init__ so a redirect to an unknown command raises ValueError 'would not bind'); the four mined names live in shopcli/commands.py REDIRECTS and are checked by tests/test_catalogue.py::RedirectCatalogueTest and tests/test_suggestions.py::RegistryTableTest",
+    "Translator": "Shop._translate and Shop._host_hint in shopcli/shop.py: any exception from a command body becomes E_HOST with host_name = type(exc).__name__ and a concept hint recognized for the zero-price report.margin",
+    "Site tracker": "shopcli/parsing.py: the parser supplies where = {line, source} plus Token/Argument spans, so no separate class is needed (the task's language is interpreted by our own engine, not by a host object graph) — the chapter's condition for a tracker is not met",
+    "Warning folder": "shopcli/refusal.py fold_warnings (groups by code, line, message, hint and sums count), called once in Shop.run"
+  },
+  "notes_applied": [
+    "Note 1 (mine redirects, refuse with a fix): rm and delete refuse with item.remove, ls with item.list, inventory with report.stock, each with a hint naming the concept and a literal fix that keeps the agent's arguments; the fix is dropped if it would not bind.",
+    "Note 2 (one fixed suggestion order, budget on the differing segment): suggest.py checks structural namespace fact, then redirect table, then Levenshtein with max(1, min(3, len//3)) per segment; 'item.ad' matches item.add while 'item.drop' stays unmatched, and tests/test_suggestions.py::OrderTest uses a custom registry where a redirect beats a near spelling and a structural fact beats both.",
+    "Note 3 (fixes are code, keep prefix and other arguments): fixes are spliced at token spans, so 'repeat 3: item.ad name=widget qty=1' fixes to 'repeat 3: item.add name=widget qty=1' and quoted values like name=\"red widget\" survive; tests/test_fixes.py asserts exactly one token changes and everything outside it is identical.",
+    "Note 4 (one shape, one closed code list for every layer): parser LineProblem, command CommandFailure and host exceptions all become Refusal; CODES is the single vocabulary and E_HOST is the only code that fills host_name (tested code by code).",
+    "Note 5 (the path is part of the message): path is [command label, '✗ failing part'] or ['✗ name'] for unknown commands, and the label includes the repeat structure, e.g. 'repeat 2 × item.add(name=w, qty=abc)'.",
+    "Note 6 (the line is in the agent's program): where.line and where.source come from the parser, with blank lines counted so line 3 really is line 3, and the original spacing preserved.",
+    "Note 7 (warn at the line, fold repeats): item.add above qty 1000 runs and warns RANGE at its line; repeat 500 folds into one warning with count=500 (tests/test_warnings.py).",
+    "Note 8 (deliver what was produced before the failure): Shop.run keeps results and warnings accumulated before the failing line, including iterations of a repeat; tested with an E_HOST failure and with an E_NOT_FOUND after a warning.",
+    "Note 9 (one redirect table per registry, checked at load): Redirects live on the Registry instance and are validated against it; tests/test_registry.py asserts ValueError on an unknown target and tests/test_suggestions.py proves two registries do not share their tables.",
+    "Note 10 (never invent a value to complete a fix): qty=abc, qty=1.5, a missing name, a duplicate option and a near name whose options do not fit all return a hint and fix=None; placeholders appear only in hints as '<whole number>' / '<text>' (tests/test_fixes.py::NoFixTest).",
+    "Note 11 (test codes and fixes): CODE_EXAMPLES must each raise exactly their code (tests/test_catalogue.py), and every offered fix is tested for binding and for changing only the failing token (tests/test_fixes.py)."
+  ],
+  "tests": "150 tests in 9 unittest modules (tests/, run with python3 -m unittest discover -s tests); last result: Ran 150 tests in 0.036s — OK, plus seven modules' doctests with 0 failures and a 6000-line random-input sweep that produces only refusals, never an exception.",
+  "chapter_feedback": [
+    "The chapter was most useful as a contract: the Refusal field list and the suggest/renderFix/translate sketches translated almost line for line, and the ordered suggester plus the edit budget gave concrete, testable behaviour instead of vague 'good errors'.",
+    "Note 2's 'apply the budget to the segment that differs' was the single most valuable sentence: it is the difference between suggesting item.add for item.drop (wrong) and leaving it alone.",
+    "The chapter's code list is JavaScript-shaped (E_UNKNOWN_METHOD) while the task requires E_UNKNOWN_COMMAND; that rename is trivial but the chapter never says how its codes map onto a task's required codes, which cost a decision.",
+    "E_NAMESPACE is underspecified for a flat command language: the chapter's example is a nested member (img.mask.luminance). I had to invent the mapping (bare verb 'add' and typo'd namespace 'items.add' are structural facts; a real but different namespace such as price.list is not) and it is the least certain design choice in the build.",
+    "The chapter's own example (fix 'repeat 3: item.add name=w' when item.add also needs qty) contradicts implementation note 11's 'the fix binds' if binding is read as 'has all required options'. I resolved it by checking only the failing token's validity, so pasting can yield E_ARG_MISSING as the next repair step; a sentence in the chapter about this would help.",
+    "Nothing in the chapter covers resource limits. A huge repeat count killed the test process, which is exactly the kind of failure that escapes the pattern and returns a Python traceback; I added E_ARG_RANGE with a documented MAX_REPEAT, but the chapter says nothing about non-repairable or resource refusals.",
+    "The chapter's advice to skip the cross-kind suggestion step in a flat language was decisive and saved a misleading price.list -> item.list fix; without that paragraph I would have wired step 4 in."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "summary": "Built stencilpipe, a standard-library Python 3 library where every operation declares a footprint (the input window it reads for an output window) and a recursive evaluator propagates window requests down a lazy graph, so a small request computes only that window plus each node's reach, clipped at every edge. Every input, sources included, is handed to operations as a guarded Region addressed in absolute coordinates, so a short reach raises FootprintError instead of silently shifting edge values, and whole-grid evaluation runs the same operation code as windowed evaluation so windowed results are bit for bit the cut of the whole result. The hidden global in normalize (the whole-grid maximum) is split into a cached statistic node wired in as an ordinary second input of a local divide, and the suite proves the invariance per operation and in random chains, tests the guard, and checks that the counted work follows the request rather than the grid.",
+  "files": [
+    "stencilpipe/__init__.py",
+    "stencilpipe/geometry.py",
+    "stencilpipe/ops.py",
+    "stencilpipe/engine.py",
+    "tests/support.py",
+    "tests/test_operations.py",
+    "tests/test_invariance.py",
+    "tests/test_global.py",
+    "tests/test_cost.py",
+    "tests/test_guard.py",
+    "tests/test_api.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Footprint": "Operation.footprint(window, index, extent) on each op in stencilpipe/ops.py; WHOLE sentinel in stencilpipe/geometry.py marks a global read",
+    "Window": "plain (x, y, w, h) tuples plus clip_window, grow_window, whole_window in stencilpipe/geometry.py",
+    "Region evaluator": "Engine._eval in stencilpipe/engine.py, called by evaluate / evaluate_many; asks each input for its footprint, clips it, and computes exactly the window",
+    "Invariance test": "tests/test_invariance.py (every op alone, after a blur, before a blur, a deep chain, 25 random chains; exact equality against a cut of the whole result, fresh engine and fresh graph per window)",
+    "Footprint guard": "Region in stencilpipe/geometry.py: rows are trimmed to the footprint and get / slice_row / sum_row raise FootprintError on any read outside it; sources are cut the same way in Engine._eval",
+    "Global barrier": "MaxStat.footprint returning WHOLE in stencilpipe/ops.py; Engine._eval turns it into the input's whole extent, so that input (and only that input) evaluates whole",
+    "Statistic node": "_build_normalize in stencilpipe/engine.py creates MaxStat over the image and wires it as input 1 of Normalize, whose footprint for that one-value input is WHOLE; no evaluator hook is needed",
+    "Cost rule": "not implemented: per-pixel windowed cost is low for these operations, and a whole-run shortcut would make cells_computed and the invariance story harder to reason about",
+    "Scale conversion": "not implemented: TASK.md has a single scale, so reaches are counts of pixels",
+    "Tile grid / cell memo": "not implemented: each requested window is computed on its own (never merged into a bounding box); the only cached whole value is the statistic's exact 1x1 maximum"
+  },
+  "notes_applied": [
+    "Note 1 (exact footprint, only a test can say so): test_invariance.py runs every operation alone and in chains, at interior/edge/corner/1x1/whole/overhanging windows, each on a fresh engine and freshly built graph, with r up to 5 and random chains, and asserts exact equality.",
+    "Note 2 (arithmetic that ignores the buffer origin): no prefix sums anywhere; sums accumulate row by row and left to right through absolute-coordinate reads, and whole evaluation is literally the same operation code with the whole extent as the window, so windowed and whole results are bit-identical by construction.",
+    "Note 3 (guard every read): Region trims rows to the footprint and raises FootprintError from get / slice_row / sum_row; tests/test_guard.py registers a ShortBox (one pixel short reach) and a GreedyAdd (one read outside its window) and expects the error, including when the guarded input is a source.",
+    "Note 4 (border rules only at the real border): box clips its square to the input's whole extent (carried on the Region) and counts only existing cells, so windowed evaluation meets the same border a whole run would.",
+    "Note 5 (reaches add along a chain): widening happens per node in Engine._eval; test_cost.py asserts the 4x3 window grown by 2+1 reaches 10x9 for dx -> box(1) -> box(2).",
+    "Note 7 (find hidden globals and wire the statistic as an input): normalize is split into MaxStat (whole footprint, cached) and Normalize (point footprint for the image, WHOLE for the statistic); test_global.py shows the window uses the whole-grid maximum and differs from dividing by the window's maximum, so two zooms agree on a cell.",
+    "Note 8 (no cost rule on the bounding box): no cost rule at all, and evaluate_many evaluates each window separately (test_cost.py checks far-apart windows cost their own cells, not the 200-cell bounding box).",
+    "Note 9 (keep the best case, measure cold): the statistic's exact whole value is checked first and reused, cutting any requested window from it; fresh engines in most tests start cold, and one test shows a warmed engine gives the same values as a cold one.",
+    "Note 11 (measurements around items are window requests): each entry of evaluate_many is its own request, never their bounding box."
+  ],
+  "tests": "55 tests in six files plus a support module; last run `python3 -m unittest discover -s tests` -> 'Ran 55 tests in 0.221s / OK'. A separate one-off fuzz (60 random chains x all probe windows) found 0 mismatches, and a 1200x800 check computed a 64x64 window of box(r=32) in 0.21 s with 4096 counted cells.",
+  "chapter_feedback": [
+    "Helped most: implementation note 7 predicted the normalize trap exactly, and note 1's insistence on a fresh engine per window and on edge/corner/1x1 windows shaped the invariance matrix that gives the design its confidence.",
+    "Helped: note 3's demand for a guard on every read, sources included, turned an invisible class of bug into a loud FootprintError; writing the deliberately short-reach test was easy because the guard exists.",
+    "Mislead me on cost: the Sketch's cost rule compares sum(area(fp)) with sum(area(input.extent)), i.e. input areas, while TASK.md's cells_computed counts output cells per operation. I first wrote cost tests using footprint areas (expecting 52 and 272 cells instead of 32 and 102) and had to correct my model: a point consumer asks its input for exactly its own window, so a blur's reach is visible in the counter only through a consumer that has a reach.",
+    "Mislead me slightly on notes 4 and the Sketch's resize footprint: 'map the window back' is not enough for half(), because whether 2x+1 exists is a fact about the whole input extent, not about the footprint window; the Region has to carry the producing node's extent so the existence test and the clamp in dx() are right at a window's edge.",
+    "Left to guess: whether the statistic node's single output cell should be counted by cells_computed. I count it (TASK.md: every operation must count every cell it computes), so one normalize window costs w*h + 1 and later windows w*h; a test expecting exactly w*h would disagree.",
+    "Left to guess: normalize when the maximum is 0 and the grid has negative cells (TASK.md only says '0 stays 0 if m is 0'); I divide nothing and return 0.0 for the whole window, which is exact and window-stable.",
+    "Left to guess: whether overlapping windows should share work. I chose the chapter's smallest form (no tiles, no cell memo, only the cached statistic), which keeps cells_computed honest but recomputes an overlap twice."
+  ]
+}

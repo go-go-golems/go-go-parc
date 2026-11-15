@@ -1,0 +1,52 @@
+{
+  "summary": "Built `jailfs`, a standard-library-only Python 3 package giving agent programs one writable directory plus disjoint read-only roots, with every path walked one component at a time through a per-root directory fd using `dir_fd=` and `O_NOFOLLOW`, so the kernel refuses `..`, links and escapes. Writes go only to the writable root through an exclusively created, randomly named temporary file renamed into place, plus a shadow check, an opened-file identity set and a per-`batch()` duplicate check. Every refusal is a `Refused` with a code and a fix, and 145 unittest tests (all passing) plus a 14-mutation check script prove each fix is really pinned by a test.",
+  "files": [
+    "jailfs/__init__.py",
+    "jailfs/errors.py",
+    "jailfs/workspace.py",
+    "tests/harness.py",
+    "tests/test_startup.py",
+    "tests/test_read.py",
+    "tests/test_save.py",
+    "tests/test_holes.py",
+    "tests/test_edges.py",
+    "tools/mutation_check.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Start-up check": "jailfs/workspace.py: `Workspace.__init__` + `_make_root` + `_check_disjoint` (one writable root, roots resolved once via `Root.real`, overlapping roots refused)",
+    "Writable and read roots": "`Root` (given spelling, resolved spelling, one `fd`); `Workspace._writable` and `Workspace._read_roots`, in lookup order via `_roots`",
+    "Locator": "`_normalise` (lexical, refuses a climb above the root), `_absolute_parts` (lexical longest-prefix match against `(root.given, root.real)`), `_locate_read` / `_locate_write` returning `Location(root, rel)`",
+    "Root handle": "`Root.fd` plus `_walk_dirs` (opens each directory component with `os.open(..., dir_fd=prev, O_NOFOLLOW|O_DIRECTORY)`), `_open_file`, `_lstat_in_root`",
+    "Writer": "`_write_atomic`: `O_CREAT|O_EXCL|O_NOFOLLOW` random temp name in the target's own directory, write+fsync, `os.rename(src_dir_fd=..., dst_dir_fd=...)`, identity taken after the rename; `_inspect_target` refuses links, directories and non-regular targets",
+    "Shadow check": "`_shadow_in` (lstat of the resulting relative name in each read root, whatever the spelling), called from `save`",
+    "Opened set": "`Workspace._opened` / `_written` as `(st_dev, st_ino)` identities; `read`/`load` add on open, `_write_atomic` adds after the rename; checked in `save` step 5",
+    "Loader": "`Workspace.load` — extension check for `.py`/`.js`, then `read()` through the locator; there is no other loading attribute on the workspace",
+    "Refusal vocabulary": "jailfs/errors.py: `Refused(code, message, fix)` with `E_ACCESS`, `E_NOT_FOUND`, `E_DUPLICATE`, `E_SHADOW`; `_refuse_oserror` maps every `OSError` so none escapes",
+    "Per-run duplicate check": "`Workspace.batch()` context manager + `_batch_saved` set, keyed on the normalised relative name"
+  },
+  "notes_applied": [
+    "Note 1 (let the operating system enforce the root): no string fallback; the path is opened component by component from the root's directory fd with `O_NOFOLLOW|O_DIRECTORY` and the last component with `O_NOFOLLOW`, `lstat`/`fstat` for type. Every link is refused, inside the root or not.",
+    "Note 2 (resolve roots once, never the agent's path): `Root.real = realpath(given)` at start-up; absolute agent paths are matched lexically with `os.path.normpath` against both `given` and `real`; `realpath` is never called on an agent path (mutation `m09` proves a test goes red if it is).",
+    "Note 3 (keep the roots disjoint): read root inside the writable root, writable root inside a read root, identical roots and nested/duplicate read roots all refuse at construction with a fix.",
+    "Note 4 (exclusive random temp name, then rename): `.jailfs-tmp-<hex>` created with `O_CREAT|O_EXCL|O_NOFOLLOW`; a planted file or link is skipped (EEXIST/ELOOP retry) and never followed; `rename` means a hard link to an input cannot carry a write (tested).",
+    "Note 5 (identities, not names; written exemption): `(st_dev, st_ino)` in `_opened`; the written identity is taken *after* the rename so a session may re-save its own output; hard-linked files are not refused.",
+    "Note 6 (a save can shadow a read-only file): `E_SHADOW` is raised when the resulting relative name exists in any read root, checked for relative, absolute and `sub/../` spellings.",
+    "Note 7 (one way to load code): `load` is the only loader, goes through the locator, and refuses non-`.py`/`.js` names and files outside the roots; a test asserts no `require`/`open`-like attribute exists.",
+    "Note 8 (strict flags): a list or tuple `root` is refused at construction with a fix naming `reads=[DIR]` (the Python form of `--root` once); `reads` as a bare string is refused too.",
+    "Note 9 (same names everywhere): `Location.label` shows writable-root files relatively and read-root files absolutely, and refusals use it.",
+    "Note 10 (order of refusals): shape/access → duplicate → shadow → replacing an opened file; `save` performs them in exactly that order and a test pins that a link is refused as `E_ACCESS` before the shadow check.",
+    "Note 11 (test that a regression test fails without its fix): `tools/mutation_check.py` — 14 mutations, each with the named tests that must go red, run one at a time, and a baseline that requires them green; it found five vacuous tests, which I rewrote."
+  ],
+  "tests": "145 unittest tests in five modules (tests/test_startup.py 21, tests/test_read.py 42, tests/test_save.py 40, tests/test_holes.py 23, tests/test_edges.py 19), run with `python3 -m unittest discover -s tests`; last result: `Ran 145 tests in 0.117s — OK`. Additionally `python3 tools/mutation_check.py` reports `48 checks, 0 failures` (24 named regression tests green in the baseline, each red under its own mutation).",
+  "chapter_feedback": [
+    "The Structure table and the Sketch mapped almost one-to-one onto the required interface, which made the design fast; the 'refusal kinds stand for your own vocabulary' remark was essential for fitting the chapter's shape/access/shadow onto TASK.md's four codes.",
+    "The chapter understates one thing it later states correctly: the link refusal is *not* what stops a dangling-symlink escape in a writer built from exclusive create plus rename (note 4 plus note 5). My mutation run proved that deleting the link refusal alone leaves the escape test green; only restoring an in-place write makes it red. Worth a sentence in the Solution: the writer's shape is the hole-1 fix, the link refusal is the clear refusal on top.",
+    "Note 1 said to walk components and lstat the last component; I had to discover that `O_NOFOLLOW` applies only to the final component, so the walk is mandatory rather than advisory. The chapter says this implicitly ('walk the path one component at a time') but the reason could be spelled out.",
+    "The chapter does not say what a *relative* name should do when the writable root's copy is a link or a directory and a read root has a real file of that name: falling through would make the writable root a trampoline. I chose 'any non-ENOENT refusal stops the lookup' and had to guess.",
+    "Note 6 warns about warns-vs-refuses but the interface has no warning channel, so `E_SHADOW` is the only option; the chapter could say what a library with no logger should do.",
+    "Note 10 gives an order for refusals but the four codes overlap (a save onto a link inside a read root could be access, shadow or duplicate), so the order had to be turned into a concrete precedence in code; an example of the resulting precedence chain would help.",
+    "Note 11 was the most valuable note in practice: it caught five tests that were green for the wrong reason (a redundant S_ISREG check, a shadow check confound, and a `realpath` case where the resolved link landed in a read root, so the right code came from the wrong rule).",
+    "The chapter's claim that the opened set protects the agent's view rather than the input's bytes matched what the mutations showed, but a reader could easily build the set and believe it is a containment mechanism; the Consequences list could say this more loudly."
+  ]
+}

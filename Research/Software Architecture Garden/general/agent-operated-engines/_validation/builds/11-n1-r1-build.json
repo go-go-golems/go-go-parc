@@ -1,0 +1,48 @@
+{
+  "summary": "Built labelbook, a standard-library Python 3 ledger that stamps every label with a provenance record (maker kind and ids, inputs with sha256, code version, time), appends every accept/reject/correct/undo as an immutable event with a lock-allocated sequence number, and derives current state and acceptance shares through one shared fold. Lineage queries run both ways through a single maker matcher (source_of, made_by, acceptance-by-source) with the field schema written beside the data, unstamped legacy records counted, and exports stamped with a content-hashed sidecar naming the labels and makers carried. Storage is JSON lines under one directory, so a new Ledger on the same directory sees the same state, and concurrent processes share the log safely via flock plus random ids.",
+  "files": [
+    "labelbook/__init__.py",
+    "labelbook/errors.py",
+    "labelbook/schema.py",
+    "labelbook/storage.py",
+    "labelbook/provenance.py",
+    "labelbook/events.py",
+    "labelbook/fold.py",
+    "labelbook/ledger.py",
+    "tests/test_labelbook.py",
+    "tests/test_pattern.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Provenance record": "labelbook/provenance.py: Provenance dataclass (kind, maker ids, inputs, version, at, createdBy) with to_json/from_json; Input values carry path, sha256, exists, size, mtime",
+    "Stamper": "labelbook/provenance.py: stamp(); called by Ledger.add_label and Ledger.export (labelbook/ledger.py), which are the only creating paths",
+    "Schema": "labelbook/schema.py: SCHEMA with field definitions and units, MAKER_KINDS, DECISIONS, STATUS_OF, FOLD_VERSION; written atomically to <dir>/schema.json by Ledger._ensure_schema and enforced at creation by Ledger._check_maker/_read_schema",
+    "Lineage queries": "labelbook/ledger.py: Ledger.source_of, Ledger.made_by, Ledger.acceptance, Ledger.acceptance_report, Ledger.unstamped, Ledger.audit; all maker matching goes through labelbook/provenance.py: matches()",
+    "Decision event": "labelbook/events.py: Event (seq, labelId, decision, actor, at, reason, newLabel) with check_decision/check_actor refusing unknown decisions and missing actors",
+    "Decision log": "labelbook/ledger.py: decisions.jsonl appended by Ledger.decide; labelbook/storage.py: append_jsonl_locked writes one record under flock with seq allocated inside the lock",
+    "Fold": "labelbook/fold.py: fold(artefacts, events) -> (ItemState map, problems); ItemState/LiveDecision hold origin, original, current, status and the decision stack; owns STATUS_OF, DECIDED, ACCEPTING, PENDING",
+    "Locked append": "labelbook/storage.py: append_jsonl_locked (O_APPEND single os.write under fcntl.flock plus a process-local RLock), next_seq; ids from labelbook/ledger.py: new_id() = uuid4 hex"
+  },
+  "notes_applied": [
+    "Note 1 (make stamping impossible to forget): Artefact requires a Provenance; add_label and export are the only creation paths and both call stamp(); records without provenance are read back as kind 'unknown', which made_by and unstamped()/audit() report.",
+    "Note 2 (origin per item, keep rejections): rejections are first-class events, so acceptance(by) per maker field can be computed, and made_by(exclude) lists a faulty source's output for export exclusion.",
+    "Note 3 (undo is an event, order is a sequence number): undo marks the latest live decision undone instead of deleting history; seq is allocated inside the file lock and fold sorts by seq, proven by a test that writes events in the wrong file order.",
+    "Note 4 (define the label in force, test as laws): current = last live correction's value else original; status = last live decision's status; tested against an independent ReferenceModel over seeded random sequences, plus explicit correct-then-accept and undo-a-correction laws.",
+    "Note 5 (one fold owning the vocabulary, unknown decisions reported): state, acceptance, acceptance_report, export and audit all use fold.fold(); acceptance_report/audit carry foldVersion; an unknown decision becomes a Problem and leaves the label pending rather than counting as rejected.",
+    "Note 6 (one maker matcher): matches() in provenance.py backs made_by, acceptance grouping and the export exclude list, and accepts a list of values per field so an ensemble is a one-place change.",
+    "Note 7 (atomic appends, collision-free ids): uuid4 ids plus one os.write per record on an O_APPEND descriptor under fcntl.flock, with seq computed under the lock; verified with 8 threads and 4 forked processes (stress run: 800 labels, 800 distinct seqs).",
+    "Note 8 (record who decided): actor is required on every decision (pseudonymous ids/roles allowed); the schema states the privacy policy for actors.",
+    "Note 9 (schema beside the data, enforced): schema.json is written atomically next to the logs and not overwritten, maker kinds are checked against the file's makerKinds (a test adds 'robot' to the file and it is accepted), and fields carry named definitions and units.",
+    "Note 10 (sidecar bound to content and to carries): export writes <path>.provenance.json with contentHash (sha256 of the bytes), carries (ids, kinds and makers of exported labels) and foldVersion; read_export/verify_export treat a missing or stale sidecar as unstamped.",
+    "Note 11 (hash inputs that may change): each input records sha256 plus size and mtime, with a test showing a rewritten file changes the recorded hash and a missing file is recorded as exists=false instead of failing."
+  ],
+  "tests": "63 tests in tests/test_labelbook.py (42 interface tests) and tests/test_pattern.py (21 pattern-law, unknown-event, matcher, concurrency and versioning tests); last run: python3 -m unittest discover -s tests -> 'Ran 63 tests in 1.233s / OK'. One mid-build failure (schema fields lacked the word 'definition') was recorded in DIARY.md Step 3 and fixed in Step 4.",
+  "chapter_feedback": [
+    "The sketch transcribed almost directly into dataclasses; the participant table mapped one-to-one onto modules, which made the design decisions quick.",
+    "The chapter never says what source_of/made_by should return in the shape TASK.md asks for, nor how to reconcile 'inputs is a list of file paths' with 'record a content hash' (note 11). I resolved it with an Input value that is the path string and also carries sha256/exists/size/mtime; a reviewer should confirm that is not too clever.",
+    "Ambiguity around acceptance(): the chapter's pseudo-code counts only decided artefacts but does not say whether maker values with no decisions appear. I omit them (a share of nothing is not a number), which a different test suite might disagree with.",
+    "Note 1 says artefacts made before the pattern existed get kind 'unknown' and are counted, but the chapter does not say whether such records must come from an import path; I made the fold treat any record without provenance that way, which also covers a path that forgot to stamp.",
+    "The chapter says 'refuse(E_KIND)' with hints but TASK.md only fixes ValueError for a missing actor; I made every refusal a ValueError subclass carrying code, value and hints, so both catches work.",
+    "The step ordering of note 4 ('test against a small reference model on random sequences') was the most valuable instruction in the chapter; it forced the fold to be a pure function over (artefacts, events), which made the Ledger a thin reader of files."
+  ]
+}

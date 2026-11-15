@@ -1,0 +1,436 @@
+{
+ "implementations": {
+  "A": {
+   "summary": "A policy class (workspace.py) over a module of free functions (fsops.py) that walk each path one component at a time from a freshly opened root fd with O_NOFOLLOW and write by exclusive temp + os.replace. Read protection keeps both normalised names and (dev, ino) identities, plus a blanket refusal of hard-linked targets; there is no Location value or held root handle.",
+   "scores": {
+    "forces": 4,
+    "adapted": 4,
+    "wholeness": 4,
+    "habitability": 3,
+    "growth": 3,
+    "smells": 3,
+    "tests": 3
+   },
+   "forces_resolved": [
+    "containment by the OS: per-component openat with O_NOFOLLOW, impl-A/jailfs/fsops.py:147-202",
+    "name vs identity: both, name set impl-A/jailfs/workspace.py:310 and identity set :328",
+    "atomic writes: O_EXCL random temp + os.replace in the target dir, impl-A/jailfs/fsops.py:325-359",
+    "strict configuration: list/tuple/set root refused, impl-A/jailfs/workspace.py:64-75; overlapping roots refused :121-128",
+    "shadowing (note 6): refused before any other save check, impl-A/jailfs/workspace.py:294-300",
+    "one loader: load() is a suffix-checked read, impl-A/jailfs/workspace.py:183-207"
+   ],
+   "forces_in_tension": [
+    "root handle: the root is reopened by path string on every call without O_NOFOLLOW (impl-A/jailfs/fsops.py:121-124, 190), so a root swapped for a link after construction is followed; the chapter's held handle is missing",
+    "convenience vs containment: any hard-linked target is refused (impl-A/jailfs/workspace.py:334), though the module's own docstring says rename never writes through an inode (impl-A/jailfs/fsops.py:11-14)",
+    "a planted link in the writable root blocks the read-only copy of the same name instead of falling through (impl-A/tests/test_security.py:298)"
+   ],
+   "forces_unnoticed": [
+    "note 11 (show a regression test fails without its fix): no mutation check, and no test plants a temp-file name"
+   ],
+   "dead_or_ornamental": [
+    "impl-A/jailfs/workspace.py:255-257: _read_paths and _read_ids record the same read twice, and save checks both (:310, :328)",
+    "impl-A/jailfs/__init__.py:26: ALL_CODES exported; it is used only to validate codes in errors.py:31"
+   ],
+   "next_change_touches": [
+    "impl-A/jailfs/errors.py: add E_IN_USE to the constants and to ALL_CODES (:14), or Refused raises ValueError (:31); export it in __init__.py",
+    "impl-A/jailfs/fsops.py: new unlink_at(root, parts) built on _walk_dirs + lstat_at (refuse link, refuse dir)",
+    "impl-A/jailfs/workspace.py: remove() has to copy save's inline absolute/relative split (:275-292), because there is no write locator to reuse",
+    "impl-A/jailfs/workspace.py: batch() (:367-383) holds only _batch_saves; it needs a per-run read set, and _note_read (:255) must fill it",
+    "impl-A/jailfs/workspace.py: remove must clear the removed path from _read_paths, or a later save of that name is still refused"
+   ],
+   "smells": [
+    {
+     "smell": "long function",
+     "where": "impl-A/jailfs/workspace.py:261-352",
+     "why": "save holds the locator, shadow, duplicate, read-protection, link, dir and hard-link checks and the write, about 90 lines"
+    },
+    {
+     "smell": "duplicated knowledge",
+     "where": "impl-A/jailfs/fsops.py:158-181",
+     "why": "the errno-to-refusal ladder is repeated almost line for line at :218-241"
+    },
+    {
+     "smell": "data clump",
+     "where": "impl-A/jailfs/workspace.py:179",
+     "why": "(data, root, parts, st) tuples and (root, parts) pairs pass between methods with no Location value"
+    },
+    {
+     "smell": "duplicated knowledge",
+     "where": "impl-A/jailfs/workspace.py:334",
+     "why": "the hard-link refusal repeats a guarantee the writer already gives through rename"
+    }
+   ],
+   "best_thing": "Two layers: fsops knows only descriptors and links, and Workspace knows only policy, so every OS call goes through one module (impl-A/jailfs/fsops.py:1-15).",
+   "worst_thing": "save() is one long method with its locator inlined, so remove() and any later write operation must copy it (impl-A/jailfs/workspace.py:275-292)."
+  },
+  "B": {
+   "summary": "A RootHandle class (handle.py) holds one directory fd per root and reports path problems as code-free Problem kinds. Workspace (workspace.py) turns those into refusals and holds _Root/_Location values, identity opened/written sets and a stack of per-batch saved-name sets; a mutation script proves each hole test.",
+   "scores": {
+    "forces": 5,
+    "adapted": 3,
+    "wholeness": 4,
+    "habitability": 4,
+    "growth": 4,
+    "smells": 4,
+    "tests": 4
+   },
+   "forces_resolved": [
+    "root handle: one held fd per root, every walk starts from os.dup(fd), impl-B/jailfs/handle.py:74-129",
+    "identity checks: opened/written identity sets, written identity taken after the rename, impl-B/jailfs/workspace.py:411-418, 498-504",
+    "atomic writes: secrets temp name, O_EXCL|O_NOFOLLOW, retry on EEXIST, rename, dir fsync, impl-B/jailfs/workspace.py:455-497",
+    "strict configuration: root list of more than one refused with a fix naming reads=, impl-B/jailfs/workspace.py:95-103; overlap refused :147-159",
+    "agent paths stay lexical: posixpath.normpath only, never realpath, impl-B/jailfs/workspace.py:288-311 (a mutation proves it, impl-B/tests/mutation_check.py:131-145)"
+   ],
+   "forces_in_tension": [
+    "locate-then-open walks the path twice: lstat to choose the root (impl-B/jailfs/workspace.py:274), then open_file (:326). It is safe because both walks use NOFOLLOW, but it doubles the cost",
+    "the written exemption (impl-B/jailfs/workspace.py:413) lets a session overwrite a file it read if it also wrote it, which is looser than the task's 'would replace a file this session read'"
+   ],
+   "forces_unnoticed": [],
+   "dead_or_ornamental": [
+    "impl-B/jailfs/workspace.py:268: `roots = [self._writable] if for_write else self._all` is computed and then bypassed by the for_write return at :269-270",
+    "impl-B/jailfs/workspace.py:424: the missing_is_none parameter defaults to False, but its only caller passes True",
+    "impl-B/jailfs/workspace.py:3-18: the docstring is the chapter's participant table, mapped onto methods"
+   ],
+   "next_change_touches": [
+    "impl-B/jailfs/errors.py: add E_IN_USE to the constants and CODES; export it in __init__.py",
+    "impl-B/jailfs/handle.py: new RootHandle.remove(rel) built on _walk + os.unlink(dir_fd); the existing unlink() (:222) swallows errors and serves only temp cleanup",
+    "impl-B/jailfs/workspace.py: remove() reuses _locate(for_write=True) and _lstat_or_refuse, then refuses links and dirs",
+    "impl-B/jailfs/workspace.py: batch() pushes a bare set of saved names (:517); it must push an object that also holds read identities, and the save check at :401 and :422 changes with it",
+    "impl-B/jailfs/workspace.py: _read_at (:349) adds the read identity to the current batch; load already goes through _read_at"
+   ],
+   "smells": [
+    {
+     "smell": "middle man",
+     "where": "impl-B/jailfs/workspace.py:53-74",
+     "why": "_Root wraps RootHandle only to add 'given' and a close passthrough"
+    },
+    {
+     "smell": "dead code",
+     "where": "impl-B/jailfs/workspace.py:268",
+     "why": "a variable that is never used"
+    },
+    {
+     "smell": "primitive obsession",
+     "where": "impl-B/jailfs/handle.py:39-56",
+     "why": "Problem kinds are bare strings ('not_found', 'link', 'exists'), and 'exists' is missing from the documented list"
+    }
+   ],
+   "best_thing": "handle.py raises Problem kinds and knows nothing of refusal codes, and Workspace._from_problem is the one place they become Refused (impl-B/jailfs/workspace.py:210-230).",
+   "worst_thing": "Batch state is a stack of bare name sets (impl-B/jailfs/workspace.py:177, 517), so the first run-scoped need beyond duplicates changes its type."
+  },
+  "C": {
+   "summary": "Nearly B's shape: paths.py (lexical only), handle.py (RootHandle with a held fd and a _parent walk context manager, read_file/write_file) and workspace.py (Location, _Batch, opened/written identity sets, roots_fix). A mutation script proves 14 hole tests, and a threaded test checks atomicity.",
+   "scores": {
+    "forces": 5,
+    "adapted": 3,
+    "wholeness": 4,
+    "habitability": 4,
+    "growth": 4,
+    "smells": 3,
+    "tests": 5
+   },
+   "forces_resolved": [
+    "root handle and kernel containment: flag constants _DIR_FLAGS/_READ_FLAGS/_WRITE_FLAGS in one place, impl-C/jailfs/handle.py:25-27, walk :114-148",
+    "lexical-only agent paths with given/real root spellings, impl-C/jailfs/paths.py:1-7, impl-C/jailfs/workspace.py:179-195",
+    "identity opened set with a written exemption, impl-C/jailfs/workspace.py:343-355",
+    "atomic writes, tested by a concurrent reader that never sees a partial file, impl-C/tests/test_atomic.py:12-45",
+    "refusals teach the boundary: _missing_fix lists what the writable root holds, impl-C/jailfs/workspace.py:229-244"
+   ],
+   "forces_in_tension": [
+    "convenience vs strictness: save silently encodes str as UTF-8 (impl-C/jailfs/workspace.py:281-282), while the task's interface is bytes",
+    "every miss walks the whole writable root to build the fix (impl-C/jailfs/workspace.py:232), a cost on the common path"
+   ],
+   "forces_unnoticed": [],
+   "dead_or_ornamental": [
+    "impl-C/jailfs/workspace.py:28-34: Location.writable is set but only read by __repr__",
+    "impl-C/jailfs/handle.py:167-169: exists() is a one-line wrapper around lstat",
+    "impl-C/jailfs/__init__.py:30: Location exported publicly with no external user"
+   ],
+   "next_change_touches": [
+    "impl-C/jailfs/errors.py: add E_IN_USE to the constants and CODES; export it",
+    "impl-C/jailfs/handle.py: new remove_file(parts, fix) using _parent() and os.unlink(dir_fd)",
+    "impl-C/jailfs/workspace.py: remove() reuses _locate(for_write=True) and root.lstat, refusing links and dirs as save does (:296-316)",
+    "impl-C/jailfs/workspace.py: _Batch (:40-56) gains a read-identity set",
+    "impl-C/jailfs/workspace.py: read() (:226) and load() (:267) each record the identity, so both must add it to the batch"
+   ],
+   "smells": [
+    {
+     "smell": "duplicated knowledge",
+     "where": "impl-C/jailfs/workspace.py:261-267",
+     "why": "load repeats read's read_file + NOT_FOUND re-wrap + opened.add tail (:220-227) instead of calling read"
+    },
+    {
+     "smell": "copied, not adapted",
+     "where": "impl-C/jailfs/workspace.py:67",
+     "why": "the fixes tell a Python caller to 'add --read DIR', a CLI flag this library does not have (also :70, :126, :162)"
+    },
+    {
+     "smell": "speculative state",
+     "where": "impl-C/jailfs/workspace.py:34",
+     "why": "Location.writable has no reader"
+    }
+   ],
+   "best_thing": "The mutation script runs each hole's own test against a copy with that one fix removed, and first checks the test passes unmutated (impl-C/tests/mutation_check.py:1-13).",
+   "worst_thing": "The refusal text comes from the chapter's CLI ('--read DIR'), so the agent is told to fix things it cannot do from this API (impl-C/jailfs/workspace.py:67)."
+  },
+  "D": {
+   "summary": "One 650-line workspace.py with Root (given/real/lazily held fd), a frozen Location dataclass, a fd-list _walk_dirs, a central _refuse_oserror errno map, and save as a numbered sequence of checks. Tests are organised by the chapter's five holes, and tools/mutation_check.py proves 48 test/mutation pairs.",
+   "scores": {
+    "forces": 5,
+    "adapted": 4,
+    "wholeness": 4,
+    "habitability": 4,
+    "growth": 4,
+    "smells": 4,
+    "tests": 5
+   },
+   "forces_resolved": [
+    "root handle and kernel containment: Root.fd opened once with O_NOFOLLOW, impl-D/jailfs/workspace.py:151-156; walk :348-385",
+    "identity: opened/written sets, written identity taken after the rename, impl-D/jailfs/workspace.py:496-504, 574-576",
+    "atomic writes: a patchable _random_name, and planted names skipped on EEXIST/ELOOP, impl-D/jailfs/workspace.py:40-42, 540-557",
+    "strict configuration: list roots, a bare-string reads and nested read roots are all refused, impl-D/jailfs/workspace.py:179-191, 229-246",
+    "names shown as the agent should write them (note 8): Location.label, impl-D/jailfs/workspace.py:134-139",
+    "one loader: load delegates to read after the suffix check, impl-D/jailfs/workspace.py:581-598"
+   ],
+   "forces_in_tension": [
+    "convenience vs strictness: reads='dir' and root=[one] are refused (impl-D/jailfs/workspace.py:186-191, impl-D/tests/test_startup.py:25), stricter than the other four and stricter than the task requires",
+    "the written exemption (impl-D/jailfs/workspace.py:498) carries the chapter sketch's looser rule against the task wording"
+   ],
+   "forces_unnoticed": [],
+   "dead_or_ornamental": [
+    "impl-D/jailfs/workspace.py:166-168: Root.label is never called",
+    "impl-D/jailfs/workspace.py:643-648: describe() is called only by tests",
+    "impl-D/jailfs/workspace.py:195: self._roots = [] is overwritten at :198",
+    "impl-D/jailfs/workspace.py:202: the comment calls the opened set and batch 'optional participants', but the task requires both"
+   ],
+   "next_change_touches": [
+    "impl-D/jailfs/errors.py: add E_IN_USE to CODES (:23); Refused validates codes (:35)",
+    "impl-D/jailfs/workspace.py: remove() = _locate_write + _inspect_target (refuses link/dir/non-regular) + _walk_dirs(create=False) + os.unlink(dir_fd)",
+    "impl-D/jailfs/workspace.py: batch() (:271-280) keeps _batch_saved only; add _batch_read alongside it",
+    "impl-D/jailfs/workspace.py: read() (:457) adds the identity to _batch_read; load needs no change because it calls read"
+   ],
+   "smells": [
+    {
+     "smell": "duplicated code",
+     "where": "impl-D/jailfs/workspace.py:391",
+     "why": "`fds[-1] if fds else root.fd` is repeated at :427 and :538; _walk_dirs could return the parent"
+    },
+    {
+     "smell": "large module",
+     "where": "impl-D/jailfs/workspace.py:1-651",
+     "why": "the locator, root handle, writer and lister share one file; sections keep it navigable"
+    },
+    {
+     "smell": "dead code",
+     "where": "impl-D/jailfs/workspace.py:166",
+     "why": "Root.label is unused"
+    }
+   ],
+   "best_thing": "save() reads as five numbered checks, each one call (impl-D/jailfs/workspace.py:480-508), and every OSError passes through one mapper (:71-90).",
+   "worst_thing": "Everything sits in one module, so the root handle cannot be reused or tested apart from the policy (impl-D/jailfs/workspace.py:348-435)."
+  },
+  "E": {
+   "summary": "A paths/fsio/workspace split in which fsio has two parallel backends (dir_fd and a portable lstat walk) behind dispatch functions, and Workspace keeps a name-keyed read ledger and a single batch set. Agent absolute paths go through realpath, and roots are neither held open nor checked for overlap.",
+   "scores": {
+    "forces": 2,
+    "adapted": 3,
+    "wholeness": 2,
+    "habitability": 3,
+    "growth": 2,
+    "smells": 2,
+    "tests": 3
+   },
+   "forces_resolved": [
+    "relative paths: lstat-before-open walk with O_NOFOLLOW refuses links, impl-E/jailfs/fsio.py:195-249",
+    "atomic writes: O_EXCL random temp + os.replace, impl-E/jailfs/fsio.py:294-313",
+    "a root swapped for a link after construction is refused, impl-E/jailfs/fsio.py:175, 365-386",
+    "shadowing: a link or file in the way counts as taken, impl-E/jailfs/fsio.py:575-588"
+   ],
+   "forces_in_tension": [
+    "name vs identity: os.path.realpath on the agent's absolute path (impl-E/jailfs/workspace.py:233) resolves links. Probe: with root/a.txt a link to root/b.txt, save('<root>/a.txt') overwrote b.txt; read('<root>/g.csv') read a dataset file through a link",
+    "read ledger keyed by (root index, name) rather than file identity, impl-E/jailfs/workspace.py:67, 195",
+    "no fsync before the rename, impl-E/jailfs/fsio.py:304-309"
+   ],
+   "forces_unnoticed": [
+    "strict configuration / disjoint roots: a read root inside the writable root is accepted (impl-E/jailfs/workspace.py:52-65). Probe: save('data/gold.csv') overwrote the dataset",
+    "a typo'd root is created silently, giving a new writable directory instead of an error, impl-E/jailfs/workspace.py:50, 296-297",
+    "the root handle as a held capability: the root is reopened by path on every call, impl-E/jailfs/fsio.py:173-182",
+    "note 11: no proof that hole tests fail without their fix, and no planted temp-name test"
+   ],
+   "dead_or_ornamental": [
+    "impl-E/jailfs/fsio.py:71-73: backend_name() is used only by a test",
+    "impl-E/jailfs/errors.py:51-60: Refused.as_dict has no library caller",
+    "impl-E/jailfs/paths.py:44-45: Windows drive-letter detection in a POSIX-only dir_fd library",
+    "impl-E/jailfs/fsio.py:361-515: _PathBackend, a weaker second implementation of every operation for platforms the task does not target; the chapter says to isolate at the process level instead"
+   ],
+   "next_change_touches": [
+    "impl-E/jailfs/errors.py: add E_IN_USE to CODES (:14), which are validated (:35)",
+    "impl-E/jailfs/fsio.py: remove_file in _FdBackend, again in _PathBackend, plus a dispatch function and __all__ (three places)",
+    "impl-E/jailfs/workspace.py: remove() must copy save's inline absolute/relative locate (:166-182) and so inherits the realpath hole (:233)",
+    "impl-E/jailfs/workspace.py: batch() (:209-227) keeps a bare set; it needs a read set, and read() records reads in two places (:99, :116)",
+    "impl-E/tests/support.py: every new security test is written as a mixin plus two backend subclasses"
+   ],
+   "smells": [
+    {
+     "smell": "shotgun surgery / parallel hierarchy",
+     "where": "impl-E/jailfs/fsio.py:169-515",
+     "why": "every file operation exists twice, in _FdBackend and _PathBackend"
+    },
+    {
+     "smell": "speculative generality",
+     "where": "impl-E/jailfs/fsio.py:50-73",
+     "why": "a backend switch and test hook for a platform the task never names"
+    },
+    {
+     "smell": "duplicated knowledge",
+     "where": "impl-E/jailfs/workspace.py:94-117",
+     "why": "the absolute and relative read branches each call read_file and add to the ledger"
+    },
+    {
+     "smell": "wrong abstraction for refusal",
+     "where": "impl-E/jailfs/workspace.py:217-222",
+     "why": "a nested batch() raises E_ACCESS, a boundary code, for a usage error"
+    },
+    {
+     "smell": "test enshrines a hole",
+     "where": "impl-E/tests/test_construction.py:62-67",
+     "why": "a root repeated in reads is silently dropped, and the test pins that behaviour instead of refusing it"
+    }
+   ],
+   "best_thing": "The integrity tests snapshot the dataset trees (bytes, mode, mtime) before and after a barrage of attacks, so the dataset guarantee is stated as an invariant (impl-E/tests/support.py:91-107, impl-E/tests/test_integrity.py:32-63).",
+   "worst_thing": "realpath on the agent's absolute path (impl-E/jailfs/workspace.py:233) undoes the no-link walk: writes go through in-root links, and together with the missing overlap check a dataset can be overwritten."
+  }
+ },
+ "generativity": {
+  "shared_seams": [
+   {
+    "seam": "component-by-component openat walk with O_NOFOLLOW|O_DIRECTORY standing in for os.Root",
+    "in": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "exclusive random temp file in the target directory, then rename",
+    "in": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "root held as an open fd object (RootHandle/Root)",
+    "in": [
+     "B",
+     "C",
+     "D"
+    ]
+   },
+   {
+    "seam": "Location value (root + relative parts)",
+    "in": [
+     "B",
+     "C",
+     "D"
+    ]
+   },
+   {
+    "seam": "identity opened set with a written exemption taken after the rename",
+    "in": [
+     "B",
+     "C",
+     "D"
+    ]
+   },
+   {
+    "seam": "given/real root spellings matched lexically; agent path never resolved",
+    "in": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ]
+   },
+   {
+    "seam": "disjoint-roots start-up check",
+    "in": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ]
+   },
+   {
+    "seam": "save order: link/shape, then duplicate, then shadow, then opened",
+    "in": [
+     "B",
+     "C",
+     "D"
+    ]
+   },
+   {
+    "seam": "single errno-to-refusal mapper",
+    "in": [
+     "B",
+     "C",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "mutation script proving each hole test",
+    "in": [
+     "B",
+     "C",
+     "D"
+    ]
+   },
+   {
+    "seam": "load = suffix check + read",
+    "in": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E"
+    ]
+   }
+  ],
+  "groups": [
+   [
+    "B",
+    "C",
+    "D"
+   ],
+   [
+    "A"
+   ],
+   [
+    "E"
+   ]
+  ],
+  "notes": "All five converge on the core (fd walk, O_NOFOLLOW, exclusive temp + rename, a load that is a read). B, C and D share the chapter's full participant set, including the written exemption and the same check order, and differ in packaging: B has a code-free Problem layer, C has a separate lexical paths module and CLI-worded fixes, D is one file with numbered checks. A reaches similar safety without a Location or a held handle and adds name-based protection and a hard-link refusal. E departs where the chapter's notes are subtle (never resolve the agent's path, disjoint roots, identity) and spends its structure on a second backend. None of the five puts reads into the batch, so the next change reshapes batch state everywhere."
+ },
+ "worse_is_better": "D reaches B's and C's safety and proof with no separate handle module, no Root/RootHandle double wrapper and no Location in the public API. Its only extras are a few unused helpers (Root.label, describe). B and C carry a handle layer that the task's size does not need. A is smaller still and nearly as safe, but it reopens the root by path and has no proof tests. E carries the most extra machinery (a second backend, as_dict, backend_name, Windows drive letters), and none of it is needed: the task targets a stdlib with dir_fd, and the extra code coexists with the two real holes. The identity opened set is mostly redundant once links are refused and writes are rename-only, because a hard link's other name keeps its old content. A normalised-name set (A's _read_paths) gives the same guarantee, provided the agent's path is never resolved.",
+ "ranking": [
+  "D",
+  "B",
+  "C",
+  "A",
+  "E"
+ ],
+ "chapter_lessons": [
+  "Say 'resolve root spellings once at start-up; never resolve the agent's path' as a rule, not only implicitly. E realpaths agent paths (impl-E/jailfs/workspace.py:233) and writes through an in-root link. Note 7 ('make a symlinked read root resolve to its target') reads as an invitation to do so. B, C and D each needed a dedicated mutation to guard against it.",
+  "Name disjoint roots as a start-up check. Four implementations invented it independently (impl-A/jailfs/workspace.py:121, impl-B/jailfs/workspace.py:147, impl-C/jailfs/workspace.py:109, impl-D/jailfs/workspace.py:229). The one that did not (E) lets a save overwrite a read root nested in the writable root.",
+  "Say what file identity buys once writes are rename-only and links are refused. Rename never writes through a hard link, so the opened-set-by-identity mostly repeats a name check. A refuses all hard links anyway (impl-A/jailfs/workspace.py:334), and E falls back to names. The chapter's 'unless the session wrote that file itself' exemption was copied by B, C and D and contradicts the task's 'would replace a file this session read'; A and E took the task's version. One rule should be chosen.",
+  "Make 'the run' a participant holding both saves and reads. The chapter scopes the opened set to the session and duplicates to one call. Every implementation models batch() as a bare set of saved names, so the next change (E_IN_USE for a file read in the same batch) reshapes batch state in all five.",
+  "State the root handle's lifetime: hold it open from start-up. A and E reopen the root by path on every call (impl-A/jailfs/fsops.py:124, impl-E/jailfs/fsio.py:175). A follows a root swapped for a link; E has to re-check it.",
+  "Phrase the strict-flags force in terms of configuration, not CLI flags. C copied '--read DIR' into the fixes of a Python constructor (impl-C/jailfs/workspace.py:67). D over-applied strictness to reads='dir' (impl-D/jailfs/workspace.py:186).",
+  "Repeat the 'no root-relative operations: isolate at process level, not with string checks' rule where implementers will see it. E built a weaker lstat backend anyway (impl-E/jailfs/fsio.py:361-515), which doubles every change."
+ ]
+}

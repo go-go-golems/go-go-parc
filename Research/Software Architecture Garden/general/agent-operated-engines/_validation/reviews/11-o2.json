@@ -1,0 +1,233 @@
+{
+  "implementations": {
+    "A": {
+      "summary": "Typed value objects (Provenance, Input, Artefact, Event, ItemState) around one pure fold that returns (state, problems), behind a 472-line Ledger facade that also stamps exports with a hash-bound sidecar and an exports.jsonl audit log. A schema.json is written beside the data and its maker kinds and decisions are read back as the allow-lists.",
+      "scores": {"forces": 4, "adapted": 3, "wholeness": 3, "habitability": 3, "growth": 3, "smells": 3, "tests": 4},
+      "forces_resolved": [
+        "mutable state against history: undo marks the latest live decision undone and the fold keeps it, impl-A/labelbook/fold.py:130-146; the label in force is the last live correction, so correct-then-accept keeps the correction, impl-A/labelbook/fold.py:145-146",
+        "readers against writers: state, acceptance and export all call one fold, impl-A/labelbook/ledger.py:104-107, 244, 306",
+        "stamping at creation: one stamp() is called by add_label and by export, impl-A/labelbook/provenance.py:182, impl-A/labelbook/ledger.py:151, 329",
+        "completeness against weight: inputs are recorded with sha256, size and mtime, and a missing file is recorded as absent instead of failing, impl-A/labelbook/storage.py:43-55",
+        "inline against sidecar: labels carry provenance inline; the export keeps a plain row format and gets a sidecar bound by contentHash, impl-A/labelbook/ledger.py:336-346",
+        "ordering under several writers: seq is assigned inside the flock, impl-A/labelbook/storage.py:144-162, impl-A/labelbook/ledger.py:205-216"
+      ],
+      "forces_in_tension": [
+        "one matcher: the docstring says matches() is the only reader of maker fields (impl-A/labelbook/provenance.py:7-10), but acceptance groups by origin.flat() directly (impl-A/labelbook/ledger.py:248), so a see-through ensemble needs two changes",
+        "schema as definition against schema as enforcement: allowed decisions are checked against the code constant (impl-A/labelbook/events.py:68) and again against the schema file (impl-A/labelbook/ledger.py:193). The file is written once and never overwritten (impl-A/labelbook/ledger.py:59-64), so the two lists drift for existing ledgers"
+      ],
+      "forces_unnoticed": [
+        "privacy: covered only by a note in the schema text (impl-A/labelbook/schema.py:73-77); nothing in the code acts on it"
+      ],
+      "dead_or_ornamental": [
+        "impl-A/labelbook/errors.py:29-76: a per-class `code` attribute that nothing reads",
+        "impl-A/labelbook/events.py:44-50: five alias keys for the label id (labelId, label_id, artefactId, artefact_id, id) with no writer for most of them",
+        "impl-A/labelbook/ledger.py:459-472: source_of returns each fact twice under two names (label_id/id, maker/ids, time/at)",
+        "impl-A/labelbook/provenance.py:22-69: Input subclasses str and fakes a mapping so one value compares equal to a path and to a dict; clever, and it exists only to satisfy two shapes of caller",
+        "impl-A/labelbook/ledger.py:348-358: exports.jsonl duplicates the sidecar; no reader in the library"
+      ],
+      "next_change_touches": [
+        "impl-A/labelbook/schema.py: MAKER_KINDS add ensemble, DECISIONS add escalate, STATUS_OF add escalate->escalated, field definitions for members",
+        "impl-A/labelbook/ledger.py: maker_kinds/decisions properties (82-93) read a schema.json frozen at creation, so existing ledgers refuse escalate and ensemble until the file is migrated; _check_maker (159) must validate members",
+        "impl-A/labelbook/provenance.py: matches() (157) must expand ensemble members",
+        "impl-A/labelbook/ledger.py: acceptance (237-262) must also learn members, because it bypasses matches()",
+        "impl-A/labelbook/fold.py: no change for escalate (driven by STATUS_OF, 136-144)",
+        "impl-A/tests/test_pattern.py:201-207 and impl-A/tests/test_labelbook.py:122-125: their negative controls use 'escalate' as the unknown decision and must be rewritten"
+      ],
+      "smells": [
+        {"smell": "duplicated knowledge", "where": "impl-A/labelbook/events.py:68", "why": "the allowed-decision list is checked twice, against two sources (constant and schema file, impl-A/labelbook/ledger.py:193)"},
+        {"smell": "duplicated knowledge", "where": "impl-A/labelbook/ledger.py:248", "why": "acceptance reads maker fields itself instead of going through the advertised single matcher"},
+        {"smell": "duplicated loop", "where": "impl-A/labelbook/ledger.py:307-320", "why": "rows and carries repeat the same accepting/excluded filter"},
+        {"smell": "speculative generality", "where": "impl-A/labelbook/events.py:44-50", "why": "it tolerates legacy key spellings that no writer produces"},
+        {"smell": "large class", "where": "impl-A/labelbook/ledger.py:44-367", "why": "the facade holds schema loading, validation, queries, audit and export stamping in one class"}
+      ],
+      "best_thing": "The fold keeps status and the label in force as separate derivations over the live decisions, and it reports what it cannot apply (impl-A/labelbook/fold.py:104-150).",
+      "worst_thing": "The allow-lists are read from a schema.json written once (impl-A/labelbook/ledger.py:82-93), so the first new decision or maker kind is refused on every existing ledger."
+    },
+    "B": {
+      "summary": "Two append-only JSONL stores and one events.py that mixes errors, validation, record builders and a replay that keeps a stack of decisions per label, with status and current label derived from the top of that stack only. No input hashes, no schema, no export stamp.",
+      "scores": {"forces": 2, "adapted": 4, "wholeness": 3, "habitability": 4, "growth": 2, "smells": 2, "tests": 2},
+      "forces_resolved": [
+        "mutable state against history: undo is an appended event that pops the replay stack, impl-B/labelbook/events.py:207-219",
+        "record who decided: an actor is required, impl-B/labelbook/events.py:113-127",
+        "writers: a single O_APPEND write under flock, impl-B/labelbook/store.py:62-80"
+      ],
+      "forces_in_tension": [
+        "readers against writers / write the fold once: the fold is split into replay, status_of, current_label and is_good (impl-B/labelbook/events.py:199-248), and the pieces disagree. An unknown action in the log makes state() raise (impl-B/labelbook/events.py:233), while acceptance silently counts the same label as decided and not accepted (impl-B/labelbook/ledger.py:152-163); checked: state raises InvalidDecision, acceptance returns {'m': 0.0}",
+        "corrections overlay: current_label looks only at the top decision (impl-B/labelbook/events.py:236-240), so correct-then-accept returns the original label; checked: {'label': 'dust', 'status': 'accepted'} after correct 'scratch' then accept",
+        "ordering: seq is computed outside the lock (impl-B/labelbook/ledger.py:85-98) and replay ignores it (impl-B/labelbook/events.py:208), so it orders nothing"
+      ],
+      "forces_unnoticed": [
+        "hash inputs that may change (inputs are bare paths, impl-B/labelbook/events.py:91-110)",
+        "schema with definitions and units",
+        "code or model version in the stamp",
+        "export as a creating path / sidecar (impl-B/labelbook/ledger.py:175-183)",
+        "one shared matcher for made_by and acceptance"
+      ],
+      "dead_or_ornamental": [
+        "impl-B/labelbook/events.py:243: is_decided has no caller, and acceptance does not use it",
+        "impl-B/labelbook/events.py:188: seq is written but never read by replay",
+        "impl-B/labelbook/events.py:23-24: NON_UNDO_ACTIONS and GOOD_ACTIONS duplicate the if-chain in status_of"
+      ],
+      "next_change_touches": [
+        "impl-B/labelbook/events.py: MAKER_KINDS, ACTIONS, NON_UNDO_ACTIONS (21-23); a new branch in the status_of if-chain (222-233); clean_maker (72) to validate members",
+        "impl-B/labelbook/ledger.py: acceptance (141-164) counts every effective decision as decided, so an escalated label would count as a rejection unless it is filtered here",
+        "impl-B/labelbook/ledger.py: made_by (131-139) and acceptance (156-159) each compare maker fields inline; both need member expansion"
+      ],
+      "smells": [
+        {"smell": "duplicated knowledge", "where": "impl-B/labelbook/events.py:222-233", "why": "an if-chain repeats the decision-to-status mapping that ACTIONS and GOOD_ACTIONS also encode"},
+        {"smell": "divergent folds", "where": "impl-B/labelbook/ledger.py:152-163", "why": "acceptance decides what 'decided' means on its own and disagrees with state() on an unknown action"},
+        {"smell": "duplicated matcher", "where": "impl-B/labelbook/ledger.py:137", "why": "the maker matching in made_by is written again at impl-B/labelbook/ledger.py:156-159"},
+        {"smell": "dead field", "where": "impl-B/labelbook/ledger.py:98", "why": "seq is allocated outside the lock and never used"},
+        {"smell": "divergent module", "where": "impl-B/labelbook/events.py:28-258", "why": "errors, time, validation, record building and replay share one module"}
+      ],
+      "best_thing": "Small surface: two stores and one replay, readable in one sitting (impl-B/labelbook/ledger.py:26-210).",
+      "worst_thing": "The fold keeps only the top decision (impl-B/labelbook/events.py:236-240), so a correction is lost as soon as someone accepts it, and every export after a review round is wrong."
+    },
+    "C": {
+      "summary": "Dict-based records with one fold in folding.py that also holds the matcher, field reader and acceptance, plus provenance.py (stamper, hashes), schema.py (schema.json that doubles as the allow-list) and a 429-line Ledger facade with export sidecars, audit and an exports log. It is close to A in shape, with more aliases and fallbacks.",
+      "scores": {"forces": 4, "adapted": 3, "wholeness": 2, "habitability": 3, "growth": 3, "smells": 2, "tests": 4},
+      "forces_resolved": [
+        "mutable state against history: undo marks the decision undone and records undone_by, impl-C/labelbook/folding.py:129-137",
+        "readers against writers: state, acceptance and export go through _fold, impl-C/labelbook/ledger.py:149-155, 214-262, 293",
+        "one matcher: made_by, acceptance and export exclusions call matches(), impl-C/labelbook/ledger.py:242, impl-C/labelbook/folding.py:221, impl-C/labelbook/ledger.py:301",
+        "hash inputs: impl-C/labelbook/provenance.py:38-70",
+        "ordering under writers: seq assigned inside file_lock, impl-C/labelbook/ledger.py:196-198",
+        "inline against sidecar: inline for labels, sidecar with content hash and carries for exports, impl-C/labelbook/ledger.py:305-367"
+      ],
+      "forces_in_tension": [
+        "schema as allow-list: decide and add_label read allowed decisions and kinds from schema.json (impl-C/labelbook/ledger.py:169, 179; impl-C/labelbook/schema.py:147-154), and that file is written once (impl-C/labelbook/schema.py:126-131)",
+        "grouping against matching: acceptance groups by field_value and then matches (impl-C/labelbook/folding.py:195-231); acceptance_counts groups again on its own (impl-C/labelbook/folding.py:234-250). Unhashable values are dropped silently in both (folding.py:227-230, 243-244)",
+        "decide does not check that the label exists (impl-C/labelbook/ledger.py:177-199); the mistake shows up only later as a fold problem"
+      ],
+      "forces_unnoticed": [],
+      "dead_or_ornamental": [
+        "impl-C/labelbook/ledger.py:140: `labels = artefacts` alias, no caller",
+        "impl-C/labelbook/ledger.py:264-266: decided_ids, no caller",
+        "impl-C/labelbook/ledger.py:346-350: the content hash is stored three times in the sidecar (content_hash, hash.value, contentHash)",
+        "impl-C/labelbook/schema.py:18: imports read_jsonl only to re-export it",
+        "impl-C/labelbook/folding.py:32-36: _get also reads attributes of objects; every caller passes dicts",
+        "impl-C/labelbook/storage.py:77-96: an O_EXCL lock fallback for non-POSIX systems",
+        "impl-C/labelbook/folding.py:121, 156: alias keys artefactId and newValue that no writer produces"
+      ],
+      "next_change_touches": [
+        "impl-C/labelbook/schema.py: STATUS_OF, DECISIONS, STATUSES, MAKER_KINDS (25-37) and the SCHEMA text",
+        "impl-C/labelbook/ledger.py: decide/add_label take their allow-lists from the stored schema.json (169, 179), so existing ledgers refuse escalate and ensemble until it is migrated",
+        "impl-C/labelbook/folding.py: field_value and matches (166-192) for members; acceptance (195-231) and acceptance_counts (234-250) group by a single value and must become multi-valued; fold needs no change",
+        "impl-C/labelbook/provenance.py: stamp (91-126) to validate members",
+        "impl-C/tests/test_fold_laws.py:107, 124, 150 and impl-C/tests/test_decisions.py:75, 114: 'escalate' is the negative control and must be replaced"
+      ],
+      "smells": [
+        {"smell": "duplicated knowledge", "where": "impl-C/labelbook/folding.py:58-68", "why": "the legacy provenance shape repeats impl-C/labelbook/provenance.py:129-137"},
+        {"smell": "duplicated knowledge", "where": "impl-C/labelbook/ledger.py:348-350", "why": "one hash under three keys, and verify_export reads two of them (379)"},
+        {"smell": "duplicated grouping", "where": "impl-C/labelbook/folding.py:234", "why": "acceptance_counts re-implements the grouping in acceptance"},
+        {"smell": "speculative generality", "where": "impl-C/labelbook/ledger.py:332-367", "why": "export ctx with kind/maker/inputs/extra overrides that no caller passes"},
+        {"smell": "silent failure", "where": "impl-C/labelbook/folding.py:227-230", "why": "a TypeError while storing a share drops the group without a word"}
+      ],
+      "best_thing": "The fold is a pure function of (artefacts, events) and reports undo-nothing, unknown decisions, missing seq and duplicate ids as problems that change no state (impl-C/labelbook/folding.py:82-160).",
+      "worst_thing": "Layers of aliases, triple-stored hashes and unused helpers (impl-C/labelbook/ledger.py:140, 264, 346-350) make a newcomer guess which spelling is real."
+    },
+    "D": {
+      "summary": "Eight small modules, each named after one part: model (Artefact that cannot be built without provenance), provenance (stamper, hashes), schema (constants plus schema.json), folding (one fold), lineage (field_value, matches, made_by, acceptance), exporting (sidecar), storage (locks), and a thin Ledger. Same deep structure as A and C with the least extra machinery.",
+      "scores": {"forces": 4, "adapted": 4, "wholeness": 4, "habitability": 4, "growth": 4, "smells": 4, "tests": 4},
+      "forces_resolved": [
+        "stamping at creation: Artefact refuses construction without a provenance record, impl-D/labelbook/model.py:20-22; one stamp() used by labels and exports, impl-D/labelbook/provenance.py:95-120",
+        "hash inputs: impl-D/labelbook/provenance.py:34-50",
+        "write the fold once: impl-D/labelbook/folding.py:50-97, driven by schema.STATUS_OF, so a new status-giving decision is a constant",
+        "one matcher and one layout reader: impl-D/labelbook/lineage.py:13-38, used by made_by, acceptance and exclusions (impl-D/labelbook/lineage.py:49-90)",
+        "inline against sidecar: impl-D/labelbook/exporting.py:30-60 binds the sidecar to the bytes and to the labels carried",
+        "ordering: seq is built inside the lock from what was read under the same lock, impl-D/labelbook/storage.py:126-138"
+      ],
+      "forces_in_tension": [
+        "measuring a source: acceptance reports 0.0 for a source with no decided labels (impl-D/labelbook/lineage.py:84), so 'never reviewed' looks the same as 'always rejected'; impl-D/tests/test_api.py:171, 177 lock this in",
+        "schema vocabulary: decided/accepting are read from schema.json for acceptance (impl-D/labelbook/ledger.py:179-180) but from the code constant for export (impl-D/labelbook/ledger.py:204), and labelMakerKinds comes from the file (impl-D/labelbook/ledger.py:62)",
+        "maker identifiers must be JSON scalars (impl-D/labelbook/provenance.py:87-90), which closes the door on structured makers such as an ensemble's member list"
+      ],
+      "forces_unnoticed": [],
+      "dead_or_ornamental": [
+        "impl-D/labelbook/model.py:66-67: parse_many skips export records in labels.jsonl, but exports are only ever written to exports.jsonl",
+        "impl-D/labelbook/model.py:80: ExportArtefact.kind is constant and nobody branches on it",
+        "impl-D/labelbook/schema.py:167-169: defaults(), no caller"
+      ],
+      "next_change_touches": [
+        "impl-D/labelbook/schema.py: DECISIONS, STATUS_OF, STATUSES (31-37), LABEL_MAKER_KINDS and MAKER_KINDS (24-28); escalate needs nothing else, because check_decision and the fold read these constants",
+        "impl-D/labelbook/provenance.py: normalise_maker (69-92) must accept a members list instead of refusing non-scalars",
+        "impl-D/labelbook/lineage.py: field_value, matches and acceptance (13-85) must see through members; this one module holds the whole change",
+        "impl-D/labelbook/ledger.py: add_label takes labelMakerKinds from the stored schema.json (62), so existing ledgers refuse ensemble until it is migrated",
+        "impl-D/tests/test_fold_laws.py:151-165 and impl-D/tests/test_api.py:79, 238: 'escalate' as the negative control"
+      ],
+      "smells": [
+        {"smell": "duplicated knowledge", "where": "impl-D/labelbook/schema.py:24-28", "why": "two maker-kind lists (MAKER_KINDS, LABEL_MAKER_KINDS) that a new kind must be added to in both"},
+        {"smell": "duplicated code", "where": "impl-D/labelbook/ledger.py:177-178", "why": "acceptance and export (192-193) redo snapshot plus fold instead of calling self.fold()"},
+        {"smell": "inconsistent source of truth", "where": "impl-D/labelbook/ledger.py:204", "why": "export uses schema.ACCEPTING while acceptance uses the file's 'accepting'"}
+      ],
+      "best_thing": "lineage.field_value is the only code that knows the provenance layout, and matches/acceptance/exclusions are built on it (impl-D/labelbook/lineage.py:13-38), so the ensemble change lives in one module.",
+      "worst_thing": "acceptance returns 0.0 for undecided sources (impl-D/labelbook/lineage.py:84), and the tests enshrine it, so a dashboard will rank never-reviewed detectors as worthless."
+    },
+    "E": {
+      "summary": "One 400-line ledger.py with a private _Snapshot replayed from two JSONL logs (cached on file signatures), plus a small JsonlLog storage class. Maker and input paths are stored inline; there are no hashes, no schema, no stamp on the export, and any malformed or unknown line makes replay refuse the whole log.",
+      "scores": {"forces": 2, "adapted": 5, "wholeness": 4, "habitability": 4, "growth": 3, "smells": 3, "tests": 4},
+      "forces_resolved": [
+        "mutable state against history: the history keeps every event, undo flags the popped entry, and the label in force is the last live correction, impl-E/labelbook/ledger.py:88-99, 392-401",
+        "one fold for state, export and acceptance: all three go through _Snapshot.status_and_label, impl-E/labelbook/ledger.py:187, 258, 293",
+        "record who decided: impl-E/labelbook/ledger.py:152-153"
+      ],
+      "forces_in_tension": [
+        "forward compatibility of the log: an unknown decision anywhere raises LedgerFormatError for every reader (impl-E/labelbook/ledger.py:386-387); checked: one 'escalate' line breaks state()",
+        "one matcher: made_by (impl-E/labelbook/ledger.py:238) and acceptance (impl-E/labelbook/ledger.py:255-261) each read maker fields inline",
+        "the undo-nothing check happens outside the append lock (impl-E/labelbook/ledger.py:164-178)"
+      ],
+      "forces_unnoticed": [
+        "hash inputs that may change (paths only, impl-E/labelbook/ledger.py:320-340)",
+        "schema with definitions and units",
+        "code or model version in the stamp",
+        "audit any exported label: the export is unstamped plain JSON with no link back to label ids (impl-E/labelbook/ledger.py:273-298)",
+        "inline against sidecar"
+      ],
+      "dead_or_ornamental": [
+        "impl-E/labelbook/ledger.py:195-203: status() and current_label() repeat state() for one id; only tests call them"
+      ],
+      "next_change_touches": [
+        "impl-E/labelbook/ledger.py: KINDS, DECISIONS, STATUS_OF (21-28); _replay needs nothing, since non-undo events are pushed generically (398-401)",
+        "impl-E/labelbook/ledger.py: _validate_maker (308-317) for members; made_by (230-240) and acceptance (242-271) separately, and acceptance currently raises for a non-scalar field (262-267)",
+        "no stored schema, so old ledgers accept the new decision and kind at once; but older code reading a new ledger fails outright at 386-387"
+      ],
+      "smells": [
+        {"smell": "duplicated matcher", "where": "impl-E/labelbook/ledger.py:238", "why": "the maker comparison is repeated in acceptance at 255-261"},
+        {"smell": "primitive obsession", "where": "impl-E/labelbook/ledger.py:139-140", "why": "maker and inputs are raw dicts and path strings, with no record type to carry hashes or version"},
+        {"smell": "long function", "where": "impl-E/labelbook/ledger.py:351-402", "why": "_replay mixes format validation, error reporting and folding"}
+      ],
+      "best_thing": "The randomised model check compares state, acceptance, export and refusals against an independent reference after every step and again after reopening (impl-E/tests/test_model_check.py:76-123).",
+      "worst_thing": "With no content hashes and an unstamped export (impl-E/labelbook/ledger.py:273-298), an exported label cannot be audited back to what produced it, which TASK.md requires."
+    }
+  },
+  "generativity": {
+    "shared_seams": [
+      {"seam": "append-only JSONL logs for labels and decisions, replayed on every read, one O_APPEND write under flock", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "one pure fold(artefacts, events) -> (state, problems) with ItemState{origin, original, current, status, decisions}; undo marks undone instead of deleting", "in": ["A", "C", "D"]},
+      {"seam": "label in force = last live correction, kept separate from status = last live decision", "in": ["A", "C", "D", "E"]},
+      {"seam": "single stamper with hashed inputs, code version and time", "in": ["A", "C", "D"]},
+      {"seam": "one maker matcher (plus a field reader) shared by made_by, acceptance and export exclusion", "in": ["C", "D"]},
+      {"seam": "matcher declared single but bypassed by acceptance", "in": ["A"]},
+      {"seam": "schema.json written beside the data and read back as the allow-list", "in": ["A", "C", "D"]},
+      {"seam": "export as a creating path: sidecar with contentHash and carries, plus exports.jsonl", "in": ["A", "C", "D"]},
+      {"seam": "legacy records folded as kind 'unknown' and counted by unstamped()", "in": ["A", "C", "D"]},
+      {"seam": "seq assigned inside the lock and used for ordering", "in": ["A", "C", "D"]},
+      {"seam": "undo with nothing to undo refused at write time", "in": ["B", "E"]},
+      {"seam": "randomised reference-model tests of the fold", "in": ["A", "C", "D", "E"]}
+    ],
+    "groups": [["A", "C", "D"], ["B", "E"]],
+    "notes": "A, C and D share deep structure down to names and docstrings ('the stack an undo pops' at impl-A/labelbook/fold.py:57, impl-C/labelbook/folding.py:41, impl-D/labelbook/folding.py:22; 'never max+1'; fold version; 'carries'), and much of that vocabulary is not in the CHAPTER.md given. That looks more like transcription of a shared sketch than structure generated from the forces. They differ in detail: A uses frozen dataclasses and a str-subclass Input, C uses dicts with alias tolerance, D splits model, lineage and exporting into separate modules and keeps the maker as {kind, ids}. They also disagree on two policy points the chapter leaves open: undecided sources (omitted in A and C, 0.0 in D), and whether the allow-lists come from the file (A and C for decisions; D only for kinds). B and E are leaner and treat lineage as 'store maker dict and paths'. E keeps the fold whole and B breaks it."
+  },
+  "worse_is_better": "E is the simplest design that gets the fold right: one module, one replay, and the strongest model check. What it lacks (content hashes, a code version, an export sidecar that names the labels it carries) is needed by the task's 'audit any exported label' and by chapter notes 8-9, so E is too simple. D carries exactly that extra and little more. A and C add an exports.jsonl audit log, fold-version reports, audit()/unstamped(), alias keys, error codes, triple-stored hashes and non-POSIX lock fallbacks. None of these is needed by the task, and they cost habitability.",
+  "ranking": ["D", "C", "A", "E", "B"],
+  "chapter_lessons": [
+    "The sketch's fold (`state[itemId] = e`, undo deletes) keeps only the last event, and B reproduced exactly that bug (impl-B/labelbook/events.py:236-240): correct-then-accept loses the correction. The sketch should keep status and the label in force as two derivations over the live decisions.",
+    "'Write the fold once' must also cover the derived predicates (decided, accepting, unknown-decision handling). B has one replay but lets acceptance decide 'decided' on its own, and the two disagree on the same log (impl-B/labelbook/ledger.py:152-163 vs events.py:233).",
+    "Name a force for forward compatibility: what an old reader does with a decision it does not know. The implementations split between skip-and-report (A, C, D) and refuse the whole log (E, and B's state()), and the chapter is silent.",
+    "Putting allowed values in the schema file is a trap when that file is both the documentation and the allow-list and is written once. A, C and D would refuse the next decision or maker kind on every existing ledger (impl-A/labelbook/ledger.py:82-93, impl-C/labelbook/ledger.py:179, impl-D/labelbook/ledger.py:62). The chapter should say the code enforces, the schema documents, and a schema version is migrated.",
+    "Grouping is matching too: acceptance-by-source needs a 'values of field' reader beside matches(), or ensembles need edits in two places (impl-C/labelbook/folding.py:166-231, impl-D/labelbook/lineage.py:13-85; A bypasses its matcher, impl-A/labelbook/ledger.py:248).",
+    "Say what the share is for a source with no decided labels; D reports 0.0 (impl-D/labelbook/lineage.py:84) and the others omit it.",
+    "Say whether undo with nothing to undo is refused at write time (B, E) or recorded and reported (A, C, D).",
+    "The fold-version, exports-log and audit machinery that A and C carry has no caller in the task; the chapter should not suggest it without a reader."
+  ]
+}
