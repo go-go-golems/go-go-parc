@@ -1,0 +1,237 @@
+{
+  "implementations": {
+    "A": {
+      "summary": "A single-parent chain of OpNodes, each asking its operation for an input rect and then computing missing cells one at a time with the whole-grid formula (compute_cell reading absolute coordinates through ctx.get). Each node memoises computed cells as row spans plus a (y,x) dict, so overlapping windows and evaluate_many share work without tiles, and reset_counters drops every cache.",
+      "scores": {"forces": 4, "adapted": 5, "wholeness": 4, "habitability": 4, "growth": 5, "smells": 4, "tests": 4},
+      "forces_resolved": [
+        "exactness against economy: the evaluator only chooses which cells get the per-cell formula, never how they are computed, so window results are bit-identical to whole results (impl-A/stencilpipe/engine.py:276-282, impl-A/stencilpipe/ops.py:149-162; checked: 0/941 box cells differ after add)",
+        "border rule only at the real border: kernels clamp against ctx.in_extent, not a buffer (impl-A/stencilpipe/ops.py:150-155, 175-178)",
+        "small requests against shared work: the _Spans per-row interval memo computes and counts each cell once across overlapping windows, with no rounding to tiles (impl-A/stencilpipe/engine.py:32-93, 255-256; checked: two overlapping 10x10 windows cost 175 cells, not 200)",
+        "local against global: normalize declares the whole input as its footprint and caches the max once per node in prepare/_state (impl-A/stencilpipe/ops.py:214-228, impl-A/stencilpipe/engine.py:270-271)",
+        "measurements are window requests, not a bounding box: evaluate_many ensures each rect on its own (impl-A/stencilpipe/engine.py:390-394)",
+        "keep the best case: a window already covered by the memo costs nothing (impl-A/stencilpipe/engine.py:255-256)"
+      ],
+      "forces_in_tension": [
+        "declared against discovered reach: an under-declared read raises only when the parent is an OpNode (impl-A/stencilpipe/engine.py:284-291); reads from a SourceNode always succeed (impl-A/stencilpipe/engine.py:187-193), and cells memoised by earlier windows hide a short footprint",
+        "memory: every computed cell is a tuple-keyed dict entry kept until reset_counters (impl-A/stencilpipe/engine.py:223, 401-410), so a whole evaluation holds far more memory than rows of floats and the cache is never evicted"
+      ],
+      "forces_unnoticed": [
+        "tile size against reach (no tiles; the span memo makes them less needed, but this is never stated)",
+        "the cost rule (evaluate whole when footprints cost about the whole) is absent; with per-cell computation it has no role, but nothing says so"
+      ],
+      "dead_or_ornamental": [
+        "impl-A/stencilpipe/engine.py:265-268: extra_input_rects hook; no demo operation uses it, only a test op (impl-A/tests/test_extensions.py:21-22)",
+        "impl-A/stencilpipe/engine.py:180-185: SourceNode.ensure clips and then returns None on both branches",
+        "impl-A/stencilpipe/geometry.py:42-45, 58-59, 79-80: Rect.cells, Rect.translate, cell_rect have no caller",
+        "impl-A/stencilpipe/ops.py:142-143: BoxOp.out_extent repeats the base implementation"
+      ],
+      "next_change_touches": [
+        "impl-A/stencilpipe/ops.py: new DyOp (input_rect Rect(x, y-1, w, h+2), compute_cell clamped on in_extent height) and Up2Op (out_extent 2W x 2H, input_rect mapped back as x//2 .. (x+w+1)//2, compute_cell ctx.get(x//2, y//2)); append both to DEMO_OPERATIONS",
+        "impl-A/stencilpipe/__init__.py: optional import and __all__ entries, since each op class is exported",
+        "impl-A/tests/references.py and impl-A/tests/test_api.py:17-20: reference functions and the exact operation_names list"
+      ],
+      "smells": [
+        {"smell": "duplicated code", "where": "impl-A/stencilpipe/engine.py:310-319", "why": "the op(args) formatting is written twice in __repr__"},
+        {"smell": "speculative generality", "where": "impl-A/stencilpipe/ops.py:69-72", "why": "extra_input_rects exists for a hypothetical prepare-only read; the only global op uses input_rect instead"},
+        {"smell": "primitive storage", "where": "impl-A/stencilpipe/engine.py:223", "why": "one dict entry per cell keyed by (y, x) tuples; rows would serve and cost less"}
+      ],
+      "best_thing": "Compute each output cell with the whole-grid formula over absolute coordinates, and memoise per node by row spans: this gives exactness and overlap sharing with no Buffer, origin or tile machinery.",
+      "worst_thing": "Source reads are unguarded and the memo masks short footprints, so the invariance tests are the only thing standing between a wrong input_rect and silently wrong edges."
+    },
+    "B": {
+      "summary": "A registry of stateless Op singletons, each declaring footprint(window, index, extent, args, scale) and a windowed run() over origin-carrying Buffers that raise FootprintError on any read outside the declared footprint. The evaluator follows the chapter's flowchart literally (whole cache, WHOLE or 0.6 cost rule, clipped footprints, window cache), and normalize is built as divide(img, max_stat(img)).",
+      "scores": {"forces": 5, "adapted": 3, "wholeness": 2, "habitability": 3, "growth": 4, "smells": 3, "tests": 5},
+      "forces_resolved": [
+        "exactness against economy: kernels read through Buffer in document coordinates and clamp against the node's real extent (impl-B/stencilpipe/buffers.py:27-103, impl-B/stencilpipe/ops.py:103, 130); bit-identical to whole results (checked)",
+        "declared against discovered reach: every read, including from sources (impl-B/stencilpipe/engine.py:247), goes through a buffer cut to the footprint, and reads outside it raise FootprintError (impl-B/stencilpipe/buffers.py:66-103), with negative-control tests (impl-B/tests/test_regions.py:172-235)",
+        "local against global: normalize is split into a WHOLE-footprint MaxStat node and a local Divide node, with the 1x1 statistic cached in _whole (impl-B/stencilpipe/ops.py:178-245)",
+        "cost rule: a node is evaluated whole when its footprints exceed whole_fraction of its inputs, and the fraction is a setting (impl-B/stencilpipe/engine.py:282-298, 112)",
+        "keep the best case: the whole value is cut first (impl-B/stencilpipe/engine.py:252-254)",
+        "reaches add up along a chain: each node widens its own request (impl-B/stencilpipe/engine.py:300-310), tested at impl-B/tests/test_regions.py:55-62"
+      ],
+      "forces_in_tension": [
+        "small requests against shared work: the window cache is keyed by the exact window (impl-B/stencilpipe/engine.py:256-258, 272) and evaluate_many just loops (impl-B/stencilpipe/engine.py:201-207), so overlapping windows recompute the overlap (checked: 200 cells for two 10x10 windows sharing 25)",
+        "units: reach is converted through scaled_reach at a scale that is always 1.0 (impl-B/stencilpipe/engine.py:113-115), and Box.run uses the raw r (impl-B/stencilpipe/ops.py:101) while Box.footprint uses the scaled one (impl-B/stencilpipe/ops.py:93-98), so the 'one conversion point' is already two"
+      ],
+      "forces_unnoticed": [
+        "tile size against reach (no tiles; deferred without saying so)",
+        "memory: _windows stores every windowed value of every node with no bound (impl-B/stencilpipe/engine.py:117)"
+      ],
+      "dead_or_ornamental": [
+        "impl-B/stencilpipe/registry.py:31-59 and the scale parameter on every footprint: scale machinery copied from the chapter's gaussian sketch for a task with no scale; Engine.scale is fixed at 1.0",
+        "impl-B/stencilpipe/engine.py:209-227: Engine.footprint has callers only in tests",
+        "impl-B/stencilpipe/engine.py:330-333: demo_registry() has no caller",
+        "impl-B/stencilpipe/registry.py:155-174 and the internal/composite/global_operation flags (registry.py:69-74): listing helpers used only by impl-B/tests/test_regions.py:238-249",
+        "impl-B/stencilpipe/window.py:98-111: Window.contains and Window.union have no caller",
+        "impl-B/stencilpipe/buffers.py:54-55, 80-82: Buffer.inside_extent and Buffer.row (alias of row_slice) have no caller",
+        "impl-B/stencilpipe/engine.py:79-99: _SourceOp marker with pragma-no-cover methods; impl-B/stencilpipe/window.py:24-25 pickling support for WHOLE"
+      ],
+      "next_change_touches": [
+        "impl-B/stencilpipe/ops.py: new Dy (footprint window.grow(0, 1), run clamped on source.height) and Up2 (output_extent doubled, footprint mapped back with floor/ceil, run via source.get(x//2, y//2)), each carrying the unused scale parameter; two registry.add lines in build_demo_registry",
+        "impl-B/stencilpipe/__init__.py: import and __all__ entries (each op class is exported)",
+        "impl-B/tests: the op/argument tables are repeated in impl-B/tests/test_whole_grid.py:69-71, impl-B/tests/test_random_pipelines.py:16-22 and impl-B/tests/test_invariance.py:27-35, plus the exact list in impl-B/tests/test_regions.py:248-249"
+      ],
+      "smells": [
+        {"smell": "speculative generality", "where": "impl-B/stencilpipe/registry.py:31-59", "why": "buffer_reach/scaled_reach and a scale argument with one value, 1.0"},
+        {"smell": "duplicated knowledge", "where": "impl-B/stencilpipe/engine.py:220-226, 294-295, 305-309", "why": "turning a declared footprint into a clipped window (WHOLE or clip) is written three times"},
+        {"smell": "data clump", "where": "impl-B/stencilpipe/registry.py:81", "why": "window, index, input_extent, args and scale travel together through every footprint call because ops are argument-less singletons"},
+        {"smell": "inappropriate intimacy", "where": "impl-B/stencilpipe/ops.py:241-245", "why": "_build_normalize calls the engine's private _node and reaches into registry.ops"},
+        {"smell": "divergent truth", "where": "impl-B/stencilpipe/ops.py:93-101", "why": "the footprint uses scaled_reach(r) while the kernel uses r"}
+      ],
+      "best_thing": "Hand every kernel, sources included, a buffer cut to its declared footprint and make reads outside it raise; together with the negative-control tests this turns a short reach from a silent edge bug into a failure.",
+      "worst_thing": "Machinery transcribed from the sketch with no user (scale conversion, composite/internal flags, listing helpers) makes up a large share of the package and already disagrees with the kernels."
+    },
+    "C": {
+      "summary": "Each evaluate builds a one-shot _Solution: a demand phase propagates input_region rects consumer-to-producer in topological order, and a compute phase fills a per-solution sparse store cell by cell with the whole-grid formula, counting each cell once. Nothing is cached between calls, and normalize demands its whole input and recomputes the max in prepare every time.",
+      "scores": {"forces": 3, "adapted": 4, "wholeness": 4, "habitability": 4, "growth": 5, "smells": 4, "tests": 4},
+      "forces_resolved": [
+        "exactness against economy: per-cell formula over absolute coordinates (impl-C/stencilpipe/ops.py:122-135, impl-C/stencilpipe/engine.py:157-166); bit-identical (checked)",
+        "border rule at the real border: kernels clamp on ctx.in_extent (impl-C/stencilpipe/ops.py:123-128, 147-148)",
+        "small requests against shared work within one request: evaluate_many unions demands per node and skips already-stored cells (impl-C/stencilpipe/engine.py:146-166, 300-314; checked: 175 cells for two overlapping 10x10 windows)",
+        "measurements are window requests, not a bounding box: rects are kept separately and only contained ones are dropped (impl-C/stencilpipe/regions.py:64-86)",
+        "reaches add up along a chain: the demand phase widens at every node (impl-C/stencilpipe/engine.py:131-143)"
+      ],
+      "forces_in_tension": [
+        "keep the best case: every evaluate starts a fresh _Solution (impl-C/stencilpipe/engine.py:296), so a second window of the same view recomputes everything, and a test makes this a law (impl-C/tests/test_stencilpipe.py:333-344)",
+        "local against global: normalize is not split; it demands its whole input and recomputes the max on every call (impl-C/stencilpipe/ops.py:187-199)",
+        "declared against discovered reach: a store miss raises KeyError (impl-C/stencilpipe/engine.py:115), but sources are read directly (impl-C/stencilpipe/engine.py:113-114), and overlapping demanded rects can hide a short footprint"
+      ],
+      "forces_unnoticed": [
+        "caching whole values (chapter note 6)",
+        "tile size against reach",
+        "the cost rule (not needed per cell, but never discussed)"
+      ],
+      "dead_or_ornamental": [
+        "impl-C/stencilpipe/engine.py:272-274: combine() is an alias of apply() and has no caller",
+        "impl-C/stencilpipe/engine.py:248-255 and Op.n_inputs: multi-input support used only by a test op (impl-C/tests/test_stencilpipe.py:398-434)",
+        "impl-C/stencilpipe/demo.py:1-12: a 12-line module whose only job is registering DEMO_OPS",
+        "impl-C/stencilpipe/engine.py:127: _Solution.requested is stored and never read again"
+      ],
+      "next_change_touches": [
+        "impl-C/stencilpipe/ops.py: new Dy (input_region Rect(x, y-1, w, h+2)) and Up2 (out_extent doubled, input_region mapped back with floor/ceil, cell ctx.get(0, x//2, y//2)); add both to DEMO_OPS. Up2's footprint is monotone, so the containment assumption in impl-C/stencilpipe/regions.py:67-71 still holds",
+        "impl-C/stencilpipe/__init__.py: optional exports",
+        "impl-C/tests/test_stencilpipe.py: references, REFERENCES and OPS tables"
+      ],
+      "smells": [
+        {"smell": "misleading name", "where": "impl-C/stencilpipe/ops.py:217", "why": "_count validates a non-negative integer, while Engine._count increments the cell counter"},
+        {"smell": "speculative generality", "where": "impl-C/stencilpipe/engine.py:248-274", "why": "apply/combine/n_inputs and the topological solver serve one test-only two-input op"},
+        {"smell": "long test file", "where": "impl-C/tests/test_stencilpipe.py:1-576", "why": "references, laws and API checks live in one 576-line module"}
+      ],
+      "best_thing": "Separating demand (which rects each node needs) from compute (fill them once) makes the footprint propagation readable in about 40 lines and gives batch sharing for free.",
+      "worst_thing": "Without any cache, normalize recomputes the whole input on every call, and the test suite locks that in."
+    },
+    "D": {
+      "summary": "A content-keyed graph of op objects with plain-tuple windows. A buffer evaluator follows the chapter's flow (whole cache, then a bounded containing-window cache, then WHOLE or cost fallback, then per-input footprints), and normalize takes its max through a global_params hook into engine.statistic. Kernels index raw buffer rows with origin arithmetic repeated in each op, and box uses a summed-area table over its buffer.",
+      "scores": {"forces": 2, "adapted": 4, "wholeness": 3, "habitability": 3, "growth": 4, "smells": 3, "tests": 3},
+      "forces_resolved": [
+        "local against global: Normalize.global_params gets a cached whole-input max from engine.statistic, and windows pass through the division (impl-D/stencilpipe/ops.py:272-287, impl-D/stencilpipe/engine.py:203-219)",
+        "keep the best case: the whole cache, then a containing cached window, is cut before computing (impl-D/stencilpipe/engine.py:230-236, 298-304)",
+        "cost rule: footprints over 0.6 of the inputs fall back to whole (impl-D/stencilpipe/engine.py:289-296)",
+        "border rule at the real border: kernels clamp on ctx.in_extents (impl-D/stencilpipe/ops.py:152, 174-175, 203)"
+      ],
+      "forces_in_tension": [
+        "exactness against economy: box's summed-area table over the buffer (impl-D/stencilpipe/ops.py:159-190) makes each value depend on the buffer origin. Checked: 872 of 941 windowed box cells differ bitwise from the whole result. Tolerance in the tests hides it (impl-D/tests/support.py:113-116)",
+        "measurements are window requests, not a bounding box: evaluate_many goes whole when the union bbox exceeds 0.6 of the node (impl-D/stencilpipe/engine.py:178-182). Checked: two 4x4 windows at opposite corners of a 400x300 box/dx chain compute all 240,000 cells",
+        "small requests against shared work: only fully containing cached windows are reused, so partial overlaps recompute (checked: 200 cells for two 10x10 windows sharing 25)"
+      ],
+      "forces_unnoticed": [
+        "declared against discovered reach: kernels index rows directly (impl-D/stencilpipe/ops.py:128-133, 210-215, 247-255). A short footprint gives IndexError on the right and a silent wrap-around negative index on the left, and the guarded Buffer.get (impl-D/stencilpipe/buffer.py:29-34) is never used",
+        "tile size against reach"
+      ],
+      "dead_or_ornamental": [
+        "impl-D/stencilpipe/buffer.py:25-34: Buffer.local ('that one place' for origin conversion) and Buffer.get have no caller; every kernel redoes the arithmetic",
+        "impl-D/stencilpipe/ops.py:42: Op.is_global is never read",
+        "impl-D/stencilpipe/ops.py:33, 52-59: REQUIRED and the default-value machinery; every parameter is required",
+        "impl-D/stencilpipe/engine.py:209-217: statistic(kind) dispatches on a string with one value, 'max'",
+        "impl-D/stencilpipe/engine.py:40-42: Ctx.origin has callers only in tests",
+        "impl-D/stencilpipe/engine.py:106-112: cache_windows and max_cached_windows settings with no caller beyond the defaults"
+      ],
+      "next_change_touches": [
+        "impl-D/stencilpipe/ops.py: new DiffY (footprint grow(window, 0, 1), run with hand-written by/bx origin arithmetic) and Up2 (extent doubled, footprint mapped back with floor/ceil, run indexing rows[y//2 - by][x//2 - bx]); add to default_ops",
+        "impl-D/stencilpipe/__init__.py: import and __all__ entries (each op class is exported)",
+        "impl-D/tests/support.py and impl-D/tests/test_invariance.py:23-46: references and CHAINS; impl-D/tests/test_engine.py:22 exact operations list"
+      ],
+      "smells": [
+        {"smell": "duplicated knowledge", "where": "impl-D/stencilpipe/ops.py:129-130, 155, 206, 241, 281-282", "why": "the buffer-origin conversion is rewritten in every kernel while Buffer.local sits unused"},
+        {"smell": "primitive obsession", "where": "impl-D/stencilpipe/window.py:61-103", "why": "windows are bare 4-tuples read as window[2], window[3] throughout the engine"},
+        {"smell": "speculative generality", "where": "impl-D/stencilpipe/engine.py:203-219", "why": "a statistic-kind switch and cache settings with one value each"},
+        {"smell": "fragile test", "where": "impl-D/tests/test_engine.py:262-272", "why": "a wall-clock limit (2.0 s) in a unit test"}
+      ],
+      "best_thing": "The global statistic as a hook that returns parameters (global_params) keeps normalize a point operation for windows while the max is computed whole once.",
+      "worst_thing": "The bounding-box shortcut in evaluate_many turns scattered probes into whole-grid evaluations, which is exactly the case the library exists for."
+    },
+    "E": {
+      "summary": "A content-keyed graph of SourceNode/OpNode with a rich Window value class and Buffers that carry origin and extent and raise on out-of-buffer reads. An evaluator following the chapter's flow (whole cache, global dependencies warmed, WHOLE or cost fallback, exact-window cache) sits under ops that each count their own cells. normalize binds a hidden MaxOp statistic node at build time.",
+      "scores": {"forces": 3, "adapted": 3, "wholeness": 3, "habitability": 3, "growth": 3, "smells": 2, "tests": 4},
+      "forces_resolved": [
+        "local against global: a MaxOp statistic node with a WHOLE footprint is warmed whole and cached before the local division runs (impl-E/stencilpipe/ops.py:209-280, impl-E/stencilpipe/engine.py:264-267)",
+        "keep the best case: the whole cache is checked first (impl-E/stencilpipe/engine.py:248-250)",
+        "cost rule: footprints over whole_threshold of the inputs go whole, and the threshold is a setting (impl-E/stencilpipe/engine.py:278-282, 148)",
+        "border rule at the real border: kernels clamp to Buffer.extent (impl-E/stencilpipe/ops.py:110-129, 155-161)",
+        "measurements are window requests: evaluate_many evaluates each window on its own (impl-E/stencilpipe/engine.py:222-225)"
+      ],
+      "forces_in_tension": [
+        "exactness against economy: box sums per-row prefix sums over its buffer (impl-E/stencilpipe/ops.py:112-136), which depend on the buffer origin. It is exact only over sources, which always hand out the whole grid (impl-E/stencilpipe/engine.py:251-252). Checked: after add, 642 of 941 windowed box cells differ bitwise. Tests compare to 9 places (impl-E/tests/test_invariance.py:86-91), while the docstring claims exactness (impl-E/stencilpipe/engine.py:5-7)",
+        "declared against discovered reach: Buffer.get raises (impl-E/stencilpipe/buffer.py:53-60), but sources are never cut to the footprint (impl-E/stencilpipe/engine.py:251-252) and box indexes prefix rows directly (impl-E/stencilpipe/ops.py:125)",
+        "small requests against shared work: the window cache is keyed by the exact window (impl-E/stencilpipe/engine.py:260-262), while the evaluate_many docstring claims overlap sharing (impl-E/stencilpipe/engine.py:223). Checked: 200 cells for two 10x10 windows sharing 25"
+      ],
+      "forces_unnoticed": [
+        "tile size against reach",
+        "memory: the exact-window cache is unbounded (impl-E/stencilpipe/engine.py:153)"
+      ],
+      "dead_or_ornamental": [
+        "impl-E/stencilpipe/window.py:99-109, 127-128: grow_sides is used only in tests, offset never",
+        "impl-E/stencilpipe/window.py:53-64: __len__, __getitem__ and tuple-equality dunders serve only geometry tests",
+        "impl-E/stencilpipe/buffer.py:36-42, 62-63: w_extent, h_extent and row have no caller",
+        "impl-E/stencilpipe/ops.py:42-44: Op.is_global is read only by a test (impl-E/tests/test_engine.py:205)",
+        "impl-E/stencilpipe/ops.py:176: HalfOp.factor parameterises a factor that is always 2",
+        "impl-E/stencilpipe/window.py:24-29: pickling support for WHOLE"
+      ],
+      "next_change_touches": [
+        "impl-E/stencilpipe/ops.py: new DyOp (footprint window.grow(0, 1)) and Up2Op (output_extent doubled, run via src.get(x//2, y//2)); each must repeat ctx.count(window.area) and the Buffer(...) construction",
+        "impl-E/stencilpipe/window.py: a new inverse-mapping method next to scale_back (floor/ceil division), or inline arithmetic in Up2Op.footprint",
+        "impl-E/stencilpipe/engine.py: demo_engine registration and the concrete-op import (impl-E/stencilpipe/engine.py:18, 305-313), so the core module changes",
+        "impl-E/stencilpipe/__init__.py: import and __all__ entries"
+      ],
+      "smells": [
+        {"smell": "shotgun surgery / duplicated knowledge", "where": "impl-E/stencilpipe/ops.py:79, 138, 164, 205, 235, 279", "why": "every op counts its own cells; one forgotten ctx.count silently under-reports"},
+        {"smell": "duplicated code", "where": "impl-E/stencilpipe/engine.py:270-276, 288-297", "why": "footprint resolution and clipping are written in both _eval and _compute"},
+        {"smell": "hidden dependency", "where": "impl-E/stencilpipe/ops.py:255-264", "why": "the statistic node lives in op state rather than node.inputs, so it needs bind, global_dependencies, ctx.value and a function-local circular import"},
+        {"smell": "dependency inversion", "where": "impl-E/stencilpipe/engine.py:18, 305-313", "why": "the evaluator module imports and registers concrete operations"},
+        {"smell": "duck-typed hook", "where": "impl-E/stencilpipe/engine.py:124-125", "why": "OpNode checks hasattr(op, 'bind') to let one op rewrite itself"}
+      ],
+      "best_thing": "The invariance test evaluates each window on a fresh engine so that the whole-value cache cannot mask a broken footprint (impl-E/tests/test_invariance.py:7-9, 97-99).",
+      "worst_thing": "An origin-dependent prefix-sum box combined with tolerance-based tests: exactness, the force the pattern exists for, is quietly given up in chains."
+    }
+  },
+  "generativity": {
+    "shared_seams": [
+      {"seam": "per-operation footprint: output rect to input rect (input_rect / footprint / input_region)", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "rectangle value with grow and clip-to-extent", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "WHOLE sentinel for a global footprint", "in": ["B", "D", "E"]},
+      {"seam": "global expressed as an input rect equal to the whole extent, with a prepare hook computing the max", "in": ["A", "C"]},
+      {"seam": "per-cell kernel reading absolute coordinates through ctx.get", "in": ["A", "C"]},
+      {"seam": "windowed kernel over a Buffer carrying its origin and the real extent", "in": ["B", "D", "E"]},
+      {"seam": "split statistic for normalize, as graph nodes (B), a parameter hook (D) or a hidden bound node (E)", "in": ["B", "D", "E"]},
+      {"seam": "cost fallback with the sketch's constant 0.6", "in": ["B", "D", "E"]},
+      {"seam": "whole-value cache checked first", "in": ["A", "B", "D", "E"]},
+      {"seam": "content-keyed nodes: (op name, args, input keys)", "in": ["B", "D", "E"]},
+      {"seam": "sparse per-cell store that computes and counts each cell once", "in": ["A", "C"]},
+      {"seam": "prefix-sum box kernel over the buffer", "in": ["D", "E"]},
+      {"seam": "multi-input nodes", "in": ["B", "C", "E"]}
+    ],
+    "groups": [["A", "C"], ["B", "D", "E"]],
+    "notes": "All five share the deep structure: a declared footprint per op, propagated and clipped at each node, so reaches add up for free. They split on where the kernel stands. A and C compute cell by cell over absolute coordinates, which makes exactness and overlap sharing structural and makes Buffer, origin, WHOLE and the cost rule unnecessary. B, D and E compute windows over origin-carrying buffers and transcribe the chapter's flowchart step by step, including the 0.6 constant. Within that group B and E are closest (Window class, WHOLE, statistic as a node, exact-window cache); D uses tuples and a hook. The details differ in exactly the places the chapter is vague: how the statistic is wired in (three shapes), whether sources are cut to the footprint (only B), and whether evaluate_many respects separate neighbourhoods (D does not)."
+  },
+  "worse_is_better": "A, and C more so, reach the essential quality with less: bit-exact windows, footprint propagation and batch sharing, with no Buffer or origin class, no WHOLE sentinel, no cost threshold and no scale conversion. Per-cell evaluation over absolute coordinates makes the chapter's buffer-origin consequence and the cost rule irrelevant, and A's span memo shares overlapping windows better than any buffer implementation (175 vs 200 cells). B, D and E carry buffers and origins (needed only because they chose window kernels), a copied 0.6 threshold, content keys and, in B, a scale apparatus the task never uses. Of that extra, only B's footprint guard and an explicit statistic node earn their place. The buffer route is also where exactness was lost (D, E prefix sums). A's real gaps are an unguarded source read and per-cell dict memory. C's gap is the missing cache.",
+  "ranking": ["A", "B", "C", "E", "D"],
+  "chapter_lessons": [
+    "Exactness is broken by more than a short footprint. Kernels whose arithmetic depends on the buffer origin, such as prefix sums or summed-area tables (impl-D/stencilpipe/ops.py:159-190, impl-E/stencilpipe/ops.py:112-136), make windows differ from whole results even when the footprint is correct. Tolerance-based invariance tests hide this (impl-D/tests/support.py:113, impl-E/tests/test_invariance.py:91). The chapter should demand exact equality in the invariance test and warn that each output cell must be computed in an order that does not depend on the buffer origin.",
+    "Name the footprint guard as the cheap answer to 'declared against discovered reach': cut every input, sources included, to the declared footprint and raise on reads outside it. Only B did this (impl-B/stencilpipe/buffers.py:66-103, impl-B/stencilpipe/engine.py:247). A, C and E give kernels the whole source (impl-A/stencilpipe/engine.py:187-193, impl-C/stencilpipe/engine.py:113-114, impl-E/stencilpipe/engine.py:251-252), so a short reach directly above a source goes unnoticed.",
+    "The cost rule invites the note-10 trap. D applied 'cost about the whole' to the bounding box of several windows (impl-D/stencilpipe/engine.py:178-182) and computes the whole grid for two scattered probes. The chapter should say the rule is per node and per window, never across a request's bounding box, and that the 0.6 in the sketch is a placeholder: B, D and E all copied it unmeasured.",
+    "Mark the units/scale machinery as conditional. B copied the sketch's scale conversion into a task with no scale (impl-B/stencilpipe/registry.py:31-59, impl-B/stencilpipe/engine.py:113-115), and it already disagrees with the kernel (impl-B/stencilpipe/ops.py:93-101).",
+    "Say how the statistic node is wired. The phrase produced three shapes: graph nodes (impl-B/stencilpipe/ops.py:241-245), a parameter hook (impl-D/stencilpipe/ops.py:272-273) and a hidden node in op state that needs bind, global_dependencies and ctx.value (impl-E/stencilpipe/ops.py:255-264). Recommend making the statistic an ordinary input of the local half, divide(img, stat(img)), so the evaluator needs no special case.",
+    "Offer per-cell demand with a memo as a variation alongside tiles. A shares overlapping work exactly, with no rounding (impl-A/stencilpipe/engine.py:32-93), and A and C need neither the buffer-origin consequence nor the cost rule. The chapter presents tiles as the only answer to 'small requests against shared work', and should also name the memory cost of per-cell caches (impl-A/stencilpipe/engine.py:223).",
+    "Cache-first and cost measurement interact. A and B clear their caches on reset_counters, while D and E keep them, so the same request reports different costs. C rejects caching outright and writes a test for it (impl-C/tests/test_stencilpipe.py:333-344). The chapter should say how a cache coexists with measuring cost, for example with a cold mode for measurement."
+  ]
+}

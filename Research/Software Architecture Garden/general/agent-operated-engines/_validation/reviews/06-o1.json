@@ -1,0 +1,497 @@
+{
+ "implementations": {
+  "A": {
+   "summary": "A vocabulary-free line parser, one Diagnostic exception, and a 696-line commands.py that holds the option tables, a long name-resolution ladder, validation and handlers; Shop.run folds warnings in a closure. Fixes are rendered from the parsed line with its repeat prefix and offered only if they re-validate.",
+   "scores": {
+    "forces": 4,
+    "adapted": 4,
+    "wholeness": 4,
+    "habitability": 3,
+    "growth": 4,
+    "smells": 3,
+    "tests": 5
+   },
+   "forces_resolved": [
+    "suggestion vs misdirection (fix side): a fix is offered only if the rendered line re-parses and validates, impl-A/shopcli/commands.py:350-365, else None",
+    "fixes are code in the agent's line: the verbatim 'repeat N:' prefix is kept, impl-A/shopcli/parser.py:47-49, impl-A/shopcli/diagnostics.py:43-46 (the only implementation that does this)",
+    "no invented values: missing name or fractional qty gets a hint and fix=None, impl-A/shopcli/commands.py:669-678, stated as a law in impl-A/tests/test_repair.py:59-66",
+    "errors vs warnings: usual_max on the option record, impl-A/shopcli/commands.py:297, warns without blocking, impl-A/shopcli/commands.py:688-695; folded by (line, code, message), impl-A/shopcli/shop.py:52-67",
+    "deliver what came before: results and warnings survive the first Diagnostic, impl-A/shopcli/shop.py:69-82"
+   ],
+   "forces_in_tension": [
+    "suggestion vs misdirection (hint side): difflib at cutoff 0.6 on the whole dotted name, impl-A/shopcli/diagnostics.py:19-27, gives 'item.drop' the hint \"did you mean 'item.add'?\" and 'price.list' the hint 'price.set' (impl-A/shopcli/commands.py:417-420); the shared 'item.' prefix inflates similarity",
+    "one shape / translator: host_name is filled with the canonical command name for every command error, impl-A/shopcli/diagnostics.py:63, and E_HOST puts the exception class only in the message, impl-A/shopcli/shop.py:97-107; tests make this a law, impl-A/tests/test_errors.py:64-70,156",
+    "precision vs noise: path repeats 'script', 'line N' already in where, impl-A/shopcli/errors.py:27; hints repeat the whole valid list"
+   ],
+   "forces_unnoticed": [
+    "generic vs mined: rm/delete/ls/inventory are legal synonyms, impl-A/shopcli/commands.py:49-54,408-409, so the mined names never teach the canonical name (no redirect hint)",
+    "one fixed suggestion order stated once: resolve() is a 127-line branch ladder with no stated order, impl-A/shopcli/commands.py:403-529"
+   ],
+   "dead_or_ornamental": [
+    "impl-A/shopcli/commands.py:127-139: Frame.with_arg never called",
+    "impl-A/shopcli/commands.py:123-125: Frame.source never read",
+    "impl-A/shopcli/commands.py:71,94: Option.doc and Command.summary stored, never read",
+    "impl-A/shopcli/commands.py:73-76: Option.label only returns kind"
+   ],
+   "next_change_touches": [
+    "impl-A/shopcli/codes.py: add an E_EXISTS-style constant and append it to CODES",
+    "impl-A/shopcli/store.py: Store.rename moving both items and prices",
+    "impl-A/shopcli/commands.py: cmd_item_rename (reuse _not_found for the old name; collision via fail() with frame.fix(to=...) or fix=None), a COMMANDS entry with Option('name') and Option('to'), ALIASES['mv'] (which makes mv silently legal, not a repairable near-miss)",
+    "impl-A/tests/test_errors.py: the code-closure law at 95-124 forces a new case; the exact alias-including valid list at 138 breaks"
+   ],
+   "smells": [
+    {
+     "smell": "long function",
+     "where": "impl-A/shopcli/commands.py:403-529",
+     "why": "resolve() handles six resolution cases in one ladder of fail() calls"
+    },
+    {
+     "smell": "divergent change (large module)",
+     "where": "impl-A/shopcli/commands.py:1-696",
+     "why": "registry, resolution, validation and handlers change for different reasons in one file"
+    },
+    {
+     "smell": "data clump / duplicated class",
+     "where": "impl-A/shopcli/commands.py:532-546",
+     "why": "_ResolutionFrame duplicates Frame's line_no/command_name"
+    },
+    {
+     "smell": "misused field",
+     "where": "impl-A/shopcli/diagnostics.py:63",
+     "why": "host_name carries the command name, so the field can't tell a host failure apart"
+    }
+   ],
+   "best_thing": "Render the fix from the agent's parsed line, repeat prefix included, and only offer it if it re-validates; otherwise return None with a hint (commands.py:350-397, test_repair.py:59-112).",
+   "worst_thing": "Treating host_name as the command name (diagnostics.py:63) and locking that in tests: callers can't tell a Python crash from a script error by that field."
+  },
+  "B": {
+   "summary": "A close mapping of the chapter's participants: Registry with Param/Command and an instance-owned RedirectTable, a Suggester with a budgeted Damerau distance and a stated order, Fault raised by layers and turned into a Refusal in exactly one place (Engine._refusal), plus SiteTracker, WarningFolder and a translator. Handlers get a Call facade with fix helpers.",
+   "scores": {
+    "forces": 4,
+    "adapted": 3,
+    "wholeness": 3,
+    "habitability": 4,
+    "growth": 4,
+    "smells": 3,
+    "tests": 4
+   },
+   "forces_resolved": [
+    "one place against many: every Fault becomes a Refusal in Engine._refusal, impl-B/shopcli/engine.py:114-129; to_dict asserts closed code and the ✗ leaf, impl-B/shopcli/refusal.py:35-41",
+    "host error name kept as a field under E_HOST, impl-B/shopcli/engine.py:50-61,106-109, impl-B/shopcli/translate.py:26",
+    "suggestion order stated once and implemented: namespace fact, redirect, budgeted spelling, other kind, impl-B/shopcli/suggest.py:1-16,94-187; budget max(1,min(3,len//3)) with transpositions, impl-B/shopcli/suggest.py:31-64",
+    "generic vs mined: one redirect table on the registry, with option redirects that fire only if the target option exists on that command, impl-B/shopcli/registry.py:175-193, impl-B/shopcli/suggest.py:193-196",
+    "warnings folded by (code, line, message) with counts, impl-B/shopcli/refusal.py:82-99"
+   ],
+   "forces_in_tension": [
+    "suggestion vs misdirection: an unknown option that exists on another command rewrites the line into that command, impl-B/shopcli/suggest.py:204-213: 'item.add name=a qty=1 cost=5' gets fix 'report.margin name=a cost=5', and 'item.list name=w' gets 'item.add name=w qty=<qty>'; locked at impl-B/tests/test_suggestions.py:124-127",
+    "fixes are code: many fixes are placeholder templates ('qty=<integer>', 'name=<name>', 'repeat <N>: <command>'), impl-B/shopcli/engine.py:194-195,249, impl-B/shopcli/parse.py:255",
+    "fix fidelity: render_fix rebuilds only the inner command, so 'repeat 3: item.add name=w qty=-1' gets 'item.add name=w qty=0' and loses the loop, impl-B/shopcli/parse.py:377-394",
+    "translator: ZeroDivisionError/KeyError anywhere gets the fix 'price.set name=<name> value=<value>', impl-B/shopcli/translate.py:31-38, locked for report.stock at impl-B/tests/test_host.py:28-36",
+    "warnings measured: repeat>1000, negative cost and negative margin warn without evidence they are usually wrong, impl-B/shopcli/engine.py:74-80, impl-B/shopcli/commands.py:142-155"
+   ],
+   "forces_unnoticed": [
+    "precision vs noise: no limit on message or hint length (handled only by valid=[] when a suggestion exists)"
+   ],
+   "dead_or_ornamental": [
+    "impl-B/shopcli/site.py:21-31: SiteTracker keeps a list of every site and a last() nobody calls; the engine only uses the Site it just bound",
+    "impl-B/shopcli/translate.py:11-21: receiver_of reads 'item' out of 'item.list' as a 'receiver'; the language has no receivers",
+    "impl-B/shopcli/codes.py:76-83: is_code/is_warning_code unused",
+    "impl-B/shopcli/registry.py:52,62-66,150-163: Command.examples, Command.param, Registry.commands_in/options unused",
+    "impl-B/shopcli/registry.py:166-169: _check_codes checks redirect kinds, not codes"
+   ],
+   "next_change_touches": [
+    "impl-B/shopcli/codes.py: add the code to CODES and a CODE_DOCS entry whose example is a multi-line script that hits the collision",
+    "impl-B/shopcli/registry.py: Redirect('mv', 'command', 'item.rename', hint) in REDIRECT_TABLE",
+    "impl-B/shopcli/commands.py: item_rename handler (call.fail with at='to' and call.fix(replace={'to': ...})) and REGISTRY.add(Command('item','rename',(Param('name'),Param('to')),...))",
+    "impl-B/shopcli/store.py: rename",
+    "impl-B/tests: test_invariants.py:44 LINES must list the new command (a useful forcing law); test_errors.py:41 len(valid)==7 breaks; suggest.py:204-213 will start sending any stray 'to=' to item.rename"
+   ],
+   "smells": [
+    {
+     "smell": "speculative generality",
+     "where": "impl-B/shopcli/site.py:21-31",
+     "why": "a tracker class whose history is never read"
+    },
+    {
+     "smell": "duplicated code",
+     "where": "impl-B/shopcli/commands.py:20-72",
+     "why": "_item_not_found and _price_not_found are the same function with different words"
+    },
+    {
+     "smell": "layer leak",
+     "where": "impl-B/shopcli/parse.py:13,166,336",
+     "why": "the parser imports the command REGISTRY to build fixes"
+    },
+    {
+     "smell": "primitive obsession",
+     "where": "impl-B/shopcli/parse.py:21-22",
+     "why": "Placeholder is a str subclass, so placeholder fixes are indistinguishable from runnable ones at the reply"
+    }
+   ],
+   "best_thing": "Raise a slim Fault anywhere and build the full Refusal in one engine method that also checks the code list and the ✗ leaf (engine.py:114-129, refusal.py:35-41).",
+   "worst_thing": "The 'option of another command' step that replaces the agent's command with a different one (suggest.py:204-213): a confident wrong fix, written into tests as intended behaviour."
+  },
+  "C": {
+   "summary": "A catalog table of commands, a syntax module that records structural Problems, and one 585-line Shop class in engine.py that resolves names, checks syntax, coerces arguments, repairs positional lines, translates host errors and verifies every fix by replaying it on a cloned store. Aliases are legal synonyms; suggestion is difflib with ad hoc cutoffs.",
+   "scores": {
+    "forces": 3,
+    "adapted": 4,
+    "wholeness": 4,
+    "habitability": 2,
+    "growth": 3,
+    "smells": 2,
+    "tests": 4
+   },
+   "forces_resolved": [
+    "a wrong fix is the worst output: every fix is replayed against a clone of the current store and dropped if it fails, impl-C/shopcli/engine.py:716-735, impl-C/shopcli/store.py:20-24",
+    "one shape: CommandError rejects codes outside the list at construction, impl-C/shopcli/errors.py:65-66; host_name is the exception class, impl-C/shopcli/engine.py:696,712",
+    "structural problems are collected by the parser and reported with option-aware fixes by the engine, impl-C/shopcli/syntax.py:118-126,268-283, impl-C/shopcli/engine.py:371-437",
+    "warnings fold by (code, message, line), impl-C/shopcli/engine.py:80-102"
+   ],
+   "forces_in_tension": [
+    "suggestion vs misdirection: to pass verification, fixes invent values: 'qty=abc' gets 'qty=0' (impl-C/shopcli/engine.py:574,589-590), a missing qty gets 'qty=0' (impl-C/shopcli/engine.py:677-682, locked at impl-C/tests/test_errors.py:175), a negative repeat count gets 'repeat 1:' (impl-C/shopcli/syntax.py:237-242); the line runs but does nothing the agent asked for",
+    "one place: a zero price is let through as ZeroDivisionError on purpose, impl-C/shopcli/commands.py:158-161, and special-cased by command name in the host translator, impl-C/shopcli/engine.py:698-703, so a predictable domain refusal arrives as E_HOST",
+    "fix fidelity: fixes rebuild only the inner command and drop 'repeat N:' (impl-C/shopcli/syntax.py:160-182)",
+    "errors vs warnings: 'repeat 0' and a total stock above 1000 warn, impl-C/shopcli/engine.py:210-216, impl-C/shopcli/commands.py:90-95: warnings that fire on correct scripts"
+   ],
+   "forces_unnoticed": [
+    "generic vs mined: no redirect table; rm/delete/ls/inventory just run, impl-C/shopcli/catalog.py:130-135, impl-C/shopcli/engine.py:254-256",
+    "fixed suggestion order: three helpers with different difflib cutoffs (0.6, 0.75), impl-C/shopcli/engine.py:270-313; no namespace-member step, so 'price.list' gets no fix",
+    "'repeat 3 item.add ...' (missing colon) is not recognised; it becomes E_NAMESPACE on the word 'repeat' with no fix (impl-C/shopcli/syntax.py:216)"
+   ],
+   "dead_or_ornamental": [
+    "impl-C/shopcli/syntax.py:156-158: ParsedCommand.strays unused",
+    "impl-C/shopcli/catalog.py:25,34: Option.description and Command.summary never read",
+    "impl-C/shopcli/__main__.py:1-30: a CLI the task did not ask for"
+   ],
+   "next_change_touches": [
+    "impl-C/shopcli/errors.py: new constant and CODES entry",
+    "impl-C/shopcli/catalog.py: a Command with a hand-written usage string (repeats the options) and ALIASES['mv']",
+    "impl-C/shopcli/commands.py: item_rename that builds its CommandError path by hand",
+    "impl-C/shopcli/store.py: rename",
+    "impl-C/shopcli/engine.py:323-324,358-359: hint strings that hard-code 'rm, delete, ls and inventory' must be edited"
+   ],
+   "smells": [
+    {
+     "smell": "large class",
+     "where": "impl-C/shopcli/engine.py:150-735",
+     "why": "Shop does resolution, syntax repair, coercion, host translation and fix replay"
+    },
+    {
+     "smell": "duplicated knowledge",
+     "where": "impl-C/shopcli/engine.py:323-324",
+     "why": "the alias list is hard-coded in hint text as well as in catalog.ALIASES"
+    },
+    {
+     "smell": "exceptions as control flow",
+     "where": "impl-C/shopcli/commands.py:158-161",
+     "why": "a known domain condition is left to crash and caught as a host error"
+    },
+    {
+     "smell": "long function",
+     "where": "impl-C/shopcli/engine.py:381-437",
+     "why": "_stray handles three cases with inline message building"
+    }
+   ],
+   "best_thing": "Before offering a fix, replay it against a clone of the current store (engine.py:716-735), so a non-null fix is known to run from this exact state.",
+   "worst_thing": "Fixes that pass verification by inventing values (qty=0 for 'abc'): checking that a fix runs rewards the wrong kind of fix."
+  },
+  "D": {
+   "summary": "Chapter participants as separate modules: Registry of Command/Option records, a Suggester that owns the redirect dict and the edit budget, fixes.rebuild, a Translator, and a session holding Shop, SiteTracker, WarningFolder and a CommandContext that handlers use to refuse. Every refusal goes through Refusal.of.",
+   "scores": {
+    "forces": 3,
+    "adapted": 3,
+    "wholeness": 3,
+    "habitability": 3,
+    "growth": 4,
+    "smells": 2,
+    "tests": 3
+   },
+   "forces_resolved": [
+    "one shape: all refusals go through Refusal.of, which marks the ✗ leaf, impl-D/shopcli/refusal.py:22-56, raised via ctx.refuse, impl-D/shopcli/session.py:112-133",
+    "host name kept under E_HOST, impl-D/shopcli/translator.py:36,48-57",
+    "order stated once with budget, impl-D/shopcli/suggester.py:1-9,51-53,144-183",
+    "codes documented once and the docs tested for closure, impl-D/shopcli/codes.py:32-69, impl-D/tests/test_codes.py:80-87",
+    "names are not invented for strings: placeholder() leaves <name>, impl-D/shopcli/registry.py:46-55"
+   ],
+   "forces_in_tension": [
+    "suggestion vs misdirection: canned fixes unrelated to the line: any repeat without a colon, a non-numeric count or a nested repeat gets 'repeat 3: item.list' / 'repeat N: item.list', impl-D/shopcli/language.py:133,143,151,159,167; an empty command gets 'item.list', impl-D/shopcli/language.py:201",
+    "invented numbers: the range fix uses the option example, so 'qty=-1' gets 'qty=2', impl-D/shopcli/session.py:346-354; type fixes likewise, impl-D/shopcli/session.py:341; not-found fixes invent qty=1/value=10, impl-D/shopcli/handlers.py:41,108,141,149",
+    "cross-kind misdirection: 'item.add ... value=3' gets 'price.set name=w value=3', impl-D/shopcli/suggester.py:226-233, locked at impl-D/tests/test_suggestions.py:117-121",
+    "the path loses precision: the ✗ marks the whole source body, not the failing option ('✗ item.add name=w qty=abc'), impl-D/shopcli/language.py:60-73",
+    "redirects 'owned by the registry' per the docstring at impl-D/shopcli/session.py:190-194 actually live in the Suggester, impl-D/shopcli/suggester.py:93-95"
+   ],
+   "forces_unnoticed": [
+    "fix fidelity inside repeat: ctx.fix rebuilds only the command, dropping 'repeat N:', impl-D/shopcli/session.py:97-110"
+   ],
+   "dead_or_ornamental": [
+    "impl-D/shopcli/refusal.py:58-60: Refusal.but unused",
+    "impl-D/shopcli/session.py:32-44: SiteTracker holds two fields the Call already carries",
+    "impl-D/shopcli/session.py:166-194: register_command and add_redirect exist only for tests",
+    "impl-D/shopcli/translator.py:59-79: the 'implicated value' fix tells the agent to change its value for what the docstring calls a shopcli bug"
+   ],
+   "next_change_touches": [
+    "impl-D/shopcli/codes.py: constant, CODES and CODE_DOCS",
+    "impl-D/shopcli/handlers.py: item_rename (reuse _unknown_item or write a fourth copy of the not-found block) and a default_registry entry",
+    "impl-D/shopcli/suggester.py: default_redirects gets 'mv'",
+    "impl-D/shopcli/store.py: rename",
+    "impl-D/tests/test_codes.py: EXAMPLES must reach the new code (the closure law at 85-87 forces it)"
+   ],
+   "smells": [
+    {
+     "smell": "duplicated code",
+     "where": "impl-D/shopcli/handlers.py:30-42,84-94,122-132",
+     "why": "the not-found refusal is written three times"
+    },
+    {
+     "smell": "speculative generality",
+     "where": "impl-D/shopcli/session.py:166-188",
+     "why": "runtime command registration with every option optional, used only to provoke E_HOST in tests"
+    },
+    {
+     "smell": "magic literals",
+     "where": "impl-D/shopcli/language.py:133",
+     "why": "hard-coded 'repeat 3: item.list' presented as the agent's repair"
+    },
+    {
+     "smell": "name clash",
+     "where": "impl-D/shopcli/refusal.py:76",
+     "why": "class Warning shadows the builtin"
+    }
+   ],
+   "best_thing": "A placeholder rule that refuses to invent a string name, '<name>' (registry.py:46-55); D does not apply the same rule to numbers.",
+   "worst_thing": "Canned repeat fixes ('repeat 3: item.list') that replace the agent's command; the FIXABLE test passes only because its sample line is item.list (test_codes.py:69)."
+  },
+  "E": {
+   "summary": "The most elaborate one: Parser, Binder, handlers that raise Refuse, a 332-line Suggester with 4-6-step chains, four module-level redirect tables (command, option, range, cross-kind), a render module with DEFAULTS that fill fixes, a translator with receiver/attribute matching, and SiteTracker/WarningFolder. Refusals are constructed in parser, binder, engine and translator separately.",
+   "scores": {
+    "forces": 3,
+    "adapted": 2,
+    "wholeness": 2,
+    "habitability": 3,
+    "growth": 3,
+    "smells": 2,
+    "tests": 3
+   },
+   "forces_resolved": [
+    "generic vs mined: a conceptual redirect, negative qty on item.add points to item.remove, impl-E/shopcli/registry.py:172-189 (the only 'zoom→look'-style redirect)",
+    "codes are one documented dict; error and warning codes derive from it, impl-E/shopcli/codes.py:11-29, and every code is reached, impl-E/tests/test_codes.py:31-49",
+    "host name kept under E_HOST, impl-E/shopcli/translate.py:65,118-127",
+    "budgeted Damerau distance, impl-E/shopcli/suggest.py:37-93; warnings fold, impl-E/shopcli/site.py:41-66"
+   ],
+   "forces_in_tension": [
+    "suggestion vs misdirection: DEFAULTS invent name=widget, qty=1, value=10, impl-E/shopcli/render.py:14-19; 'item.add qty=1' gets 'item.add qty=1 name=widget' (impl-E/shopcli/binder.py:82); the rm redirect template fills qty=1, so 'rm name=w' (remove all) gets 'item.remove name=w qty=1' (remove one), impl-E/shopcli/registry.py:138-141",
+    "the stated order is not the order used: the unknown-namespace branch runs redirect, structural, namespace spelling, namespace-as-name, verb spelling, other kind, impl-E/shopcli/suggest.py:155-207, against the 1-4 at impl-E/shopcli/suggest.py:1-11",
+    "one place: Refusal is built in parser (8x), binder, engine (2x) and translator, impl-E/shopcli/parser.py:84-268, impl-E/shopcli/binder.py:291, impl-E/shopcli/engine.py:109,148, impl-E/shopcli/translate.py:118, and where is patched afterwards, impl-E/shopcli/engine.py:71",
+    "redirect tables are module globals, not owned by a Registry instance, impl-E/shopcli/registry.py:137-196, impl-E/shopcli/suggest.py:18-24; a test locks a fix to 'item.list' in a registry that has no item.list, impl-E/tests/test_ordering.py:41-45",
+    "canned repeat fixes ignore the agent's command, impl-E/shopcli/parser.py:91,128; the nested-repeat fix drops the outer count, impl-E/shopcli/parser.py:139"
+   ],
+   "forces_unnoticed": [
+    "fix fidelity inside repeat: _fixed_line renders only the command, impl-E/shopcli/binder.py:249-269",
+    "precision vs noise: the path repeats the whole call as a label and again as the leaf (['item.remove(name=zzz)', '✗ item.remove(zzz)']), impl-E/shopcli/commands.py:52"
+   ],
+   "dead_or_ornamental": [
+    "impl-E/shopcli/translate.py:26,38-54,89-97: receiver lookup, _COUNTING_ATTRIBUTES and the 'rows is plain data' hint copy the chapter's JS sketch; no built-in command can raise them, only debug commands registered in tests (impl-E/tests/test_host_errors.py:16-40)",
+    "impl-E/shopcli/refusal.py:40-53: Refusal.replace unused",
+    "impl-E/shopcli/registry.py:51-54: CommandSpec.label unused; impl-E/shopcli/parser.py:34-36: Command.has_namespace unused; impl-E/shopcli/codes.py:32-34: is_known unused",
+    "impl-E/shopcli/suggest.py:313-325: _namespace_values hard-codes 'price' and 'item' stray-option moves",
+    "impl-E/tests/test_fixes.py:39-40: check after assertTrue(ok) can never run"
+   ],
+   "next_change_touches": [
+    "impl-E/shopcli/codes.py: one CODES entry",
+    "impl-E/shopcli/registry.py: COMMAND_REDIRECTS['mv'] with template 'item.rename name={name} to={to}'",
+    "impl-E/shopcli/render.py: DEFAULTS needs a 'to' value, otherwise the redirect fix renders '<to>' and binder._fixed_line returns None for a missing 'to'; this means inventing a target name",
+    "impl-E/shopcli/commands.py: item_rename raising Refuse(..., step='to') and a build_registry entry",
+    "impl-E/shopcli/store.py: rename; impl-E/tests/test_codes.py: EXAMPLES must cover the code"
+   ],
+   "smells": [
+    {
+     "smell": "bug from string template",
+     "where": "impl-E/shopcli/commands.py:84",
+     "why": "a plain string inside an f-string concatenation; the hint shows a literal '{name}'"
+    },
+    {
+     "smell": "speculative generality",
+     "where": "impl-E/shopcli/registry.py:157-196",
+     "why": "option, range and cross-kind tables invented for this task, not mined; CROSS_KIND_FIX has one caller per namespace"
+    },
+    {
+     "smell": "shotgun surgery",
+     "where": "impl-E/shopcli/render.py:14-19",
+     "why": "every new option needs a DEFAULTS literal or its fixes degrade to placeholders/None"
+    },
+    {
+     "smell": "long method",
+     "where": "impl-E/shopcli/suggest.py:155-207",
+     "why": "a six-step chain whose order differs from the module docstring"
+    }
+   ],
+   "best_thing": "A conceptual range redirect (negative qty on add means remove) kept as data next to the registry (registry.py:172-189): the chapter's 'zoom is a look option' adapted to this domain.",
+   "worst_thing": "DEFAULTS that fill fixes with plausible literals (render.py:14-19): rm's fix changes 'remove all' into 'remove one', and fixes name items the agent never mentioned."
+  }
+ },
+ "generativity": {
+  "shared_seams": [
+   {
+    "seam": "one refusal record/exception carrying all eight fields, serialized once",
+    "in": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "command registry of typed option records (minimum, usual max) driving validation, valid lists and fixes",
+    "in": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "fix renderer that rebuilds a line from the agent's own tokens",
+    "in": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "runtime fix verification before the fix is offered",
+    "in": [
+     "A",
+     "C"
+    ]
+   },
+   {
+    "seam": "fix keeps the enclosing 'repeat N:' prefix",
+    "in": [
+     "A"
+    ]
+   },
+   {
+    "seam": "mined names as legal aliases (no refusal)",
+    "in": [
+     "A",
+     "C"
+    ]
+   },
+   {
+    "seam": "redirect table producing a refusal with hint and fix",
+    "in": [
+     "B",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "budgeted edit distance max(1,min(3,len//3)) on the verb segment",
+    "in": [
+     "B",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "difflib ratio on whole names",
+    "in": [
+     "A",
+     "C"
+    ]
+   },
+   {
+    "seam": "E_NAMESPACE = verb exists in another namespace (chapter meaning)",
+    "in": [
+     "B",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "E_NAMESPACE = unknown namespace",
+    "in": [
+     "A",
+     "C"
+    ]
+   },
+   {
+    "seam": "'option of another command' cross-kind step that rewrites the command",
+    "in": [
+     "B",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "named SiteTracker and WarningFolder classes",
+    "in": [
+     "B",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "translator module with receiver/value lookup in the source line",
+    "in": [
+     "B",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "handler-facing context/facade with refuse/warn/fix helpers",
+    "in": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ]
+   },
+   {
+    "seam": "code documentation with examples tested for closure",
+    "in": [
+     "A",
+     "B",
+     "D",
+     "E"
+    ]
+   }
+  ],
+  "groups": [
+   [
+    "A",
+    "C"
+   ],
+   [
+    "B",
+    "D",
+    "E"
+   ]
+  ],
+  "notes": "The deep structure is the same in all five: one refusal shape, a record-driven registry, and a fix renderer over the agent's tokens. That part of the pattern is invariant. They split on the rest. A and C are domain-first: aliases just run, similarity comes from difflib, there are no named participants, and both check fixes before offering them (A by re-validating, C by replaying on a cloned store). B, D and E mirror the chapter's Structure table one module per participant (Suggester, Redirect table, Site tracker, Warning folder, Translator). They also copy the parts that don't fit a flat command language: the cross-kind step becomes 'use the other command', receiver lookup reads 'item' as a receiver, and site trackers hold the loop index. Within that group B is the most disciplined (one refusal builder), D adds canned fixes, and E adds four redirect tables and DEFAULTS. Every implementation except A drops the repeat prefix from fixes."
+ },
+ "worse_is_better": "A is the smallest (1355 source lines against 1613-2014) and gives the best repairs. Fixes are re-validated before they are offered (commands.py:350-365), keep the repeat prefix, and are withheld rather than invented (test_repair.py:59-66). A does without a SiteTracker class, a WarningFolder class (a closure, shop.py:52-67), a translator module, a Suggestion type, a redirect table and the cross-kind step. Two things that B, D and E carry are needed: a budgeted distance on the verb segment (A's difflib on whole names gives 'item.drop' the hint 'item.add'), and host_name as the exception class (A misreads it). The rest is not needed by this task: a named site tracker for a loop index, receiver lookup, E's four tables and DEFAULTS. The cross-kind option step does harm. C is equally lean in participants but packs the work into one 585-line class.",
+ "ranking": [
+  "A",
+  "B",
+  "C",
+  "D",
+  "E"
+ ],
+ "chapter_lessons": [
+  "Missing force: a fix that runs is not a fix that is right. C, D and E make fixes pass 'run the fix and expect it to bind' by inventing values (C engine.py:574 qty=0 for 'abc'; D session.py:353 qty=2 for -1, language.py:133 'repeat 3: item.list'; E render.py:14-19 name=widget, and rm's fix turns 'remove all' into qty=1). Note 11 should add the negative law that only A states (test_repair.py:59-66): when the right value can't be derived, fix is None, and a fix must not change what the agent asked for.",
+  "The 'same name on another kind of value' step does not carry over to a flat command language. B, D and E read it as 'this option belongs to another command' and rewrite 'item.add ... cost=5' into 'report.margin ...' (B suggest.py:204-213, D suggester.py:226-233, E suggest.py:233-238), and all three lock that in tests. The chapter should say this step needs a real second kind of receiver, and should otherwise be dropped.",
+  "Fixes should rewrite only the failing part and keep its context. Four of five drop the 'repeat N:' prefix, so pasting the fix changes behaviour (B parse.py:377-394, C syntax.py:160-182, D session.py:97-110, E binder.py:249-269); only A keeps it (parser.py:47-49). Note 3 ('fixes are code, in the agent's names') should also say 'in the agent's line structure'.",
+  "Define host_name with an example and say it is None except under E_HOST. A read it as the canonical command name (diagnostics.py:63, shop.py:106) and tested it that way.",
+  "Some of the Structure table is goja-specific and gets copied as ornament: receiver lookup and the rows.count() translator (B translate.py:11-21, E translate.py:38-97) and a Site tracker class for what is just the loop index (B site.py, D session.py:32-44, E site.py:17-38). The chapter should mark the translator's receiver logic and the site tracker as needed only where agent code calls into host code or spans frames.",
+  "Apply the edit budget to the segment that differs, not to the whole namespaced name. difflib on 'item.drop' vs 'item.add' is inflated by the shared prefix and gives a confident wrong hint (A commands.py:417-420); B, D and E apply the budget to the verb and avoid it.",
+  "The chapter does not say whether a mined near-miss should refuse with a fix or just run. A and C made rm/ls legal aliases (no teaching), while B, D and E refuse. The 'errors against warnings' force suggests a third option worth naming: run the redirect and warn with the canonical name.",
+  "'One table, owned by the registry' got three readings: an attribute of the registry instance (B registry.py:109-112), a field of the suggester (D suggester.py:93-95), and module globals that leak across registries (E registry.py:137-196, test_ordering.py:41-45). The chapter should say the table is per registry and is checked against it (B suggest.py:129,194 is the right form)."
+ ]
+}

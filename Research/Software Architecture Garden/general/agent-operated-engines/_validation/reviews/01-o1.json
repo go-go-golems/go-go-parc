@@ -1,0 +1,450 @@
+{
+ "implementations": {
+  "A": {
+   "summary": "Two large modules: spec.py normalises dict records through long hand-written validators and a closed four-way type switch, and registry.py holds lookup, binding, refusal building, confirmation and the walk inline. Consumers are pure functions in schema.py, but the binder is lenient: it rewrites redirected and case-mismatched names instead of refusing them.",
+   "scores": {
+    "forces": 2,
+    "adapted": 3,
+    "wholeness": 3,
+    "habitability": 2,
+    "growth": 2,
+    "smells": 2,
+    "tests": 2
+   },
+   "forces_resolved": [
+    "fluency against honesty: unknown keys and wrong types are refused, never coerced, impl-A/hubreg/spec.py:121-222, impl-A/hubreg/registry.py:329-331",
+    "hard limits against usual range: refusal vs RANGE warning with the hint, impl-A/hubreg/spec.py:144-164, impl-A/hubreg/registry.py:369-378",
+    "host decides confirmation: the host set is ORed with the record flag in run and in tool_schema/help, impl-A/hubreg/registry.py:455-461,523"
+   ],
+   "forces_in_tension": [
+    "strictness against forgiveness: tipped to forgiveness. Option redirects and case-insensitive matches are rewritten and bound with only a REDIRECT warning (impl-A/hubreg/registry.py:280-298), action redirects are followed (impl-A/hubreg/registry.py:193-198), and a bare name resolves across device kinds when unique (impl-A/hubreg/registry.py:168-170). The chapter's 'refuse with a fix' is not followed",
+    "defaults never warn: the usual-range check runs on filled defaults too (impl-A/hubreg/registry.py:361-378), and a test makes this a rule (impl-A/tests/test_edges.py:110-131)",
+    "consistency of redirects: action-redirect targets and sample presence are checked only by walk(), not at registration or at a finalize step (impl-A/hubreg/spec.py:681-717, impl-A/hubreg/registry.py:584,658-667)",
+    "host decides vs plug-in flag: walk reports a host-only confirmation as a problem (impl-A/hubreg/registry.py:600-608), which forces plug-ins to duplicate host policy"
+   ],
+   "forces_unnoticed": [
+    "a small core against a growing type system: types are a closed tuple with switches in four places",
+    "one source against expressiveness: no cross-argument validate hook",
+    "two lengths of description: no short context line for the assistant"
+   ],
+   "dead_or_ornamental": [
+    "impl-A/hubreg/registry.py:74-82: Call.name and Call.action alias record_name; nothing in the package uses them",
+    "impl-A/hubreg/spec.py:224-231: unreachable fallback branch of value_problem",
+    "impl-A/hubreg/schema.py:60: 'parameters' duplicates 'input_schema' (speculative client compatibility)"
+   ],
+   "next_change_touches": [
+    "impl-A/hubreg/spec.py: TYPES tuple (line 33) gains 'rgb'; value_problem gains an rgb branch returning E_ARG_TYPE",
+    "impl-A/hubreg/schema.py: property_schema/_json_type must emit the 'rgb' name and a pattern (otherwise it falls through to plain 'string'); new voice_phrases(record) function",
+    "impl-A/hubreg/registry.py: new Registry.voice_phrases delegate",
+    "impl-A/hubreg/cli.py: no change (string passes through _parse_value)"
+   ],
+   "smells": [
+    {
+     "smell": "long function",
+     "where": "impl-A/hubreg/spec.py:513-729",
+     "why": "normalize_record is a 216-line chain of if/raise; _normalize_arg (268-467) is another 200"
+    },
+    {
+     "smell": "switch statements / shotgun surgery",
+     "where": "impl-A/hubreg/spec.py:121-231",
+     "why": "type knowledge is repeated in value_problem, _normalize_arg (299-307, 336-437), schema._json_type (impl-A/hubreg/schema.py:9-14) and cli._parse_value (impl-A/hubreg/cli.py:39-55)"
+    },
+    {
+     "smell": "primitive obsession / data clump",
+     "where": "impl-A/hubreg/demo.py:40-41",
+     "why": "record name repeats the kind ('thermostat.set_temperature' plus on='thermostat'), so _bare_name/_bare strip it again in impl-A/hubreg/registry.py:201-205 and impl-A/hubreg/schema.py:175-178"
+    },
+    {
+     "smell": "large class",
+     "where": "impl-A/hubreg/registry.py:102-678",
+     "why": "Registry is also binder, diagnoser and walker, so nothing can be read or changed alone"
+    }
+   ],
+   "best_thing": "Effective confirmation (host set OR record flag) is computed once and passed to every consumer: run, tool_schema and help (impl-A/hubreg/registry.py:455-461, 520-534).",
+   "worst_thing": "The binder rewrites near-miss names (redirect, case-insensitive, cross-kind bare name) instead of refusing with a fix, so the hub can run an action the caller did not name."
+  },
+  "B": {
+   "summary": "Participants in separate modules: records.py validates, argtypes.py holds a per-registry table of pluggable ArgType objects, and binder/diagnoser/describe/walker each read the stored dict records. The walker also generates refusal probes from each record: missing argument, limits, wrong type, enum, unknown option and both kinds of redirect.",
+   "scores": {
+    "forces": 4,
+    "adapted": 3,
+    "wholeness": 3,
+    "habitability": 4,
+    "growth": 4,
+    "smells": 3,
+    "tests": 4
+   },
+   "forces_resolved": [
+    "small core against growing types: ArgType(accepts, value_error, describe) is copied per registry and registered with register_arg_type, impl-B/hubreg/argtypes.py:16-38, impl-B/hubreg/registry.py:57-67",
+    "strictness against forgiveness: old names are refused, and the fix is a pasteable call built from the redirect or the nearest name, impl-B/hubreg/diagnoser.py:86-107,110-144",
+    "consistency at registration: samples must bind (impl-B/hubreg/registry.py:91-111), defaults are type- and limit-checked through the same check_value (impl-B/hubreg/records.py:330-342), and finalize handles forward redirects (impl-B/hubreg/registry.py:69-85)",
+    "defaults never warn: only supplied values warn, impl-B/hubreg/binder.py:91",
+    "walk proves little: generated negative probes per record, impl-B/hubreg/walker.py:94-211"
+   ],
+   "forces_in_tension": [
+    "host decides confirmation: run() honours the host set (impl-B/hubreg/registry.py:163-170) but tool_schema and help read only the plug-in flag (impl-B/hubreg/describe.py:115,164,174). A host-only guarded action is advertised as confirm=False, which is the consumer drift the pattern exists to prevent",
+    "type pluggability: the diagnoser still switches on type names to build example values (impl-B/hubreg/diagnoser.py:261-270), so a plug-in type gets fix suggestions with ''"
+   ],
+   "forces_unnoticed": [
+    "generated against written documentation: no place for hand-written prose beyond doc strings (shared by all)"
+   ],
+   "dead_or_ornamental": [
+    "impl-B/hubreg/binder.py:33-35: Call.needs_confirm is unused and disagrees with Registry.needs_confirm (ignores the host set)",
+    "impl-B/hubreg/records.py:44, impl-B/hubreg/registry.py:178,215,236: 'internal' flag has no user in the task (chapter participant copied from goja-cv)",
+    "impl-B/hubreg/records.py:211-212, impl-B/hubreg/registry.py:150-161: callable fields has no record that uses it",
+    "impl-B/hubreg/registry.py:18,41-47: allow_forward_redirects switch exists only for tests",
+    "impl-B/tests/test_consumers.py:190-197: 'fifth consumer is two lines' test asserts only a count and isinstance",
+    "impl-B/tests/test_types.py:86-87: 'walk covers a plugin type' walks an empty registry"
+   ],
+   "next_change_touches": [
+    "new module (e.g. hubreg/plugins/color.py): RgbArgType(ArgType) with accepts (regex) and describe returning {'type':'string','pattern':...,'x-type':'rgb'}; the record for light.set_color",
+    "host wiring: Registry(argtypes={'rgb': RgbArgType()}) or register_arg_type in demo_registry (impl-B/hubreg/demo.py:139-145)",
+    "impl-B/hubreg/describe.py: new voice_phrases(records); impl-B/hubreg/registry.py: two-line delegate",
+    "impl-B/hubreg/diagnoser.py: _example_value should learn an rgb example (otherwise fixes suggest color='')",
+    "controls need no change: they use spec['type'] (impl-B/hubreg/describe.py:213)"
+   ],
+   "smells": [
+    {
+     "smell": "duplicated knowledge",
+     "where": "impl-B/hubreg/records.py:430-452",
+     "why": "the dangling-redirect check is written again in Registry.finalize (impl-B/hubreg/registry.py:69-85)"
+    },
+    {
+     "smell": "duplicated code",
+     "where": "impl-B/hubreg/registry.py:244-249",
+     "why": "_sample_fields is copied in impl-B/hubreg/walker.py:254-259"
+    },
+    {
+     "smell": "speculative generality",
+     "where": "impl-B/hubreg/records.py:44",
+     "why": "internal flag, callable fields and forward-redirect switch have no caller in the task"
+    },
+    {
+     "smell": "feature envy",
+     "where": "impl-B/hubreg/diagnoser.py:261-270",
+     "why": "diagnoser knows per-type example values that belong on ArgType"
+    }
+   ],
+   "best_thing": "The walker generates negative probes from each record (impl-B/hubreg/walker.py:94-211), so every new action is tested for its limits, enum, unknown options and redirects without anyone writing a test.",
+   "worst_thing": "Describers read record['flags']['confirm'] instead of the registry's effective confirmation, so the assistant is told a host-guarded action needs no confirmation."
+  },
+  "C": {
+   "summary": "Record/Spec value objects built by record.py, a binder that returns a Failure value, and diagnose.explain dispatching that Failure through a handler table into a Refusal; describe.py renders tool schema, controls, help and context lines. Argument types are pluggable ArgType objects in a module-global table, and registration binds every sample.",
+   "scores": {
+    "forces": 4,
+    "adapted": 4,
+    "wholeness": 3,
+    "habitability": 4,
+    "growth": 5,
+    "smells": 3,
+    "tests": 4
+   },
+   "forces_resolved": [
+    "binder vs diagnoser separation: Failure value then one explain() entry point, impl-C/hubreg/binding.py:32-49, impl-C/hubreg/diagnose.py:41-46,194-200",
+    "strictness against forgiveness: redirects are refused with a fix; a nearest name becomes a fix only above a similarity ratio, impl-C/hubreg/diagnose.py:22-25,52-98",
+    "usual range with advice: a usual range requires usual_hint, so the warning always says what to do instead, impl-C/hubreg/record.py:353-362",
+    "consistency: default vs limits/type (impl-C/hubreg/record.py:399-412), required-after-optional (impl-C/hubreg/record.py:219-228), samples bind at register (impl-C/hubreg/registry.py:165-176), cross-record redirects at finalize (impl-C/hubreg/registry.py:36-55)",
+    "small core against growing types: ArgType accepts/json_schema, impl-C/hubreg/argtypes.py:15-28"
+   ],
+   "forces_in_tension": [
+    "host decides confirmation: needs_confirmation honours the host (impl-C/hubreg/registry.py:118-122) but tool_schema, help and context read record.flags only (impl-C/hubreg/describe.py:107,164,235)",
+    "type pluggability: limits allowed only for type_name == 'number' (impl-C/hubreg/record.py:317,327), and the enum case is special-cased in the diagnoser and describer (impl-C/hubreg/diagnose.py:114, impl-C/hubreg/describe.py:65-68) and the CLI (impl-C/hubreg/cli.py:146-163)",
+    "type registry scope: TYPES is module-global (impl-C/hubreg/argtypes.py:12,70-78), so one plug-in's type appears in every Registry, and tests must pop it (impl-C/tests/test_argtypes.py:35)"
+   ],
+   "forces_unnoticed": [
+    "exceptions list (note 9): nothing names the non-record surface; acceptable here"
+   ],
+   "dead_or_ornamental": [
+    "impl-C/hubreg/argtypes.py:27-28,74: render() is a required duty that no consumer calls (help uses type_phrase)",
+    "impl-C/hubreg/record.py:126,272: Record.raw is stored and never read",
+    "impl-C/hubreg/walker.py:107-120: field comparison is unreachable because run() already raises ResultError on any mismatch (impl-C/hubreg/registry.py:179-198)"
+   ],
+   "next_change_touches": [
+    "new module: RgbType(ArgType) with accepts (regex), json_schema {'type':'string','pattern':...,'x-type':'rgb'}, render; register_type('rgb', ...) at plug-in import",
+    "new plug-in record for light.set_color (controls already emit spec.type_name, impl-C/hubreg/describe.py:181)",
+    "impl-C/hubreg/describe.py: new voice_phrases(records); impl-C/hubreg/registry.py: two-line delegate"
+   ],
+   "smells": [
+    {
+     "smell": "global mutable state",
+     "where": "impl-C/hubreg/argtypes.py:12",
+     "why": "type table shared by all registries and tests"
+    },
+    {
+     "smell": "switch on type name",
+     "where": "impl-C/hubreg/diagnose.py:114",
+     "why": "enum knowledge outside EnumType; repeated in impl-C/hubreg/describe.py:65 and impl-C/hubreg/record.py:417"
+    },
+    {
+     "smell": "duplicated knowledge",
+     "where": "impl-C/hubreg/walker.py:110-120",
+     "why": "result-field check written twice (run and walker)"
+    },
+    {
+     "smell": "misplaced responsibility",
+     "where": "impl-C/hubreg/describe.py:17-89",
+     "why": "describer owns formatting helpers the binder imports (impl-C/hubreg/binding.py:22), so the core depends on a consumer"
+    }
+   ],
+   "best_thing": "The binder returns a Failure value and one explain() turns it into a Refusal through a handler table (impl-C/hubreg/diagnose.py:41-46,194-200). Checking and explaining are separate, and both read one record.",
+   "worst_thing": "A module-global type table plus describers that ignore host confirmation: two places where one registry's truth leaks into, or misses, another consumer."
+  },
+  "D": {
+   "summary": "A dataclass ArgSpec with a validating from_dict, and one 736-line Registry that validates records, binds with a closed type switch, builds refusal hints and walks. schemas.py holds the three pure view functions.",
+   "scores": {
+    "forces": 3,
+    "adapted": 4,
+    "wholeness": 4,
+    "habitability": 3,
+    "growth": 2,
+    "smells": 2,
+    "tests": 2
+   },
+   "forces_resolved": [
+    "strictness against forgiveness: redirects are explicitly advisory; they never rewrite a call and only feed nearest/fix, impl-D/hubreg/registry.py:19-22,557-572,574-590",
+    "near-misses on enum values: arg redirects may name enum values ('mornin' -> 'morning'), adapted to the scene domain, impl-D/hubreg/registry.py:261-281,493-505",
+    "host decides confirmation, passed to every view, impl-D/hubreg/registry.py:368-373,620-631",
+    "default consistency: type/limits/enum checked at registration, impl-D/hubreg/argspec.py:267-312"
+   ],
+   "forces_in_tension": [
+    "registration-time consistency: action-redirect targets are checked only in walk (impl-D/hubreg/registry.py:656-660); samples may be absent, and walk substitutes [{}] (impl-D/hubreg/registry.py:697-707)",
+    "caller vs plug-in fault: a plug-in's bad result is raised as a caller Refusal with E_RESULT (impl-D/hubreg/registry.py:605-616)",
+    "nearest that is not near: _hint returns the only candidate whatever the input (impl-D/hubreg/registry.py:178-179)"
+   ],
+   "forces_unnoticed": [
+    "a small core against a growing type system: closed TYPES and if-chains",
+    "one source against expressiveness: no cross-argument hook",
+    "two lengths of description: no context line"
+   ],
+   "dead_or_ornamental": [
+    "impl-D/hubreg/registry.py:107-109: Call.tool_name unused",
+    "impl-D/hubreg/registry.py:101,438: Call.requires_confirmation is stored but run() recomputes it (impl-D/hubreg/registry.py:598)",
+    "impl-D/hubreg/schemas.py:76-77: _input_schema built twice for 'input_schema' and 'parameters'"
+   ],
+   "next_change_touches": [
+    "impl-D/hubreg/argspec.py: TYPES (line 33) and _check_default (267-312); without an rgb branch, rgb defaults are silently unchecked",
+    "impl-D/hubreg/registry.py: _check_value (441-505) needs an rgb branch, because otherwise rgb falls into the enum branch at 485 and is refused E_ARG_RANGE, not E_ARG_TYPE",
+    "impl-D/hubreg/schemas.py: _JSON_TYPES (23) raises KeyError without 'rgb'; _property adds pattern/type name; new voice_phrases function",
+    "impl-D/hubreg/registry.py: new voice_phrases delegate"
+   ],
+   "smells": [
+    {
+     "smell": "large class",
+     "where": "impl-D/hubreg/registry.py:183-736",
+     "why": "validation, binding, diagnosis, policy and walk in one class"
+    },
+    {
+     "smell": "switch statements / shotgun surgery",
+     "where": "impl-D/hubreg/registry.py:441-505",
+     "why": "type knowledge also in impl-D/hubreg/argspec.py:33,267-312 and impl-D/hubreg/schemas.py:23,29; the enum branch is the implicit else"
+    },
+    {
+     "smell": "overloaded data",
+     "where": "impl-D/hubreg/registry.py:261-281",
+     "why": "one 'redirects' map means option rename or enum value typo depending on the target"
+    },
+    {
+     "smell": "long function",
+     "where": "impl-D/hubreg/registry.py:232-365",
+     "why": "_validate is a 130-line if/raise chain"
+    }
+   ],
+   "best_thing": "Redirects are advisory by design and stated in one paragraph (impl-D/hubreg/registry.py:19-22): a hub that unlocks doors never reroutes a command.",
+   "worst_thing": "The closed type switch with enum as the implicit else (impl-D/hubreg/registry.py:485): adding a type means editing three files, and forgetting one gives the wrong code, not an error."
+  },
+  "E": {
+   "summary": "OpRecord/ArgSpec objects with from_dict validation, pluggable ArgType objects in a module-global table (accepts, range_problem, alternatives, describe, describe_text), and a thin 210-line Registry. The binder returns Failure values for diagnose.explain, and describe and walk are separate modules. An action-redirect index detects conflicts and shadowing at registration, and cross-record checks run lazily at finalize.",
+   "scores": {
+    "forces": 4,
+    "adapted": 4,
+    "wholeness": 3,
+    "habitability": 4,
+    "growth": 5,
+    "smells": 3,
+    "tests": 3
+   },
+   "forces_resolved": [
+    "host decides confirmation, in every consumer: needs_confirm feeds run, tool_schemas and help (impl-E/hubreg/registry.py:130-139,158,183,195); the demo door relies on host policy alone (impl-E/hubreg/demo.py:41,96-103)",
+    "small core against growing types: limits checking lives on the type (range_problem), and so does description, impl-E/hubreg/types.py:50-85,100-105",
+    "strictness against forgiveness: refusal with redirect beating nearest, both shown, impl-E/hubreg/diagnose.py:117-134,150-169",
+    "redirect consistency: shadowing and conflicting action redirects refused at register, dangling ones at finalize, impl-E/hubreg/registry.py:49-103",
+    "defaults never warn: enforced in the binder (impl-E/hubreg/binder.py:109) and checked by the walk's defaults-only call (impl-E/hubreg/walk.py:142-163)"
+   ],
+   "forces_in_tension": [
+    "type pluggability: limits allowed only when type.name == 'number' (impl-E/hubreg/record.py:193-199), and the diagnoser special-cases 'enum' although alternatives() exists (impl-E/hubreg/diagnose.py:194); CLI coercion switches on type names (impl-E/hubreg/__main__.py:56-65)",
+    "samples: registration accepts an empty list and does not bind samples (impl-E/hubreg/record.py:378-384); only walk reports",
+    "type registry scope: _TYPES is module-global (impl-E/hubreg/types.py:140-151); the test registers 'colour' in setUpClass without cleanup (impl-E/tests/test_types_plugin.py:41-43)"
+   ],
+   "forces_unnoticed": [
+    "result check at run time: run() does not compare fields (impl-E/hubreg/registry.py:169-177); only the walk does"
+   ],
+   "dead_or_ornamental": [
+    "impl-E/hubreg/surfaces.py:11-19: note 9's exceptions list is applied to CLI subcommands, which are not agent-reachable operations; it is a second copy of the dispatch table (impl-E/hubreg/__main__.py:195)",
+    "impl-E/hubreg/record.py:461-465: arg_spec_for_redirect unused",
+    "impl-E/hubreg/record.py:478: ArgSpecT unused; impl-E/hubreg/walk.py:17: MAX_REPORT unused",
+    "impl-E/hubreg/registry.py:127-128: redirect_for_option is a pass-through to the record"
+   ],
+   "next_change_touches": [
+    "new module: RgbType(ArgType) with name 'rgb', accepts (regex), describe adding pattern and 'x-domain-type'; register_type(RgbType()) at plug-in import",
+    "new plug-in record light.set_color (controls emit spec.type.name, impl-E/hubreg/describe.py:140)",
+    "impl-E/hubreg/describe.py: new voice_phrases(rec); impl-E/hubreg/registry.py: two-line delegate"
+   ],
+   "smells": [
+    {
+     "smell": "duplicated dispatch",
+     "where": "impl-E/hubreg/diagnose.py:26-35",
+     "why": "_CODES map plus an if-chain over the same kinds (77-101); the map is used only for fallbacks"
+    },
+    {
+     "smell": "switch on type name",
+     "where": "impl-E/hubreg/diagnose.py:194",
+     "why": "enum knowledge outside EnumType, despite alternatives(); also impl-E/hubreg/record.py:194,204"
+    },
+    {
+     "smell": "global mutable state",
+     "where": "impl-E/hubreg/types.py:140",
+     "why": "type table shared across registries and tests"
+    },
+    {
+     "smell": "encapsulation breach",
+     "where": "impl-E/hubreg/walk.py:107",
+     "why": "walker calls registry._ensure_finalized"
+    }
+   ],
+   "best_thing": "One effective-confirmation query on the registry, passed to every consumer, with a demo that depends on host policy alone (impl-E/hubreg/registry.py:130-139, impl-E/hubreg/demo.py:41).",
+   "worst_thing": "The type table is global and the core still names 'number' and 'enum', so a plug-in type registered for one hub appears in all of them, and it cannot carry limits."
+  }
+ },
+ "generativity": {
+  "shared_seams": [
+   {
+    "seam": "validate-and-normalise record at register (structure + consistency)",
+    "in": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "consumers as pure functions over the stored record (tool schema, controls, help)",
+    "in": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "pluggable ArgType object (accept + describe)",
+    "in": [
+     "B",
+     "C",
+     "E"
+    ]
+   },
+   {
+    "seam": "binder returns a Failure value; one diagnoser entry point builds the Refusal",
+    "in": [
+     "C",
+     "E"
+    ]
+   },
+   {
+    "seam": "separate diagnoser module with refuse_* functions",
+    "in": [
+     "B",
+     "C",
+     "E"
+    ]
+   },
+   {
+    "seam": "walker as its own module",
+    "in": [
+     "B",
+     "C",
+     "E"
+    ]
+   },
+   {
+    "seam": "finalize for cross-record redirect checks",
+    "in": [
+     "B",
+     "C",
+     "E"
+    ]
+   },
+   {
+    "seam": "cross-argument validate hook",
+    "in": [
+     "B",
+     "C",
+     "E"
+    ]
+   },
+   {
+    "seam": "short context line for the assistant",
+    "in": [
+     "B",
+     "C",
+     "E"
+    ]
+   },
+   {
+    "seam": "samples bound at registration",
+    "in": [
+     "B",
+     "C"
+    ]
+   },
+   {
+    "seam": "redirects refuse with a fix (never rewrite)",
+    "in": [
+     "B",
+     "C",
+     "D",
+     "E"
+    ]
+   },
+   {
+    "seam": "effective confirmation passed to describers",
+    "in": [
+     "A",
+     "D",
+     "E"
+    ]
+   }
+  ],
+  "groups": [
+   [
+    "B",
+    "C",
+    "E"
+   ],
+   [
+    "A",
+    "D"
+   ]
+  ],
+  "notes": "B, C and E share a deep structure (record, ArgType, binder, diagnoser, describer, walker, finalize, hook) that differs in detail. B keeps the type table per registry with a limits_apply flag and a walker that generates negative probes. C puts enum membership inside accepts and dispatches Failure through a handler table. E puts limits on the type (range_problem) and indexes action redirects. All three still special-case 'number'/'enum' outside the type objects, and two of them (C, E) made the type table global. A and D have a monolithic Registry with a closed type switch. They differ on the strictness force: A rewrites near-misses, while D refuses with advisory hints and extends redirects to enum values."
+ },
+ "worse_is_better": "D is the smallest (about 1700 source lines against about 2100 for the others). It reaches the same refusal quality as B, C and E on unknown names, limits, defaults and host confirmation, without a Failure type, finalize, hook or type objects. For the current four types that is enough. What the B/C/E group carries beyond D is justified by the task's own next change: the ArgType seam turns the rgb type into a new file instead of edits to three core files. A separate diagnoser is the extra most worth having. Extras that no requirement needs: B's internal flag, callable fields and allow_forward_redirects, C's unused render() duty and Record.raw, E's surfaces.py, and the validate hook in all three, which no record uses. A carries the most code for the least resolution: lenient name rewriting and validators written out by hand.",
+ "ranking": [
+  "E",
+  "C",
+  "B",
+  "D",
+  "A"
+ ],
+ "chapter_lessons": [
+  "Flags resolved by host policy must reach the describers, not only run(). B and C compute effective confirmation in run but render tool schema/help from the plug-in flag (impl-B/hubreg/describe.py:164, impl-C/hubreg/describe.py:235). The Structure should say the registry answers 'needs confirmation?' and every consumer asks it.",
+  "The ArgType interface in note 6 (accept, check, describe) is too small. Every implementation with pluggable types still switches on 'number'/'enum' to decide which spec keys apply (limits, values), to build repair examples and to coerce CLI input (impl-C/hubreg/record.py:317, impl-E/hubreg/record.py:194, impl-B/hubreg/diagnoser.py:261, impl-E/hubreg/diagnose.py:194). The chapter should add 'validate spec keys', 'example/alternatives for repairs' and 'parse from text'.",
+  "Say where the type table lives. C and E made it module-global, so types leak between registries and tests; B's per-registry table is the safer default.",
+  "'Redirect' invites rewriting. A followed redirects and case-insensitive matches silently (impl-A/hubreg/registry.py:280-298). The Solution and Sketch, not only note 8, should state that a redirect only produces a refusal with a fix.",
+  "Mark optional participants as optional. The validate hook, callable fields and the internal flag were built with no record to use them (impl-B/hubreg/records.py:44,211). The Structure table reads as a checklist.",
+  "Say where the result check lives (run or walker). C checks it in both, leaving dead walker code (impl-C/hubreg/walker.py:107-120); E and B check it only in the walker.",
+  "Note 9 was misread as covering CLI subcommands (impl-E/hubreg/surfaces.py). Clarify that 'reachable from the agent' means callable operations, not the tool's own command line."
+ ]
+}

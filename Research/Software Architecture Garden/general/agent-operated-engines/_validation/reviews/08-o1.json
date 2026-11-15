@@ -1,0 +1,257 @@
+{
+  "implementations": {
+    "A": {
+      "summary": "Two modules: a Root handle class (_root.py) that holds one directory fd per root and does every walk, temp-create and rename through dir_fd with O_NOFOLLOW, and one large Workspace (_workspace.py) that is Locator, opened set, shadow and nested-root policy, batch and loader at once. Every refusal goes through one helper that appends the roots to the message.",
+      "scores": {"forces": 4, "adapted": 4, "wholeness": 4, "habitability": 3, "growth": 3, "smells": 3, "tests": 3},
+      "forces_resolved": [
+        "Name vs identity: (st_dev, st_ino) is recorded on read and load, and a save is refused unless the session wrote that identity itself, impl-A/jailfs/_root.py:53, impl-A/jailfs/_workspace.py:412-417; the hard-link alias test is impl-A/tests/test_jailfs.py:264-272",
+        "Atomic writes: random O_EXCL|O_NOFOLLOW temp file in the target's directory, fsync, rename, unlink on failure, impl-A/jailfs/_root.py:286-335; planted-temp-name and rename-failure tests at impl-A/tests/test_jailfs.py:312-334",
+        "Let the OS enforce the root: per-component O_NOFOLLOW|O_DIRECTORY walk from a held root fd, impl-A/jailfs/_root.py:167-208; refuses to start where dir_fd operations are missing (the Applicability clause), impl-A/jailfs/_root.py:40-50,99-103",
+        "Strict flags: several writable roots are refused with a fix naming --read, impl-A/jailfs/_workspace.py:112-121",
+        "Overlapping roots: a relative save that lands inside a read root nested in the writable root is refused, impl-A/jailfs/_workspace.py:419-429 (probe: refused; B, C and D write into it)",
+        "Shadowing: E_SHADOW on save plus a logged warning when a read is served from the writable root, impl-A/jailfs/_workspace.py:431-437,332-338",
+        "Convenience: every refusal names the roots via _refuse, impl-A/jailfs/_workspace.py:170-180"
+      ],
+      "forces_in_tension": [
+        "Never write through a link: absolute save paths are realpath'd before the fd walk, impl-A/jailfs/_workspace.py:294-296, so saving to the absolute path of an in-root symlink rewrites its target (probe: real=b'new'); only the identity set stops this, and only for files already read",
+        "The same realpath step for absolute reads, impl-A/jailfs/_workspace.py:259-267: relative reads refuse links, absolute reads follow them when the target is inside a root, so one file has two link policies",
+        "Many ways in vs one: require() is a method on a library that has no module system, impl-A/jailfs/_workspace.py:477-487"
+      ],
+      "forces_unnoticed": [
+        "None of the five named forces. Note 11 (a security test must be shown to fail without its fix) gets only a docstring claim, impl-A/tests/test_jailfs.py:3-6"
+      ],
+      "dead_or_ornamental": [
+        "impl-A/jailfs/_workspace.py:477: require() refuses a call that nothing in the task can make; it comes from goja's require in the sketch",
+        "impl-A/jailfs/_errors.py:38: __reduce__ for pickling, no user",
+        "impl-A/jailfs/_root.py:122-127: Root context-manager protocol, never used in a with statement"
+      ],
+      "next_change_touches": [
+        "impl-A/jailfs/_errors.py: add E_IN_USE",
+        "impl-A/jailfs/__init__.py: export E_IN_USE",
+        "impl-A/jailfs/_root.py: new Root.unlink(rel): _walk_dirs(create=False), lstat without following, refuse link/dir, os.unlink with dir_fd",
+        "impl-A/jailfs/_workspace.py: _Batch.__enter__/__exit__ (45-61) and __init__ (76-77) gain a per-batch read set; read() (358) and load() (463) each add to it, because the opened identity is recorded in two places",
+        "impl-A/jailfs/_workspace.py: new remove() reusing _write_location (280) and copying save()'s link/dir/fifo/nested-root checks (395-429), which are inline in save"
+      ],
+      "smells": [
+        {"smell": "long function", "where": "impl-A/jailfs/_workspace.py:374", "why": "save() runs the duplicate, link, dir, fifo, identity, nested-root and shadow checks inline in about 70 lines, so remove() cannot reuse them"},
+        {"smell": "duplicated code", "where": "impl-A/jailfs/_workspace.py:261-274", "why": "four near-identical root-matching loops, repeated in _write_location at 292-310"},
+        {"smell": "duplicated code", "where": "impl-A/jailfs/_workspace.py:233-240", "why": "path coercion copied in _read_candidates and _write_location (283-290)"},
+        {"smell": "duplicated knowledge", "where": "impl-A/jailfs/_workspace.py:463", "why": "read() and load() each record the opened identity (358, 463)"},
+        {"smell": "data clump", "where": "impl-A/jailfs/_workspace.py:318", "why": "an (fh, root, rel, st) tuple is passed around instead of a location value"}
+      ],
+      "best_thing": "Refusing writes beneath a read root nested in the writable root while a writable root nested in a read root stays writable (impl-A/jailfs/_workspace.py:419-429). It is the only save-time guard for overlapping roots among the five.",
+      "worst_thing": "realpath on agent-supplied absolute paths (impl-A/jailfs/_workspace.py:259,294): resolving links in strings before the kernel walk lets an absolute save write through an in-root link."
+    },
+    "B": {
+      "summary": "One module per participant in the chapter's Structure table: paths, Locator, RootHandle with a Location value, OpenedSet, Reader, Writer, Loader, and a Workspace Facade that delegates every call. Absolute paths are matched lexically against both spellings of each root, so the descriptor walk sees every link, and a separate mutation script checks that security tests fail without their fix.",
+      "scores": {"forces": 4, "adapted": 2, "wholeness": 2, "habitability": 3, "growth": 3, "smells": 2, "tests": 4},
+      "forces_resolved": [
+        "Name vs identity: OpenedSet keeps opened and written identities, impl-B/jailfs/identity.py:30-52, checked at impl-B/jailfs/writer.py:154",
+        "Never through a link, including absolute paths: the Locator matches agent paths lexically against the given and the real spelling of each root, impl-B/jailfs/locator.py:66-74, impl-B/jailfs/root.py:115-120, so the O_NOFOLLOW chain (root.py:182-201) refuses links (probe: absolute save through an in-root link refused)",
+        "Atomic writes: random dot-prefixed temp via O_CREAT|O_EXCL|O_NOFOLLOW, full write, fsync, rename, a new name if one is planted, impl-B/jailfs/writer.py:164-187, impl-B/jailfs/root.py:253-273",
+        "Strict flags: one writable root, with a fix naming --read and reads=, impl-B/jailfs/workspace.py:28-47",
+        "Show names as the agent should write them: Location.display is relative in the writable root and absolute in a read root, impl-B/jailfs/root.py:59-70",
+        "Note 11: tools/regression_check.py removes each protection and requires the guarding tests to fail, impl-B/tools/regression_check.py:26-141 (run on a copy: all seven mutations go red)"
+      ],
+      "forces_in_tension": [
+        "Overlapping roots: shadow_roots skips read roots inside the writable root, impl-B/jailfs/locator.py:47-63, and nothing else guards them, so save('cache/x.json') writes into the read-only root (probe); impl-B/tests/test_save.py:240-245 tests the skip and misses the write",
+        "Many ways in vs one: Loader.require and Workspace.require exist only to refuse, impl-B/jailfs/loader.py:43-51, impl-B/jailfs/workspace.py:204-207; the task has no module system",
+        "Convenience vs containment: links are refused even when they stay inside one read root, impl-B/tests/test_links.py:55-59, a stricter rule than the os.Root semantics the chapter cites"
+      ],
+      "forces_unnoticed": [
+        "None of the five named forces"
+      ],
+      "dead_or_ornamental": [
+        "impl-B/jailfs/loader.py:22-23,39-40: the loads counter and the origins list are written and never read",
+        "impl-B/jailfs/reader.py:35,66 and impl-B/jailfs/writer.py:68,112: reads/saves counters, never read",
+        "impl-B/jailfs/locator.py:118-123: writable_rel and absolute_name have no caller",
+        "impl-B/jailfs/identity.py:41-47: opened/written frozenset properties have no caller",
+        "impl-B/jailfs/root.py:72-80: Location __eq__/__hash__, though Locations are never compared or hashed",
+        "impl-B/jailfs/workspace.py:83-89: Batch stores display strings and a __len__ that only repr uses",
+        "impl-B/jailfs/root.py:37: _LINK_FIX['list'], though names() never refuses",
+        "impl-B/jailfs/writer.py:113: save returns the Location and Workspace.save discards it (workspace.py:191-192)",
+        "impl-B/jailfs/__init__.py:28-33: Location and Batch exported as public API with no outside user"
+      ],
+      "next_change_touches": [
+        "impl-B/jailfs/errors.py: add E_IN_USE to the constants and to CODES (tests/support.py:64 asserts every code is in CODES)",
+        "impl-B/jailfs/__init__.py: export E_IN_USE",
+        "impl-B/jailfs/identity.py: OpenedSet gains a per-run layer (begin/end run, note_open also records into it, read_in_run(st)); every read already goes through note_open (reader.py:65)",
+        "impl-B/jailfs/workspace.py: batch() (215-223) starts and ends the run; a new remove() facade method",
+        "impl-B/jailfs/writer.py: new remove() reusing writable_location and the link/dir half of _refuse_protected_target (136-153)",
+        "impl-B/jailfs/root.py: a strict unlink; the existing unlink (290-301) swallows every error because it cleans up temps",
+        "impl-B/tools/regression_check.py: a new mutation entry for the E_IN_USE check"
+      ],
+      "smells": [
+        {"smell": "speculative generality", "where": "impl-B/jailfs/loader.py:22", "why": "counters and an origins log with no reader, repeated in Reader and Writer"},
+        {"smell": "middle man", "where": "impl-B/jailfs/workspace.py:182-212", "why": "Workspace only forwards; one read goes Workspace -> Reader -> Locator -> RootHandle"},
+        {"smell": "duplicated code", "where": "impl-B/jailfs/root.py:233-251", "why": "mkdirs re-implements the _chain walk at 182-201"},
+        {"smell": "duplicated knowledge", "where": "impl-B/jailfs/writer.py:140-146", "why": "the link refusal is also written in RootHandle._refuse (root.py:136-141)"},
+        {"smell": "shotgun surgery", "where": "impl-B/jailfs/errors.py:16", "why": "one new operation touches errors, identity, workspace, writer, root and the mutation tool"}
+      ],
+      "best_thing": "Matching absolute paths lexically against both spellings of each root (impl-B/jailfs/locator.py:66-74, root.py:115-120). Roots are canonicalised once and agent paths never are, so only the kernel walk resolves links.",
+      "worst_thing": "Skipping nested read roots in the shadow check without refusing writes beneath them (impl-B/jailfs/locator.py:47-63): a relative save corrupts a read-only directory mounted inside the workspace."
+    },
+    "C": {
+      "summary": "Locator/Location, a Root handle, a Writer and a Loader in separate modules around a Workspace facade, close to B in shape. The Root handle carries a hand-written path resolver that follows links whose targets stay in the same root, to emulate os.Root; it adds an E_ARG code from the chapter's sketch and refuses any list as root.",
+      "scores": {"forces": 3, "adapted": 3, "wholeness": 3, "habitability": 3, "growth": 3, "smells": 3, "tests": 3},
+      "forces_resolved": [
+        "Name vs identity: opened/written identity sets, impl-C/jailfs/workspace.py:42-43,119, checked at impl-C/jailfs/writer.py:65-73; both halves tested (hard link refused, same name with a different inode allowed), impl-C/tests/test_identity.py:26-53",
+        "Atomic writes: random O_EXCL temp, write loop, fsync, rename, cleanup in finally, impl-C/jailfs/root.py:353-382, impl-C/jailfs/writer.py:74-91",
+        "One way to load: the Loader receives the workspace's own _read, so loads are located and identity-recorded exactly like reads, impl-C/jailfs/loader.py:17-20, impl-C/jailfs/workspace.py:71",
+        "Strict flags: any list or tuple as root is refused with a fix naming --read, impl-C/jailfs/workspace.py:25-32",
+        "Writes refuse a link in any component, impl-C/jailfs/root.py:305-351"
+      ],
+      "forces_in_tension": [
+        "Never write through a link: absolute save paths are realpath'd, impl-C/jailfs/locator.py:130, so an absolute save through an in-root symlink rewrites its target (probe)",
+        "Shadowing: _check_shadow returns early for absolute paths, impl-C/jailfs/workspace.py:166-167, so saving lib.py by its absolute path in the writable root shadows the read-only helper and load('lib.py') returns the copy (probe); impl-C/tests/test_loader.py:22-29 and test_shadow.py:43-48 assert this as intended",
+        "Overlapping roots: no guard; a relative save into a read root nested in the writable root succeeds (probe)",
+        "Let the OS enforce the root: resolve() redoes link resolution in Python with readlink and realpath, impl-C/jailfs/root.py:165-254, which is the string-level work note 1 leaves to the kernel"
+      ],
+      "forces_unnoticed": [
+        "None of the five named forces"
+      ],
+      "dead_or_ornamental": [
+        "impl-C/jailfs/workspace.py:46,219,223: _batch_depth is maintained and never read",
+        "impl-C/jailfs/workspace.py:85-86: roots() has no caller",
+        "impl-C/jailfs/writer.py:40-46: the root-mismatch refusal is unreachable because locate_write only returns the writable root",
+        "impl-C/jailfs/root.py:316-323: the '..' branch in open_parent_for_write is unreachable (its own comment says the locator removed it)",
+        "impl-C/jailfs/loader.py:42-48: require() refuses a loader that does not exist",
+        "impl-C/jailfs/errors.py:26: E_ARG, a code from the chapter sketch that the task does not define",
+        "impl-C/jailfs/workspace.py:44,135: a warnings list that only tests read",
+        "impl-C/jailfs/errors.py:53: as_dict, used only by tests"
+      ],
+      "next_change_touches": [
+        "impl-C/jailfs/errors.py: add E_IN_USE to the constants and CODES; impl-C/tests/test_construction.py:113-116 pins the exact tuple",
+        "impl-C/jailfs/__init__.py: export E_IN_USE",
+        "impl-C/jailfs/workspace.py: batch() (208-224) saves and restores a per-batch read set next to _batch_saved; _read (119) adds the identity, which also covers load; new remove()",
+        "impl-C/jailfs/writer.py: new remove(), copying the link/dir checks inline in save (51-64)",
+        "impl-C/jailfs/root.py: a parent walk that neither creates directories (open_parent_for_write does, 326-331) nor follows intermediate links (resolve does, 199-234), plus a strict unlink (unlink_at swallows errors, 384-388)"
+      ],
+      "smells": [
+        {"smell": "long function", "where": "impl-C/jailfs/root.py:165", "why": "resolve() is 90 lines of fd stack, link hops, readlink and realpath"},
+        {"smell": "duplicated code", "where": "impl-C/jailfs/root.py:305-351", "why": "open_parent_for_write repeats resolve()'s walk with different link rules"},
+        {"smell": "data clump", "where": "impl-C/jailfs/writer.py:38", "why": "the (opened, written) sets owned by Workspace are passed into every Writer.save (workspace.py:157)"},
+        {"smell": "feature envy", "where": "impl-C/jailfs/root.py:92-94", "why": "Root.identity never uses self; it is a stat function on the wrong class"},
+        {"smell": "speculative generality", "where": "impl-C/jailfs/errors.py:26", "why": "E_ARG splits refusals the task puts under E_ACCESS, including the several-roots case"}
+      ],
+      "best_thing": "Injecting the workspace's own read into the Loader (impl-C/jailfs/loader.py:17-20), so the one way to load code cannot drift from the read path.",
+      "worst_thing": "Exempting absolute saves from the shadow check (impl-C/jailfs/workspace.py:166-167): any agent that writes the full path can replace a read-only helper for every later relative load."
+    },
+    "D": {
+      "summary": "A policy layer (Workspace) over a mechanics module (fsio) with two interchangeable backends chosen at runtime: a dir_fd walk and a path-joined lstat walk, plus pure path helpers. There is no root-handle object, no identity set and no loader participant; read protection is a ledger of (root index, components) names.",
+      "scores": {"forces": 2, "adapted": 3, "wholeness": 2, "habitability": 3, "growth": 2, "smells": 2, "tests": 4},
+      "forces_resolved": [
+        "Let the OS enforce the root for relative paths: a dir_fd walk that lstats and O_NOFOLLOW-opens each component, impl-D/jailfs/fsio.py:195-249; the root is reopened with O_DIRECTORY|O_NOFOLLOW on each call, so a root swapped for a link is refused, impl-D/jailfs/fsio.py:173-182, tested at impl-D/tests/test_links.py:91-102",
+        "Atomic writes: random O_EXCL|O_NOFOLLOW temp and os.replace, impl-D/jailfs/fsio.py:294-313",
+        "Shadowing: refused for relative and absolute saves alike, impl-D/jailfs/workspace.py:186,246-258",
+        "Strict flags: a list, tuple or set as root is refused, impl-D/jailfs/workspace.py:42-47"
+      ],
+      "forces_in_tension": [
+        "Name vs identity: the read ledger is keyed on (root index, components), impl-D/jailfs/workspace.py:99,116,195; a hard-link alias of a read input is not protected (probe; the data survives only because of the rename)",
+        "Convenience vs containment: with no written exemption, a save, read, save of the session's own output is refused, impl-D/tests/test_save.py:51-55",
+        "Never through a link: absolute paths are realpath'd, impl-D/jailfs/workspace.py:233, so an absolute save through an in-root symlink rewrites its target (probe)",
+        "Overlapping roots: no guard; a relative save into a nested read root succeeds (probe)",
+        "Applicability: _PathBackend is the string-check fallback the chapter says not to rely on, and fsio.py:10-13 calls it 'strictly weaker'",
+        "Atomic writes: no fsync before os.replace, impl-D/jailfs/fsio.py:304-309",
+        "Refusals deliberately do not name the roots (impl-D/jailfs/errors.py:27-29), against Collaborations 5"
+      ],
+      "forces_unnoticed": [
+        "Compare identities, not names (note 2): no st_ino or st_dev anywhere in the package"
+      ],
+      "dead_or_ornamental": [
+        "impl-D/jailfs/fsio.py:361-543: _PathBackend, reachable on this platform only through the test hook _FORCE_PATH_BACKEND (fsio.py:51)",
+        "impl-D/jailfs/fsio.py:71-73: backend_name, used only by tests",
+        "impl-D/jailfs/paths.py:44-45: a Windows drive-letter check in a POSIX dir_fd design",
+        "impl-D/jailfs/errors.py:51-60: as_dict, used only by tests",
+        "impl-D/jailfs/workspace.py:80: the writable filter in the reads property can never drop anything",
+        "impl-D/jailfs/__init__.py:20-35: Linked, Obstructed and LOADABLE_SUFFIXES exported with no outside user"
+      ],
+      "next_change_touches": [
+        "impl-D/jailfs/errors.py: add E_IN_USE to CODES (Refused raises ValueError for unknown codes, errors.py:35); impl-D/tests/test_construction.py:101-104 pins the set",
+        "impl-D/jailfs/__init__.py: export E_IN_USE",
+        "impl-D/jailfs/fsio.py: remove_file in _FdBackend and again in _PathBackend, plus a dispatcher function",
+        "impl-D/jailfs/workspace.py: batch() (209-227) also holds reads; read() records them in both branches (99, 116); remove() copies save()'s absolute/relative locate block (166-182)"
+      ],
+      "smells": [
+        {"smell": "duplicated code", "where": "impl-D/jailfs/fsio.py:450-507", "why": "read_file/write_file/_walk exist twice (256-313 vs 399-507), so every rule is written twice"},
+        {"smell": "primitive obsession", "where": "impl-D/jailfs/workspace.py:52", "why": "roots are (path, writable) tuples indexed as self._roots[0][0] (75, 98, 149, 204); read keys are (int, tuple)"},
+        {"smell": "duplicated code", "where": "impl-D/jailfs/workspace.py:166-182", "why": "the absolute/relative locate branching repeats read() at 94-104"},
+        {"smell": "speculative generality", "where": "impl-D/jailfs/fsio.py:51", "why": "a second backend and Windows drive letters with no second platform"}
+      ],
+      "best_thing": "The integrity invariant: snapshot the read roots (bytes, mode, mtime) before a barrage of planted-link and traversal attacks and assert they are unchanged after, on both backends (impl-D/tests/test_integrity.py:32-63, support.py:91-107).",
+      "worst_thing": "Shipping a path-joined lstat backend beside the dir_fd one (impl-D/jailfs/fsio.py:361-543): every rule must be written twice, and the weaker copy is the kind the chapter says gives a false sense of safety."
+    },
+    "E": {
+      "summary": "Two layers: fsops holds the descriptor-relative primitives (walk, open, exclusive temp, atomic replace) and a single Workspace class holds all policy. Roots are canonicalised once, agent paths are matched lexically against both the configured and the real spelling, and roots that overlap are refused at construction.",
+      "scores": {"forces": 4, "adapted": 4, "wholeness": 4, "habitability": 4, "growth": 3, "smells": 3, "tests": 3},
+      "forces_resolved": [
+        "Never through a link: absolute paths are matched lexically against (alias, real) root pairs, impl-E/jailfs/workspace.py:47-52,231-253, then walked with O_NOFOLLOW, impl-E/jailfs/fsops.py:147-202 (probe: absolute save through an in-root link refused); tested at impl-E/tests/test_security.py:137-144",
+        "Overlapping roots: refused at construction in both directions, impl-E/jailfs/workspace.py:121-128 (probe: a nested read root cannot be written)",
+        "Atomic writes: random O_EXCL|O_NOFOLLOW temp, fsync, os.replace, cleanup, impl-E/jailfs/fsops.py:318-366",
+        "Shadowing: refused whatever the spelling, impl-E/jailfs/workspace.py:294-300, with absolute saves tested at impl-E/tests/test_security.py:155-158",
+        "Strict flags: a list, tuple, set or dict as root is refused, impl-E/jailfs/workspace.py:63-75",
+        "Name vs identity: the identity set is checked against an lstat in the already-walked directory, impl-E/jailfs/workspace.py:317-333"
+      ],
+      "forces_in_tension": [
+        "Convenience vs containment: read protection by both name and identity with no written exemption, impl-E/jailfs/workspace.py:56-57,310-315, so the session cannot re-save its own output after reading it (impl-E/tests/test_security.py:190-194)",
+        "Convenience vs containment: any file with st_nlink > 1 is refused, impl-E/jailfs/workspace.py:334-340, though impl-E/jailfs/fsops.py:11-14 says rename makes hard links harmless; the probe shows a save over a hard link to an unread outside file refused for no gain",
+        "Let the OS enforce the root: names() walks joined paths with scandir, impl-E/jailfs/workspace.py:149-166, and open_root_dir opens the root without O_NOFOLLOW, impl-E/jailfs/fsops.py:121-124",
+        "Refusals give a fix but do not name the roots (Collaborations 5), e.g. impl-E/jailfs/workspace.py:239-243"
+      ],
+      "forces_unnoticed": [
+        "None of the five named forces"
+      ],
+      "dead_or_ornamental": [
+        "impl-E/jailfs/errors.py:31-36: Refused.path, never passed by any raise",
+        "impl-E/jailfs/workspace.py:50-52: roots are sorted by alias length, then _absolute_target searches for the longest again (235-237)",
+        "impl-E/jailfs/workspace.py:56,310-315: the read-path set mostly duplicates what the identity set (57, 328-333) already refuses"
+      ],
+      "next_change_touches": [
+        "impl-E/jailfs/errors.py: add E_IN_USE to ALL_CODES (Refused validates codes, errors.py:32)",
+        "impl-E/jailfs/__init__.py: export E_IN_USE",
+        "impl-E/jailfs/workspace.py: batch() (367-383) adds a per-batch read set; _note_read (255-257), the one funnel for read and load, adds to it; remove() copies save()'s locate block (276-291) and link/dir checks (317-327)",
+        "impl-E/jailfs/fsops.py: a strict unlink using _walk_dirs (184-202); only _unlink_quietly (311-315) exists"
+      ],
+      "smells": [
+        {"smell": "long function", "where": "impl-E/jailfs/workspace.py:261", "why": "save() locates, checks shadow, duplicate, name, link, dir, identity and nlink, then writes, in about 90 lines"},
+        {"smell": "duplicated knowledge", "where": "impl-E/jailfs/workspace.py:56-57", "why": "read protection kept as both a path set and an identity set"},
+        {"smell": "duplicated code", "where": "impl-E/jailfs/workspace.py:276-285", "why": "absolute/relative locate repeated from _read_bytes (211-216)"},
+        {"smell": "divergent change", "where": "impl-E/jailfs/workspace.py:143-167", "why": "names() does its own path walk instead of using fsops, so the walk's link rules live in two places"}
+      ],
+      "best_thing": "Refusing overlapping roots at construction (impl-E/jailfs/workspace.py:121-128): one check at start-up closes the nested-read-root hole that three others have.",
+      "worst_thing": "Refusing every hard-linked file and every re-save after a read (impl-E/jailfs/workspace.py:310-340): containment the rename already provides, paid for in ordinary agent work with refusals the agent cannot repair."
+    }
+  },
+  "generativity": {
+    "shared_seams": [
+      {"seam": "per-component O_NOFOLLOW directory-fd walk from the root", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "random O_EXCL temp in the target directory, renamed over the name", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "lexical normalisation of relative names, refusing a climb above the root", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "several writable roots refused at construction", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "E_SHADOW refusal on save", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "persistent root-handle object holding a directory fd for the session", "in": ["A", "B", "C"]},
+      {"seam": "opened set by identity with a written exemption", "in": ["A", "B", "C"]},
+      {"seam": "require() that only refuses", "in": ["A", "B", "C"]},
+      {"seam": "Locator and Location value as their own types", "in": ["B", "C"]},
+      {"seam": "Writer and Loader as their own classes", "in": ["B", "C"]},
+      {"seam": "policy layer over a module of fs primitives, root reopened per call", "in": ["D", "E"]},
+      {"seam": "agent absolute paths realpath'd before the walk", "in": ["A", "C", "D"]},
+      {"seam": "agent absolute paths matched lexically against given and real root spellings", "in": ["B", "E"]},
+      {"seam": "guard against read roots overlapping the writable root", "in": ["A", "E"]},
+      {"seam": "warning when a read is served from the writable root over a read-root name", "in": ["A", "C"]}
+    ],
+    "groups": [["B", "C"], ["A"], ["D", "E"]],
+    "notes": "The deep structure recurs in all five: an fd walk with O_NOFOLLOW, an exclusive temp file plus rename, one writable root, lexical normalisation and E_SHADOW. B and C turn the Structure table into one class per participant, D and E collapse it into policy over primitives, and A sits between with a Root handle and one large Workspace. The details differ where the chapter is silent, and those are the safety-relevant ones. The absolute-path mapping (realpath in A, C, D; lexical in B, E) predicts exactly which ones write through an in-root link. Only A and E guard against overlapping roots, and B, C, D write into a nested read root. Read-link policy differs: C follows in-root links like os.Root, the others refuse all links. The read-protection key differs: identity plus a written exemption in A, B, C; identity and name with no exemption in E; names only in D. Batch nesting has three meanings: A and E share the outer record, B and C give the inner block its own, D refuses nesting. None of the five tracks reads per batch, so NEXT.md's E_IN_USE adds new state everywhere; the implementations with a single read funnel (C _read, E _note_read, B OpenedSet.note_open) absorb it in one place, while A and D record reads in two."
+  },
+  "worse_is_better": "E. In the probes it has the best containment of the five: no write through an in-root link by absolute path, no write into a nested read root, no shadowing by absolute save. It does this with 851 library lines in two modules, against B's 1309 in ten. It does without a persistent root-handle object and close() lifecycle (A, B, C), separate Locator/Writer/Loader/Location/OpenedSet classes (B, C), require() (A, B, C), C's hand-written link resolver and E_ARG, D's second backend and B's counters. The task needs none of these; the guarantees come from the descriptor walk, the exclusive temp plus rename, lexical absolute matching and one overlap check. E's own extras (the nlink refusal, a name set beside the identity set) add restriction rather than machinery. What it lacks (a written-exemption set, roots named in refusal text) is a few lines. A is the runner-up: as safe except for absolute saves through in-root links, and better for the agent (own output can be re-saved, refusals name the roots), at the cost of a larger Workspace.",
+  "ranking": ["E", "A", "B", "D", "C"],
+  "chapter_lessons": [
+    "Name the overlapping-roots force. Note 7's own example is a read root mounted inside the workspace, but nothing says writes beneath it must be refused. B, C and D let save('mounted/x') write into the read root (probe), B even tests the configuration (impl-B/tests/test_save.py:240-245). Only A (impl-A/jailfs/_workspace.py:419-429) and E (impl-E/jailfs/workspace.py:121-128) guard it. Say: refuse overlapping roots at start-up.",
+    "Resolve links in trusted configuration, never in agent paths. 'Make a symlinked read root resolve to its target' (note 7) led A, C and D to realpath the agent's absolute path (impl-A/jailfs/_workspace.py:294, impl-C/jailfs/locator.py:130, impl-D/jailfs/workspace.py:233), which lets an absolute save write through an in-root link. B and E canonicalise roots once and match agent paths lexically against both spellings (impl-B/jailfs/root.py:115-120, impl-E/jailfs/workspace.py:47-52), and their walk stays honest.",
+    "Say what the opened set protects. Once writes never follow links and always rename, a save cannot change an input's inode: B's test (impl-B/tests/test_boundaries.py:18-26) and E's docstring (impl-E/jailfs/fsops.py:11-14) state it, and D's name-only ledger leaves data intact in the probe. What the set protects is the agent's view (do not clobber what you read). Without this, implementations over-reach: E refuses every nlink>1 file (impl-E/jailfs/workspace.py:334-340), and D and E refuse to re-save their own output.",
+    "Present participants as responsibilities, not classes, and mark the sketch's goja-specific parts. B and C built one module per Structure-table row and B carries a dozen dead members (impl-B/jailfs/loader.py:22-23, locator.py:118-123). A, B and C transcribed require() and C transcribed E_ARG (impl-C/jailfs/errors.py:26) for a task with no module system. D and E reach equal or better containment with two layers.",
+    "Note 6 should say the shadow check applies to the resulting relative name however it is spelled. C exempts absolute saves (impl-C/jailfs/workspace.py:166-167), and its own test loads a shadowed helper (impl-C/tests/test_loader.py:22-29): this is the library-shadowing trap the note says goja-cv avoided.",
+    "Define the run scope. Duplicate saves (note 10) are per call in the chapter and per batch in the task, and nesting came out three ways (A/E share, B/C inner scope, D refuses). No implementation scoped reads to a run, so a run-scoped rule like E_IN_USE is new state in all five. The chapter should say the session holds a stack of runs and that per-run read and write sets belong to it.",
+    "Note 11 needs a technique, and the Applicability warning needs to be louder. Only B automated 'fail without the fix' (impl-B/tools/regression_check.py), and its class-level granularity hid a vacuous identity test that stays green under the identity mutation (impl-B/tests/test_save.py:174-181). D shipped the string-check fallback the Applicability section warns against (impl-D/jailfs/fsio.py:361-543)."
+  ]
+}

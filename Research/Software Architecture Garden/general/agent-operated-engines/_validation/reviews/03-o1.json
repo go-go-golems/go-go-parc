@@ -1,0 +1,240 @@
+{
+  "implementations": {
+    "A": {
+      "summary": "Full pattern in four modules: graph.py (canonical SHA-256 hashing, immutable Node), engine.py (registry, builder, per-request signatures, run memo, single-flight, threaded inputs, built-in 'within' op), cache.py (byte-budget LRU). Values are plain mutable lists; within() substitutes the placeholder at build time so the sub-pipeline becomes an ordinary interned subgraph.",
+      "scores": {"forces": 3, "adapted": 4, "wholeness": 4, "habitability": 4, "growth": 3, "smells": 3, "tests": 4},
+      "forces_resolved": [
+        "Key precision: canonical args with 1==1.0, sorted maps, length-prefixed SHA-256 (impl-A/gridflow/graph.py:35-100); defaults filled before hashing so f() and f(k=1) are one node (impl-A/gridflow/engine.py:232-233), the only implementation that applies 'defaults filled'",
+        "Evaluation parameters: scale validated and quantised once, used both in the signature and in ctx.scale (impl-A/gridflow/engine.py:39-50, 313, 406)",
+        "Version in the key, not in the node: signature = digest(node hash, op version, scale, input sigs) (impl-A/gridflow/engine.py:313-315)",
+        "Functions as arguments: callables refused at build time (impl-A/gridflow/graph.py:61-64); within() runs build once against a placeholder and rewrites the result onto the real base (impl-A/gridflow/engine.py:246-281), so the sub-pipeline shares nodes and cache entries with the same pipeline written outside (probe: hits shared)",
+        "Run memo, single-flight with same-thread cycle check, parallel inputs per distinct signature (impl-A/gridflow/engine.py:96-129, 348-378, 435-482)",
+        "Warnings stored with the value including inherited ones, replayed once per evaluation, reported when too large to cache (impl-A/gridflow/engine.py:420-433; impl-A/gridflow/cache.py:85-88)"
+      ],
+      "forces_in_tension": [
+        "Sharing against isolation: cached values are mutable lists returned as-is to callers (impl-A/gridflow/engine.py:346, 332) and passed as-is to operations (impl-A/gridflow/engine.py:409); probe: mutating result.value or an input inside an op corrupts the cached value. Only the identity path copies (impl-A/gridflow/engine.py:400-404)",
+        "Memory against recomputation: LRU is hard-wired into put() (impl-A/gridflow/cache.py:89-92); Entry.cost is measured but nothing reads it",
+        "Key cost: every evaluate() re-hashes the signature of every reachable node even when the root is a hit (impl-A/gridflow/engine.py:292-316)"
+      ],
+      "forces_unnoticed": [
+        "Structural keys against output keys (no early cutoff, not discussed)",
+        "Memory of interned nodes and source payloads sits outside the byte budget and is never released (impl-A/gridflow/engine.py:146, 197-203)"
+      ],
+      "dead_or_ornamental": [
+        "impl-A/gridflow/cache.py:19: Entry.cost recorded (impl-A/gridflow/engine.py:392, 429) with no reader; copied from the sketch's Entry",
+        "impl-A/gridflow/operations.py:41: Context.warn returns the text; no caller uses it",
+        "impl-A/gridflow/engine.py:404: identity copy is then cached under its own signature, spending the budget twice on the same content (probe: +1504 bytes for a 10x10 neutral gain)"
+      ],
+      "next_change_touches": [
+        "impl-A/gridflow/demo.py: add _clip and _clip_identity (lo is None and hi is None), register in demo_engine (lines 78-85) with defaults={'lo': None, 'hi': None}; canonical_value already handles None (impl-A/gridflow/graph.py:53-54)",
+        "impl-A/gridflow/cache.py: ValueCache.__init__ (46-51) takes a policy; the victim choice inside put() (89-92, popitem(last=False)) must be extracted so 'size' can pick max nbytes",
+        "impl-A/gridflow/engine.py: Engine.__init__ (144-148) accepts policy and passes it to ValueCache",
+        "impl-A/gridflow/demo.py: demo_engine(cache_bytes) signature (line 78) forwards policy"
+      ],
+      "smells": [
+        {"smell": "Mutable data", "where": "impl-A/gridflow/engine.py:346", "why": "the cached list object is handed to callers and ops; any write corrupts every later reader"},
+        {"smell": "Large class / divergent change", "where": "impl-A/gridflow/engine.py:132-524", "why": "Engine holds registry, builder, substitution, signatures, evaluator, in-flight and stats; a cache-policy or within change both land here"},
+        {"smell": "Misplaced operation", "where": "impl-A/gridflow/engine.py:569-600", "why": "the within blend kernel lives in the engine module while every other kernel lives in demo.py"},
+        {"smell": "Inconsistent keying", "where": "impl-A/gridflow/engine.py:305-315", "why": "request.sigs is keyed by node.hash but request.ops by id(node); two identity notions in one table set"}
+      ],
+      "best_thing": "within() rewrites the placeholder onto the real base at build time (impl-A/gridflow/engine.py:266-281): no binding machinery in the evaluator, and the masked sub-pipeline shares keys with the same pipeline written anywhere else.",
+      "worst_thing": "Cached values are mutable lists handed straight to callers and operations (impl-A/gridflow/engine.py:332, 346, 409); the first analyst who edits result.value in place silently poisons the cache, and the tests only guard the identity path (impl-A/tests/test_evaluation.py:282-301)."
+    },
+    "B": {
+      "summary": "Full pattern split by participant: hashing.py (self-delimiting SHA-256 canon), grids.py (frozen tuple values, copy helpers), node.py (Node with E_NOT_AWAITED guard), inflight.py, cache.py (LRU), engine.py (builder plus a per-request _Run that computes signatures, memo, warnings and parallel inputs). within is a special node kind evaluated with placeholder bindings folded into the signature memo.",
+      "scores": {"forces": 4, "adapted": 4, "wholeness": 3, "habitability": 3, "growth": 4, "smells": 3, "tests": 4},
+      "forces_resolved": [
+        "Sharing against isolation: values frozen to tuples; ops receive fresh lists and callers receive fresh lists (impl-B/gridflow/grids.py:21-48; impl-B/gridflow/engine.py:266, 483); so the identity short-cut needs no copy and is not cached twice (impl-B/gridflow/engine.py:229-235, 253-257)",
+        "Laziness against immediacy: reading any attribute of a node raises E_NOT_AWAITED (impl-B/gridflow/node.py:110-115), the only implementation that helps the author who expects a statement to act",
+        "Evaluation parameters: quantised scale used for key and ctx (impl-B/gridflow/engine.py:37-55, 263); sources leave scale out of their key, a correct 'leave out what cannot affect the value' rule (impl-B/gridflow/engine.py:152-155)",
+        "Version in signature (impl-B/gridflow/engine.py:170-179); wide unambiguous keys (impl-B/gridflow/hashing.py:18-25)",
+        "Single-flight that propagates failure to every waiter (impl-B/gridflow/inflight.py:44-70), run memo and once-per-evaluation warning replay (impl-B/gridflow/engine.py:104-115, 343-351)"
+      ],
+      "forces_in_tension": [
+        "Functions as arguments: canon() falls back to 'obj:' + repr for anything unknown (impl-B/gridflow/hashing.py:58-61), so a callable kwarg is keyed by identity; probe: a lambda whose captured variable changed returns the stale cached value",
+        "Parallel inputs only at the requested node (depth 0); deeper levels run sequentially (impl-B/gridflow/engine.py:311)",
+        "Memory against recomputation: LRU only; the module doc promises a GreedyDual-Size slot behind '_evict_key', which does not exist (impl-B/gridflow/cache.py:5-6 vs 92-95)",
+        "within subgraph keys use the placeholder-built node hashes (impl-B/gridflow/engine.py:176), so the same pipeline written outside a within never shares a cache entry (probe: no hit)"
+      ],
+      "forces_unnoticed": [
+        "Structural keys against output keys (early cutoff)",
+        "Node table and source payloads unbounded outside the byte budget (impl-B/gridflow/engine.py:364, 425-431)"
+      ],
+      "dead_or_ornamental": [
+        "impl-B/gridflow/node.py:45-46: Result.__iter__, marked 'pragma: no cover - convenience only'",
+        "impl-B/gridflow/inflight.py:72-74: InFlight.in_flight has no caller",
+        "impl-B/gridflow/inflight.py:15-27: _Group.has_value written, never read",
+        "impl-B/gridflow/cache.py:49-51, 97-100: ValueCache.has and clear have no caller",
+        "impl-B/gridflow/cache.py:22: Entry.cost recorded, never read",
+        "impl-B/gridflow/engine.py:428: source node carries args {'content': digest} duplicating its hash"
+      ],
+      "next_change_touches": [
+        "impl-B/gridflow/demo.py: add _clip and _clip_is_identity, register in demo_engine (68-75); demo_engine forwards policy",
+        "impl-B/gridflow/cache.py: ValueCache.__init__ (32-37) takes policy; _evict_one (92-95) picks the victim (the named seam already exists)",
+        "impl-B/gridflow/engine.py: Engine.__init__ (357-366) accepts and validates policy"
+      ],
+      "smells": [
+        {"smell": "Speculative generality that lies", "where": "impl-B/gridflow/hashing.py:61", "why": "repr fallback accepts any object as an argument, including callables whose behaviour the key cannot describe"},
+        {"smell": "Duplicated knowledge", "where": "impl-B/gridflow/engine.py:156-168", "why": "within semantics (bind placeholder to image, combine image/mask/sub) are restated in _compute_within (283-305)"},
+        {"smell": "Tramp data", "where": "impl-B/gridflow/engine.py:182", "why": "depth is threaded through eval/_compute/_eval_inputs only to switch parallelism off below the root"},
+        {"smell": "Comment drift", "where": "impl-B/gridflow/cache.py:6", "why": "points newcomers at '_evict_key', a method that does not exist"},
+        {"smell": "Primitive obsession", "where": "impl-B/gridflow/node.py:64", "why": "node kind as bare strings compared in several branches of engine.py"}
+      ],
+      "best_thing": "Freeze every value to tuples and copy only at the two boundaries (impl-B/gridflow/grids.py:46-48; impl-B/gridflow/engine.py:266, 483): mutation of shared values becomes impossible and the identity short-cut costs nothing.",
+      "worst_thing": "The repr fallback in canon() (impl-B/gridflow/hashing.py:61) quietly accepts callables and arbitrary objects as keyed arguments, reproducing exactly the stale-by-captured-variable failure the chapter warns about."
+    },
+    "C": {
+      "summary": "Lean memoising graph in one engine module: nodes interned by nested Python tuple keys (op, name, version, frozen args, input keys), a (node key, scale) LRU cache, recursion without run memo, single-flight or threads. Identity calls fold away at build time; within evaluates a per-base placeholder through a substitution dict.",
+      "scores": {"forces": 2, "adapted": 4, "wholeness": 4, "habitability": 4, "growth": 3, "smells": 3, "tests": 3},
+      "forces_resolved": [
+        "Sharing against isolation: internal values are tuples, ops get list copies, callers get list copies (impl-C/gridflow/grid.py:73-75; impl-C/gridflow/engine.py:281, 334)",
+        "Identity short-cut adapted to the task: a neutral call returns its input node at build time (impl-C/gridflow/engine.py:202-204), so no run, no copy, no extra entry",
+        "Warnings stored per entry including the subtree's, replayed on hits (impl-C/gridflow/engine.py:290, 303, 314)",
+        "Key precision: exact tuple keys cannot collide; sources hashed with an explicit collision check (impl-C/gridflow/engine.py:183-195)"
+      ],
+      "forces_in_tension": [
+        "Evaluation parameters: raw float scale in the cache key and in ctx (impl-C/gridflow/engine.py:276-280, 299); probe: 0.5 and 0.50000001 run twice",
+        "Memory against recomputation: any op() registration clears the whole cache (impl-C/gridflow/engine.py:177-179), even for an unrelated name (probe), while the version also sits in the node key (205-209)",
+        "Functions as arguments: _freeze keeps hashable objects as themselves and repr()s the rest (impl-C/gridflow/engine.py:13-29); probe: a callable kwarg with changed captured state returns a stale value",
+        "Key cost: nested tuple keys re-hash the whole ancestry on every dict lookup (impl-C/gridflow/engine.py:206-212, 299)",
+        "No run memo: a diamond's shared input is recomputed within one request when the budget cannot hold it (impl-C/gridflow/engine.py:287-316; probe with cache_bytes=0: 2 runs)"
+      ],
+      "forces_unnoticed": [
+        "In-flight sharing and parallel inputs (no threads, no locks; probe: 4 concurrent requests run 4 times)",
+        "Structural keys against output keys (early cutoff)",
+        "E_PLACEHOLDER: the unbound-placeholder branch is marked 'pragma: no cover - defensive' (impl-C/gridflow/engine.py:294)"
+      ],
+      "dead_or_ornamental": [
+        "impl-C/gridflow/engine.py:205-209: version in the node key is redundant with the full cache clear on registration (177-179)",
+        "impl-C/gridflow/demo.py:21: _single takes op_name and never uses it",
+        "impl-C/gridflow/cache.py:73-74: LRUCache.__contains__ has no caller"
+      ],
+      "next_change_touches": [
+        "impl-C/gridflow/demo.py: add _clip with an identity hook; _number (14-18) rejects None, so a new optional-number helper is needed; build-time folding (impl-C/gridflow/engine.py:202-204) already handles the neutral case",
+        "impl-C/gridflow/cache.py: the class is named LRUCache (20-73); the victim choice in put() (53-56) must be parametrised and the name stops being true",
+        "impl-C/gridflow/engine.py: import and Engine.__init__ (144-148) pass policy"
+      ],
+      "smells": [
+        {"smell": "Primitive obsession", "where": "impl-C/gridflow/engine.py:206-212", "why": "node identity is an ad-hoc nested tuple whose hash cost grows with graph depth"},
+        {"smell": "Duplicated knowledge", "where": "impl-C/gridflow/engine.py:179", "why": "two invalidation mechanisms (version in key, global clear) for one fact"},
+        {"smell": "Shared mutable state without locks", "where": "impl-C/gridflow/engine.py:149", "why": "stats dict and OrderedDict cache mutated from any thread"},
+        {"smell": "Dead parameter", "where": "impl-C/gridflow/demo.py:21", "why": "op_name passed and ignored"}
+      ],
+      "best_thing": "Fold neutral calls at build time (impl-C/gridflow/engine.py:202-204): the graph never contains an identity node, so there is nothing to copy, count or cache.",
+      "worst_thing": "Raw scale in the cache key (impl-C/gridflow/engine.py:299) combined with a whole-cache clear on any registration (177-179): near-equal scales and harmless registrations both throw work away."
+    },
+    "D": {
+      "summary": "Small modules (grid, node, ops, cache, engine) with nested tuple keys; each node carries a build-time interning key and the engine recomputes a revision-tracked 'effective key' that folds in a per-registration serial. Placeholder and within are internal operations registered in the user namespace; evaluation is a plain recursion over a (effective key, raw scale) LRU cache.",
+      "scores": {"forces": 2, "adapted": 3, "wholeness": 3, "habitability": 3, "growth": 3, "smells": 2, "tests": 3},
+      "forces_resolved": [
+        "Sharing against isolation, strongest form: operations receive the frozen tuples themselves (impl-D/gridflow/engine.py:227-236; impl-D/gridflow/grid.py:31-60), so an op cannot write to a shared input (probe: TypeError), and callers get copies (impl-D/gridflow/engine.py:194)",
+        "Re-registration invalidates only affected entries: version plus per-registration gen in the op token, effective keys recomputed when the registry revision changes (impl-D/gridflow/ops.py:46-49; impl-D/gridflow/engine.py:162-186)",
+        "Functions as subgraphs for within: the placeholder is an identity op applied to the base (impl-D/gridflow/engine.py:288, 296-300), so the sub-pipeline is an ordinary cached subgraph with no binding machinery",
+        "Warnings stored with each entry (impl-D/gridflow/cache.py:17-25; impl-D/gridflow/engine.py:207)"
+      ],
+      "forces_in_tension": [
+        "Evaluation parameters: raw scale in key and ctx (impl-D/gridflow/engine.py:198, 254-261); probe: 0.5 vs 0.50000001 run twice",
+        "Warnings once per evaluation: child warnings are concatenated per input (impl-D/gridflow/engine.py:229-232); probe: a diamond reports ['w', 'w']",
+        "Key precision against key cost: the source key is the whole grid tuple (impl-D/gridflow/node.py:86-88), re-hashed on every lookup of every descendant key",
+        "Functions as arguments: freeze() keeps a callable as itself (impl-D/gridflow/grid.py:79-91); probe: stale value after captured state changes",
+        "No run memo and no in-flight group: diamonds recompute when evicted, concurrent requests run 4 times (probe)"
+      ],
+      "forces_unnoticed": [
+        "In-flight sharing and parallel input evaluation",
+        "Structural keys against output keys (early cutoff)",
+        "E_PLACEHOLDER: a captured placeholder silently evaluates to the base (probe), so misuse is never reported"
+      ],
+      "dead_or_ornamental": [
+        "impl-D/gridflow/node.py:91-93: call_key builds an interning key from the build-time op token that the cache never uses; _eff_key rebuilds it (impl-D/gridflow/engine.py:178-183)",
+        "impl-D/gridflow/engine.py:296-300: the placeholder op runs, counts a miss and stores a duplicate of the base under its own key",
+        "impl-D/gridflow/engine.py:225 then 207: identity result stored again under the identity node's key (probe: +800 bytes)"
+      ],
+      "next_change_touches": [
+        "impl-D/gridflow/demo.py: add op_clip and a neutral hook, register in demo_engine (83-90), extend __all__ (93-100); _num (11-15) rejects None so a new parser is needed",
+        "impl-D/gridflow/cache.py: LRUCache (31-75) needs a policy slot in __slots__ (34) and victim selection in put(); put inserts before evicting (69-74), so a 'size' policy can evict the entry it just stored",
+        "impl-D/gridflow/engine.py: Engine.__init__ (60-61) passes policy"
+      ],
+      "smells": [
+        {"smell": "Duplicated knowledge", "where": "impl-D/gridflow/engine.py:178-183", "why": "the same key shape is built in node.call_key (impl-D/gridflow/node.py:91-93) from a different registry snapshot"},
+        {"smell": "Feature envy / mutable data", "where": "impl-D/gridflow/node.py:59-61", "why": "engine bookkeeping (_key_revision, _cached_key, run_count) lives on supposedly immutable nodes and is mutated by Engine (impl-D/gridflow/engine.py:184-185, 251)"},
+        {"smell": "Leaky namespace", "where": "impl-D/gridflow/engine.py:94-96", "why": "__placeholder__ and __within__ are ordinary registrations a user can overwrite"},
+        {"smell": "Mixed responsibilities", "where": "impl-D/gridflow/cache.py:48-56", "why": "the LRU container also owns the engine's hit/miss statistics"},
+        {"smell": "Primitive obsession", "where": "impl-D/gridflow/node.py:86-88", "why": "a whole grid as a dict key"}
+      ],
+      "best_thing": "Hand operations the frozen tuples themselves (impl-D/gridflow/engine.py:227-236): immutability enforced by the type, with no defensive copy on the way in.",
+      "worst_thing": "Two key systems for one identity (impl-D/gridflow/node.py:91-93 vs impl-D/gridflow/engine.py:162-186) with mutable caches on the nodes; every change to keys must be made twice and kept in step with the registry revision."
+    },
+    "E": {
+      "summary": "The most complete transcription: ten modules mapping one-to-one onto the chapter's participants (Builder, Evaluator, RunMemo, ValueCache with lru and greedy_dual_size, InFlight, Bindings), frozen tuple values, a thread-pool for inputs and E_PLACEHOLDER. Around it sit extras: collision salting with stored fingerprints, pinned sources, an executor lifecycle and global recursion-limit management.",
+      "scores": {"forces": 5, "adapted": 3, "wholeness": 2, "habitability": 3, "growth": 5, "smells": 2, "tests": 5},
+      "forces_resolved": [
+        "Functions as arguments: canonical() raises on callables and unknown types at build time (impl-E/gridflow/keys.py:74-80; impl-E/gridflow/engine.py:107-111); within keeps the subgraph and binds the placeholder at evaluation (impl-E/gridflow/evaluate.py:245-253)",
+        "Evaluation parameters: quantised once per request, the same value in key and ctx (impl-E/gridflow/keys.py:88-104; impl-E/gridflow/evaluate.py:129-130, 323)",
+        "Version in signature, not in node identity (impl-E/gridflow/nodes.py:12-15; impl-E/gridflow/evaluate.py:255-259)",
+        "Sharing against isolation: frozen values, copy-out only (impl-E/gridflow/values.py:28-57); probe: op cannot mutate an input",
+        "Memory against recomputation: eviction policy is a setting with cost per byte for GreedyDual-Size (impl-E/gridflow/cache.py:69-171)",
+        "Run memo, single-flight, parallel inputs, warnings with subtree replay and immediate report when too large (impl-E/gridflow/evaluate.py:79-93, 143-201, 340-347; impl-E/gridflow/cache.py:227-268)"
+      ],
+      "forces_in_tension": [
+        "Key cost: deep graphs are handled by raising the process-wide recursion limit on every evaluate (impl-E/gridflow/engine.py:156-167); probe: 1000 -> 20510 after a 2000-deep chain",
+        "Memory against recomputation: identity results are stored again under their own signature (impl-E/gridflow/evaluate.py:317-320; probe +928 bytes); LRU victim found by an O(n) min scan per eviction (impl-E/gridflow/cache.py:159)",
+        "Sharing across rounds: inner subgraph signatures include placeholder-built node hashes (impl-E/gridflow/evaluate.py:255-259), so a within never reuses the same pipeline written outside (probe: 0 hits)"
+      ],
+      "forces_unnoticed": [
+        "Structural keys against output keys (early cutoff)"
+      ],
+      "dead_or_ornamental": [
+        "impl-E/gridflow/nodes.py:184-201: salt loop for SHA-256 collisions, with every node storing its full canonical fingerprint (a source's is its entire grid text, nodes.py:205)",
+        "impl-E/gridflow/keys.py:70-73: nodes inside arguments are keyed though no operation takes one and the evaluator would never evaluate them",
+        "impl-E/gridflow/cache.py:93, 136-142; impl-E/gridflow/evaluate.py:267-274: sources pinned outside the budget, a transcription of a decoded-source rule; node.payload already holds the grid",
+        "impl-E/gridflow/cache.py:233-254: InFlight.joined/computed incremented, never read",
+        "impl-E/gridflow/engine.py:204, 266-268, 299-312; impl-E/gridflow/cache.py:111-114: __call__, interned_nodes, close/__enter__/__exit__, pinned_bytes have no caller outside tests"
+      ],
+      "next_change_touches": [
+        "impl-E/gridflow/ops.py: add _clip and _neutral_clip, register in install_demo_operations (109-115); _number (22-31) treats a None default as 'required', so an optional parser is needed",
+        "impl-E/gridflow/cache.py: add 'size' to POLICIES (82) and a branch in _evict_one (157-167); Engine already accepts policy (impl-E/gridflow/engine.py:32-37) and demo_engine forwards **kwargs (impl-E/gridflow/ops.py:118-120)"
+      ],
+      "smells": [
+        {"smell": "Speculative generality", "where": "impl-E/gridflow/nodes.py:184-201", "why": "collision salting for 256-bit digests, plus node-valued args (impl-E/gridflow/keys.py:70-73) and an executor lifecycle (impl-E/gridflow/engine.py:270-312) with no second user"},
+        {"smell": "Global side effect", "where": "impl-E/gridflow/engine.py:165-167", "why": "a library call permanently raises sys.setrecursionlimit for the host process"},
+        {"smell": "Feature envy", "where": "impl-E/gridflow/evaluate.py:149-163", "why": "Evaluator reaches into engine.cache, engine.inflight, engine.stats_counters(), engine.count_run, engine.placeholder_id; Engine exposes internals as properties to serve it (impl-E/gridflow/engine.py:242-268)"},
+        {"smell": "Duplicated knowledge", "where": "impl-E/gridflow/evaluate.py:234-237", "why": "E_PLACEHOLDER message repeated at 276-279; within binding and child signatures computed in _signature (245-253) and again in _compute_within (294-297)"}
+      ],
+      "best_thing": "Refuse what cannot be keyed at build time (impl-E/gridflow/keys.py:74-80) and state it as a law in the tests: different text, identical graph, one node (impl-E/tests/test_within.py:52-62).",
+      "worst_thing": "Machinery the task does not need (salting, pinned sources, executor lifecycle, recursion-limit management) spread over ten modules; a newcomer must read past it to find the forty lines that matter, and the recursion-limit change leaks into the host process."
+    }
+  },
+  "generativity": {
+    "shared_seams": [
+      {"seam": "content-hashed source interning (equal grids are one node)", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "engine-owned intern table keyed by a structural key (Builder)", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "cache Entry = value + warnings + size", "in": ["A", "B", "C", "D", "E"]},
+      {"seam": "byte budget with LRU via ordered dict popitem", "in": ["A", "B", "C", "D"]},
+      {"seam": "signature = digest(node hash, op version, quantised scale, input signatures), separate from node identity", "in": ["A", "B", "E"]},
+      {"seam": "per-request run memo and once-per-evaluation warning dedup by signature", "in": ["A", "B", "E"]},
+      {"seam": "single-flight group with same-thread cycle detection", "in": ["A", "B", "E"]},
+      {"seam": "threaded parallel input evaluation", "in": ["A", "B", "E"]},
+      {"seam": "frozen tuple values with copy-out at evaluate()", "in": ["B", "C", "D", "E"]},
+      {"seam": "within as a special node kind with evaluator-side placeholder bindings folded into the signature memo", "in": ["B", "E"]},
+      {"seam": "within resolved at build time (placeholder substituted or bound to the base)", "in": ["A", "D"]},
+      {"seam": "callables refused as keyed arguments", "in": ["A", "E"]},
+      {"seam": "identity short-cut at evaluation time", "in": ["A", "B", "D", "E"]},
+      {"seam": "identity folded at build time", "in": ["C"]},
+      {"seam": "E_PLACEHOLDER error", "in": ["A", "B", "E"]},
+      {"seam": "eviction policy seam", "in": ["E", "B"]}
+    ],
+    "groups": [["A", "B", "E"], ["C", "D"]],
+    "notes": "Two families. A, B and E share the chapter's deep structure (node hash vs signature, run memo, single-flight, quantised scale, SHA-256 canonical text) and differ in detail: A rewrites within at build time and keeps mutable lists, B and E bind the placeholder at evaluation with near-identical Bindings classes (impl-B/gridflow/engine.py:71-101, impl-E/gridflow/evaluate.py:41-76), E adds policy and lifecycle machinery. C and D are lean memoising graphs keyed by nested Python tuples with (key, raw scale) cache keys and no concurrency; C folds identity at build time and clears the cache on registration, D tracks registry revisions per node. Every implementation chose a different within mechanism (substitution, bindings, subs dict, identity op), which marks it as the least determined part of the pattern. Immutable values appeared in four of five independently; only A, which followed the sketch's copy-on-identity line literally, kept mutable values."
+  },
+  "worse_is_better": "C (732 lines) gets interning, warnings replay, immutability, within and identity right with one engine module, against 1061 (A), 1082 (B) and 1592 (E). What it lacks that the task needs is small: scale quantisation (three lines), refusing callables in _freeze (one branch) and a per-request memo dict. Single-flight and threaded inputs (A, B, E) are chapter-driven; TASK.md names no concurrent callers. E's collision salting, pinned sources, GreedyDual-Size, executor lifecycle and recursion-limit management are not needed by the task at all. C plus those three fixes would match B's practical quality at about two thirds of its size; as shipped, none of the simpler implementations reaches B or E.",
+  "ranking": ["B", "E", "A", "C", "D"],
+  "chapter_lessons": [
+    "Make immutability the rule, not the identity-path copy: the sketch's copyOf(ins[0]) and note 7 led A to copy only for neutral calls while every other cached list went to callers and ops by reference (impl-A/gridflow/engine.py:346, 409). B, C, D and E froze values to tuples and needed no copy anywhere. The chapter should say 'store values in an immutable form, copy out at the evaluation point'.",
+    "State the negative rule for function arguments: refuse any argument that has no canonical form at build time. B, C and D accepted callables as ordinary kwargs keyed by identity or repr (impl-B/gridflow/hashing.py:61, impl-C/gridflow/engine.py:25-29, impl-D/gridflow/grid.py:87-91) and served stale values when a captured variable changed, the very failure the Motivation describes. Only A and E refuse (impl-A/gridflow/graph.py:61, impl-E/gridflow/keys.py:74).",
+    "Name the within mechanism. Four different mechanisms appeared; the simplest correct one (A's build-time substitution, impl-A/gridflow/engine.py:266-281) makes the sub-pipeline an ordinary subgraph that shares keys with the same pipeline written elsewhere, while evaluator-side bindings (B, E) add binding tokens to every signature memo and lose that sharing. The sketch's subgraph(inner, hole) should say which.",
+    "Put quantisation at the request boundary in the sketch itself, not only in a note: C and D keyed on the raw scale (impl-C/gridflow/engine.py:299, impl-D/gridflow/engine.py:198) and recompute near-equal scales.",
+    "Say whether identity results are cached: D, E and A store the neutral value again under the identity node's signature (double-charging the budget) while B argues it should not be (impl-B/gridflow/engine.py:231-235). The sketch returns without saying.",
+    "Mark in-flight groups and parallel inputs as conditional on concurrent callers, and separate known-use details from pattern parts: E transcribed goja-cv's 'decoded sources outside the cap' into pinned grids that are already held by their nodes (impl-E/gridflow/evaluate.py:267-274) and added collision salting for SHA-256 keys.",
+    "Add a force the code shows is missing: the interned node table, and the source payloads it holds, grows without bound outside the byte budget in all five; the budget bounds values, not the graph. And the eviction-order trap: D inserts before evicting (impl-D/gridflow/cache.py:69-74), harmless for LRU but wrong for a size policy, so 'policy as a setting' needs 'evict before insert'."
+  ]
+}

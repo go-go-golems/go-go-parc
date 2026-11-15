@@ -1,0 +1,58 @@
+{
+  "summary": "hubreg is a stdlib-only Python package where one normalized record per device action drives everything: registration-time validation of structure and consistency, a binder that fills defaults, checks types and hard limits in declared units and returns RANGE warnings, a diagnoser that turns each failure into a refusal with valid names, nearest name and a pasteable fix, a describer that renders help, JSON tool schemas for the assistant and per-argument controls for the app, and a walker test that calls every record, checks declared result fields and probes limits, missing options and redirects. The four demo plug-ins (thermostat.set_temperature, light.dim, door.lock_door with host confirmation, scene.run_scene) are plain records, and the CLI (describe, call, help, controls, context, walk) binds and runs calls or prints refusals. All 126 tests pass and `python3 -m hubreg walk` reports no problems.",
+  "files": [
+    "hubreg/__init__.py",
+    "hubreg/__main__.py",
+    "hubreg/argtypes.py",
+    "hubreg/binder.py",
+    "hubreg/demo.py",
+    "hubreg/describe.py",
+    "hubreg/diagnoser.py",
+    "hubreg/errors.py",
+    "hubreg/records.py",
+    "hubreg/registry.py",
+    "hubreg/walker.py",
+    "tests/helpers.py",
+    "tests/test_records.py",
+    "tests/test_bind.py",
+    "tests/test_run.py",
+    "tests/test_consumers.py",
+    "tests/test_walk.py",
+    "tests/test_demo.py",
+    "tests/test_types.py",
+    "tests/test_cli.py",
+    "DIARY.md"
+  ],
+  "pattern_mapping": {
+    "Operation record": "hubreg/records.py:normalize_record canonicalizes {name, on, doc, args, fields, samples, run, validate, flags, redirects}; stored as-is and read by every consumer in hubreg/registry.py",
+    "Argument spec": "hubreg/records.py:normalize_spec (name, type, unit, doc, default, optional, min, max, usual+usual_hint, values, redirects, all limits in the declared unit)",
+    "Flags": "record['flags'] checked in records.py:_normalize_flags; 'confirm' read by Registry.needs_confirm, 'internal' respected by bind/tool_schemas/context",
+    "Registry": "hubreg/registry.py:Registry (register, finalize, register_arg_type, names/kinds/record, bind, run, tool_schemas, controls, help, context, walk)",
+    "Binder": "hubreg/binder.py:bind_record + Call (defaults filled, warnings on the call)",
+    "Describer": "hubreg/describe.py:help_text, tool_schema/property_schema, control_specs, context/context_line",
+    "Diagnoser": "hubreg/diagnoser.py:refuse_unknown_action/unknown_option/arg_type/arg_range/arg_missing/confirm/hook plus suggest_call and closest",
+    "Walker": "hubreg/walker.py:walk (samples, result-field checks, generated refusal probes, redirect probes)",
+    "Plug-in modules": "hubreg/demo.py: thermostat_records/light_records/door_records/scene_records registered by demo_registry()"
+  },
+  "notes_applied": [
+    "Note 1 (validate for structure and consistency): records.py refuses unknown keys, missing/duplicated run, duplicate arg names, required-after-optional, untyped args, defaults outside the type or hard limits, usual ranges outside the limits, enum values errors, and option/action redirects to non-existent targets; cross-record redirect checks also run in Registry.finalize() with an opt-in allow_forward_redirects for plug-in ordering.",
+    "Note 2 (hard limits vs usual ranges, in the declared unit; unknown keys first; only supplied values warn): binder.bind_record checks unknown keys before missing/type/range and emits BindWarning('RANGE', ...) only for caller-supplied values, with the record's usual_hint in the message.",
+    "Note 3 (nothing falls back to a default silently): argtypes.is_number excludes bool, check_value never coerces (a string for a number is E_ARG_TYPE), an explicit None for an optional option is a type failure while an absent optional binds as None, and CLI values are only JSON-parsed, never guessed.",
+    "Note 4 (near-miss redirects live in the records): option redirects in arg specs (demo: temp/temperature -> target, brightness/percent -> level, name/preset -> scene) and action redirects in the action record (set_temp -> set_temperature, lock -> lock_door); the diagnoser has no tables of its own.",
+    "Note 5 (walk the whole registry, results included, samples in the record): samples are required at registration and validated by binding them (E_BAD_SAMPLE), and walk() checks undeclared/missing result fields and generates limit, missing-option, enum, unknown-option and redirect probes.",
+    "Note 6 (pluggable types, consumers outside the core): argtypes.py defines an ArgType interface (accepts/value_error/describe/limits_apply) with a per-registry table and Registry.register_arg_type; tests/test_types.py adds a 'duration' type, a plug-in using it, and a fifth consumer in two lines.",
+    "Note 7 (one record per receiver kind and name): records are keyed by (kind, name); demo records declare 'on' per kind and a duplicate is refused with E_DUPLICATE_ACTION.",
+    "Note 8 (rename via redirect, defaults are identity): old names are refused with a fix naming the new action, and defaults are part of the bound call (Call.args always contains them).",
+    "Note 9 (exceptions enumerated and tested): this hub has no hand-bound operations, and tests/test_consumers.py:NoSecondListTest scans the package for demo action names outside demo.py and checks that every agent-visible tool name is a registered record.",
+    "Note 10 (composite/user operations are records): records accept fields as a callable (fields depend on bound arguments), tested in test_records.py:test_field_names_may_depend_on_the_arguments; the optional validate hook lets a record express cross-argument rules."
+  ],
+  "tests": "126 tests in 9 files (tests/test_records.py, test_bind.py, test_run.py, test_consumers.py, test_walk.py, test_demo.py, test_types.py, test_cli.py, helpers.py); last run `python3 -m unittest discover -s tests` -> Ran 126 tests ... OK, and `python3 -m hubreg walk` -> [].",
+  "chapter_feedback": [
+    "The four-part split (registry, binder, describer, diagnoser) plus a walker mapped almost one-to-one onto the task, and the sketch's bind() order (unknown keys before missing, then type, then limits) was directly implementable and prevented the 'temp for target reported as missing target' failure.",
+    "The chapter contradicted itself on when redirect targets are checked: the Solution/sketch lists 'redirect targets that exist' under register's semantic checks, while note 1 says cross-record checks belong at the end of start-up. I made register strict, added finalize() and an opt-in allow_forward_redirects flag; a clearer statement of the intended default would have saved the guesswork.",
+    "Ambiguity I had to resolve alone: what an absent optional argument binds to (the chapter's run() only takes bound args). I chose None for absent, but a chapter sentence on 'optional without a default' would remove the guess.",
+    "The chapter says warnings must travel 'into the reply the caller reads', but TASK.md fixes run()'s return type as the plug-in's dict; I kept the warnings on the Call, exposed Call.to_dict(), and the CLI copies them to stderr. Worth a note on where warnings live when the reply is a plain dict.",
+    "The chapter's 'the platform gives you the records' caveats do not apply here, but nothing in the chapter warns how much of the binder is really a small type system: the plug-in type test (note 6) needed describe() to receive the registry's type table, which the chapter's two-line-delegate claim glossed over.",
+    "Note 5 helped most in practice: generating refusal probes from the records found the walker/`internal` seam and the 'no fix when nothing is near' case that hand-written tests would have missed."
+  ]
+}

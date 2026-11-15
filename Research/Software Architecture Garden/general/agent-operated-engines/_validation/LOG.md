@@ -167,3 +167,50 @@ executions without a file path; `after.sh` now snapshots the work directory per 
   first six test failures that every builder shared were the yardstick's fault.
 - **Reviews by Opus subagents** (the user's choice) instead of pi: `review/prepare.sh NN REV` builds the blind
   directory and keeps the key in `reviews/NN-REV-key.json`; the subagent writes `REVIEW.json`.
+
+## Step 9 — controls and the blind design review (Opus reviewers, Alexander / Gabriel / Fowler)
+
+Six tasks, three builds with the chapter and two controls without it per task; one blind Opus reviewer per task
+(`build/review/`, `reviews/NN-o1.json` and keys). Chapter 1 builds are the fresh v5 ones (a3–a5, all 25/25).
+
+**Hidden tests.** Chapter arm 276/282 (98 %), control arm 165/188 (88 %); the chapter arm passes more on every task.
+The tests the controls fail are the chapter-only properties: provenance in the export sidecar (11, both controls),
+quantised scale and single-flight (03), redirect fixes that run and the namespace-first order (06), cached whole
+results serving windows (04), redirect fixes (01). Contested: 08 `test_session_may_replace_its_own_file` contradicts
+the task's literal rule ("refuse replacing a file this session read"); both controls followed the task.
+
+**Review scores (means, chapter vs control; rank 1 = best of 5).**
+
+| Task | forces | adapted | wholeness | habitability | growth | smells | tests | rank |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 01 hubreg | 4.0 / 2.5 | 3.7 / 3.5 | 3.0 / 3.5 | 4.0 / 2.5 | 4.7 / 2.0 | 3.0 / 2.0 | 3.7 / 2.0 | 2.0 / 4.5 |
+| 03 gridflow | 4.0 / 2.0 | 3.7 / 3.5 | 3.0 / 3.5 | 3.3 / 3.5 | 4.0 / 3.0 | 2.7 / 2.5 | 4.3 / 3.0 | 2.0 / 4.5 |
+| 04 stencilpipe | 3.3 / 3.5 | 3.3 / 4.5 | 2.7 / 4.0 | 3.0 / 4.0 | 3.7 / 5.0 | 2.7 / 4.0 | 4.0 / 4.0 | 3.7 / 2.0 |
+| 06 shopcli | 3.3 / 3.5 | 2.7 / 4.0 | 2.7 / 4.0 | 3.3 / 2.5 | 3.7 / 3.5 | 2.3 / 2.5 | 3.3 / 4.5 | 3.7 / 2.0 |
+| 08 jailfs | 3.7 / 3.0 | 3.0 / 3.5 | 3.0 / 3.0 | 3.0 / 3.5 | 3.0 / 2.5 | 2.7 / 2.5 | 3.3 / 3.5 | 3.3 / 2.5 |
+| 11 labelbook | 3.7 / 2.5 | 3.0 / 4.5 | 3.0 / 4.0 | 3.3 / 4.0 | 2.7 / 3.0 | 2.3 / 3.5 | 3.3 / 4.0 | 3.3 / 2.5 |
+
+**Reading.** The chapters transfer forces and tests (forces higher in 4 of 6, hidden tests higher in 6 of 6) and,
+for the registry and the lazy graph, better structure (growth 4.7 vs 2.0 and 4.0 vs 3.0; best-ranked builds are all
+chapter builds). But in four tasks (04, 06, 08, 11) the controls are judged better adapted and more whole and rank
+higher: chapter builds transcribe the Structure table into one module per participant and copy known-use details
+from the sketches (`require()` and `E_ARG` into jailfs, receiver lookup and a site tracker into shopcli, the
+sketch's 0.6 cost constant and scale conversion into stencilpipe, "decoded sources outside the cap" and key salting
+into gridflow, unenforced maker kinds into labelbook). Five of six "worse is better" picks are controls. Chapter
+builds are about 24 % larger than controls (mean 1,344 vs 1,087 source lines); both arms are 5–15× the references.
+This is Alexander's warning: a pattern read as a template yields structure not adapted to its place.
+
+**Defects shown by probes** (reviewers ran the code on copies): 08 — following note 7, three builds `realpath` the
+agent's absolute path (a save writes through an in-root link) and three let writes land in a read root mounted inside
+the workspace; 01 — host-decided confirmation does not reach the describers (the assistant is told a guarded action
+needs none); 03 — mutable cached values handed to callers, callables keyed by identity serve stale values (the
+chapter's own Motivation); 04 — an origin-dependent prefix-sum box makes windows differ from whole results while
+tolerance tests pass, and the bounding-box shortcut computes the whole grid for two probes; 06 — fixes that pass
+"must bind" by inventing values, and four of five drop the `repeat N:` prefix; 11 — multi-round semantics undefined
+(four of five revert to the proposed label when an accept follows a correction), the fold must own the status
+vocabulary, and unlocked sequential ids lose a third of the labels under four writers.
+
+**Caveats.** One reviewer per task; three against two builds; one builder model; ordinal scores; blindness partial
+(chapter vocabulary remains, deliberately). Next: revise the chapters (responsibilities not modules, optional parts
+marked, known-use details out of the sketches, a smallest form, the probe defects), then rerun the same builds,
+controls and reviews on the new versions.
