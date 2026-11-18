@@ -25,12 +25,16 @@ The experiment succeeded. The base model scored 15.6% and the trained checkpoint
 
 The more durable result is the cost structure and the failure surface. Training was not the expensive part; evaluation was, by a factor of three. Two of the run's defects were silent, producing plausible-looking output while learning nothing or destroying a previous result. The reported training loop consumes roughly two thirds of its steps producing exactly zero gradient, by construction.
 
+A second experiment tests the chapter-7 objective instead of the chapter-6 one, and produces the report's strongest result. Adding the KL divergence term that is supposed to stabilize training drives held-out accuracy from 46.0% to 0.0% over a hundred steps, by saturating the next-token distribution at uniformity. The failure is visible in the entropy metric half a training run before it is visible in accuracy.
+
 > [!summary]
 > - **A 0.6B base model reached 45.8% on MATH-500 after 50 GRPO steps.** Training took 15m07s and peaked at 14.84 GB. The book's figure for the identical configuration is 45.6%, and its base-model baseline is 15.2%.
 > - **Two environment failures were necessary before any training could run.** A missing `Python.h` blocked `torch.compile`, and a missing Dynamo configuration flag caused per-token recompilation that silently reduced generation to zero useful throughput.
 > - **The token budget is a correctness parameter.** At `--max_new_tokens 96` the loop ran to completion, exited zero, and learned nothing, because the verifier could never observe a `\boxed{}` answer and every reward was structurally zero.
 > - **32 of 50 steps produced exactly zero gradient**, because all four rollouts in a group scored identically. This is correct GRPO behaviour, and it means two thirds of the training compute is spent on steps that cannot change the model.
 > - **Scripts overwrite tracked reference logs and each other's evaluation output.** `.gitignore` does not protect already-tracked files, and the evaluator's output filename contains neither the checkpoint nor a timestamp.
+> - **The chapter-7 KL term drives accuracy to 0.0%.** With `--kl_coeff 0.001` the model fell from 10.0% at step 50 to 0 of 50 at step 100, while the no-KL arm held 40.0%. Entropy rose to 11.90 against a `log(151936) = 11.93` maximum, meaning the next-token distribution became uniform over the entire vocabulary.
+> - **Entropy is a leading indicator of collapse.** It crossed 2.0 at step 36 and stood at 7.33 when accuracy was still 10% at step 50. The trajectory had committed to failure fifty steps before the final evaluation revealed it.
 
 ## 1. The platform and why it matches the book's reference hardware
 
@@ -334,9 +338,103 @@ For the experiment as a whole the split was:
 
 Two thirds of the time went to establishing that the training had worked. Any plan that treats evaluation as a cheap afterthought will mis-budget the work by a large factor. The batched evaluator is not an optimization but a requirement at this model scale: the book reports 185.4 minutes for a reasoning-model pass over MATH-500 on an H100 without batching, against 14.6 minutes with it. This run's batched pass took 46.3 minutes, about 3.2 times the H100 figure, so the unbatched path here is expected in the region of ten hours per checkpoint.
 
-## 8. Defects found in the tooling
+## 8. Chapter 7: the KL term destroys the model
 
-Four defects surfaced during this experiment. None is a bug in the algorithms; all four are properties of the scripts and of git's behaviour that would silently mislead a reader who did not check.
+Everything so far used the chapter-6 objective, which omits the KL divergence term. Chapter 7 reinstates it and reports that the original formulation, run past fifty steps, degrades badly. Because this is the book's most consequential claim about training stability, and because reproducing a degradation is more informative than reproducing a success, it was tested directly with a controlled comparison rather than by reading the published table.
+
+The design holds the script fixed and varies one flag. Both arms run `7_5_plus_kl.py` with 100 steps, 8 rollouts, 512 tokens, seed 42 and a MATH-500 evaluation at steps 50 and 100. They differ only in `--kl_coeff`.
+
+### 8.1 Result
+
+| Arm | step 50 | step 100 |
+|---|---|---|
+| `--kl_coeff 0.0` | 46.0% (23/50) | **40.0% (20/50)** |
+| `--kl_coeff 0.001` | 10.0% (5/50) | **0.0% (0/50)** |
+
+The repository's published rows for the same configuration are 47.4% → 44.0% without KL and 33.4% → 0.4% with it. The direction and the mechanism agree; the KL arm here degraded faster and further, reaching exactly zero of fifty problems.
+
+Cost and memory differ substantially, because the KL objective requires a frozen copy of the model as its reference:
+
+| Arm | Wall clock | Peak memory |
+|---|---|---|
+| no KL | 2h10m | 44.0 GB |
+| KL 1e-3 | 2h56m | **49.00 GB** |
+
+Against chapter 6's 14.84 GB at 4 rollouts, the KL configuration needs 3.3 times the memory. On this machine's 121 GiB of unified memory that is comfortable. On a discrete GPU with 24 GB it would not run.
+
+### 8.2 The mechanism, visible in the tracked metrics
+
+The chapter-7 scripts record entropy, advantage statistics and the policy ratio alongside reward and loss. Those extra columns are what make the failure legible instead of mysterious. Averaged over blocks of ten steps, the KL arm:
+
+| Steps | KL loss | Resp len | Entropy | Policy ratio |
+|---|---|---|---|---|
+| 1–10 | −0.003 | 374.8 | 0.50 | 0.61 |
+| 21–30 | −0.009 | 397.1 | 0.99 | 0.91 |
+| 41–50 | −0.010 | 349.1 | 3.81 | 0.23 |
+| 51–60 | +0.204 | 472.9 | 9.80 | 0.02 |
+| 71–80 | +0.685 | 512.0 | 11.82 | 0.48 |
+| 91–100 | +0.745 | 512.0 | **11.90** | 0.96 |
+
+The vocabulary has 151,936 tokens, so `log(151936) = 11.93`. An entropy of 11.90 is a distribution that is effectively uniform over every token in the vocabulary. This is not a degraded model that still reasons poorly; it is a model emitting random tokens.
+
+That reading is confirmed by the response-length column. Length pins to the 512-token ceiling at the same time entropy saturates, because uniform sampling almost never selects the end-of-sequence token. The model cannot stop.
+
+The explanation follows from what the KL surrogate actually measures. The script computes
+
+```python
+kl_loss = kl_coeff * torch.mean(new_logps - ref_logps)
+```
+
+on rollouts sampled from the *previous* policy, with `ref_logps` detached and therefore constant during optimization. Minimizing this quantity means minimizing `new_logps` on exactly the tokens that were sampled. That is a direct instruction to assign *less* probability to the observed actions, which flattens the next-token distribution and raises entropy. The loss changed sign around step 25 and then grew monotonically, so for the remaining three quarters of the run this term was the only gradient signal: once every rollout in a group is wrong, every advantage is zero and the policy-gradient term contributes nothing at all.
+
+The term introduced to prevent drift from the reference policy is what produces the drift.
+
+### 8.3 Entropy is a leading indicator, not a symptom
+
+The most useful measurement here is not the terminal accuracy but when the failure became inevitable, because the two are separated by dozens of steps.
+
+| Event | Step |
+|---|---|
+| KL loss changes sign | 25 |
+| Entropy exceeds 2.0 | 36 |
+| Entropy exceeds 5.0 | 47 |
+| Entropy exceeds 10.0 | 55 |
+| Accuracy first measured (10.0%) | 50 |
+| Accuracy collapsed (0.0%) | 100 |
+
+Entropy crossed 2.0 at step 36. At step 50 it stood at 7.33 and accuracy was still 10%. The final evaluation, which is the first point at which the damage is unmissable, came fifty steps after the trajectory had already committed to failure.
+
+This establishes a practical rule: **a rising entropy trend with flat or falling reward is a collapse in progress, not a transient.** Waiting for an evaluation to confirm it costs the remaining training time and, in this case, fifty steps' worth of compute.
+
+### 8.4 Two failure modes that look alike and are not
+
+A separate run at 4 rollouts with no KL serves as a contrast, and it produces a *different* pathology:
+
+| | 4 rollouts, no KL | 8 rollouts, KL 1e-3 |
+|---|---|---|
+| Entropy trajectory | 0.85 → 0.23 (falls) | 0.50 → 11.90 (rises to uniform) |
+| Response length | stuck near 7 tokens | pinned at the 512 cap |
+| Accuracy | 14.0% → 16.0% | 10.0% → 0.0% |
+| Interpretation | converges confidently on short wrong answers | loses all structure |
+
+The first case becomes *more* confident while remaining wrong: entropy falls, responses stay at a handful of tokens, and accuracy finishes at 16.0% against a 15.6% untrained baseline. The model has learned to answer immediately and incorrectly. The second case becomes uniformly uncertain.
+
+Both would be filed as "training failed" and both would be misdiagnosed, because entropy moves in opposite directions. The distinguishing measurement is cheap and the chapter-7 scripts already record it.
+
+### 8.5 An open question the sweep addresses
+
+The KL arm's default `clip_eps` is 10.0, which is not clipping at all; standard PPO uses 0.2. Both arms above therefore share a configuration where the clipped-ratio machinery is inert, so this experiment cannot separate "KL causes collapse" from "KL combined with no clipping causes collapse". A three-run sweep was launched at the time of writing to complete a 2×2 factorial:
+
+| | `kl_coeff 0` | `kl_coeff 1e-3` |
+|---|---|---|
+| `clip_eps 10.0` | 40.0% (measured) | 0.0% (measured) |
+| `clip_eps 0.2` | running | running |
+
+A third run at `kl_coeff 1e-4` and `clip_eps 0.2` extends the comparison into an onset curve across three KL strengths. All results are single-seed.
+
+## 9. Defects found in the tooling
+
+Four defects surfaced during this experiment. None is a bug in the algorithms; all four are properties of the scripts and of git's behaviour that would silently mislead a reader who did not check. A fifth, in the published artefacts themselves, is recorded at the end of the section.
 
 **The training script overwrites tracked reference logs.** `ch06/02_rlvr_grpo_scripts_intro/rlvr_grpo_original_no_kl.py` writes to `logs/rlvr_grpo_original_no_kl_metrics.{csv,txt}`, which are committed in the repository as the author's reference runs. After the training run, `git status` reported both as modified:
 
@@ -353,7 +451,9 @@ Four defects surfaced during this experiment. None is a bug in the algorithms; a
 
 **A standalone script omits a configuration flag its siblings set.** As described in Section 3.2, `generate_simple.py --compile` runs at zero useful throughput because the Dynamo flag is absent. The notebooks and three library modules set it, so the omission is inconsistent rather than deliberate.
 
-## 9. Reproducing the experiment
+**Every checkpoint of one chapter-7 variant is truncated on Hugging Face.** All ten files in `7_5_plus_kl/checkpoints/` of `rasbt/qwen3-from-scratch-grpo-checkpoints` are about 1.05 GB instead of the 1.50 GB every other variant ships, and none of them loads: `torch.load` raises `PytorchStreamReader failed reading zip archive: failed finding central directory`. The first four bytes are the ZIP local header `PK\x03\x04`, but the final bytes are raw float data rather than the `PK\x05\x06` end-of-central-directory record, so the archives were cut short. A fresh download is byte-identical in size to what the API reports, which rules out a local transfer fault. The consequence is that the KL comparison in Section 8 could not be read off published checkpoints and had to be trained here; the defect is reported as [issue 281](https://github.com/rasbt/reasoning-from-scratch/issues/281).
+
+## 10. Reproducing the experiment
 
 The repository is a read-only upstream project. All local work is on the branch `local/spark-grpo-run`, which adds three files and modifies no source. `origin` remains the upstream repository and is never pushed to.
 
@@ -385,21 +485,40 @@ uv run ch03/02_math500-verifier-scripts/evaluate_math500_batched.py \
 
 All training and evaluation artefacts are gitignored: `checkpoints/`, `math_train.json`, `qwen3/`, `*.pth`, `*.jsonl`. The run's metrics are preserved at `notes/runs/2026-11-18-grpo50/`, and the step-by-step record of the work, including both environment failures with their exact diagnostics, is at `notes/DIARY.md`.
 
+The chapter-7 comparison needs two more invocations of the same script. Two details are load-bearing. Both arms write to paths derived from the script name alone, so the first arm's `logs/` and `checkpoints/` must be moved before the second starts. And stdout must be unbuffered, or a run that is demonstrably on the GPU shows an empty log for minutes:
+
+```bash
+# Both arms; move logs/ and checkpoints/ between them.
+export PYTHONUNBUFFERED=1
+for kl in 0.0 0.001; do
+  uv run ch07/03_rlvr_grpo_scripts_advanced/7_5_plus_kl.py \
+    --steps 100 --num_rollouts 8 --max_new_tokens 512 \
+    --kl_coeff $kl --seed 42 --eval_on_checkpoint 50 --show_eta
+done
+```
+
+The full sequence, including the `clip_eps` sweep and the analysis script that extracts entropy onset, is preserved in execution order at `ttmp/2026/11/18/REASON-001--reproduce-grpo-reasoning-training-on-dgx-spark/scripts/`.
+
 Downloaded data: two model checkpoints of 1.5 GB each (base and reasoning) plus tokenizers, and the 12,000-problem MATH training split, fetched from `raw.githubusercontent.com/rasbt/math_full_minus_math500` with a Backblaze fallback. MATH-500 itself ships in the repository as `ch03/01_main-chapter-code/math500_test.json`, so no dataset library is needed.
 
-## 10. Limitations and open questions
+## 11. Limitations and open questions
 
 - The trained checkpoint's per-problem JSONL was lost, so the 271 failures have not been classified. The split between extraction failures and genuinely incorrect reasoning is unknown.
 - Every timing is a single observation on one machine. No run-to-run variance was measured for either training or evaluation.
-- The run used 4 rollouts and 512 tokens, the smallest configuration in the book's results table. The 8-rollout configuration, which the published 47.4% figure uses, was not run.
+- The run used 4 rollouts and 512 tokens for the chapter-6 experiment. An 8-rollout chapter-7 run was later performed and reached 40.0% without KL, which is within noise of the 4-rollout result on the chapter-6 objective but far above the 16.0% that the chapter-7 script reaches at 4 rollouts. The two scripts differ by `inner_epochs` and clipping, so those factors are not separated here.
 - Whether the same seed reproduces the same trajectory across GPUs is untested. The book notes that `cuda` and `mps` devices introduce floating-point differences and warns that results may vary.
 - The reported correlation between step and reward (+0.440) mixes genuine learning with any difficulty ordering in the 12,000-problem dataset, which is not curriculum-sorted. Only the MATH-500 delta should be treated as evidence of capability.
-- Chapters 7 and 8 were not run. The KL term, clipped policy ratios, format rewards, and distillation remain unverified here, and chapter 7's documented reward collapse to 0.4% is exactly the behaviour this configuration was not stressed enough to reveal.
-- The reason the book associates multi-hour runtimes with chapter 6 was not established. This 50-step configuration took fifteen minutes, while the book's prose describes about twelve hours and 70 GB for "a few GRPO rounds"; the difference presumably lies in run length, rollout count, or the 2,048-token setting, and the published checkpoints extend to 9,000 steps.
+- Chapter 8 was not run, so distillation remains unverified here. The clipped policy ratio, the format reward, and the three GRPO variants in `7_7_improvements` were also untested; only the KL term was isolated.
+- The KL result is single-seed, and its collapse was faster than the published one (10.0% at step 50 against a published 33.4%). Both arms used the script's default `clip_eps` of 10.0, which disables clipping, so the experiment cannot yet separate the KL term from the absence of clipping. A 2×2 sweep was running at the time of writing.
+- The no-KL arm ran partly concurrently with a second training process, so its 2h10m wall clock is inflated by GPU contention. Accuracy figures are unaffected; timings from this session are not benchmarks.
+- The book's "about twelve hours and 70 GB for a few GRPO rounds" on the same hardware is now explained by run length rather than by a different configuration. A 100-step, 8-rollout run takes about three hours at these settings, so twelve hours corresponds to a few hundred steps. The no-KL arm measured 44 GB peak and the KL arm 49 GB, both within the stated 70 GB.
 
-## 11. Key points
+## 12. Key points
 
 - A binary verifiable reward and fifty policy updates moved a 0.6B base model from 15.6% to 45.8% on MATH-500, within 2.4 points of the officially reasoning-tuned checkpoint, in fifteen minutes of training.
+- The KL divergence term, introduced to keep a policy near its reference, can instead destroy it. Minimizing `kl_coeff * mean(new_logps - ref_logps)` on rollouts from the previous policy lowers the probability of exactly the sampled tokens, which flattens the distribution. Accuracy went from 10.0% to 0 of 50 while the no-KL arm held 40.0%.
+- An entropy of 11.90 against a vocabulary of 151,936 tokens (`log` = 11.93) is not degraded reasoning, it is random output. The response length pins to the generation cap at the same time, because uniform sampling almost never emits the end-of-sequence token.
+- Rising entropy with flat reward and falling entropy with flat reward are different diseases. The first is a distribution losing structure; the second is premature convergence on short wrong answers, which finished at 16.0% against a 15.6% baseline.
 - The token budget controlling how long a rollout may run is a correctness parameter. Too small a value produces a training loop that exits successfully, reports zero loss, and cannot learn, because the reward function never observes a rewardable answer.
 - Group-relative advantages are exactly zero whenever all rollouts in a group tie, which occurred in 32 of 50 steps here, in both the "all wrong" and "all right" directions. Two thirds of the sampling compute produced no gradient by construction.
 - Evaluation, not training, dominates the cost of a reasoning-model experiment: 46.3 minutes for the trained checkpoint against 9.5 minutes for the baseline on identical inputs, because longer generations make batch padding more expensive.
@@ -412,8 +531,10 @@ Downloaded data: two model checkpoints of 1.5 GB each (base and reasoning) plus 
 
 - Book: *Build a Reasoning Model (From Scratch)*, Sebastian Raschka, Manning, 2026, ISBN 9781633434677. PDF and EPUB read from `/home/manuel/Documents/`.
 - Code repository: https://github.com/rasbt/reasoning-from-scratch, local clone at `/home/manuel/code/others/reasoning-from-scratch`, branch `local/spark-grpo-run`, upstream commit `b864602`.
-- Step-by-step record with full diagnostics: `/home/manuel/code/others/reasoning-from-scratch/notes/DIARY.md`, seven steps.
-- Run artefacts: `/home/manuel/code/others/reasoning-from-scratch/notes/runs/2026-11-18-grpo50/` (metrics.csv, metrics.txt, stdout.log, baseline_stdout.log).
+- Step-by-step record with full diagnostics: `/home/manuel/code/others/reasoning-from-scratch/notes/DIARY.md`, twelve steps including one explicit correction.
+- Reproduction scripts in execution order: `/home/manuel/code/others/reasoning-from-scratch/ttmp/2026/11/18/REASON-001--reproduce-grpo-reasoning-training-on-dgx-spark/scripts/` (nine numbered steps plus a README).
+- Run artefacts: `/home/manuel/code/others/reasoning-from-scratch/notes/runs/` — `2026-11-18-grpo50/` (chapter 6) and `2026-11-18-kl-ab/` (chapter 7 A/B, including per-arm logs and checkpoints).
+- Upstream defect report for the truncated `7_5_plus_kl` checkpoints: https://github.com/rasbt/reasoning-from-scratch/issues/281
 - Model weights: https://huggingface.co/rasbt/qwen3-from-scratch
 - Training split: https://github.com/rasbt/math_full_minus_math500
 - MATH-500: https://huggingface.co/datasets/HuggingFaceH4/MATH-500
