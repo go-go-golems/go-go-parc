@@ -4,15 +4,19 @@ aliases:
   - Two Compilers on the PicoCalc
   - PicoCalc compiler progress report
   - CJI and typed JavaScript on the ESP32-P4
+  - PicoCalc Editor in Typed JavaScript
+  - Typed Editor on the PicoCalc
+  - Typed JavaScript from source to LCD
 tags: [project-report, picocalc, compilers, embedded, webassembly, riscv, esp32-p4]
 status: active
 type: project-report
+supersedes: "PROJECT REPORT - PicoCalc Editor - Typed JavaScript from Source to LCD (merged into this report on 2026-11-19, vault commit bb68775)"
 created: 2026-11-19
 repo: /home/manuel/code/wesen/2026-10-20--ds-js-os
 source_revision: 60a38f098d18adb46fc4fe22442a9249c0890d33
 related_vault_notes:
   - "[[PROJECT REPORT - picocalc-os - Worlds, Turns, Handles and Frames - A Technical Deep Dive]]"
-  - "[[PROJECT REPORT - PicoCalc Editor - Typed JavaScript from Source to LCD]]"
+  - "[[PROJ - PicoCalc Agenda - Passing a single file to Editor]]"
   - "[[ARTICLE - Compiling Agenda on the PicoCalc]]"
   - "[[ARTICLE - When a Compiler Copies an Unchanged Fact]]"
   - "[[PROJ - picocalc-os - PICOCALC-NATIVE - WebAssembly and Machine Code on the P4]]"
@@ -423,6 +427,18 @@ Because the language has no allocation, the reactor owns all storage and lends i
 
 Authority does not change. Editor's manifest entry has no claims at all. Its only file access is the single handle that Files or Agenda sends with an open request, and the kernel checks that handle on every operation.
 
+```mermaid
+flowchart LR
+    F["Files world"] -->|"open request with file handle"| K["Kernel"]
+    C["Compositor"] -->|"key event"| K
+    K -->|"message or settlement"| R["Shared typed reactor"]
+    R -->|"WorldEvent and WorldState"| E["Typed Editor"]
+    E -->|"checked SDK calls"| R
+    R -->|"file operations, reply, screen"| K
+    K -->|"published frame"| C
+    C --> D["LCD"]
+```
+
 ### 8.2 Asynchronous work without closures
 
 A language without closures or `await` needs another way to span an asynchronous operation. The mechanism is explicit state. The app starts an operation, stores the returned token in a `WorldState` field, and returns *will answer later*. When a later event arrives with a matching token, the handler continues from the recorded state. Line-ending normalization of a newly opened file shows the pattern.
@@ -450,39 +466,115 @@ function editorNormalize(text: buffer, state: WorldState): i32 {
 
 Each call processes at most 4,096 units and records its progress in the state. The caller requests a timer with `typedSdkYield` and resumes on the matching token. The pending open request stays unanswered until the last slice finishes, so no later key can arrive against a half-normalized document.
 
-### 8.3 Three bounds that a 64 KiB document exposes
+### 8.3 A document has byte offsets, code units and display columns
 
-The typed Editor is eleven source files totalling 70,859 bytes. It passed the ordinary workflow on both targets at 00:41 on 19 November. The following ninety minutes were spent on a stress fixture: a 65,536-byte file, the largest the system supports. That fixture failed in three independent ways, and the report [[PROJECT REPORT - PicoCalc Editor - Typed JavaScript from Source to LCD]] describes the algorithms in detail. The short form is that three limits are independent, and each needed its own mechanism.
+The typed Editor is eleven source files totalling 70,859 bytes, concatenated in the order given by `worlds/editor/source.list` because a function is visible only after its definition. Before its algorithms make sense, four coordinate systems must be kept apart. Files stores UTF-8. The live document uses UTF-16 code units, with a length independent of the buffer's capacity. The app identifies a file position by logical line and code-point column, and maps that position to a wrapped display row. The string `a🙂b` occupies six UTF-8 bytes, four UTF-16 units and three code points. A cursor after the emoji is at UTF-16 offset three and at display column two. Left and Right must step over a valid surrogate pair together.
 
-**Work per turn.** Editor's turn budget is 200 ms. A search for an absent string over 64 KiB exceeded it. Search now runs in slices of 1,024 work units, keeps its phase and offsets in `WorldState`, and yields between slices. After a match near the end of the file, locating the viewport had the same problem, and so did the next cursor key. The Editor keeps a ring of 36 **row checkpoints**, each recording where a wrapped display row starts, which logical line contains it, and whether a Markdown code fence is open at that point. A key that moves within the ring needs no rescan. An edit invalidates only the checkpoints at or after the first affected line.
+| Coordinate | Role | Concrete boundary |
+| --- | --- | --- |
+| UTF-8 bytes | File I/O, save snapshot, screen transport | A save checks the length of the encoded bytes. |
+| UTF-16 units | Document storage, string views, spans and edit offsets | A supplementary code point occupies two units. |
+| Logical line and code-point column | Cursor persistence and the position label | LF delimits a logical line. |
+| Wrapped row and column | Cursor rectangle, viewport and search highlights | The editor wraps at 49 code points. The LCD viewport shows 17 rows. |
 
-**Bytes per frame.** The screen message is limited to 16,384 UTF-16 units. The first Markdown preview serialized content until it approached that limit and discarded the rest, so the end of a 21,614-byte document could never be reached by scrolling. The preview now wraps text itself and sends only the 17 rows that fit on the display.
+On open, the SDK decodes the read receipt into the document buffer. The app normalizes line endings in the bounded slices shown in section 8.2, captures the normalized state used by discard, and restores the saved cursor. The persisted position consists of the logical line and column, the viewport top and a timestamp. Restoring it means finding the right LF boundary and converting the saved code-point column to a UTF-16 offset.
 
-**Scratch per line.** Inline Markdown formatting copied each line into a 4,096-unit buffer, so a bold marker after position 4,096 of a long imported line was silently dropped. Formatting now uses a 65,536-unit scratch buffer and three resumable passes for bold, code and links, in the same order as the original's three regular-expression replacements. Each pass compacts the buffer in place with a write position that never passes the read position.
+The stress fixture used for the rest of this section is a 65,536-byte file, the largest the system supports. It contains 851 CRLF pairs, so normalization reduces it to 64,685 bytes. The navigation replay appended one ASCII character and verified exactly 64,686 saved bytes, with the final cursor displayed as line 852, column 11.
 
-One fault was found only on the physical display. After a search matched the last line, the status bar showed the correct position, 852:1, and the matching row was not visible. Both the original Editor and the port published 18 rows. The LCD's body area fits 17 rows at 14 pixels each. The row count was corrected in both implementations.
+### 8.4 Separate the live document from the bytes submitted to storage
+
+An asynchronous save has a submission point and a completion point, and the user can type between them. Editor captures the submitted bytes into the inactive snapshot slot before asking the kernel to write. The live document continues to receive edits. On a successful receipt, the submitted slot becomes the saved slot. A failed receipt leaves the previous saved snapshot available for discard.
+
+```text
+begin_save:
+    encode live text into the inactive snapshot slot
+    submit those bytes to the current file handle
+    record the write token and clear changed_since_submit
+
+on_edit:
+    mutate the live buffer
+    mark changed_since_submit if a write is outstanding
+
+on_matching_success:
+    promote the submitted snapshot
+    if changed_since_submit:
+        dirty = live bytes differ from the promoted snapshot
+    else:
+        dirty = false
+```
+
+The exact comparison matters when a user makes an edit during the write and then edits back to the submitted bytes. A mutation counter would mark that history as changed even though the content is clean. The flag exists only to skip the comparison when there were no intervening edits. The first 64 KiB save experiment had already written the correct bytes when Editor overran its budget while processing the receipt, and the fast path repaired that settlement without changing the storage request. A useful regression test therefore checks the file bytes, the completion notice and later editability, not the bytes alone.
+
+### 8.5 Search and cursor movement need distinct continuations
+
+A document can fit easily in memory and still take too long to scan in one scheduler segment. A *segment* is one uninterrupted dispatch or settlement. A *turn* may span several segments while its request is pending. Editor's budget is 200 ms per segment. For a long search, the app keeps the cursor, the search phase and a timer token in `WorldState`, yields through a zero-delay timer, and resumes on the matching settlement. While the key turn is pending, later keys stay ordered behind it and the kernel can dispatch other worlds.
+
+Find visits the suffix of the current physical line, the following lines, the earlier lines, and then the prefix of the original line. A generic SDK operation, `typedSdkSeek`, skips units that cannot begin a match, and typed code verifies each candidate. The comparison reproduces the original's case folding, including two cases that are easy to miss: the Kelvin sign U+212A folds to `k`, and dotted capital I U+0130 folds to `i` followed by a combining dot, which adds one unit to the folded coordinate. The scan therefore tracks a folded offset separately from the raw UTF-16 offset. A slice has 1,024 units of work, and an eligible candidate is charged the full query length so that a long partial match cannot overrun.
+
+Three cases on the 64 KiB fixture failed separately, and each required its own mechanism.
+
+| 64 KiB case | Failure | Consequence |
+| --- | --- | --- |
+| Absent query with a rare first character | A unit-by-unit walk overran before the bulk seek existed. | Skip runs of irrelevant units in the shared SDK. |
+| Absent query `text text z` | Bulk seek still visited thousands of candidates with matching prefixes. | Carry matching state across scheduler segments. |
+| Successful `needle` hit at line 852 | The search found the match, and the wrapped-row walk that followed overran. | Slice viewport preparation on its own token and reuse row checkpoints. |
+
+The third case shows that finding a position and displaying it are different costs. The Editor keeps a ring of 36 **row checkpoints** in a 256-unit SDK buffer. Each records where a wrapped row starts, the boundaries and number of the logical line that contains it, and whether a Markdown code fence is open at that point. If a requested row is in the ring, the app uses it directly. If the row is later than the ring, the walk starts from the newest checkpoint. A destination before the ring is rebuilt in slices of 64 rows. An edit drops the checkpoints from the first affected logical line onward, because earlier rows keep the same offsets, wraps and fence state. Storing the logical line's end in each checkpoint matters for a file that is one very long line: without it, each restoration rescanned nearly 64 KiB to find the line end.
+
+One fault was found only on the physical display. After a search matched the last line, the status bar showed the correct position, 852:1, and the matching row was not visible. Both the original Editor and the port published 18 rows. The compositor gives the body 270 pixels, spends 12 on the status row and 4 on a gap, and insets the text area by 4. At 14 pixels per row, the remaining 250 pixels fit 17 whole rows. The row count was corrected in both implementations, and the page increment stayed at 16. Logical position checks, frame comparisons and pixel captures each caught a different failure in this work.
 
 ![The last line of a 65,536-byte file, found by search, on the physical PicoCalc](_assets/picocalc-typed-editor-p4-eof-match.png)
 
-![The end of a 65,536-byte formatted Markdown heading on the physical PicoCalc](_assets/picocalc-typed-editor-p4-full-inline.png)
+![The same file after an edit, a save and a reopen, with the cursor restored to line 852, column 11](_assets/picocalc-typed-editor-reopened-eof.png)
 
-The question marks in the second capture are a font limitation. The fixture contains characters outside the PicoCalc font, and the original Editor draws the same fallback glyph.
+### 8.6 Markdown preview has two independent bounds
 
-### 8.4 Final measurements
+The first large preview built one list of all Markdown items and stopped when the list approached the SDK's 16,384-unit screen buffer. The resulting frame was valid and the app stayed alive, and the end of a 21,614-byte document was missing. No scroll input could recover rows that the world had never sent.
 
-The final firmware compiled Editor from source on the board at each boot.
+The typed preview now parses and wraps the source incrementally. It keeps a ring of 36 finished rows and publishes a window of at most 17. The compositor's `lines` node accepts a wrapped-row mode and draws the rows it is given. When the requested rows move outside the ring, the parser resumes forward or rebuilds earlier rows in bounded steps. Frame size is thereby bounded by the viewport and no longer by the document.
+
+The second bound lies before wrapping. The inline formatter copied each physical line into a 4,096-unit scratch buffer. A test placed `**EOF INLINE**` after 4,900 bytes of one line. The original Editor displayed the phrase, and the typed Wasm build omitted it without any fault. A third fixture of repeated unmatched link openers exhausted the segment budget in both implementations. The missing phrase identified a capacity limit. The overrun identified repeated lookahead in delimiter matching.
+
+The final formatter uses a 65,536-unit scratch buffer and three resumable passes for bold, inline code and links, in the same order as the original's three regular-expression replacements. Each pass must finish before the next begins, because deleting one delimiter can make previously separated characters adjacent.
+
+```text
+for each physical preview line:
+    prepare its block style and source span
+    if inline formatting is required:
+        copy the span into fixed scratch storage
+        for each pass in bold, code, links:
+            scan and compact spans in place
+            retain read, write and lookahead positions when yielding
+    if the block is a heading:
+        uppercase bounded input chunks, retaining unconsumed expansion
+    feed complete words or width-sized word pieces to the row window
+    publish the visible rows when ready
+```
+
+Compaction is in place: a read position walks the input and a write position holds the next output location. The write position never passes the read position, so moving a span cannot overwrite unread input. For links, a failed ending rules out a whole interval of openers that share the same closing bracket, and the pass copies that interval as literal text in one step. This removes the repeated scans that caused the overrun. After the change, the malformed-link fixture passed on typed Wasm at 200 virtual ms while the JavaScript reference still overran under the same budget.
+
+Headings are uppercased before wrapping, and uppercase can expand one code point into several: `ß` becomes `SS`. The typed code converts 32 source units at a time, never splits a surrogate pair at a chunk boundary, and keeps at least 100 converted units of lookahead so the wrapper can tell whether a word continues past the 49-column width.
+
+![The end of a 65,536-byte formatted Markdown heading on the physical PicoCalc](_assets/picocalc-typed-editor-full-inline.png)
+
+The question marks in this capture are a font limitation. The fixture contains characters outside the PicoCalc font, and the original Editor draws the same fallback glyph. The frame comparison checks the Unicode sequence before drawing.
+
+### 8.7 Final measurements
+
+The final firmware compiled Editor from source on the board at each boot. Compiler peak is the allocator's reported peak for the temporary QuickJS realm. World memory is the boot report for the running Editor.
 
 | Measure | Wasm | RV32 |
 | --- | ---: | ---: |
-| Compile time | 1.99 s | 3.14 s |
+| Compile time | 1.988 s | 3.138 s |
+| Compiler peak allocation | 1,470,268 B | 2,454,960 B |
 | Compiled module | 88,255 B | 240,452 B |
-| Loader time | about 176 ms | about 14.1 ms |
+| Loader time | 175.6 ms | 14.1 ms |
 | World memory at boot, of 768 KiB | 528.0 KiB | 710.1 KiB |
 | Firmware image | 4,270,720 B | 4,461,472 B |
 
 An earlier build with a short workflow of 33 turns recorded 290.6 ms of Editor CPU time on Wasm and 52.9 ms on RV32, a ratio of about 5.5.
 
-The RV32 module is nearly three times the size of the Wasm module because the stack-slot lowering emits several instructions per Wasm opcode. The native world uses 710 KiB of its 768 KiB allowance, which leaves about 58 KiB of headroom.
+Several of the allocations follow from the layout. A 65,536-unit UTF-16 document buffer uses 128 KiB, the formatter scratch adds another 128 KiB, and two UTF-8 save snapshots reserve about 128 KiB together. The RV32 module is nearly three times the size of the Wasm module because the stack-slot lowering emits several instructions per Wasm opcode, and the ELF includes its reactor and the reserved code region. The native world uses 710 KiB of its 768 KiB allowance, which leaves about 58 KiB of headroom.
 
 ## 9. The project as it stands
 
@@ -517,6 +609,8 @@ The quality of the evidence is part of what was built, and four practices recur 
 
 **Hardware evidence is recorded separately from simulator evidence.** Each physical run records the firmware hash, the source hash, I2C and SPI error counters, and CRC-checked framebuffer captures. The diaries state which claims rest on the simulator and which on the board.
 
+**Each layer verifies a different claim.** The JavaScript reference gives the expected behavior. The Wasm simulator compares frame traces, PNG captures and exact file bytes under a virtual budget. The RV32 emulator exercises the emitted instructions and the SDK trampolines with controlled inputs. The handheld adds the real compiler run, loader, keyboard, filesystem and LCD. A single end-to-end test misses distinct failures: the save experiment had the right bytes and a crashed app, the clipped search had the right coordinate and an invisible match, and the first large preview had a valid frame and unreachable text. A port is checked at the boundary where each claim can be tested: the transaction result, the state transition, the published frame and the drawn pixels.
+
 **Failures are written down with their messages.** Each diary step has a "What didn't work" section with the literal error text. Several findings in this report, including the 18-row viewport and the fragmentation refusals, come from those sections.
 
 Two environmental problems recurred and are worth knowing. The keyboard controller on the I2C bus can remain stuck after an ESP32-only reset, producing runs in which every transfer fails; one such run recorded 1,231 failed transfers, and its timings were discarded. Serial transfer of large test files needed pacing and per-offset acknowledgement after a 21,614-byte upload arrived 1,120 bytes short.
@@ -543,7 +637,8 @@ All paths are relative to `/home/manuel/code/wesen/2026-10-20--ds-js-os/`.
 | `picocalc-os/sdk/typed/world.c` | Shared typed reactor: buffers, UTF-16 operations, event marshaling |
 | `picocalc-os/sdk/typed/rv32-slot.S` | Reserved native slot and trampoline table |
 | `picocalc-os/port/esp32p4/main/typed_p4.c` | Bounded QuickJS realm that runs the compiler on the device |
-| `picocalc-os/worlds/editor/*.typed` | The complete Editor, eleven files listed in `source.list` |
+| `picocalc-os/worlds/editor/*.typed` | The complete Editor, eleven files listed in `source.list`: `editor.typed` (events, open), `edit.typed` (keys, save, discard), `find.typed`, `view.typed` (row checkpoints), `preview.typed`, `markdown.typed`, `positions.typed`, `layout.typed` |
+| `picocalc-os/port/esp32p4/main/editor_p4.c` | Selects the Editor source, reactor and link function for the firmware profile |
 | `picocalc-os/worlds/agenda/`, `worlds/files/` | Typed policy plus app-specific C reactors |
 | `picocalc-os/port/esp32p4/compiler/` | CJI on-device tool, installer and console commands |
 | `picocalc-os/port/esp32p4/optional/native_elf/native_elf_p4.c` | Native ELF loader |
@@ -557,7 +652,6 @@ All paths are relative to `/home/manuel/code/wesen/2026-10-20--ds-js-os/`.
 ## Related notes
 
 - [[PROJECT REPORT - picocalc-os - Worlds, Turns, Handles and Frames - A Technical Deep Dive]] explains worlds, turn budgets and capabilities.
-- [[PROJECT REPORT - PicoCalc Editor - Typed JavaScript from Source to LCD]] covers the Editor port's algorithms in depth.
 - [[ARTICLE - Compiling Agenda on the PicoCalc]] and [[ARTICLE - When a Compiler Copies an Unchanged Fact]] cover the CJI profiling and the range-state changes.
 - [[PROJ - PicoCalc Agenda - Comparing Wasm and RV32 on the same board]] and [[PROJ - PicoCalc Agenda - Eight cold RV32 boots under two seconds]] hold the detailed startup receipts.
 - [[PROJ - picocalc-os - PICOCALC-NATIVE - WebAssembly and Machine Code on the P4]] describes the WAMR and native ELF engines that both compilers target.
