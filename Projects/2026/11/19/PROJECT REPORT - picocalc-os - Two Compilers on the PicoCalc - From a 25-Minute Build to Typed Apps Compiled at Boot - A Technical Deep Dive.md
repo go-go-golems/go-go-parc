@@ -651,6 +651,7 @@ All paths are relative to `/home/manuel/code/wesen/2026-10-20--ds-js-os/`.
 
 ## Related notes
 
+- [[Compiling on a Handheld - 00 - Editorial and Reading Guide|Compiling on a Handheld]] is a ten-article special issue on what to build next: measurement, inference, code generation, caching, isolation, asynchrony, types and a roadmap.
 - [[PROJECT REPORT - picocalc-os - Worlds, Turns, Handles and Frames - A Technical Deep Dive]] explains worlds, turn budgets and capabilities.
 - [[ARTICLE - Compiling Agenda on the PicoCalc]] and [[ARTICLE - When a Compiler Copies an Unchanged Fact]] cover the CJI profiling and the range-state changes.
 - [[PROJ - PicoCalc Agenda - Comparing Wasm and RV32 on the same board]] and [[PROJ - PicoCalc Agenda - Eight cold RV32 boots under two seconds]] hold the detailed startup receipts.
