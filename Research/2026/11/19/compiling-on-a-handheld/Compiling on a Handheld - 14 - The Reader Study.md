@@ -156,12 +156,12 @@ All materials are kept with the issue in the project repository, under the ticke
 
 | Path | Contents |
 | --- | --- |
-| `students/round0/`, `round1/`, `round2/` | One directory per session with the materials given, the reader's `answers.md`, `feedback.md` and `diary.md`, the raw session transcript (`session/*.jsonl`) and a readable `transcript.md` |
-| `students/roundN/audit.md` | Per session: reasoning level, turns, tool calls, tokens, and whether any file outside the session's directory was read |
-| `students/roundN/grades/` and `grades-summary.md` | Every graded answer with a one-line reason, and the summary tables |
-| `students/roundN/synthesis/` | The confirmed defects and merged feedback for each article |
-| `quizzes/` | The answer keys and the instructions given to the graders |
-| `issue-round1/`, `issue-round2/` | The article texts exactly as the readers of each round saw them |
+| `sources/students/round0/`, `round1/`, `round2/` | One directory per session with the materials given, the reader's `answers.md`, `feedback.md` and `diary.md`, the raw session transcript (`session/*.jsonl`) and a readable `transcript.md` |
+| `sources/students/roundN/audit.md` | Per session: reasoning level, turns, tool calls, tokens, and whether any file outside the session's directory was read |
+| `sources/students/roundN/grades/` and `grades-summary.md` | Every graded answer with a one-line reason, and the summary tables |
+| `sources/students/roundN/synthesis/` | The confirmed defects and merged feedback for each article |
+| `sources/quizzes/` | The answer keys and the instructions given to the graders |
+| `sources/issue-round1/`, `sources/issue-round2/` | The article texts exactly as the readers of each round saw them |
 | `scripts/run_students.py`, `run_round.py`, `render_sessions.py`, `summarize_grades.py` | The programs that ran the sessions and produced the tables |
 
 ---
