@@ -25,7 +25,7 @@ The experiment succeeded. The base model scored 15.6% and the trained checkpoint
 
 The more durable result is the cost structure and the failure surface. Training was not the expensive part; evaluation was, by a factor of three. Two of the run's defects were silent, producing plausible-looking output while learning nothing or destroying a previous result. The reported training loop consumes roughly two thirds of its steps producing exactly zero gradient, by construction.
 
-A second experiment tests the chapter-7 objective instead of the chapter-6 one, and produces the report's strongest result. Adding the KL divergence term that is supposed to stabilize training drives held-out accuracy from 46.0% to 0.0% over a hundred steps, by saturating the next-token distribution at uniformity. The failure is visible in the entropy metric half a training run before it is visible in accuracy.
+A second experiment tests the chapter-7 objective instead of the chapter-6 one, and produces the report's strongest result. Adding the KL divergence term that is supposed to stabilize training drives held-out accuracy from 46.0% to 0.0% over a hundred steps, by saturating the next-token distribution at uniformity. The failure is visible in the entropy metric half a training run before it is visible in accuracy. A five-condition sweep then shows that clipping is irrelevant to the outcome while the coefficient governing that term has a cliff between 1e-4 and 1e-3.
 
 > [!summary]
 > - **A 0.6B base model reached 45.8% on MATH-500 after 50 GRPO steps.** Training took 15m07s and peaked at 14.84 GB. The book's figure for the identical configuration is 45.6%, and its base-model baseline is 15.2%.
@@ -35,6 +35,7 @@ A second experiment tests the chapter-7 objective instead of the chapter-6 one, 
 > - **Scripts overwrite tracked reference logs and each other's evaluation output.** `.gitignore` does not protect already-tracked files, and the evaluator's output filename contains neither the checkpoint nor a timestamp.
 > - **The chapter-7 KL term drives accuracy to 0.0%.** With `--kl_coeff 0.001` the model fell from 10.0% at step 50 to 0 of 50 at step 100, while the no-KL arm held 40.0%. Entropy rose to 11.90 against a `log(151936) = 11.93` maximum, meaning the next-token distribution became uniform over the entire vocabulary.
 > - **Entropy is a leading indicator of collapse.** It crossed 2.0 at step 36 and stood at 7.33 when accuracy was still 10% at step 50. The trajectory had committed to failure fifty steps before the final evaluation revealed it.
+> - **Clipping is irrelevant to the outcome; the KL coefficient is decisive.** Tightening `clip_eps` from 10.0 to 0.2 changed a collapsed run from 0.0% to 0.0%. Reducing `kl_coeff` from 1e-3 to 1e-4 changed it from 0.0% to 40.0%, a cliff inside one order of magnitude of the script's own default.
 
 ## 1. The platform and why it matches the book's reference hardware
 
@@ -421,16 +422,33 @@ The first case becomes *more* confident while remaining wrong: entropy falls, re
 
 Both would be filed as "training failed" and both would be misdiagnosed, because entropy moves in opposite directions. The distinguishing measurement is cheap and the chapter-7 scripts already record it.
 
-### 8.5 An open question the sweep addresses
+### 8.5 The sweep: clipping is irrelevant, the coefficient has a threshold
 
-The KL arm's default `clip_eps` is 10.0, which is not clipping at all; standard PPO uses 0.2. Both arms above therefore share a configuration where the clipped-ratio machinery is inert, so this experiment cannot separate "KL causes collapse" from "KL combined with no clipping causes collapse". A three-run sweep was launched at the time of writing to complete a 2×2 factorial:
+The KL arm above used `clip_eps` 10.0, which is not clipping at all; standard PPO uses 0.2. That left two explanations open: the KL term itself, or the KL term combined with a disabled clipping mechanism. A five-condition experiment closes the question, varying only `clip_eps` and `kl_coeff` with every other setting held at 8 rollouts, 512 tokens, seed 42 and 100 steps.
 
-| | `kl_coeff 0` | `kl_coeff 1e-3` |
-|---|---|---|
-| `clip_eps 10.0` | 40.0% (measured) | 0.0% (measured) |
-| `clip_eps 0.2` | running | running |
+| `clip_eps` | `kl_coeff` | acc@50 | acc@100 | Final entropy | Peak memory |
+|---|---|---|---|---|---|
+| 10.0 | 0 | 46.0% | 40.0% | 0.10 | 44.0 GB |
+| 10.0 | 1e-3 | 10.0% | 0.0% | 11.90 | 49.0 GB |
+| 0.2 | 0 | 42.0% | **46.0%** | 0.15 | 44.2 GB |
+| 0.2 | 1e-4 | 36.0% | **40.0%** | 0.74 | 47.5 GB |
+| 0.2 | 1e-3 | 20.0% | 0.0% | 11.88 | 49.0 GB |
 
-A third run at `kl_coeff 1e-4` and `clip_eps 0.2` extends the comparison into an onset curve across three KL strengths. All results are single-seed.
+**Clipping does not matter.** Reading down the `kl_coeff = 1e-3` column, tightening `clip_eps` by a factor of fifty moves accuracy from 0.0% to 0.0% and terminal entropy from 11.90 to 11.88. Reading down the `kl_coeff = 0` column, the same change moves a healthy run from 40.0% to 46.0%. The clipped-ratio machinery is not what saves or destroys these runs. The KL term alone is sufficient.
+
+One mild asymmetry is worth recording: at step 50 the tightly clipped KL arm is twice as accurate as the unclipped one (20.0% against 10.0%). Clipping does damp the early damage, and then fails to hold once every reward in a group is zero and the KL gradient has no counterweight.
+
+**The coefficient has a sharp threshold between 1e-4 and 1e-3.** A tenfold reduction takes the model from total destruction to a healthy 40.0%. This is not a gradual relationship but a cliff, and it sits within one order of magnitude of the script's own default — which means the default value is on the wrong side of it for this model and dataset.
+
+The `1e-4` arm also shows the subthreshold signature, which is the most useful diagnostic in the table. Its entropy by block of ten steps:
+
+```
+0.46  0.33  0.30  0.27  0.39  0.56  0.55  0.54  0.60  0.52
+```
+
+Entropy first falls as the model becomes more decisive, reaching 0.27 around steps 31–40, and then turns upward to roughly 0.55 and stays there. The healthy arms never do this: with `kl_coeff` 0, entropy falls to 0.12–0.17 and stays flat for the remaining sixty steps. A KL term small enough not to destroy the run is still large enough to reverse the entropy trend, and the reversal is visible long before accuracy suffers — 40.0% at step 100 is within noise of both healthy arms.
+
+The three new runs cost 3h00m, 2h12m and 2h31m respectively, totalling 7h43m for the completed factorial. All results remain single-seed.
 
 ## 9. Defects found in the tooling
 
@@ -509,7 +527,9 @@ Downloaded data: two model checkpoints of 1.5 GB each (base and reasoning) plus 
 - Whether the same seed reproduces the same trajectory across GPUs is untested. The book notes that `cuda` and `mps` devices introduce floating-point differences and warns that results may vary.
 - The reported correlation between step and reward (+0.440) mixes genuine learning with any difficulty ordering in the 12,000-problem dataset, which is not curriculum-sorted. Only the MATH-500 delta should be treated as evidence of capability.
 - Chapter 8 was not run, so distillation remains unverified here. The clipped policy ratio, the format reward, and the three GRPO variants in `7_7_improvements` were also untested; only the KL term was isolated.
-- The KL result is single-seed, and its collapse was faster than the published one (10.0% at step 50 against a published 33.4%). Both arms used the script's default `clip_eps` of 10.0, which disables clipping, so the experiment cannot yet separate the KL term from the absence of clipping. A 2×2 sweep was running at the time of writing.
+- The KL result is single-seed. Five conditions now separate the KL term from clipping, and establish a threshold between `kl_coeff` 1e-4 (40.0%) and 1e-3 (0.0%), but each condition was run once. Whether the threshold sits at the same place under another seed is untested.
+- The KL collapse here is faster than the published one (10.0% at step 50 against 33.4%) and this remains unexplained. Clipping has been ruled out as the cause; the remaining candidates are the coefficient, the number of inner epochs, and seed variance.
+- Only three KL strengths were sampled. The threshold is bounded between 1e-4 and 1e-3 but not located more precisely, and the shape of the dose-response curve between them is unknown.
 - The no-KL arm ran partly concurrently with a second training process, so its 2h10m wall clock is inflated by GPU contention. Accuracy figures are unaffected; timings from this session are not benchmarks.
 - The book's "about twelve hours and 70 GB for a few GRPO rounds" on the same hardware is now explained by run length rather than by a different configuration. A 100-step, 8-rollout run takes about three hours at these settings, so twelve hours corresponds to a few hundred steps. The no-KL arm measured 44 GB peak and the KL arm 49 GB, both within the stated 70 GB.
 
@@ -519,6 +539,8 @@ Downloaded data: two model checkpoints of 1.5 GB each (base and reasoning) plus 
 - The KL divergence term, introduced to keep a policy near its reference, can instead destroy it. Minimizing `kl_coeff * mean(new_logps - ref_logps)` on rollouts from the previous policy lowers the probability of exactly the sampled tokens, which flattens the distribution. Accuracy went from 10.0% to 0 of 50 while the no-KL arm held 40.0%.
 - An entropy of 11.90 against a vocabulary of 151,936 tokens (`log` = 11.93) is not degraded reasoning, it is random output. The response length pins to the generation cap at the same time, because uniform sampling almost never emits the end-of-sequence token.
 - Rising entropy with flat reward and falling entropy with flat reward are different diseases. The first is a distribution losing structure; the second is premature convergence on short wrong answers, which finished at 16.0% against a 15.6% baseline.
+- Clipping is not a stabilizer for this objective. Changing `clip_eps` by a factor of fifty left the collapsed runs at 0.0% and the healthy runs between 40.0% and 46.0%, so the decisive variable is the KL coefficient itself.
+- A KL coefficient small enough to leave accuracy intact can still reverse the entropy trend: at 1e-4, entropy fell to 0.27 and then climbed to about 0.55, while the unpenalized runs stayed flat at 0.12–0.17. Accuracy alone did not distinguish them.
 - The token budget controlling how long a rollout may run is a correctness parameter. Too small a value produces a training loop that exits successfully, reports zero loss, and cannot learn, because the reward function never observes a rewardable answer.
 - Group-relative advantages are exactly zero whenever all rollouts in a group tie, which occurred in 32 of 50 steps here, in both the "all wrong" and "all right" directions. Two thirds of the sampling compute produced no gradient by construction.
 - Evaluation, not training, dominates the cost of a reasoning-model experiment: 46.3 minutes for the trained checkpoint against 9.5 minutes for the baseline on identical inputs, because longer generations make batch padding more expensive.
@@ -533,7 +555,7 @@ Downloaded data: two model checkpoints of 1.5 GB each (base and reasoning) plus 
 - Code repository: https://github.com/rasbt/reasoning-from-scratch, local clone at `/home/manuel/code/others/reasoning-from-scratch`, branch `local/spark-grpo-run`, upstream commit `b864602`.
 - Step-by-step record with full diagnostics: `/home/manuel/code/others/reasoning-from-scratch/notes/DIARY.md`, twelve steps including one explicit correction.
 - Reproduction scripts in execution order: `/home/manuel/code/others/reasoning-from-scratch/ttmp/2026/11/18/REASON-001--reproduce-grpo-reasoning-training-on-dgx-spark/scripts/` (nine numbered steps plus a README).
-- Run artefacts: `/home/manuel/code/others/reasoning-from-scratch/notes/runs/` — `2026-11-18-grpo50/` (chapter 6) and `2026-11-18-kl-ab/` (chapter 7 A/B, including per-arm logs and checkpoints).
+- Run artefacts: `/home/manuel/code/others/reasoning-from-scratch/notes/runs/` — `2026-11-18-grpo50/` (chapter 6), `2026-11-18-kl-ab/` (the two-arm KL comparison) and `2026-11-18-collapse-sweep/` (the five-condition factorial), each with per-arm logs, checkpoints and evaluations.
 - Upstream defect report for the truncated `7_5_plus_kl` checkpoints: https://github.com/rasbt/reasoning-from-scratch/issues/281
 - Model weights: https://huggingface.co/rasbt/qwen3-from-scratch
 - Training split: https://github.com/rasbt/math_full_minus_math500
