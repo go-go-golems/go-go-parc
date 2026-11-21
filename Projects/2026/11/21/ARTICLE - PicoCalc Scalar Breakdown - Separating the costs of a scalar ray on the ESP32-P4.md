@@ -1,0 +1,73 @@
+---
+title: "Separating the costs of a scalar ray on the ESP32-P4"
+type: article
+tags: [article, picocalc, compilers, performance]
+created: 2026-11-21
+status: complete
+repo: "/home/manuel/code/wesen/2026-10-20--ds-js-os"
+---
+
+# Separating the costs of a scalar ray on the ESP32-P4
+
+On the default ray-tracing scene, the ESP32-P4 took 57.691 ms to render an ordinary Typed frame. Moving selected locals into registers and checking buffer bounds at entry reduced the time to 53.942 ms. Skipping sphere rows with no possible intersections reduced it to 50.436 ms. The distinction between these two changes matters to a compiler author. The first makes the same iterations cheaper. The second proves that entire iterations have no effect on the image. This study uses a separate control to measure each effect and a different function to test a prediction from the instruction profile.
+
+## What a row computes
+
+The frame consists of 160 rows of 160 pixels. Each sphere has a center, a radius and a material. The primary ray computation identifies the object visible at a pixel and the depth of its first intersection. Later stages use those results to evaluate light and shadow and write a packed RGB565 color. Producing the right color on one scene is a weak test of primary geometry. Two different winning depths or even different objects can produce the same color. Our tests compare pixel, depth and identity planes with a C reference over twelve poses, including padded output strides. Each fast path has a checked fallback, and separate tests exercise partially written buffers on a failure.
+
+The ordinary compiler keeps several local variables in the current function's stack frame. Reading one can emit a load even inside a loop. A Typed buffer access also checks the requested index against the buffer's capacity. The common experiment starts from the same function with an entry guard and a fast and fallback copy. In the default scene the guard admits the fast copy for all 160 row calls. Across the four central comparisons, three spheres and 160 horizontal positions yield 76,800 sphere/pixel tests. Keeping this count fixed makes a comparison of code generation possible. [Compiler experiment](ARTICLE%20-%20PicoCalc%20Scalar%20Breakdown%20-%20What%20a%20bounds%20check%20costs%20in%20a%20ray-tracing%20loop.md)
+
+## Read the device and instruction experiments together
+
+| Default scene | Primary instructions | P4 primary, ms | P4 clean frame, ms |
+|---|---:|---:|---:|
+| Ordinary Typed | 3,608,697 | 17.807 | 57.691 |
+| Common guard, repeated checks, stack locals | 3,615,257 | 17.818 | 57.722 |
+| Hoisted checks, stack locals | 3,303,633 | 16.511 | 56.424 |
+| Repeated checks, register locals | 2,953,176 | 14.699 | 54.610 |
+| Hoisted checks, register locals | 2,641,552 | 14.052 | 53.942 |
+| Both changes plus empty-row skip | 1,532,782 | 10.542 | 50.436 |
+| Earlier hand-scheduled scalar row | 540,274 | 7.035 | 46.915 |
+
+The host interpreter counts instruction fetches at individual RV32 addresses. The clocks are medians on the ESP32-P4. Each physical block runs the Typed version alongside scalar C and C with a PIE primary kernel. In the ordinary default-pose control the latter two clean-frame medians were 9.516 and 8.350 ms. The timed clean entry includes the work to make the frame ready in memory. Display delivery and benchmark administration occur outside that interval. Primary and shade-only measurements are separate calls with their own setup; adding them does not reconstruct a full frame. Physical protocol and timing boundaries (`ttmp/2026/11/21/PICOCALC-SCALAR-BREAKDOWN--factor-the-typed-ray-scalar-row/design-doc/03-protocol-for-the-paired-physical-scalar-trial.md`)
+
+The ordinary and common-guard controls quantify the overhead of introducing the experiment. At fixed local placement, hoisting saved 311,624 retired instructions by removing two executed instructions from each of 155,812 successful checks. At fixed check policy, register placement saved 662,081 instructions. The joint reduction was their sum, or 973,705. Source-mapped disassembly identifies why. The row moves from 1,290,106 executed stack accesses to 370,265 with register homes, and hoisting changes the checks around buffer payload accesses. Some of the removed memory operations are replaced by register moves. Raw changes in memory-instruction count can exceed changes in total instructions.
+
+Now compare these differences using the physical times in the same pose and repetition. Hoisting saved 1.311 ms with stack locals and 0.654 ms with register locals. Register placement saved 3.121 ms with repeated checks and 2.463 ms with hoisted checks. Together the factors saved 3.766 ms in the primary entry. The paired interaction was −0.657 ms. The per-pose median interaction was negative across all twelve poses. The experiment establishes that the time savings overlap. It does not identify a particular pipeline hazard or cache effect responsible for that overlap. Those explanations would require additional instrumentation. Paired timing records (`ttmp/2026/11/21/PICOCALC-SCALAR-BREAKDOWN--factor-the-typed-ray-scalar-row/various/device/summary.json`)
+
+![Paired primary time savings on the ESP32-P4](_assets/scalar-breakdown-paired-savings.png)
+
+## Remove work from the algorithm
+
+The next treatment starts from the compiler with both changes. A sphere contributes no intersections if its vertical distance from a scanline already exceeds its radius. Testing that condition before the horizontal loop reduces the default count to 26,400 sphere/pixel tests. This saves a further 1,108,770 instructions and 3.513 ms of paired primary time. The resulting whole frame is 12.6% shorter than ordinary Typed, and its primary entry is 40.8% shorter. The older scheduled scalar row is still faster by a further paired 3.505 ms of primary time. Its addressing and scheduling changes remain bundled. These results establish that there is still work worth investigating beyond bounds elimination.
+
+The effect also survives the other poses. Relative to the ordinary clean median for each pose, the combined fixed-domain compiler shortened frame time by 6.38–6.76%. Adding empty-row rejection brought the range to 12.32–13.06%. The clean-frame paired saving from the skip alone ranged from 3.494 to 3.518 ms. The first two ranges use ratios of per-pose medians; the third reports the extremes of within-pose paired differences. These observations include camera, lighting and output-stride changes in one scene family. They do not estimate a distribution for arbitrary Typed applications.
+
+Specialization has a compile-time and code-size cost. The physical median for compiling the stock source was 430.016 ms. The combined guard/register arm took 465.825 ms, an 8.3% increase in this experimental build, and its compiler peak rose from 645,724 to 676,232 bytes. The native image grew from 9,564 to 10,384 bytes in the combined arm (+8.6%). The fast body occupies space alongside the checked fallback, even when the default scene visits only the fast path. These figures characterize the ticket's generated experimental backends. A general compiler pass with different analysis and code sharing needs its own cold-compile measurement. Load receipts (`ttmp/2026/11/21/PICOCALC-SCALAR-BREAKDOWN--factor-the-typed-ray-scalar-row/various/device/loads.json`)
+
+## Test a prediction in the shadow function
+
+A lighting computation asks whether another sphere lies between the winning surface and the light. The same descriptor buffer can be visited many times in this function, but its admission proof differs from the primary row proof. One can derive the highest descriptor index given the count. If capacity and count pass their entry tests, the callee can omit repeated per-access checks and retain the original fallback for other inputs.
+
+The host counted 264,928 successful checks and 19,477 calls in this second function. Removing two executed instructions per check and adding six per admitted call predicts 412,994 fewer instructions. The lab committed that number before implementing the candidate. The measured shadow count fell from 5,528,397 to 5,115,403, exactly as predicted. Whole-frame guest instructions fell 2.66%. The native image grew from 9,564 to 10,512 bytes. This is a transfer result between two kernels of one renderer. The candidate still admits a pinned source, so a future compiler must infer the safe region and assess the cost of cloning it on additional programs. Preregistered forecast (`ttmp/2026/11/21/PICOCALC-SCALAR-BREAKDOWN--factor-the-typed-ray-scalar-row/various/compiler/shadow-forecast.json`)
+
+The board independently tested this prediction in eight counterbalanced rounds over twelve poses, or 192 blocks. In the default pose, median clean time fell from 57.6815 to 55.4780 ms. The median paired saving was 2.2085 ms (3.829%), with all eight differences between 2.197 and 2.236 ms. The shade-only call saved 2.2795 ms. In the primary-only call, which never executes the shadow routine, the paired saving was 0.0070 ms with individual differences from −0.008 to +0.021 ms. Clean-frame savings ranged from 3.260% to 4.187% across the twelve poses. The 2.659% guest-instruction reduction and 3.829% physical-time reduction describe the same default workload in different units. Paired shadow measurements (`ttmp/2026/11/21/PICOCALC-SCALAR-BREAKDOWN--factor-the-typed-ray-scalar-row/various/device/shadow-summary.json`)
+
+## What to implement in a general compiler
+
+I would investigate keeping frequently used loop locals in registers first. It gave the larger fixed-domain improvement, and the inspector now supplies both the offending stack slots and their frequency. A follow-up experiment should derive candidate locals from the operation stream, account for calls that overwrite volatile registers, and test the decision on a previously unseen loop. Track compile time and code size alongside the saved frame time; a compiler running on this device pays for its optimizer.
+
+Bounds hoisting merits a second experiment. The shadow study supplies a simple cost model that correctly predicts removed instructions before the optimization exists. A general implementation needs to prove that calls between admission and access cannot modify the relevant capacity, count or descriptors. It should decline a candidate when it cannot establish those facts. Empty-row rejection belongs in a separate line of work on proving and skipping empty iteration ranges. Collapsing those three mechanisms into a single special ray-tracing mode would discard most of what this experiment established.
+
+The ordinary stock ELF matched across both firmware builds, but the observed stock cold compiler medians differed: 430.016 ms and 452.383 ms, with tracked peaks of 645,724 and 679,950 bytes. The second image contains the inspector-capable compiler with observation disabled as well as other firmware changes. This is a cross-build cost signal. To isolate the overhead of carrying optional inspection code on a small device, rebuild the same firmware twice with only the compiler bundle changed and rotate their cold trials. The new user-facing command and disassembler run on the host. Cold loads in the second trial (`ttmp/2026/11/21/PICOCALC-SCALAR-BREAKDOWN--factor-the-typed-ray-scalar-row/various/device/shadow-loads.json`)
+
+## Bringing the experiment back to the ordinary application
+
+The first benchmark firmware completed all 588 numeric blocks and then failed a different test. After a Right keypress the compositor exceeded its 80 ms draw budget. Earlier logs also showed that cold compilation could occur inside a draw. That explains how a correct captured image could coexist with a failed UI turn. The first firmware was rolled back. The scoped change in the fourth Ray Tracer mode moves the cold compile and new-pose rendering to an existing kernel poll. The compositor copies a completed image. A slow compile can still delay other work on that kernel thread; the change specifically removes it from the compositor's timed draw.
+
+The final firmware passed whole-app and partition readback. After a fresh reset the lab opened the ordinary fourth mode with keyboard commands, moved a sphere, changed the light and returned to the original position. All four 240 × 240 viewports matched every one of the 57,600 reference words. The eight checked native worlds reported zero errors or restarts after the interaction. The physical board was left on that verified firmware with ordinary Typed rendering selected. Independent handoff audit (`ttmp/2026/11/21/PICOCALC-SCALAR-BREAKDOWN--factor-the-typed-ray-scalar-row/various/device/handoff-audit.json`)
+
+## Companion studies
+
+- [What a bounds check costs in a ray-tracing loop](ARTICLE%20-%20PicoCalc%20Scalar%20Breakdown%20-%20What%20a%20bounds%20check%20costs%20in%20a%20ray-tracing%20loop.md)
+- [Which scalar costs show up in a physical frame?](ARTICLE%20-%20PicoCalc%20Scalar%20Breakdown%20-%20Which%20scalar%20costs%20show%20up%20in%20a%20physical%20frame.md)
