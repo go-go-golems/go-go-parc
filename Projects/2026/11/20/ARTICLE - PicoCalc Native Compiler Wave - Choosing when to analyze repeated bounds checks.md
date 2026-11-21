@@ -1,0 +1,180 @@
+---
+title: "Choosing when to analyze repeated bounds checks"
+type: article
+tags: [article, picocalc, compilers, performance]
+created: 2026-11-20
+status: complete
+repo: "/home/manuel/code/wesen/2026-10-20--ds-js-os"
+---
+
+# Choosing when to analyze repeated bounds checks
+
+The two bounded policies produced stock-identical code on current Editor, Chess, the smooth painter, and the independent held-out program. They both removed guards from the purpose-built repeated-read control. Always removed one guard in Chess, inside `chessMake`, and saved 32 bytes. That compilation charged 137,531 tape cells to the analysis. On the older Editor engine, Always found exactly one proof and both budgeted arms found none. The physical cold results show the cost of analyzing functions without a good admission rule. Both bounded policies avoid most of that cost and miss the proved site on each real program where Always finds one.
+
+## Three terms to know first
+
+A typed checked access is a read such as `s.charCodeAt(i)` where `s` has a buffer or string type. The compiler must make sure `i` is in range before it loads, so it emits a guard for every such read. On the native target each guard follows a fixed pattern that compares the index against the string length or buffer capacity, both counted in UTF-16 units and traps when the index is out of range.
+
+The numeric streamed tape is the form the compiler works on while it streams a function. Each instruction is written as a run of numeric cells, and different instructions occupy different numbers of cells. An analysis that walks the tape has to decode each instruction's width to find the next one. A function's tape size is its length in cells. For the current compiler, charged cells and visited cells coincide in these runs.
+
+RV32 emission is the backend that turns the tape into 32-bit RISC-V machine code. The main size comparison counts emitted instruction bytes before linking into a fixed-size reactor. Application response requires a distinct timing experiment.
+
+## The analysis under test
+
+The analysis walks a function's tape and keeps a set of known guards. When it finds a guard whose index comes from a saved index-copy local or a constant, it records the pair of base and index. The analysis assigns a fresh identity to an unrecognized local assignment. A direct local or constant copy can carry a known value identity, allowing different private saved-index locals to refer to the same value. The known set is cleared at control flow, at writes and at calls. When a second guard matches a known one, the analysis removes that second guard. The address recalculation and the second load stay in the emitted code. The proof assumes the existing Typed object ABI, with no concurrent external mutation of an object between two guest instructions.
+
+The following pseudocode illustrates the rule. It is not the compiler's source syntax.
+
+```text
+fn pair(s: string, i: int) -> int {
+  let j = i          // saved index copy, version j#1
+  let a = s[j]       // guard G1 on (s, j#1) recorded, then load
+  let b = s[j]       // guard G2 matches G1, G2 removed, load kept
+  return a + b
+}
+```
+
+The next function keeps every guard.
+
+```text
+fn kept(s: string, i: int, k: int) -> int {
+  let j = i
+  let a = s[j]       // G1 recorded
+  j = j + 1          // j gets a fresh identity, so the earlier key cannot match
+  let b = s[j]       // G2 on (s, j#2) kept
+  helper()           // call clears known guards
+  let c = s[j]       // G3 kept
+  if k > 0 { }       // control clears known guards
+  let d = s[j]       // G4 kept
+  return a + b + c + d
+}
+```
+
+The primary pass also ignores inequalities established by conditional control.
+
+```text
+if j < len(s) {
+  let a = s[j]       // guard kept, the comparison above is not used
+}
+```
+
+## The four arms
+
+Each arm decides which functions the analysis may visit during one compilation.
+
+- **Never** visits no function.
+- **Always** visits every function.
+- **Order** has 640 cells per compilation. It walks functions in source order and admits a function when its tape fits the remaining budget. A function that does not fit is rejected and the walk continues with the next one.
+- **Selected** uses the same budget and walk. It also requires a tape size from 24 to 192 cells inclusive and at least one buffer or string parameter.
+
+A worked example with invented sizes shows the difference. Take five functions in source order with tapes of 300, 400, 150, 100 and 60 cells. Assume only the 150-cell and 60-cell functions take a string parameter. Order admits 300 and has 340 left. It rejects 400, admits 150 with 190 left, admits 100 with 90 left and admits 60 with 30 left. It charges 610 cells. Selected rejects 300 and 400 for size, admits 150, rejects 100 for lacking a string parameter and admits 60. It charges 210 cells.
+
+These rules were frozen by the operator before the runs. They are narrower than the gate with proportional credit in the archived lead design, which this study did not test.
+
+## What was compared
+
+The host matrix covers a purpose-built control and three current product sources. A separate oracle compares the ten functions of the director's independently authored held-out program. An independently reconstructed toolchain compiles the older guarded Editor again with the same admissions. Host matrix (`ttmp/2026/11/20/PICOCALC-NATIVE-WAVE--six-parallel-experiments-in-handheld-compiler-construction/various/01-bounds/host.json`) · Held-out receipt (`ttmp/2026/11/20/PICOCALC-NATIVE-WAVE--six-parallel-experiments-in-handheld-compiler-construction/various/01-bounds/heldout.json`) · Older Editor receipt (`ttmp/2026/11/20/PICOCALC-NATIVE-WAVE--six-parallel-experiments-in-handheld-compiler-construction/various/01-bounds/older-editor.json`)
+
+For the current compiler each row records functions, accepted functions, charged cells, visited cells, guards seen, guards removed, bailouts, image bytes and changed functions.
+
+## Results on the current compiler
+
+This table gives charged cells followed by removed guards for each policy.
+
+| Program | Functions | Always | Order | Selected |
+|---|---|---|---|---|
+| control | 9 | 1,153 / 2 | 600 / 2 | 447 / 2 |
+| Editor | 119 | 35,883 / 0 | 636 / 0 | 633 / 0 |
+| Chess | 82 | 137,531 / 1 | 639 / 0 | 637 / 0 |
+| Painter | 24 | 7,332 / 0 | 640 / 0 | 497 / 0 |
+| held-out | 10 | 1,175 / 0 | 460 / 0 | 201 / 0 |
+
+These are the corresponding unlinked native instruction sizes in bytes.
+
+| Program | Never | Always | Order | Selected |
+|---|---|---|---|---|
+| control | 3,268 | 3,204 | 3,204 | 3,204 |
+| Editor | 89,168 | 89,168 | 89,168 | 89,168 |
+| Chess | 256,400 | 256,368 | 256,400 | 256,400 |
+| Painter | 23,848 | 23,848 | 23,848 | 23,848 |
+| held-out | 2,876 | 2,876 | 2,876 | 2,876 |
+
+Charged cells equal visited cells in every row. No row records a bailout. Neither budget arm exceeds 640 cells, and Order on Painter uses exactly 640.
+
+The control program is the positive case for admission. Always visits 1,153 cells, sees 16 guards and removes 2, which shrinks the image from 3,268 to 3,204 bytes. Order admits 3 functions, sees 3 guards and removes the same 2 for 600 cells. Selected admits 6 functions, sees 14 guards and removes the same 2 for 447 cells. That is 38.8 percent of Always's charged work. Only the function `repeated` changes in each arm.
+
+The current applications contain few repeats that the recognizer can prove. Editor under Always visits 35,883 cells and sees 204 guards with no removal. Painter visits 7,332 cells and sees 28 guards with no removal. In both programs Always proves nothing, so no admission policy built on this analysis could remove anything there. Chess under Always sees 141 guards and removes one in `chessMake`. The two removals save 64 bytes in the control. The Chess removal saves 32 bytes. Order and Selected admit 11 and 9 Chess functions and see 10 and 5 guards. Both miss `chessMake`. A separate diagnostic callback replays the policy using the same emitted descriptors. `chessMake` has 1,139 cells, above the entire 640-cell budget. On arrival Order had one cell left and Selected had 447. The tape also exceeds Selected's 192-cell ceiling. Admission replay (`ttmp/2026/11/20/PICOCALC-NATIVE-WAVE--six-parallel-experiments-in-handheld-compiler-construction/various/01-bounds/chess-admission-ledger.json`) The independent held-out program has identical bytes and 158,570 steps in every arm. Always sees 7 guards there and removes none.
+
+Charged cells measure the tape extent handed to the analysis. They do not weight one primitive operation differently from another. Use elapsed-time measurements to evaluate actual compile overhead.
+
+## The older Editor engine
+
+The older compiler could prove a first read on a path where source branches collectively establish `0 <= i < length`. In guarded Editor, the outer guard contributes `end <= text.length`, while the loop guard supplies `0 <= i` and `i < end`. Following the two upper-bound edges proves `i < text.length`. This supplement tests the same admission policies against that actual search. During parsing the supplement collects, for each read, an immutable reference to the edge array and the identifiers that were already versioned. It defers each original search to function completion. When a search succeeds it sets the proven bit on the existing compact read operand. Deferred Never matches the older compiler with checks enabled and no proof search. Deferred Always matches the older compiler with its bounded proof search enabled. Both matches are byte for byte.
+
+The fixed policies gate only the search. Unconditional tracking, snapshots and the inherited loop lexer lookahead run in every arm, and the debit uses the full accepted function's tape length even when a search inspects only a few edges.
+
+| Arm | Accepted | Charged | Attempted | Edges examined | Proven | Bytes |
+|---|---|---|---|---|---|---|
+| Never | 0 | 0 | 0 | 0 | 0 | 64,856 |
+| Always | 120 | 33,195 | 116 | 32 | 1 | 64,840 |
+| Order | 11 | 638 | 9 | 3 | 0 | 64,856 |
+| Selected | 8 | 619 | 12 | 3 | 0 | 64,856 |
+
+The receipt lists 116 candidates across 120 functions. Always attempts a search for all of them, examines 32 edges and proves one read, which saves 16 bytes. No search in any arm reaches exhaustion. The Never, Order and Selected images share the SHA-256 `b54bf4d2a445a0144202239acbd05a5d307f5509203e8f31942f14b29c599dec`. Always has `31c735244aab03adc01165475232d2439aad5dfa5b3924016fe1ef099b9e0a8d`.
+
+The sole proof is in `editorPreviewAppend`, a 263-cell function with two reads. That search examines 5 edges. Selected cannot admit the function under any budget because 263 exceeds its 192-cell ceiling. Order had two cells left on arrival. Selected had 21, so the missed opportunity follows from both its live budget and its fixed eligibility ceiling. This proof comes from edge search, which the current primary pass does not have, and current Editor shows no removal even under Always.
+
+## Correctness evidence
+
+The held-out behavior check produces 1,603 exact independent outcomes on each arm, 101 of them traps, and the Wasm output is unchanged across arms. A targeted corpus runs 243 test states on each arm. Each state compares whether a trap occurred and the whole buffer contents. The states cover a mutable index, a branch that bypasses a guard, aliases, calls and stores between reads, and short and long literals. All 243 cases per arm, including 163 expected traps, matched returns, trap states, and byte buffers. The receipt keeps aggregate case and trap counts per named endpoint.
+
+## Physical board
+
+The director ran the independent held-out program on the physical board as paired generated-workload trials, summarized by the median of each pairing. The bounds image was identical across arms, and the point estimate of the median effect was zero for every arm.
+
+
+### Running the proof on the PicoCalc
+
+The positive endpoint is the same `repeated` routine used in the host matrix. Each board row encloses a loop of 256 successful calls. The eleven paired blocks rotate five arms from the two studies at 360 MHz on core 1. The completed short confirmation records a stock median of 86.18 cycles per call including the loop. Order and Selected were about 68.1 cycles, for paired reductions of 20.98% and 20.99%. Their native outputs have the same SHA-256 and occupy distinct aligned flash addresses. Always emits the same bytes for this control and was omitted as a duplicate from this native timing loop. The dedicated device marker confirms native returns and complete buffers for the short run. Native literal and scalar-write comparison medians were within 0.04% of stock. Trap validation remains on the host.
+
+### Charging analysis during cold compilation
+
+Each fresh QuickJS invocation loads the compiler, runs the full source through streaming lowering, links the same reactor, and copies the output before sandbox teardown. This is cold compile wall time as observed by the application port. The physical stock comparator disables both experiments in the same staged firmware. Host verification establishes its native output identity to stock. Shared experimental compiler JavaScript still loads into each sandbox. These are median seconds and ranges from the first four complete paired blocks.
+
+| App | Stock | Always | Order | Selected |
+|---|---:|---:|---:|---:|
+| Chess | 5.342 (5.289–5.418) | 6.885 (6.853–6.897) | 5.357 (5.326–5.398) | 5.370 (5.359–5.379) |
+| Editor | 4.545 (4.514–4.597) | 5.232 (5.181–5.242) | 4.569 (4.568–4.611) | 4.622 (4.598–4.645) |
+
+Always cost a median 28.54% more time on Chess and 14.59% on Editor in paired comparisons. Median paired time for each bounded arm and app rose by 0.60% to 1.75%. Some individual blocks were faster than stock, so those small shifts carry limited evidence with four samples. The host matrix shows stock-identical instruction images for these two arms. The Chess difference in medians for Always was 1.54 seconds. The 32-byte reduction in `chessMake` is in the host's unlinked native extent. Each physical compile returned the same fixed reactor size for its app.
+
+The shared run planned two apps × six compiler configurations × five blocks. The first host reader stopped after 59 of its planned 60 compile rows. The missing row was Editor Selected in block five. The receipt preserves every completed row and all 165 native timings. The first run did not reach the combined device correctness marker. Product cold timing above uses exactly four complete blocks for both apps, excluding the complete fifth Chess block. The short run separately recorded all 165 native timings, passed the native correctness marker, and completed one six-arm cold block per app. It does not replace any row in the first capture. Confirmation (`ttmp/2026/11/20/PICOCALC-NATIVE-WAVE--six-parallel-experiments-in-handheld-compiler-construction/various/01-bounds/physical-confirmation.json`) · First capture (`ttmp/2026/11/20/PICOCALC-NATIVE-WAVE--six-parallel-experiments-in-handheld-compiler-construction/various/01-bounds/physical-first.json`) · Balanced summary (`ttmp/2026/11/20/PICOCALC-NATIVE-WAVE--six-parallel-experiments-in-handheld-compiler-construction/various/01-bounds/physical-first-summary.json`) · Director held-out comparison (`ttmp/2026/11/20/PICOCALC-NATIVE-WAVE--six-parallel-experiments-in-handheld-compiler-construction/various/director/paired-results.json`)
+
+## What each proof requires
+
+A known successful checked operation supplies the fact for the current straight-line pass. The old engine uses branch conditions and can establish a fact before the first checked operation. When the current pass sees conditional inequalities, it clears its facts. The two budget comparisons have separate evidence because opportunities for one proof can be absent from the other.
+
+## Failed hypotheses
+
+The first hypothesis held that a 640-cell budget would capture the real opportunities that Always finds. Both budget arms missed `chessMake` in current Chess and `editorPreviewAppend` in the older Editor.
+
+Selected had mixed success steering its budget to guard-bearing functions. On the control it saw 14 guards for 447 cells against Order's 3 for 600. On current product sources it saw 5 to Order's 10 in Chess, 0 to 1 in Painter, and 3 to 2 in Editor. Neither budgeted arm removed a guard from those apps. Host matrix (`ttmp/2026/11/20/PICOCALC-NATIVE-WAVE--six-parallel-experiments-in-handheld-compiler-construction/various/01-bounds/host.json`)
+
+The independent held-out program ran the same instructions in every bounds arm. The native experiment on positive repeat guards measures the consequence of a proved removal, while the independent program measures a workload outside that proof's effective coverage.
+
+## Reproducing the method
+
+Run the holdout and host matrix from the repository root. Use the held-out receipt to confirm 2,876 bytes and 158,570 steps for all bounds arms. The host matrix records `repeated` and `chessMake` as the two changed functions. Rebuilding the older engine using the separate reconstruction reproduces the two image hashes and the one proof with five examined edges in `editorPreviewAppend`. The board section gives the different timing boundaries and qualification. Commands, inputs and checks (`ttmp/2026/11/20/PICOCALC-NATIVE-WAVE--six-parallel-experiments-in-handheld-compiler-construction/reference/16-reproduce-bounds-and-operation-lifetime.md`)
+
+## Follow-up
+
+A separate policy could use sub-function regions as its unit of admission. On these inputs a whole-function budget excludes `chessMake` before analysis, while the only proved guard belongs to a single straight-line region. Such a policy would need its own analysis charges and locked holdout.
+
+## Companion studies
+
+- [What a checked operation keeps until RV32 lowering](ARTICLE%20-%20PicoCalc%20Native%20Compiler%20Wave%20-%20What%20a%20checked%20operation%20keeps%20until%20RV32%20lowering.md)
+- [Small Leaves and Bounded Inlining in the PicoCalc Typed Compiler](ARTICLE%20-%20PicoCalc%20Native%20Compiler%20Wave%20-%20Small%20Leaves%20and%20Bounded%20Inlining%20in%20the%20PicoCalc%20Typed%20Compiler.md)
+- [Which native functions survive a changed interface?](ARTICLE%20-%20PicoCalc%20Native%20Compiler%20Wave%20-%20Which%20native%20functions%20survive%20a%20changed%20interface.md)
+- [How much stack can the handheld compiler account for?](ARTICLE%20-%20PicoCalc%20Native%20Compiler%20Wave%20-%20How%20much%20stack%20can%20the%20handheld%20compiler%20account%20for.md)
+- [Inferring Turn Lifetimes for Borrowed Buffers in the Typed Compiler](ARTICLE%20-%20PicoCalc%20Native%20Compiler%20Wave%20-%20Inferring%20Turn%20Lifetimes%20for%20Borrowed%20Buffers%20in%20the%20Typed%20Compiler.md)
+- [What a handheld compiler should remember](ARTICLE%20-%20PicoCalc%20Native%20Compiler%20Wave%20-%20What%20a%20handheld%20compiler%20should%20remember.md)
