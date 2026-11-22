@@ -31,6 +31,7 @@ The report assumes no prior knowledge of Candela, V8 or JavaScript engine embedd
 > - **Callbacks run in the native process.** The clock, behaviours and animation poses moved from the browser application into an engine class, `SceneSession`. `candela-rt session` steps every moving preset at 24 fps inside embedded V8, and each frame's buffers equal Node's.
 > - **The renderer runs as CUDA.** A translator turns each scene's WGSL program into CUDA C++, which NVRTC compiles and `candela-rt` runs. At one sample per pixel, 101 of 105 presets reproduce WebGPU's image on at least 99 % of pixels to within 0.1 %. With the same algorithm, the CUDA program is 1.9 to 7.3 times faster than WebGPU on the same GPU.
 > - **Rays are traced on the RT cores.** An OptiX target replaces one function of the translated program, the scene traversal, with hardware ray tracing. 104 of 105 presets look the same as in the WebGPU workbench, and scenes with meshes or many objects render 7 to 13 times faster than WebGPU.
+> - **Render jobs and a live mode.** candela-rt renders sequences that look like the workbench's (its display program is compiled to CUDA too), with motion blur on the RT cores and NVENC video. The lockstitch reel renders 5 times faster than in the browser. The workbench can switch its viewport to frames streamed from the Spark.
 
 ## Why this project exists
 
@@ -56,7 +57,8 @@ The design therefore puts a JavaScript engine inside the native renderer. The wh
 - The clock, behaviours and poses live in `src/engine/session.ts`; the browser and `candela-rt session` both use them (commit `76b75fd`).
 - `src/engine/wgsl2cuda.ts` translates scene programs to CUDA; `candela-rt render` and `candela-rt cuda-sweep` compile them with NVRTC and run them (commits `1b79006`, `1780050`).
 - `src/engine/targets/optix.ts`, `native/rt/src/optix_renderer.cpp` and the device programs in `native/rt/kernels/` form the OptiX target; `candela-rt render --backend auto` chooses between it and plain CUDA (commits `9ebcbee`, `7891b77`).
-- Not started: render jobs (sequences, video), the live workbench. The ticket diary records each step (steps 11 to 17 for this report). The code is on GitHub as PR #1 of `wesen/2026-11-21--pbr-spark`, reviewed once by Codex (five findings, all fixed in `6e05a36`).
+- `src/engine/display.ts`, `native/rt/src/{post,image_io}.cpp` and the motion transforms in `optix_renderer.cpp` form the render jobs (commits `dc8a3b4`, `94569bb`); `native/rt/src/serve.cpp`, `jpeg.cpp` and `src/app/remote.ts` the live mode (`7e05db3`).
+- Not started: the OptiX denoiser and shader execution reordering (phase 6). The ticket diary records each step (steps 11 to 19 for this report). The code is on GitHub as PR #1 of `wesen/2026-11-21--pbr-spark`, reviewed once by Codex (five findings, all fixed in `6e05a36`).
 
 ## Part 1. What it means to embed a JavaScript engine
 
@@ -549,6 +551,150 @@ The table shows where ray tracing hardware helps a path tracer structured this w
 
 Compile time is the cost of 255 registers. NVRTC produces OptiX-IR in 2 s on average, and OptiX then compiles it to machine code in 8 to 17 seconds on first use. Later uses of the same program come from OptiX's disk cache in about 12 ms. That is acceptable for offline renders. For live structural edits in the planned workbench it is the next thing to measure.
 
+## Part 9. Render jobs: sequences, the display program, and motion blur on the RT cores
+
+### What a render job needs that a parity check does not
+
+Up to phase 3, `candela-rt render` produced one linear PFM file: the averaged radiance per pixel, in nits, which is what a parity check compares. A render job produces what a person watches. That requires four things the parity path did not have:
+
+- **Time.** A sequence renders frame after frame. Between frames, behaviours step by exactly 1/fps, the animation is evaluated at the new time, and the scene is packed again.
+- **The displayed image.** Radiance in nits is not an image. The workbench meters an exposure from the accumulated buffer, optionally denoises, applies bloom and user passes, tone-maps (AgX by default) and encodes to sRGB. A video frame from candela-rt should be that same image.
+- **Motion blur on the OptiX target.** In phase 3, moving meshes rendered unblurred on OptiX. The lockstitch head is made of moving meshes, so its videos need the blur.
+- **Output formats.** PNG for stills, MP4 for sequences, and OpenEXR with the passes a compositor uses.
+
+### The display program is compiled too
+
+The workbench's display step is a WGSL program, `displaySource()`, with two entry points: an à-trous denoise step, run up to four times with doubling step widths, and the display pass. The same compiler that translates the scene program to CUDA (Part 7) translates this program. Only its bindings differ, so the target supplies three small files: launch parameters with six device pointers, accessors that reproduce the WGSL prelude (`D`, `cAt`, `aAt`, `nAt`), and two `__global__` entry points. A user-defined post pass, which the scene writes in JavaScript and Candela compiles to a WGSL function, is part of `displaySource()` and therefore reaches CUDA without special handling.
+
+The alternative was to reimplement tone mapping in C++. That would have created a second definition of "what the workbench shows", which drifts as soon as either side changes. Translating the program costs one NVRTC compile of about 120 ms per distinct display program, and the result is cached on disk like the scene program.
+
+The functions that compute the display uniforms and meter the exposure moved from the viewport into a shared module, `src/engine/display.ts`, so the browser and candela-rt call the same code:
+
+| Function | Purpose | Called by |
+| --- | --- | --- |
+| `postSettings(engine)` | The scene's post passes: tone map, denoise, bloom, vignette, grain, user passes | `Viewport.load`, `openRender` |
+| `displayUniforms(...)` | The display pass's 32 uniform rows and the denoise schedule for a sample count | `Viewport.show`, `HeadlessRender.display` |
+| `meterExposure(accum, w, h)` | Centre-weighted log-average of 8×8 block means; EV100 with highlight protection | `Viewport.meter`, `HeadlessRender.meter` |
+| `passesFromBuffers(...)` | Beauty, albedo, normal and depth averaged over the samples, for EXR | `Viewport.readPasses`, `HeadlessRender.exr` |
+
+The headless render object gained a method per job step. `seek(t, dt, seed)` steps behaviours, repacks and bumps a version number, so the C++ side knows to upload again. `meter(accum)` returns the exposure, `display()` returns the uniforms, and `exr(...)` returns the bytes of an OpenEXR file. The EXR writer is the workbench's own `passesToEXR`, which runs inside candela-rt's V8. It needed one addition to the embedded runtime. `TextEncoder` is a Web API, not part of ECMAScript, so V8 alone does not have it; candela-rt now installs a UTF-8 `TextEncoder` and `TextDecoder` alongside `atob` and `btoa`.
+
+The job loop in `candela-rt render` follows the workbench's render queue (`runRender`):
+
+```text
+open the scene (params applied before the build)
+for each frame f:
+    if f > 0: seek(start + f/fps, 1/fps, seed + f)       behaviours step by exactly one frame
+    upload buffers if the version changed; OptiX: rebuild instances and motion transforms
+    accumulate spp samples
+    f = 0: meter the exposure and hold it for the rest of the sequence
+    PFM: linear radiance   PNG/MP4: display program → RGBA8   EXR: passes + id pass
+```
+
+Video frames go to ffmpeg as raw RGBA on a pipe and are encoded with NVENC (`h264_nvenc` by default, HEVC and AV1 optional). The GPU's video encoder runs alongside the path tracer, not instead of it.
+
+PNG stills from candela-rt and from the browser's render queue, at 640×360 and 64 samples per pixel, agree to 0.01 % of white for B-02, 0.25 % for S-02 and 1.39 % for K-09, measured as displayed 8×8-block RMSE.
+
+### Moving meshes on the RT cores
+
+The translated kernel computes an object's world transform at shutter time τ ∈ [0, 1] as P(τ)·M_c. Here M_c is the object's matrix at the frame time, and P is a rigid motion with uniform scale. P is sampled K times across the shutter and stored as a quaternion plus translation and scale per key. Between keys the kernel interpolates component-wise and normalises the quaternion. This is the definition of an OptiX SRT motion transform: scale, rotation and translation keys spaced evenly between a begin and an end time, interpolated linearly with the quaternion normalised.
+
+One detail determines the structure. The motion acts *outside* M_c, and an SRT cannot hold a general affine M_c, since its scale part allows only an upper-triangular matrix. A moving mesh therefore reaches its triangles through two transforms:
+
+```mermaid
+flowchart LR
+  IAS["IAS instance<br/>identity, id = object index"] --> SRT["SRT motion transform<br/>K keys of P(τ), τ ∈ [0, 1]"]
+  SRT --> ST["static transform<br/>M_c (and its inverse)"]
+  ST --> GAS["mesh GAS<br/>built once per mesh"]
+  style SRT fill:#f4e3c1
+```
+
+The ray time passed to `optixTrace` is the kernel's own `gTau`, so the RT cores and the shading code agree on where each object was for that sample. Two smaller changes follow from per-frame motion. The quaternion keys are sign-aligned on the host, so OptiX's interpolation takes the short way between keys, as the kernel does when it flips a key with a negative dot product. And the mesh GASes are built once per scene, with instances, transforms and the analytic-object GAS rebuilt each frame, which takes about 0.9 ms. Mesh numbering had to come from a stable table: the first version numbered meshes in BVH order, and that order changes from frame to frame when objects move.
+
+![](_assets/candela-rt-motion-blur-gear.png)
+
+*K-09's rotary hook at 0.5 s per stitch. Left: OptiX with SRT motion transforms. Middle: the plain-CUDA target, which interpolates poses in software like WebGPU. Right: without motion blur.*
+
+The pipeline needs motion support (`usesMotionBlur`, any graph, traversable depth 4) only when the scene can move. candela-rt compiles that variant only for scenes with an animation or behaviours and at least two shutter samples. Static scenes keep the single-level pipeline.
+
+### The lockstitch reel
+
+The exit check for phase 4 was the lockstitch head: render its scenes with candela-rt and compare the time against the browser's render queue. The browser measurement was repeated in the same session on the same machine.
+
+| S-07, one stitch: 48 frames, 1920×1080, 64 spp, MP4 | Wall time | Per frame |
+| --- | --- | --- |
+| Browser render queue (headless Chromium, WebGPU) | 225.9 s | 4.7 s |
+| candela-rt (OptiX + motion transforms, NVENC) | 44.9 s | 0.89 s |
+
+![](_assets/candela-rt-lockstitch-frame24.png)
+
+*Frame 24 of S-07: candela-rt (left) and the browser (right). Displayed difference 0.39 % of white.*
+
+The whole reel was then rendered with candela-rt: seven scenes, with the zigzag at two stitches and the whole head at four stitches under an orbiting camera. That is 528 frames at 1920×1080 and 64 samples per pixel, in 462 s. The total includes each scene's first-time compiles, about 1.7 s for NVRTC and about 8 s for the OptiX module. At the browser's 4.7 s per frame, the same reel takes about 41 minutes. `tools/lockstitch/render.ts --engine rt` runs one candela-rt process per scene, and `reel.sh` joins the videos with captions as before.
+
+![](_assets/candela-rt-lockstitch-contact.png)
+
+*One frame of each scene of the reel, rendered by candela-rt.*
+
+
+## Part 10. The live workbench: candela-rt serve and the OptiX mode
+
+### Two builds of the same scene
+
+In the live mode the workbench keeps doing everything it did before. It builds each scene in the browser, shows diagnostics, answers picks and keeps the WebGPU renderer as preview and fallback. An "OptiX" toggle in the viewport toolbar adds a second consumer of the same inputs: `candela-rt serve`, a WebSocket server on the Spark. The server receives the scene's files, the param values, the camera and the clock. It builds the scene in its own V8 and streams back the frames it renders.
+
+The browser does not send buffers, a compiled program or an intermediate representation. Section 7 of the design document argued for this split: both sides run the same engine on the same sources, so the inputs are small and the outputs agree by construction. Each side computes a hash of its scene program (`compiled.shared`), and the server returns its hash with every build. Equal hashes mean both built the same program. If they differ, for example because the server runs an older engine bundle, the viewport shows "program differs".
+
+| Browser → server | Effect on the server |
+| --- | --- |
+| `files { files, params, time, seed }` | Build the scene; compile its program and display program (NVRTC, cached); make or reuse the renderer |
+| `param { id, value }` | Dynamic param: repack and restart accumulation. Static param: rebuild |
+| `view { view, width, height }` | Camera override from the workbench's navigation, and the image size |
+| `clock { t, playing, rate }` | Seek, or play: behaviours and animation step on the server's clock |
+
+The server answers with `built { ok, irHash, target, … }` and with frames. A frame is one binary WebSocket message: a four-byte header length, a small JSON header (scene time, samples, exposure, size) and the JPEG.
+
+### One thread for V8 and the GPU
+
+A V8 isolate must be entered from one thread at a time, and the GPU work of one session must run in order. The server therefore has a single session thread that owns the isolate, the CUDA context, the renderer, the display program and the JPEG encoder. IXWebSocket's own threads only push incoming messages onto a queue. The session thread alternates between draining the queue and rendering a batch:
+
+```text
+loop:
+    handle queued messages (parsed with V8's JSON.parse; scene logic in the JS session object)
+    if playing: t += real elapsed time × rate; seek(t, dt)        behaviours step here
+    upload buffers if the session's version changed
+    launch a batch of samples sized to about 20 ms (the batch size adapts)
+    meter exposure at 1, 8 and 32 samples after a scene, param or view change
+    send a frame if 100 ms have passed (every batch while playing)
+        display program → packed RGB on the GPU → nvJPEG → one binary message
+```
+
+The scene logic stays in JavaScript. `seek`, `setParam`, which reports whether a param needs a repack or a rebuild, and `setView` are methods of the same headless session object the render jobs use (Part 9). The C++ loop only decides when to call them. JPEG encoding uses nvJPEG on the display program's output, so the image never passes through host memory before compression. The display kernel writes packed RGB alongside RGBA for this purpose.
+
+### What it does on the Spark
+
+| Measurement | Result |
+| --- | --- |
+| B-02, connect to first frame (program cached) | 0.5 s in the browser; first frame 26 ms after `built` |
+| B-02, 960×540, to 2048 samples per pixel | about 1.5 s |
+| K-09 S-03 playing (OptiX + motion blur), 960×540 at 8 samples per frame | 33 frames per second, scene time advancing in real time |
+| Program hash, browser and server | equal for B-02 (`9318995807c81a63`) and K-09 (`f714741444cb697b`) |
+
+![](_assets/candela-rt-live-b02.png)
+
+*The workbench in OptiX mode. Left: server frames. Middle: after an orbit, the server renders the new camera. Right: back on the local WebGPU renderer at the same camera.*
+
+One comparison looked wrong at first. After a param change, the server's converged frame showed sharper reflections than the local WebGPU frame. The local frame had 93 samples, and below 512 samples the workbench applies its preview denoiser, which smooths glossy reflections. Past 600 samples the two frames look the same.
+
+The first frame of a new scene used to go out at the default exposure, before any metering, and the image flashed bright. The server now meters at the first sample. The viewport meters at 2, 8 and 32 samples, because it shows frames only after its own accumulation has started.
+
+### Limits of the first version
+
+- One client at a time: the last browser to send a message owns the session.
+- The workbench's engine override (Preview, Realtime) is not forwarded; the server renders the scene's own engine.
+- Dropped HDRIs and server-side render jobs from the Render dialog are not yet sent over the socket.
+- `--token` is a shared secret in the URL, adequate on a local network and not authentication.
+
 ## Measurements
 
 | Measurement | Embedded V8 10.2 (C++) | Node 26, `vm` context | Node 26, main context (tsx) |
@@ -578,9 +724,9 @@ Two rows need explanation. Node's `vm` contexts are about twenty times slower th
 
 ## Near-term next steps
 
-- The OptiX denoiser with albedo and normal guides, then shader execution reordering and built-in spheres for speed.
-- Render jobs (phase 4): image sequences, EXR output with AOVs, video through NVENC.
-- The live workbench (phase 5): the browser drives a candela-rt session on the Spark and receives its frames.
+- The OptiX denoiser with albedo and normal guides, for renders and for the live view (phase 6).
+- Shader execution reordering and built-in sphere primitives, measured per feature.
+- Render jobs from the workbench's Render dialog over the live connection; dropped HDRIs sent to the server.
 
 ## Important project docs and code
 
@@ -592,6 +738,8 @@ Two rows need explanation. Node's `vm` contexts are about twenty times slower th
 - Session: `src/engine/session.ts`, `tests/session.test.ts`, `candela-rt session` in `native/rt/src/main.cpp`
 - CUDA: `src/engine/wgsl2cuda.ts`, `src/engine/targets/cuda.ts`, `src/engine/headless.ts`, `native/rt/kernels/`, `native/rt/src/cuda_runner.{h,cpp}`; reference and checks `scripts/wgsl-render.ts`, `scripts/compare-pfm.ts`, `scripts/parity-sweep.ts`; diary step 14, evidence `various/15-*`
 - OptiX: `src/engine/targets/optix.ts`, `native/rt/kernels/candela_traversal.inc`, `candela_optix_programs.cuh`, `native/rt/src/optix_renderer.{h,cpp}`; diary step 16, evidence `various/16-*`
+- Render jobs: `src/engine/display.ts`, `src/engine/headless.ts`, `native/rt/kernels/candela_post*`, `native/rt/src/{post,image_io,renderer}.{h,cpp}`, `tools/lockstitch/render.ts --engine rt`; diary step 18, evidence `various/18-*`
+- Live mode: `native/rt/src/serve.cpp`, `native/rt/src/jpeg.{h,cpp}`, `src/app/remote.ts`, `scripts/live-client.ts`, `scripts/live-browser-check.ts`; diary step 19, evidence `various/19-*`
 
 ```sh
 npm run bundle:core
@@ -605,6 +753,8 @@ npm run test:session                                       # closed-form behavio
 npx tsx scripts/parity-sweep.ts --size 320x180 --spp 1     # 101/105 with >= 99 % of pixels within 0.1 %
 ./build/rt/candela-rt render K-09 --size 960x540 --spp 256 # --backend auto: OptiX here
 npx tsx scripts/parity-sweep.ts --backend optix --no-motion-blur --spp 64   # 104/105 look the same
+./build/rt/candela-rt render K-09 --param "scene=S-03 Rotary hook" --sequence --start 0 --end 1.9583 --spp 64 --size 1920x1080 --format mp4
+./build/rt/candela-rt serve                                  # then the workbench at http://bling.local:5173/ → OptiX
 ```
 
 ## Related notes
