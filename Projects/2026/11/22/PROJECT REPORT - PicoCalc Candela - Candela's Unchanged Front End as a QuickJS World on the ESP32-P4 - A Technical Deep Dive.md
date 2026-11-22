@@ -40,7 +40,7 @@ The brief asked for five things: a bytecode bundle loaded the way the firmware's
 ## Current project status
 
 - Ticket `PICOCALC-CANDELA-WORLD` in `/home/manuel/code/wesen/2026-10-20--ds-js-os/ttmp/2026/11/21/PICOCALC-CANDELA-WORLD--candela-s-javascript-front-end-as-a-quickjs-world-on-the-picocalc/` holds the as-built design (with the measurements and the FIRST-LIGHT checklist), the investigation diary, twelve scripts and the raw records of every run.
-- The code is on branch `worktree-agent-a5ffe016ff270b9ad` of the repository, not pushed. The last commit is `c6434a7`; the measured image was built from `c0bd0f3`.
+- The code is on branch `worktree-agent-a5ffe016ff270b9ad` of the repository, not pushed. The last commit is `990f38a`; the measured image was built from `c0bd0f3`, and the only later code change puts the nucleus additions behind the firmware flag.
 - The world is part of the firmware only with `-D PICOCALC_CANDELA_WORLD=ON`. The playable firmware is built without it, and it was restored and verified on the device after every measurement run.
 - The renderer is a stub. It validates what it receives and reports passes without drawing; FIRST-LIGHT replaces it.
 
@@ -201,7 +201,7 @@ A long segment reuses what the boot segment already does. A world whose manifest
   "budget_ms": 50, "long_ms": 4000, "mem_kb": 4096, "stack_kb": 56 }
 ```
 
-The nucleus changes are small. `long_ms` and `stack_kb` are new manifest fields; `vm_long_segment()` raises the running segment's interrupt budget and real-time deadline; the overrun message says "long segment" when one was granted; and each world now records its peak heap. `stack_kb` can only lower QuickJS's stack limit below the port's, which is 56 KB of the kernel task's 80 KB on the P4.
+The nucleus changes are small. `long_ms` and `stack_kb` are new manifest fields; `vm_long_segment()` raises the running segment's interrupt budget and real-time deadline; the overrun message says "long segment" when one was granted; and each world records its peak heap. `stack_kb` can only lower QuickJS's stack limit below the port's, which is 56 KB of the kernel task's 80 KB on the P4. Like the loader, these are compiled only with `PICOCALC_CANDELA_WORLD`: without the flag, the nucleus sources preprocess to exactly the text they had before, so the playable firmware is unchanged.
 
 The device then showed that re-packs need the same treatment for some scenes. A pack recomputes the BVH and, for every light, a Planck-times-colour-matching integral over 81 wavelengths, so its cost grows with objects and lights: 6.2 ms for B-01, 38-41 ms for M-03 and M-09, 377 ms for L-05. Before the change, M-03's slider used 49.1-49.7 ms of its 50 ms turn. `repack()` now asks for a long segment when the scene's last pack took more than 25 ms, half the turn budget. The first pack in a fresh runtime is up to 3.5 times slower than later ones (QuickJS builds object shapes and inline caches the first time code runs), so this forecast errs towards a long segment.
 
