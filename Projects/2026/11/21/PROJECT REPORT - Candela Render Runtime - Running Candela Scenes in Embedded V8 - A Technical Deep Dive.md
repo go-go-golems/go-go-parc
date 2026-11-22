@@ -29,6 +29,7 @@ The report assumes no prior knowledge of Candela, V8 or JavaScript engine embedd
 > - **Builds are deterministic.** Scene code now sees a seeded `Math.random`. Before the change one preset produced different data on every build, in any engine.
 > - **The refactor has a gate.** A golden test records those hashes for all presets. Every later step of the planned engine split must leave them unchanged.
 > - **Callbacks run in the native process.** The clock, behaviours and animation poses moved from the browser application into an engine class, `SceneSession`. `candela-rt session` steps every moving preset at 24 fps inside embedded V8, and each frame's buffers equal Node's.
+> - **The renderer runs as CUDA.** A translator turns each scene's WGSL program into CUDA C++, which NVRTC compiles and `candela-rt` runs. At one sample per pixel, 101 of 105 presets reproduce WebGPU's image on at least 99 % of pixels to within 0.1 %. With the same algorithm, the CUDA program is 1.9 to 7.3 times faster than WebGPU on the same GPU.
 
 ## Why this project exists
 
@@ -52,7 +53,8 @@ The design therefore puts a JavaScript engine inside the native renderer. The wh
 - `src/engine/digest.ts`, `scripts/core-digest.ts` and `tests/golden-pack.test.ts` implement the equality checks (commits `bb12bf3`, `9cf9c6e`).
 - Scene code's `Math.random` is seeded per build (commit `19f016a`).
 - The clock, behaviours and poses live in `src/engine/session.ts`; the browser and `candela-rt session` both use them (commit `76b75fd`).
-- Not started: the split of `compile`/`pack` into lowering and targets, the OptiX target, rendering in `candela-rt`, the live workbench. The ticket diary records each step (steps 11 to 13 for this report).
+- `src/engine/wgsl2cuda.ts` translates scene programs to CUDA; `candela-rt render` and `candela-rt cuda-sweep` compile them with NVRTC and run them (commits `1b79006`, `1780050`).
+- Not started: the OptiX target, the live workbench. The ticket diary records each step (steps 11 to 14 for this report). The code is on GitHub as PR #1 of `wesen/2026-11-21--pbr-spark`.
 
 ## Part 1. What it means to embed a JavaScript engine
 
@@ -346,6 +348,127 @@ compare with sess-v8.json: 6/6 identical frame by frame
 
 Every frame of every moving preset is identical between the two engines. A frame's JavaScript work, stepping the clock and the callbacks and packing the buffers, costs between 0.04 and 1.0 ms in the embedded engine. That cost is small next to rendering the frame on the GPU.
 
+## Part 7. Translating the renderer to CUDA
+
+### What is translated
+
+The program that draws a Candela scene is a WGSL compute shader. WGSL is the shading language of WebGPU. For each scene, the engine produces one program, `compiled.shared`, of between 1,450 and 2,050 lines. Most of it is the hand-written kernel, `src/engine/kernel.ts`: camera rays, intersection routines for every shape type, the traversal of Candela's bounding volume hierarchy (`traceAll`), light sampling and the path-tracing loop. The rest is generated for the scene: one function per material (`mat_0`, `mat_1`, …), signed-distance and height fields, and small dispatch functions that select among them.
+
+CUDA is NVIDIA's C++ dialect for GPU programs. NVRTC is NVIDIA's runtime compiler: a library that compiles CUDA source text to GPU machine code (a *cubin*) inside a running program, so `candela-rt` can compile a scene's program when the scene is built.
+
+The design document planned two dialects in the code generator, emitting WGSL for the browser and CUDA for the Spark, and a separate translation of the fixed kernel. The implementation translates the whole program text instead. The generator already emits a strict subset of WGSL, because the WebGL2 fallback translates the same text to GLSL with a 59-line rule set (`src/engine/wgsl2glsl.ts`). An inventory over all 105 presets confirmed the subset: every declaration carries a type, each struct member sits on its own line, functions are written `fn name(a: T) -> R {`, and there are no pointers, `switch` statements or generic types. A line-based translator is therefore enough:
+
+| WGSL | CUDA C++ |
+| --- | --- |
+| `const PI: f32 = 3.14159;` | `constexpr f32 PI = 3.14159f;` |
+| `let x: vec3f = e;` | `const vec3f x = e;` |
+| `var h: Hit;` (zero-initialised in WGSL) | `Hit h{};` |
+| `loop { … }` | `for (;;) { … }` |
+| `v.xyz` | `v.xyz()` |
+| `select(f, t, c)` | `((c) ? (t) : (f))` |
+| `1.0` (an abstract float) | `1.0f` (so no arithmetic is done in double precision) |
+| `var<private> rngS: u32 = 1u;` | a data member of `struct Kernel` |
+| `fn rnd() -> f32 { … }` | a `__device__` member function of `struct Kernel` |
+
+The last two rows need explanation. A WGSL `var<private>` variable is private to one invocation of the shader, which here means one pixel. The kernel keeps its random-number state (`rngS`), the current time and the wavelength in such variables. A global variable in CUDA is shared by all threads, so the translator cannot emit these as globals. It wraps the whole program in a struct, `Kernel`: the private variables become data members, every function becomes a member function, and each GPU thread constructs its own `Kernel` object. A side benefit is that member functions may call each other in any order, so no forward declarations are needed.
+
+WGSL's types and built-in functions keep their names. `native/rt/kernels/candela_wgsl.h` defines `f32`, `vec3f`, `dot`, `mix`, `clamp` and the rest inside a namespace, `wgsl`, and the translated program is placed in the same namespace. The namespace makes a call such as `max(a, b)` resolve to the header's definition instead of CUDA's global overloads, whose mixed-type versions would make calls ambiguous.
+
+### Two renderers for one program
+
+Testing a translation means running the original and the translation on identical inputs and comparing the outputs. Two renderers do this:
+
+- **The plain-CUDA target.** `candela-rt render <id>` asks the engine bundle for the scene's buffers and CUDA program, compiles the program with NVRTC, and launches it once per frame with that frame's uniforms. It keeps the translated `traceAll`, which walks Candela's own BVH, so the CUDA program does exactly what the WGSL program does. OptiX replaces `traceAll` only in the next phase, which keeps translation errors separate from OptiX integration errors.
+- **The reference.** `scripts/wgsl-render.ts` runs the unmodified WGSL program on Dawn, Google's WebGPU implementation, which the `webgpu` npm package makes available in Node. It uses the same buffers and the same per-frame uniforms (`src/engine/headless.ts`). Dawn drives the GPU through Vulkan, as Chrome does on Linux.
+
+```mermaid
+flowchart LR
+  S["scene files"] --> E["engine: build + pack<br/>(headless.ts)"]
+  E -->|"WGSL + buffers"| D["Dawn / Vulkan<br/>scripts/wgsl-render.ts"]
+  E -->|"wgsl2cuda → CUDA + buffers"| C["NVRTC + CUDA driver<br/>candela-rt render"]
+  D --> P1["B-01.wgsl.pfm"]
+  C --> P2["B-01.cuda.pfm"]
+  P1 --> X{"compare-pfm.ts:<br/>pixels within 0.1 %"}
+  P2 --> X
+  style X fill:#fde68a
+```
+
+The comparison relies on a property of the kernel. `renderPixel` seeds its random-number generator from the pixel's coordinates and the frame index, so both renderers draw the same random numbers for the same pixel. At one sample per pixel, each pixel is the result of exactly one light path. If the program is translated faithfully, every pixel agrees up to floating-point rounding. A pixel differs substantially only where rounding changes the outcome of a comparison, for example which material lobe a random number selects. The share of pixels that agree to 0.1 % therefore measures how often the translated program follows the same path as the original.
+
+### The first comparison: evaluation order
+
+The first render of B-01, a single sphere on a plane, looked identical to the reference, and its mean brightness differed by only 0.095 %. Only 27 % of its pixels agreed to 0.1 %, however, and the albedo of the first surface each camera ray hits differed on 22 % of the pixels at one sample. That albedo does not depend on rounding, so the two programs were taking different paths.
+
+![](_assets/candela-rt-b01-parity-before-sequencing.png)
+
+*B-01 before the fix, 64 samples per pixel: WebGPU (left), CUDA (middle), and their difference multiplied by ten (right). The sky agrees exactly; every surface pixel differs at the level of sampling noise.*
+
+The cause is a difference between the two languages. WGSL defines that the operands of an expression and the arguments of a call are evaluated from left to right, and that `select(f, t, c)` evaluates all three arguments. C++ leaves the order of function arguments unspecified, and its conditional operator `c ? t : f` evaluates only one branch. The order matters when an argument changes state, and the random-number functions do: every call to `rnd()` advances `rngS`. Two lines in the kernel depend on WGSL's rules:
+
+```wgsl
+let bs: BS = sampleLobe(L, woL, rnd2(), rnd());                 // C++ may call rnd() before rnd2()
+gTau = select(0.5, (f32(s) + rnd()) / f32(spp), U(24).y >= 2.0); // WGSL always calls rnd(); ?: skips it
+```
+
+The second line is the more damaging. When motion blur is off, the C++ version draws one random number fewer per sample than the WGSL version, so every later random number in the path is different.
+
+The translator now sequences these calls. It first finds the functions with side effects, by a fixed-point computation: a function is *impure* if it assigns a private variable, or calls an impure function. In the kernel these are `rnd`, `rnd2`, `traceAll` (which records the hit triangle in private variables) and everything that calls them, 13 functions in all. When a statement contains two calls to impure functions, or one inside a `select`, the translator moves the calls into temporaries in WGSL's order: arguments left to right, and a call's own arguments before the call.
+
+```cpp
+const auto _s1 = rnd2(); const auto _s2 = rnd(); const BS bs = sampleLobe(L, woL, _s1, _s2);
+const auto _s4 = rnd(); gTau = ((U(24).y >= 2.0f) ? ((f32(s) + _s4) / f32(spp)) : (0.5f));
+```
+
+Hoisting is only correct where the statement is evaluated unconditionally. The translator refuses, with an error, statements in which hoisting would change the program: an `else if` condition, a loop header, or an impure call on the right of `&&` or `||`. None occurs in the current kernel; a future edit that introduces one will fail translation instead of producing a subtly different renderer.
+
+After the change, B-01 agrees on 100 % of its pixels at one sample, with a relative RMSE of 0.00 %. At 1,024 samples, 99.9 % of pixels agree to 0.1 %.
+
+![](_assets/candela-rt-b01-parity-after-sequencing.png)
+
+*B-01 after the fix, one sample per pixel: the difference image (right) is black.*
+
+### The sweep, and what `sin` does to noise
+
+`scripts/parity-sweep.ts` renders all 105 presets with both renderers at 320×180 and one sample per pixel. The first sweep found 85 presets with at least 99 % of pixels agreeing to 0.1 %. Most of the other twenty share one feature: procedural noise. G-03, a terrain whose height comes from noise, was 17.5 % darker in CUDA.
+
+Candela's noise functions use a classic shader hash:
+
+```wgsl
+fn hash13(p: vec3f) -> f32 { return fract(sin(dot(p, vec3f(12.9898, 78.233, 37.719))) * 43758.5453); }
+```
+
+The hash multiplies the sine by 43,758 and keeps the fractional part. Any difference in the computed sine is multiplied by the same factor. CUDA's `sinf` is accurate to a few units in the last place for any argument. GPU hardware also has a fast approximate sine, available in CUDA as `__sinf`, whose documented maximum error is 2^-21.4 for arguments in [-π, π] and grows outside that range. The arguments here are dot products of positions with constants such as 78.233, so they reach the hundreds and thousands. At that size the two implementations differ by enough that the multiplied value changes its integer part, and `fract` returns an unrelated number. The noise pattern is then a different pattern.
+
+Replacing `sin` and `cos` in the header with `__sinf` and `__cosf` raised G-03 from 16 % to 83 % of matching pixels and removed its brightness error. This indicates that NVIDIA's Vulkan driver evaluates WGSL's `sin` with the approximate unit. NVRTC's `--use_fast_math` option applies the same approximation to sine, cosine, exponential, logarithm, power and division, and flushes single-precision denormal numbers to zero. With it, 101 of the 105 presets agree on at least 99 % of their pixels. The option does not assume that values are finite, so the kernel's tests for NaN keep working, and it also cuts NVRTC's compile time from 11.7 to 4.5 seconds per preset. It is now the default for the CUDA target.
+
+![](_assets/candela-rt-parity-residual-noise-presets.png)
+
+*The four presets that still differ, at one sample per pixel (WebGPU, CUDA, difference × 10): F-03 (Voronoi cells), F-04 (bump-mapped spheres), G-03 (terrain) and R-04 (desert). Geometry and cell boundaries agree; individual cells and texels take different hash values.*
+
+The remaining differences are hash values, not translation errors. They have a consequence beyond `candela-rt`: the browser's own noise patterns depend on how a GPU vendor implements `sin`, so the same scene already renders different marble veins on different GPUs. The kernel contains an integer hash, `pcgH`, which gives the same result on every device. Basing the noise functions on it would make noise identical everywhere, at the cost of changing the look of every noise preset once. That is a decision about the presets' appearance, recorded as an open question.
+
+Averages show no bias. At 64 samples per pixel, the mean luminance of every preset is within 0.3 % of WebGPU's, and the median difference over all presets is below 0.0001 %.
+
+### Measurements
+
+| Measurement | Result |
+| --- | --- |
+| Translation, per preset | 8–21 ms in V8; 1,442–2,059 lines of CUDA |
+| NVRTC compile, per preset (10 parallel threads, caches disabled) | IEEE math 11.7 s mean, 21.1 s max; fast math 4.5 s mean, 7.8 s max |
+| All 105 presets compiled and loaded | 48.5 s wall clock with fast math |
+| Registers and local memory per thread | 152–232 registers; at most 1,152 bytes |
+| Parity at 1 sample per pixel, 320×180 | 101/105 presets with ≥ 99 % of pixels within 0.1 % (85/105 with IEEE `sinf`) |
+| Parity at 64 samples per pixel | all 105 within 0.3 % in mean luminance |
+
+| Preset, 960×540, 256 samples per pixel | WebGPU (Dawn, Vulkan) | CUDA (translated) | Ratio |
+| --- | --- | --- | --- |
+| B-01, one sphere | 510 ms | 136 ms | 3.8× |
+| K-09, the sewing machine (meshes) | 5,496 ms | 1,014 ms | 5.4× |
+| X-02, 10,000 objects | 14,709 ms | 2,005 ms | 7.3× |
+| V-04, a volumetric cloud | 8,767 ms | 4,675 ms | 1.9× |
+
+Both columns run the same algorithm on the same data structures; only the compiler and the API differ. The causes of the gap were not profiled. It is a speed-up obtained before any use of the ray-tracing hardware, which the OptiX target adds next.
+
 ## Measurements
 
 | Measurement | Embedded V8 10.2 (C++) | Node 26, `vm` context | Node 26, main context (tsx) |
@@ -362,17 +485,21 @@ Two rows need explanation. Node's `vm` contexts are about twenty times slower th
 - **A hang that was not V8's.** The first full run produced no output and was killed after ten minutes. Each preset run on its own under `gdb` worked, with hashes equal to Node's, but two presets in one run spun at 100% CPU. Attaching `gdb` to the running process failed, because the kernel's Yama setting (`/proc/sys/kernel/yama/ptrace_scope` = 1) only allows a debugger to trace its own children. Running the program as `gdb`'s child and sending `SIGINT` to the program, not to `gdb`, stopped it and produced the backtrace: `std::string::find(',')` in `main.cpp:70`. The code that turned `--ids B-01,K-01` into a JSON array replaced every `,` with `","`, a string that itself contains a comma, so the loop never ended. A single id has no comma, which is why single presets worked. Splitting with `std::getline` fixed it.
 - **A plausible fix for the wrong cause.** Before the backtrace, the suspected cause was the promise loop, and the microtask policy was changed to `kExplicit`. It was not the cause, but it is the right policy for a host that drives promises itself, so it stayed, with a comment saying why.
 - **A slow reference.** The Node `vm` context's twenty-fold slowdown first looked like a problem with the bundle. Comparing with the main context located it in `vm`.
+- **A garbage-collected GPU instance.** After the Dawn renderer was refactored into a function that returned only the device, the process crashed with `SIGSEGV` or `std::system_error: Invalid argument`. The WebGPU instance object was no longer referenced once the function returned; when V8 collected it, Dawn destroyed the instance under the live device. Keeping the instance and adapter reachable fixed it.
+- **A compile time that was too good.** A repeated NVRTC sweep reported compile times of 40 to 400 ms. The CUDA driver keeps a compute cache in `~/.nv/ComputeCache`, and it also serves NVRTC results for identical source and options. The measurements above were taken with `CUDA_CACHE_DISABLE=1`.
 
 ## Open questions
 
 - Is V8 10.2 from `libnode` sufficient for the life of the project, or will a self-built current V8 be needed? `JsRuntime` keeps the dependency in one class.
 - The expression evaluator still uses the global `Math.random` for the `rand` operation (`src/engine/fx.ts:444`). No preset's digest changed because of it, but it is a remaining source of nondeterminism.
 - Scene code shares one random stream per build. Should each module get its own stream, keyed by its path, so that adding a `lib/` file does not shift `scene.js`'s values?
+- Should the noise functions use the integer hash `pcgH` instead of `fract(sin(x) * 43758.5453)`? Noise would become identical on every GPU and backend, and every noise preset would change its look once.
+- `--use_fast_math` is chosen to reproduce WebGPU on NVIDIA hardware. Should offline renders have an IEEE option for reference images?
 
 ## Near-term next steps
 
-- Split `compile` and `pack` into lowering and a WebGPU target; the browser keeps working, byte for byte.
-- Add the CUDA dialect to the code generator and translate the kernel; compile every preset's program with NVRTC.
+- Build the OptiX target: leave out the translated `traceAll`, add the traversal shim that calls `optixTrace`, and build OptiX acceleration structures from the pack data.
+- Repeat the parity sweep with OptiX against WebGPU, and measure the speed-up of path tracing on the ray-tracing cores.
 
 ## Important project docs and code
 
@@ -382,6 +509,7 @@ Two rows need explanation. Node's `vm` contexts are about twenty times slower th
 - Bundle and checks: `src/engine/core.ts`, `scripts/bundle-core.ts`, `src/engine/digest.ts`, `scripts/core-digest.ts`, `tests/golden-pack.test.ts`
 - Determinism: `src/engine/candela.ts` (`sceneMath`, `seedSceneRandom`), `src/engine/scene.ts` (`noteSceneRandom`, `withBuildLambda`)
 - Session: `src/engine/session.ts`, `tests/session.test.ts`, `candela-rt session` in `native/rt/src/main.cpp`
+- CUDA: `src/engine/wgsl2cuda.ts`, `src/engine/targets/cuda.ts`, `src/engine/headless.ts`, `native/rt/kernels/`, `native/rt/src/cuda_runner.{h,cpp}`; reference and checks `scripts/wgsl-render.ts`, `scripts/compare-pfm.ts`, `scripts/parity-sweep.ts`; diary step 14, evidence `various/15-*`
 
 ```sh
 npm run bundle:core
@@ -391,6 +519,8 @@ npx tsx scripts/core-digest.ts --compare /tmp/v8.json      # 105/105 identical
 npm run test:golden                                        # 105/105 identical
 npm run test:session                                       # closed-form behaviours, session = viewport
 ./build/rt/candela-rt session --json /tmp/s.json && npx tsx scripts/core-digest.ts --session --compare /tmp/s.json
+./build/rt/candela-rt cuda-sweep                           # 105/105 compiled and loaded
+npx tsx scripts/parity-sweep.ts --size 320x180 --spp 1     # 101/105 with >= 99 % of pixels within 0.1 %
 ```
 
 ## Related notes
@@ -400,4 +530,4 @@ npm run test:session                                       # closed-form behavio
 
 ## Project working rule
 
-Prove sameness before speed. The engine moves into a new host only after the host has been shown to produce, byte for byte, what the browser produces for every preset. Every refactoring step after this one is finished only when the golden test still reports 105 of 105.
+Prove sameness before speed. The engine moves into a new host only after the host has been shown to produce, byte for byte, what the browser produces for every preset. Every refactoring step after this one is finished only when the golden test still reports 105 of 105. A new back end is finished only when it renders every preset as the browser does, pixel for pixel where the arithmetic allows it.
