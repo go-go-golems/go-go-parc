@@ -28,6 +28,7 @@ The report assumes no prior knowledge of Candela, V8 or JavaScript engine embedd
 > - **The output is identical across engines.** For every preset, the generated GPU program and every data buffer the engine writes at three moments in time hash to the same values in V8 10.2 embedded in C++ and in Node 26: 105 of 105.
 > - **Builds are deterministic.** Scene code now sees a seeded `Math.random`. Before the change one preset produced different data on every build, in any engine.
 > - **The refactor has a gate.** A golden test records those hashes for all presets. Every later step of the planned engine split must leave them unchanged.
+> - **Callbacks run in the native process.** The clock, behaviours and animation poses moved from the browser application into an engine class, `SceneSession`. `candela-rt session` steps every moving preset at 24 fps inside embedded V8, and each frame's buffers equal Node's.
 
 ## Why this project exists
 
@@ -50,7 +51,8 @@ The design therefore puts a JavaScript engine inside the native renderer. The wh
 - `src/engine/core.ts` and `scripts/bundle-core.ts` produce the engine bundle `dist-core/candela-core.js`.
 - `src/engine/digest.ts`, `scripts/core-digest.ts` and `tests/golden-pack.test.ts` implement the equality checks (commits `bb12bf3`, `9cf9c6e`).
 - Scene code's `Math.random` is seeded per build (commit `19f016a`).
-- Not started: the engine split into front end and targets, the OptiX target, rendering in `candela-rt`, the live workbench. The ticket diary records each step (steps 11 and 12 for this milestone).
+- The clock, behaviours and poses live in `src/engine/session.ts`; the browser and `candela-rt session` both use them (commit `76b75fd`).
+- Not started: the split of `compile`/`pack` into lowering and targets, the OptiX target, rendering in `candela-rt`, the live workbench. The ticket diary records each step (steps 11 to 13 for this report).
 
 ## Part 1. What it means to embed a JavaScript engine
 
@@ -293,6 +295,57 @@ The next phase of the design splits Candela's `compile()` and `pack()` functions
 
 `tests/golden-pack.test.ts` turns that requirement into a test. It records, for all 105 presets, the same digests the cross-engine check uses (the WGSL and every `pack` buffer at three times, with the viewport's exact `env`), in `tests/golden/pack-digests.json`. A run takes 8 seconds. The baseline was committed before any engine file changed (commit `9cf9c6e`). The only re-recording since then was D-02's, deliberately, when its output became deterministic. From here on, a refactoring step is finished when `npm run test:golden` reports 105/105.
 
+## Part 6. Callbacks in the native process: SceneSession
+
+### Where the clock lived
+
+Three pieces of code decide what a moving scene looks like at time *t*, and before this step none of them were in the engine:
+
+- `Viewport.posesFor(t)` (`src/engine/viewport.ts`) called the scene's `animation(t)` and merged poses pushed from outside, such as those an external animation tool sends.
+- `Viewport.repack(t)` built the `env` for `pack`: poses, behaviour overrides, the seed, and the extra pose sets for motion blur.
+- `Host.runBehaviors(dt)` and `Host.seek(t, dt)` (`src/app/host.ts`) ran each `.behavior()` callback, kept its state, and reset that state when the clock went backwards.
+
+`Host` is the browser application's state object, so a native process could not use any of this. `src/engine/session.ts` now holds that code, moved without changes, as plain functions (`posesAt`, `makePackEnv`, `stepBehaviors`). The viewport and the host call those functions instead of their own copies, which keeps one implementation. A class, `SceneSession`, assembles them for hosts without a browser:
+
+```ts
+const s = new SceneSession({ seed: 0 });
+await s.build(files);                  // build(files, { seed }), keeps compiled + animation + behaviours
+for (let f = 0; f < 48; f++) {
+  s.seek(f / 24, f ? 1 / 24 : 0);      // behaviours step by dt; seeking back with dt = 0 resets their state
+  const P = s.pack();                  // animation(t) + behaviour overrides + seed + motion samples → buffers
+}
+```
+
+### Checking it against closed forms
+
+The preset W-01 animates three objects with behaviours that have exact solutions. A ball bounces on a parabola with period $\sqrt{8h/g}$. A pendulum swings with angle $\theta_0\cos(\sqrt{g/L}\,t)$. A spinning top accumulates `rotation.y += 8·dt`. `tests/session.test.ts` steps a session 48 frames at 24 fps. It reads each object's position back out of the buffers `pack` produced: the object records hold world-to-object matrices in BVH order, so the test maps each record back to its object id and inverts the matrix. It then compares the positions with the formulas. The largest error over all frames is $5.8\times10^{-8}$ metres, which is float32 rounding. The top's rotation matches exactly.
+
+Two more checks complete the test. For K-09, a session's `pack` at t = 0, 0.37 and 1.5 hashes identically to the viewport-style `pack` the golden test uses. For D-02, two sessions with the same seed produce the same objects and a different seed produces different ones. The golden test remained at 105/105 after the move. A render of W-01 through the real workbench on the GPU shows the behaviours still driving the browser:
+
+![](_assets/candela-rt-w01-behaviours-strip.png)
+
+*W-01 rendered by the workbench on WebGPU after the refactor: frames 0, 6 and 12 at 12 fps. The ball (red) and the pendulum bob (brass) are driven by `.behavior()` callbacks.*
+
+### The same frames in C++
+
+The engine bundle now exports `SceneSession`, and `candela-rt session` steps every preset that moves, meaning those with behaviours or an `animation` export, inside embedded V8. Each frame's uniforms, object records and dynamic scene data are digested. The Node side, `scripts/core-digest.ts --session`, does the same in a `vm` context:
+
+```text
+$ ./build/rt/candela-rt session --json sess-v8.json
+V8 10.2.154.26-node.28; 48 frames at 24 fps per moving preset
+  W-01   behaviours 3  animated no     last O 05d2d0a58f62130f  0.127 ms/frame
+  K-01   behaviours 0  animated yes    last O a21e801590fb2543  1.025 ms/frame
+  K-02   behaviours 0  animated yes    last O 6481e714f5f22310  0.277 ms/frame
+  K-07   behaviours 0  animated yes    last O b76a00ced87b4827  0.039 ms/frame
+  K-08   behaviours 0  animated yes    last O 9b9bfa7ab5ed8976  0.320 ms/frame
+  K-09   behaviours 0  animated yes    last O c495b2a1e4569c7c  0.601 ms/frame
+6/6 moving presets stepped
+$ npx tsx scripts/core-digest.ts --session --compare sess-v8.json
+compare with sess-v8.json: 6/6 identical frame by frame
+```
+
+Every frame of every moving preset is identical between the two engines. A frame's JavaScript work, stepping the clock and the callbacks and packing the buffers, costs between 0.04 and 1.0 ms in the embedded engine. That cost is small next to rendering the frame on the GPU.
+
 ## Measurements
 
 | Measurement | Embedded V8 10.2 (C++) | Node 26, `vm` context | Node 26, main context (tsx) |
@@ -318,7 +371,6 @@ Two rows need explanation. Node's `vm` contexts are about twenty times slower th
 
 ## Near-term next steps
 
-- Move the clock, behaviours and poses into an engine `SceneSession` class, gated by the golden test, with W-01, K-09 and B-02 exercising behaviours, animation and derived params.
 - Split `compile` and `pack` into lowering and a WebGPU target; the browser keeps working, byte for byte.
 - Add the CUDA dialect to the code generator and translate the kernel; compile every preset's program with NVRTC.
 
@@ -329,6 +381,7 @@ Two rows need explanation. Node's `vm` contexts are about twenty times slower th
 - Runtime: `native/rt/src/js_runtime.{h,cpp}`, `native/rt/src/main.cpp`, `native/rt/CMakeLists.txt`
 - Bundle and checks: `src/engine/core.ts`, `scripts/bundle-core.ts`, `src/engine/digest.ts`, `scripts/core-digest.ts`, `tests/golden-pack.test.ts`
 - Determinism: `src/engine/candela.ts` (`sceneMath`, `seedSceneRandom`), `src/engine/scene.ts` (`noteSceneRandom`, `withBuildLambda`)
+- Session: `src/engine/session.ts`, `tests/session.test.ts`, `candela-rt session` in `native/rt/src/main.cpp`
 
 ```sh
 npm run bundle:core
@@ -336,6 +389,8 @@ cmake -G Ninja -S native/rt -B build/rt && ninja -C build/rt
 ./build/rt/candela-rt digest --json /tmp/v8.json
 npx tsx scripts/core-digest.ts --compare /tmp/v8.json      # 105/105 identical
 npm run test:golden                                        # 105/105 identical
+npm run test:session                                       # closed-form behaviours, session = viewport
+./build/rt/candela-rt session --json /tmp/s.json && npx tsx scripts/core-digest.ts --session --compare /tmp/s.json
 ```
 
 ## Related notes
