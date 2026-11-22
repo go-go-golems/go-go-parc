@@ -30,6 +30,7 @@ The report assumes no prior knowledge of Candela, V8 or JavaScript engine embedd
 > - **The refactor has a gate.** A golden test records those hashes for all presets. Every later step of the planned engine split must leave them unchanged.
 > - **Callbacks run in the native process.** The clock, behaviours and animation poses moved from the browser application into an engine class, `SceneSession`. `candela-rt session` steps every moving preset at 24 fps inside embedded V8, and each frame's buffers equal Node's.
 > - **The renderer runs as CUDA.** A translator turns each scene's WGSL program into CUDA C++, which NVRTC compiles and `candela-rt` runs. At one sample per pixel, 101 of 105 presets reproduce WebGPU's image on at least 99 % of pixels to within 0.1 %. With the same algorithm, the CUDA program is 1.9 to 7.3 times faster than WebGPU on the same GPU.
+> - **Rays are traced on the RT cores.** An OptiX target replaces one function of the translated program, the scene traversal, with hardware ray tracing. 104 of 105 presets look the same as in the WebGPU workbench, and scenes with meshes or many objects render 7 to 13 times faster than WebGPU.
 
 ## Why this project exists
 
@@ -54,7 +55,8 @@ The design therefore puts a JavaScript engine inside the native renderer. The wh
 - Scene code's `Math.random` is seeded per build (commit `19f016a`).
 - The clock, behaviours and poses live in `src/engine/session.ts`; the browser and `candela-rt session` both use them (commit `76b75fd`).
 - `src/engine/wgsl2cuda.ts` translates scene programs to CUDA; `candela-rt render` and `candela-rt cuda-sweep` compile them with NVRTC and run them (commits `1b79006`, `1780050`).
-- Not started: the OptiX target, the live workbench. The ticket diary records each step (steps 11 to 14 for this report). The code is on GitHub as PR #1 of `wesen/2026-11-21--pbr-spark`.
+- `src/engine/targets/optix.ts`, `native/rt/src/optix_renderer.cpp` and the device programs in `native/rt/kernels/` form the OptiX target; `candela-rt render --backend auto` chooses between it and plain CUDA (commits `9ebcbee`, `7891b77`).
+- Not started: render jobs (sequences, video), the live workbench. The ticket diary records each step (steps 11 to 17 for this report). The code is on GitHub as PR #1 of `wesen/2026-11-21--pbr-spark`, reviewed once by Codex (five findings, all fixed in `6e05a36`).
 
 ## Part 1. What it means to embed a JavaScript engine
 
@@ -469,6 +471,84 @@ Averages show no bias. At 64 samples per pixel, the mean luminance of every pres
 
 Both columns run the same algorithm on the same data structures; only the compiler and the API differ. The causes of the gap were not profiled. It is a speed-up obtained before any use of the ray-tracing hardware, which the OptiX target adds next.
 
+## Part 8. Tracing rays on the RT cores with OptiX
+
+### One function changes
+
+An OptiX program is a set of GPU functions with fixed roles. A *ray-generation* program starts the work for each pixel. When it calls `optixTrace`, OptiX walks an acceleration structure on the RT cores, the GPU's fixed-function ray-tracing units. Along the way it may call an *intersection* program for primitives it cannot intersect itself. Finally it calls a *closest-hit* program for the nearest hit, or a *miss* program if nothing was hit. Data passes between them in up to 32 *payload* registers.
+
+The translated Candela program already contains a complete path tracer. Its only scene query is `traceAll(ro, rd, tmax, shadow)`, which returns the nearest object hit along a ray and walks Candela's own BVH to find it. The OptiX target replaces exactly that function and keeps its contract. The rest of the translated program, including surface details, materials, lights and the path loop, runs unchanged inside the ray-generation program. The contract has one subtle part. For a triangle hit, the WGSL code records which triangle record was hit and where (`gTri` and the barycentric coordinates `gBary`), and `finishHit` later reads normals and texture coordinates from that record. The OptiX version must record the same values.
+
+The engine turns the packed scene into OptiX build inputs (`src/engine/targets/optix.ts`):
+
+| Candela object | OptiX structure | How the hit is reported |
+| --- | --- | --- |
+| Triangle mesh | One geometry acceleration structure (GAS) per mesh definition, triangles in the order of Candela's triangle records | Closest-hit program returns the instance id (the object's index) and primitive index *k*; the shim sets `gTri = triBase + 7k` |
+| Each mesh object | One instance in the instance acceleration structure (IAS), with the object's matrix at the frame time | Instance id = object index; a visibility mask lets shadow rays skip glowing objects |
+| Analytic shape (sphere, box, disc, SDF shape, …) | One custom primitive in a shared GAS, its box the world box `pack` already computes | Intersection program runs the translated `hitObj` on the world ray |
+| Infinite plane | Nothing: it has no box | The shim tests it in a loop before calling `optixTrace`, as `traceAll` did |
+
+The replacement `traceAll` is twenty lines of CUDA (`native/rt/kernels/candela_traversal.inc`):
+
+```cpp
+__device__ TraceR traceAll(vec3f ro, vec3f rd, f32 tmax, bool shadow) {
+  TraceR r{}; r.t = tmax; r.obj = -1;
+  for (i32 i = nB; i < nObj; i++) { /* unbounded planes: hitObj, as in WGSL */ }
+  if (nB == 0 || (shadow && r.obj >= 0)) return r;          // occluded() only asks whether anything was hit
+  unsigned p0 = __float_as_uint(r.t), p1 = ~0u, p2 = ~0u, p3 = 0, p4 = 0,
+           p5 = __float_as_uint(gTau), p6 = __float_as_uint(gTime), p7 = shadow;
+  optixTrace(params.ias, ro, rd, EPS, r.t, 0.0f, shadow ? MASK_SHADOW : MASK_ALL,
+             shadow ? OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT : OPTIX_RAY_FLAG_NONE, 0, 1, 0, p0, …, p7);
+  if (p1 != ~0u) { r.t = __uint_as_float(p0); r.obj = p1;
+                   if (p2 != ~0u) { gTri = triBase(r.obj) + 7 * p2; gBary = vec2f(p3, p4); } }
+  return r;
+}
+```
+
+Two details deserve explanation. The ray's minimum distance is `EPS`, because the WGSL mesh intersection ignores hits closer than that; with the same bound OptiX's triangle hits satisfy the same rule. And the intersection program runs outside the ray-generation program's `Kernel` object, so the per-thread values `hitObj` needs, the shutter time `gTau` for moving objects and the scene time `gTime` for animated fields, travel in payload registers.
+
+### What "the same" means now
+
+The first OptiX renders reproduced WebGPU closely: B-01 on 100 % of its pixels at one sample, K-09 on 99.9 %, so the triangle records and barycentrics come out right. X-02, with 10,000 small spheres, agreed on only 91.6 % of its pixels, although its first hits agreed on 99.9 % and its 64-sample average to 0.006 %. The intersection program is compiled by OptiX's own backend from OptiX-IR, so its floating-point arithmetic is not bit-identical to the CUDA cubin, and secondary rays that graze a sphere's silhouette go different ways.
+
+At this point the project's owner set the bar explicitly: the WebGPU workbench was a first prototype, and candela-rt may differ from it, and should use OptiX's improvements, as long as renders do not look different. Parity is therefore measured on what is displayed. Both images are tone-mapped with the same exposure, averaged over 8×8-pixel blocks, and compared; a preset *looks the same* when the blocks agree to 2 % of white. Linear metrics were misleading here, because a few fireflies dominate them. X-03's sun glint on its ocean gave a linear block difference of 584 % for two images that look identical; its displayed difference is 0.34 %.
+
+![](_assets/candela-rt-optix-k09-parity.png)
+
+*K-09 at 64 samples per pixel: WebGPU (left), OptiX (middle), difference × 10 (right).*
+
+![](_assets/candela-rt-optix-x03-parity.png)
+
+*X-03: the planet's noise terrain and the sun glint on the sea differ in single pixels, not in appearance.*
+
+By that measure, 104 of the 105 presets look the same on OptiX. The exception is F-03, whose Voronoi cells take different colours because of the sine-based hash described in Part 7.
+
+### The register limit and the choice of backend
+
+The first timings were disappointing. OptiX was slower than the plain-CUDA target on every scene except X-02, including the mesh scene K-09 (2.9 s against 1.0 s at 960×540 and 256 samples per pixel). The cause was a compile option. OptiX limits each program to 128 registers by default. The ray-generation program holds the whole path tracer, whose state must survive each `optixTrace` call, and at 128 registers that state spills to memory. At 255 registers K-09 renders in 0.75 s. That is faster than plain CUDA, and seven times faster than WebGPU.
+
+| Preset, 960×540, 256 spp | WebGPU (Dawn) | Plain CUDA | OptiX, 255 registers | `--backend auto` |
+| --- | --- | --- | --- | --- |
+| B-01, one sphere and a plane | 516 ms | 141 ms | 422 ms | 136 ms (CUDA) |
+| K-09, 34 meshes, 23,701 triangles | 5,201 ms | 973 ms | 741 ms | 747 ms (OptiX) |
+| X-02, 10,000 spheres | 14,829 ms | 2,001 ms | 1,144 ms | 1,146 ms (OptiX) |
+| V-04, a volumetric cloud | 8,110 ms | 4,671 ms | 8,295 ms | 4,668 ms (CUDA) |
+
+The table shows where ray tracing hardware helps a path tracer structured this way. Each `optixTrace` costs a save and restore of the ray-generation program's live state, and each analytic object is a separate intersection-program call. The hardware wins when traversal dominates, with triangle meshes or thousands of objects. It loses for a handful of analytic objects, where the plain-CUDA target walks a tiny BVH inline. V-04 spends its time in noise evaluations for the cloud, which OptiX's compiler handles less efficiently than NVRTC's cubin. Keeping the BVH walk inside the OptiX program for small scenes was tried; it helped B-01 but made the larger program slower on K-09, and was reverted. Instead `candela-rt render --backend auto`, the default, chooses per scene: OptiX when the scene has meshes or more than 64 analytic objects, plain CUDA otherwise.
+
+### Which parts of OptiX are in use
+
+| In use | Not yet used |
+| --- | --- |
+| Hardware BVH traversal on the RT cores (GAS per mesh, single-level IAS with instance transforms) | The AI denoiser, the largest visible improvement at low sample counts |
+| Hardware triangle intersection | Shader execution reordering (`optixTraverse`, `optixReorder`, `optixInvoke`), which regroups divergent rays |
+| Custom primitives with an intersection program (Candela's `hitObj`) | Built-in sphere primitives in place of the generic intersection program |
+| Visibility masks; terminate-on-first-hit shadow rays | Motion transforms and motion acceleration structures (moving meshes are unblurred) |
+| Acceleration-structure compaction | Refitting acceleration structures for animation instead of rebuilding |
+| Run-time compilation: NVRTC → OptiX-IR → OptiX module, with OptiX's disk cache | Opacity and displacement micromaps, cluster acceleration structures, cooperative vectors |
+
+Compile time is the cost of 255 registers. NVRTC produces OptiX-IR in 2 s on average, and OptiX then compiles it to machine code in 8 to 17 seconds on first use. Later uses of the same program come from OptiX's disk cache in about 12 ms. That is acceptable for offline renders. For live structural edits in the planned workbench it is the next thing to measure.
+
 ## Measurements
 
 | Measurement | Embedded V8 10.2 (C++) | Node 26, `vm` context | Node 26, main context (tsx) |
@@ -498,8 +578,9 @@ Two rows need explanation. Node's `vm` contexts are about twenty times slower th
 
 ## Near-term next steps
 
-- Build the OptiX target: leave out the translated `traceAll`, add the traversal shim that calls `optixTrace`, and build OptiX acceleration structures from the pack data.
-- Repeat the parity sweep with OptiX against WebGPU, and measure the speed-up of path tracing on the ray-tracing cores.
+- The OptiX denoiser with albedo and normal guides, then shader execution reordering and built-in spheres for speed.
+- Render jobs (phase 4): image sequences, EXR output with AOVs, video through NVENC.
+- The live workbench (phase 5): the browser drives a candela-rt session on the Spark and receives its frames.
 
 ## Important project docs and code
 
@@ -510,6 +591,7 @@ Two rows need explanation. Node's `vm` contexts are about twenty times slower th
 - Determinism: `src/engine/candela.ts` (`sceneMath`, `seedSceneRandom`), `src/engine/scene.ts` (`noteSceneRandom`, `withBuildLambda`)
 - Session: `src/engine/session.ts`, `tests/session.test.ts`, `candela-rt session` in `native/rt/src/main.cpp`
 - CUDA: `src/engine/wgsl2cuda.ts`, `src/engine/targets/cuda.ts`, `src/engine/headless.ts`, `native/rt/kernels/`, `native/rt/src/cuda_runner.{h,cpp}`; reference and checks `scripts/wgsl-render.ts`, `scripts/compare-pfm.ts`, `scripts/parity-sweep.ts`; diary step 14, evidence `various/15-*`
+- OptiX: `src/engine/targets/optix.ts`, `native/rt/kernels/candela_traversal.inc`, `candela_optix_programs.cuh`, `native/rt/src/optix_renderer.{h,cpp}`; diary step 16, evidence `various/16-*`
 
 ```sh
 npm run bundle:core
@@ -521,6 +603,8 @@ npm run test:session                                       # closed-form behavio
 ./build/rt/candela-rt session --json /tmp/s.json && npx tsx scripts/core-digest.ts --session --compare /tmp/s.json
 ./build/rt/candela-rt cuda-sweep                           # 105/105 compiled and loaded
 npx tsx scripts/parity-sweep.ts --size 320x180 --spp 1     # 101/105 with >= 99 % of pixels within 0.1 %
+./build/rt/candela-rt render K-09 --size 960x540 --spp 256 # --backend auto: OptiX here
+npx tsx scripts/parity-sweep.ts --backend optix --no-motion-blur --spp 64   # 104/105 look the same
 ```
 
 ## Related notes
