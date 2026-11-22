@@ -28,7 +28,7 @@ The report is written for a reader who programs but has not worked in either cod
 > - **Names survive rendering.** jig exports a CAD package whose 1,124 lockstitch faces carry the same persistent names jig uses (`rod#body/side[s.big]`). A click in the path-traced view resolves to the same face the stage selects.
 > - **Metadata, not materials.** jig infers a machining process from the feature that made each face: a revolve is turned about its axis, a hole is ground, an extrude is milled. It ships that metadata rather than a Candela material. Candela's `autoFinish` turns metadata into anisotropic grooves about the exact axis, so a material change in the Render view stays a metadata patch.
 > - **A bridge, not an exporter.** The jig side of Candela is one library module, `jigScene()`, sent with the scene's own files. Candela's core needed a single upstream change: path-shaped ids.
-> - **Measured.** 13 browser checks pass on an Intel Iris Xe GPU through ANGLE on Vulkan. The lockstitch comparison agrees with the converter's cylinder fits to 5e-5 mm. Content-keyed caching cut a pose change on the 171k-triangle planetary gearbox from 3.4 s to 19 ms of export and from 1.5 s to 89 ms of scene build.
+> - **Measured.** 14 browser checks pass on an Intel Iris Xe GPU through ANGLE on Vulkan. The lockstitch comparison agrees with the converter's cylinder fits to 5e-5 mm. Content-keyed caching cut a pose change on the 171k-triangle planetary gearbox from 3.4 s to 19 ms of export and from 1.5 s to 89 ms of scene build.
 
 ## Why this project exists
 
@@ -51,7 +51,8 @@ The work lives on branch `jig-016-render` of `/home/manuel/code/wesen/go-go-gole
 | 4 | Study poses; timeline; render jobs; drive following; motion blur | done |
 | 5 | `candela-rt` as a supervised sidecar behind `/rt` in `jigcad serve` | server side done, tested against a fake `candela-rt`; the Render view does not yet connect to `/rt` |
 | — | `.finish()` on assemblies; caching between compiles; lockstitch comparison | done |
-| — | The Compur shutter preset with poses baked from its own simulation | in progress on a branch |
+| — | The Compur shutter preset (M-11) with poses baked from its own simulation | done, rendered in Chromium |
+| — | One material per tool axis line; look files kept out of the model's compile | done |
 | 6 | Merging the pbr-spark repository into jig; CI on an NVIDIA runner | deferred until the OptiX work settles |
 
 Nothing has been pushed. The Candela change that jig vendors is commit `38fc068` on a local pbr-spark branch, `jig-016-path-ids`. Both pushes wait for a decision by the repository owner.
@@ -337,7 +338,7 @@ The view now detects `backend.lost` and shows an error with two buttons. Restart
 
 ### What the browser test checks
 
-`test/ui/render.cjs` drives the workbench with Playwright. It loads F-06, opens the Render tab and runs 13 checks, all passing on WebGPU. The first six also passed on WebGL2 (`RENDER_BACKEND=webgl2`) before the later checks were added.
+`test/ui/render.cjs` drives the workbench with Playwright. It loads F-06, opens the Render tab and runs 14 checks, all passing on WebGPU. The first six also passed on WebGL2 (`RENDER_BACKEND=webgl2`) before the later checks were added.
 
 | Check | Result |
 |---|---|
@@ -346,6 +347,7 @@ The view now detects `backend.lost` and shows an error with two buttons. Restart
 | The crank-pin bore is on screen and a click names it | `rod#body/side[s.big]` |
 | The stage selects the same face | `{ name: "body/side[s.big]", body: 2 }` |
 | Brass writes one `.meta()` line and the view rebuilds | `.meta("rod#body/side[s.big]", { material: "brass", finish: null })` |
+| The look edit leaves the model clean (no Run needed) | `dirty: false` |
 | The timeline moves the rod | packed transform differs between t = 0 and t = 1 |
 | A drive override moves the timeline at once and after the compile | t = 1, then 0.9999999999998 |
 | A drag on the stage poses the view live and lets go | drag `crank:pin`: moved, placed (1e-4), released |
@@ -425,16 +427,50 @@ Candela on NVIDIA runs as `candela-rt`, a C++ program that embeds V8 and renders
 
 The design guide had proposed a `candela-rt info` probe and a `/renders/` file proxy. The build needs neither. Readiness is the port accepting connections, and the browser learns the device from `candela-rt`'s own `hello` message. `candela-rt serve` has no job or file endpoint yet, so offline jobs through the sidecar remain future work. The Render view does not connect to `/rt` yet: Candela's remote-rendering client still has to move into the bundle jig loads. Today the sidecar is reachable but unused by the view. The Go tests use a fake `candela-rt` (`pkg/render/rendertest`), because the laptop has no NVIDIA GPU.
 
-## Part 10. The Compur shutter (in progress)
+## Part 10. The Compur shutter: poses from an outside engine
 
-The Synchro-Compur 0-MXV is a leaf shutter, modelled in a separate project as a 29-part jig assembly. Its dynamics come from a planar multibody simulation of its own (`web/sim.js`), not from a jig study. It is the test case for poses from an outside engine. At the time of writing, a branch holds two commits that have not yet been reviewed or merged. The description below comes from those commits.
+The Synchro-Compur 0-MXV is a leaf shutter, modelled in a separate project as a 29-part jig assembly. Its dynamics come from a planar multibody simulation of its own (`web/sim.js`): springs, contacts and an escapement, not a jig study. It is the test case for poses that come from outside jig. It is now preset `M-11-synchro-compur`:
 
-- **Preset `M-11-synchro-compur`.** The assembly script, 61 KB, dressed in the materials its comments state.
-- **`tools/compur-poses.mjs`.** It runs one 1/125 s release in the simulation, sampled at 24 kHz for 20 ms. It maps each simulated body to the jig component of the same name and writes `compur-poses.look.js`, 71 KB with 481 samples and 17 components. Per component, the file holds a pivot, plus an angle about jig Z and a pivot translation per sample, relative to the drawn pose.
-- **The preset's `look.js`.** It lifts those planar motions to the package frame ($C M C^{-1}$; a turn about jig +Z is a turn about Candela +Y), composes them with each component's placement, and exports `animation`. The animation runs half a second at rest, then the release slowed 250×, then a second at rest.
-- **`test/render/compur.test.mjs`.** It checks the baked pivots against jig's joints and the cocked start against the assembly's placement. It also checks that Candela's packed blades move between two times while the plates do not.
+- `script.js` (61 KB) is the generated assembly, with each part's material from its source comments and coats where the drawing's colour says the metal is coated: the housing painted, the blades black-oxide, the plates nickel.
+- `tools/compur-poses.mjs` runs one 1/125 s release in the simulation and samples it at 24 kHz for 20 ms. It maps each simulated body to the jig component of the same name; the pallet rides on its control lever, as the project's own workbench does it. It writes `compur-poses.look.js`: 72 KB, 481 samples, 17 moving components. Per component the file holds a pivot, and per sample an angle about jig Z and a translation of the pivot, relative to the drawn pose. Constant channels are stored as single numbers.
+- The preset's `look.js` imports that file. It lifts each planar motion to the package frame ($C\,R_z\,C^{-1}$; a turn about jig +Z is a turn about Candela +Y) and composes it with the component's placement, which gives the same shape `posesAt` returns. Its `animation` holds the shutter at rest for 0.5 s, plays the release 250× slower over 5 s, and rests for 1 s. A `CUTAWAY` switch leaves out the cover, speed ring and cocking parts.
+- `test/render/compur.test.mjs` has 9 tests. They check:
+  - each baked pivot against jig's joint;
+  - the lift against `toCandelaMatrix`;
+  - the cocked start against the assembly's placement: cam +3°, carrier −14°, and the gear train in its 90:6, 64:6 and 60:6 ratios;
+  - that Candela's packed blades move between two times while the plates do not.
 
 The `*.look.js` contract in Part 4 exists for this preset. Without it, the baked poses would have to be pasted into `look.js` itself.
+
+![M-11 in the Render view 4.6 ms into the release (t = 1.65 s on the slowed timeline): the five blades half open behind the brass mounting tube.](_assets/jigcad-render-m11-compur.png)
+
+### Shader size grows with tool axes
+
+The Compur exposed a limit that every large metal assembly would reach. Candela compiles a machined finish's axis and centre into the shader as constants, so every distinct pair is a separate material. The Compur's 3,393 faces made 540 materials and a 492 KiB shader, which Chromium did not finish compiling within four minutes. The distinct parameters came from these faces:
+
+| Faces | Count | Distinct axis and centre |
+|---|---|---|
+| face-milled planes | 365 | 365 |
+| milled B-spline flanks | 109 | 109 |
+| milled cylinders | 140 | 85 |
+| ground cylinders | 49 | 39 |
+| planes milled along a direction | 2,730 | 23 |
+
+The groove field Candela builds, `fx.tangent.around(axis, center)`, depends only on the axis *line*, not on the point chosen on it. The bridge's `toolMeta()` therefore gives Candela each line in one form. The direction becomes a unit vector whose first non-zero component is positive. The centre becomes the point of the line nearest the body origin. Both are rounded to 1e-6, a micrometre. Coaxial faces then share a material, with no change in any pixel. Two kinds of face carried a centre that encodes nothing jig knows:
+- A milled face with no axis, such as a B-spline flank, now gets no centre.
+- A face-milled flat, whose tool path is unknown, now has its rings centred on the body origin rather than on its own centre, so a body's flats share one material per direction.
+
+Turned, ground and faced faces keep their exact axes. The package still records each face's own centre; only what the bridge hands Candela changes.
+
+| Step | Materials | Shader IR |
+|---|---|---|
+| per-face centres | 540 | 492 KiB |
+| canonical axis lines only | 476 | — |
+| plus no centre without an axis, face mills on the body origin | 82 | 126 KiB |
+
+With 82 materials the preset compiles in Chromium on the Iris Xe. Its first shader load took 27.6 s. The real fix belongs in Candela: finish parameters passed to the shader as per-material data rather than as constants.
+
+The first look the agent wrote worked around the limit by rewriting face metadata before `jigScene()`. It kept the worker's content `key` on the rewritten bodies, so the bridge's definition cache served definitions built from other metadata. Two builds of different variants in one process both reported 60 materials. That is why the fix lives in the bridge: a canonical form derived from the metadata the key already hashes keeps the cache correct.
 
 ## Measurements
 
@@ -444,13 +480,15 @@ The `*.look.js` contract in Part 4 exists for this preset. Without it, the baked
 | Candela kernel compile, Iris Xe, cold / Mesa-cached | 38.8 s / 0.12–0.51 s |
 | Candela kernel compile, SwiftShader | 33.8 s, then device lost at 2 spp |
 | `dist/candela.js` / `dist/candela-core.js` | 420 KiB / 370 KiB |
-| Browser checks on WebGPU | 13 / 13 |
-| Node render tests | 64 / 64 |
+| Browser checks on WebGPU | 14 / 14 |
+| Node render tests | 74 / 74 |
 | jig engine suite / engine-core / agent and UI tests | 62 / 69 / 90, all passing |
 | Lockstitch faces compared; name agreement | 1,124; 100 % |
 | Cylinder axes, jig vs converter fit | ≤ 5e-5 mm |
 | Process agreement with the converter (before → after the fixes) | 3 → 123 on a process; 283 → 10 on none |
 | M-10 pose change, export / build | 3418 → 19 ms / 1491 → 89 ms |
+| Compur (M-11): faces, materials before → after `toolMeta`, shader IR | 3,393; 540 → 82; 492 → 126 KiB |
+| Compur: cold compile in jig; first shader load in Chromium | 15.7 s; 27.6 s |
 
 ## Failure modes encountered
 
@@ -463,6 +501,9 @@ The `*.look.js` contract in Part 4 exists for this preset. Without it, the baked
 - **A lost software GPU device.** SwiftShader lost the device after 2 spp (Part 6). The view now reports it and offers a restart or WebGL2.
 - **The pivot cannot be dragged.** The first live-drag check grabbed `crank:pivot`, which sits on the fixed axis and moves nothing. The check now takes the crank's port farthest from the axis.
 - **Two process-inference gaps and a converter bug,** described in Part 7.
+- **A shader that grows with the faces.** Per-face tool centres made 540 materials on the Compur; see Part 10.
+- **A cache served stale definitions.** A look rewrote face metadata but kept the worker's content keys (Part 10).
+- **Look files as model inputs.** Editing `look.js` made the model "dirty", so the Render view waited for a Run that the look did not need. `src/render/files.js` now keeps `look.js` and `*.look.js` out of the model's compile and dirty state.
 
 ## Open questions
 
@@ -473,7 +514,8 @@ The `*.look.js` contract in Part 4 exists for this preset. Without it, the baked
 
 ## Near-term next steps
 
-- Review, merge and verify the Compur preset branch, including a browser render of the release.
+- Decide whether M-11 stays on the preset shelf. It compiles in 15–21 s cold, against the preset guide's 1.5 s, and adds about 20 s to every all-presets sweep.
+- Pass finish parameters to Candela's shader as per-material data (upstream, with the pbr-spark owner).
 - Connect the Render view to `/rt`, so that a machine with `candela-rt` renders the view with OptiX.
 - Push `jig-016-render` and open a pull request; ask the pbr-spark owner about pushing `jig-016-path-ids`.
 - Test the sidecar against a real `candela-rt` on the DGX Spark.
