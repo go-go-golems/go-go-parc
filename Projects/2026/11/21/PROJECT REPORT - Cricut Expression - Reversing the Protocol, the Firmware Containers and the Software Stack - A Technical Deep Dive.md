@@ -22,13 +22,13 @@ repo: /home/manuel/code/wesen/2026-11-21--cricut
 
 The Cricut Expression (CRX001, sold 2006–2013) is an X/Y craft cutter driven by an ATmega1281 microcontroller and an FTDI FT232BM USB-serial bridge. ProvoCraft sold it with cartridges containing encrypted design data and PC software whose firmware updates ship inside encrypted `.enc` containers. This report documents the machine's serial protocol, the community reverse-engineering that made third-party control possible, the two software control paths available today (a Windows-only GUI host under wine, and a native Linux library), and a completed static analysis that locates the firmware-container decryption code in the host software with all cryptographic key material hardcoded in that same module. The report will be updated as work continues; sections written after the initial commit are marked by their diary step.
 
-The report is organised in dependency order. Sections 2 to 4 establish the hardware, the serial protocol, and the cryptographic scheme. Sections 5 to 7 describe the software stack: the library, the plugin host, and the firmware-replacement firmware. Sections 8 and 9 cover the firmware images: where they were obtained, their container format, and where the decryption code lives. Section 10 records the open questions and next steps.
+The report is organised in dependency order. Sections 2 to 4 establish the hardware, the serial protocol, and the cryptographic scheme. Sections 5 to 7 describe the software stack: the library, the plugin host, and the firmware-replacement firmware. Sections 8 to 10 cover the firmware images and the decryption campaign: where the images were obtained, their container format, where each cryptographic system lives, the complete offline decryption attempt, and its evidence-backed boundary. Section 11 records the open questions and next steps.
 
 > [!summary]
 > - **The serial protocol is fully published.** Packets are length-prefixed, 16-bit values are byte-swapped per value, and motion commands (0x40) carry XXTEA-encrypted coordinates. The link runs at 198,347 bps through an FTDI FT232BM, requiring either the D2XX driver or a custom Linux UART clock divisor.
 > - **Eight 16-byte XXTEA keys were extracted and published.** Move, line-cut, and curve-cut each use a distinct key. The mapping matters: using the line key for curve cuts does not fail; it silently produces gapped cuts because each segment lifts the blade.
 > - **Two control paths exist for stock firmware.** A Windows GUI host (Sure Cuts A Lot 5/6 plus a plugin built on the libcutter library) under wine, and the same library built natively on Linux with command-line SVG and G-code cutters plus a joystick-driven realtime mode.
-> - **The firmware update containers are decryptable offline.** The host software performs the decryption: `Cricut USB.dll` contains textbook XXTEA encrypt and decrypt routines and hardcodes all eight protocol keys as immediate constants. The bootloader only receives plaintext blocks.
+> - **Firmware containers are decrypted on-chip.** The host transmits the ciphertext as-is over a standard 14,400-baud link; the bootloader (lock-protected, key not in any host artifact) performs the decryption. The full wire protocol was recovered from static analysis, but offline decryption is bounded out by an exhaustive framing search over all known keys.
 > - **A complete firmware set was recovered from community archives.** All eight published images, from Personal v1.1 through Expression v2.34 (a/b pair), are ASCII-hex-encoded encrypted containers, with two header generations corresponding to a container-format revision.
 
 ## 1. Scope, sources, and evidence
@@ -41,7 +41,7 @@ The work lives in ticket **CRICUT-001** at `/home/manuel/code/wesen/2026-11-21--
 | Archived artifacts in-repo | `downloads/` | firmware `.enc` files, installers, keys.h |
 | Archived web pages | `ttmp/.../sources/` | Cricut Hacking Wiki pages, forum threads, blog posts |
 
-The Cricut Hacking Wiki (built-to-spec.com, 2010–2013, recovered and mirrored at jimlund.org) is the foundational document for hardware and protocol. The libcutter project (vangdfang, 2010, Cowtown Computer Congress KC) is the foundational implementation. This report's original contributions are: the live-mirror recovery of the installer and firmware artifacts (Sections 8–9), the static analysis locating the decryption code (Section 9), and the falsification test of one published key mapping (Section 4.3).
+The Cricut Hacking Wiki (built-to-spec.com, 2010–2013, recovered and mirrored at jimlund.org) is the foundational document for hardware and protocol. The libcutter project (vangdfang, 2010, Cowtown Computer Congress KC) is the foundational implementation. This report's original contributions are: the live-mirror recovery of the installer and firmware artifacts (Section 8), the complete firmware-update wire protocol and container structure (Sections 9–10), the definitive attribution of each cryptographic system in the host stack, the offline decryption campaign and its boundary (Section 10), and the falsification tests of one published key mapping (Section 4.3) and of this report's own initial decryption hypothesis (Section 9.4).
 
 ## 2. Hardware
 
@@ -179,7 +179,7 @@ All `.enc` files are **ASCII-hex text**, not binary. Every file begins with the 
 
 ## 9. Where the decryption lives
 
-This section is the report's principal original finding. The question was whether the firmware-decryption code lives in the host software or in the machine's bootloader. Static analysis of the extracted installer answers it: **the host software performs the decryption; the bootloader only receives plaintext blocks.**
+This section answers the question of where the firmware-decryption code lives. The answer, established at two independent layers of the host software and confirmed by an exhaustive offline search (Section 10), is: **the host performs no decryption; the ciphertext is transmitted as-is at a standard 14,400-baud link, and the bootloader on the ATmega1281 decrypts on-chip.** The path to this answer included one incorrect hypothesis, formed and then falsified; both the correct conclusion and the falsification are documented here.
 
 ### 9.1 The two crypto systems in Design Studio
 
@@ -197,22 +197,80 @@ This section is the report's principal original finding. The question was whethe
 
 Adjacent, at RVA 0x17e7–0x18c6, the DLL hardcodes **all eight protocol keys from Section 4.1 as immediate constants** — `0x47302A23` (KEY2) at 0x17fc, `0x272D6C37` (KEY0) at 0x1803, and so on through KEY7. The DLL therefore ships with the complete key material for both the cutting protocol and, by strong implication, the update container: whatever key the container uses, it is either one of these eight or derived from material in this module. The community's separate distribution of `keys.h` was necessary for the open-source library, not for Cricut's own software.
 
-### 9.3 What this means for decryption
+### 9.3 The firmware update path carries no host-side crypto — established twice
 
-The practical consequence is that firmware decryption requires no key discovery — the candidate keys are known and the algorithm implementation is in-hand. The remaining unknowns are container framing: the header's semantics (IV, checksum, or identifier), the block segmentation applied before XXTEA, and the key selection rule per block or per file. The detection oracle is strong: a correct decryption of an AVR firmware image yields an interrupt vector table in the first bytes (`jmp` opcodes, `0x94 0x0C` little-endian word patterns at even word offsets). A framing search across the eight keys and a small set of framings is a bounded computation.
+Two independent checks, at different layers, establish that the firmware container is transmitted encrypted and decrypted on-chip:
 
-The dynamic route exists as a fallback: running CDS under wine with instrumentation on the DLL exports would capture the exact key and framing from a real update session without any search. The static route is attempted first because it needs no machine present.
+**Managed layer.** Full IL disassembly of `UpdateCricutFirmware.read` and `.update` (via `dncil`, after a fat-header parsing bug in a hand-rolled decoder was corrected): `read()` opens the `.enc` with a plain `System.IO.StreamReader`, reads 262,144 chars, and converts ASCII hex to bytes with `bytes[i] = (hex_to_char(chars[2i]) << 4) | hex_to_char(chars[2i+1])` — transport decoding only. `update(bytes)` opens the serial port at **14,400 baud** — a standard rate, distinct from the cutting protocol's 198,347 — and loops: `len_word = (b[off]<<8)|b[off+1]`; packet length `L = len_word + 2`; `write(bytes, off, L)`; then `receiveChar()` for the response byte. Response `-1` times out and fails; `0x11` and `0x22` enter special handling; a retry loop rewinds `off` by `L` up to four times. Completion closes the port and sleeps 12,000 ms. No transformation is applied to the payload bytes at any point.
 
-## 10. Status and next steps
+**Native layer.** `usb_writeBlock` (RVA 0x1990) disassembles to a plain copy loop into `FT_Write` (via the IAT call at 0x10007554): buffer allocation, byte-by-byte copy, write-until-complete retry loop, free. The write path performs no encryption.
 
-Completed: artifact recovery (installer, plugin, keys, full firmware set, wiki archive), protocol documentation, key-mapping falsification test defined, two control paths documented, flashing playbook written with hardware photography, crypto location identified with disassembly evidence.
+The consequence: the ciphertext packets reach the bootloader unchanged, and the decryption happens **inside the 4,096-word lock-protected boot section of the ATmega1281**. The obfuscated PTC exports in the DLL (`PTCIsEncrypted`, `PTCFlushEncryption`, and the callable names) belong to the **cut-file** container, not firmware: the comparison routine they use checks the 4-byte magic `vshp` at data constant RVA 0x62cc, which appears in cut files, never in firmware containers.
+
+The two-pass a/b update flow now reads naturally: the bootloader decrypts the pass-1 image (the `a`-file) and then the pass-2 image (the `b`-file) in separate transactions, matching the user-visible instruction "Your Cricut requires a 2nd update pass. Please start over at STEP 1."
+
+### 9.4 The falsification of the initial hypothesis
+
+The initial working hypothesis — formed after locating XXTEA and the hardcoded keys in `Cricut USB.dll`, before the IL trace was complete — was that the DLL decrypts the `.enc` container on the host. Two lines of evidence refuted it: the managed update path calls no crypto export, and the native write path contains no crypto at all. The correction was committed explicitly in the diary (step 14) rather than silently rewritten, because the initial attribution had already appeared in the first version of this report.
+
+## 10. The decryption campaign: methods, results, and the boundary
+
+This section documents the complete offline decryption campaign — what was tried, how, and what was learned — including the negative results, which bound the problem as firmly as a success would have.
+
+### 10.1 Tooling built and validated
+
+The foundation was a Python implementation of XXTEA matching Wheeler's C `btea` byte-for-byte. Validation was differential: the C reference from the libcutter repository was compiled and run against random inputs at word counts 2 through 52, with the Python output compared exactly. Two implementation subtleties surfaced: the C function treats `|n| <= 1` as a no-op (only `n > 1` and `n < -1` branches exist), and decryption initializes the sum to `rounds * DELTA`. The validated implementation lives at `scripts/02-btea.py` in the ticket.
+
+### 10.2 Container structure (complete)
+
+All eight `.enc` files share one structure, fully characterized:
+
+- The file is pure ASCII hex. The "16-character header" is not a separate structure: it is the first packet's length prefix plus the start of its payload. The first decoded bytes of `cricut_v2_34.enc` are `01 12`, interpreted by the update protocol as a big-endian length word of 274, giving a packet length of 276 — and the payload begins `90 32 E8 18 0B E1`, exactly the remainder of the visible header string. The container is purely a packet stream; there is no out-of-band header.
+- Decoded sizes range from 61,820 to 109,440 bytes across the set.
+- Every file parses cleanly to the last byte under the packet framing recovered in Section 9.3 — 424 to 736 packets each.
+- Packet payloads come in exactly two classes: 274 bytes (370 occurrences in v2.34) and 18 bytes (366 occurrences), in a **strict alternation** — one data packet, one control packet — for the entire file, ending with four consecutive data packets and no trailing control. The alternation is a write-then-verify rhythm; the trailing run is a final flush.
+- 274 bytes decomposes as 272 (68 words, XXTEA-compatible) plus a 2-byte sub-field; 18 bytes as 16 (4 words) plus 2. Both payload classes are word-aligned after removing 2 bytes, which shaped the search space below.
+- Control packets are fully encrypted: zero identical packets exist across the a/b pair of the same version, and byte distributions are uniform. No known-plaintext leverage exists there.
+
+### 10.3 Search space executed
+
+Three search scripts were run (`04`, `08`, `09` in the ticket's `scripts/` directory):
+
+| Campaign | Blocks tried | Keys | Result |
+|---|---|---|---|
+| Whole-file XXTEA (04) | full body | 8 keys × block sizes {whole, 8w, 16w, 64w} | no oracle hit |
+| Packet-level (08) | first 272 bytes of each data packet, sub-offsets 0/2/6/8, first 3 packets, 3 files | 8 keys | scores 0.31–0.48, noise |
+| Page-level (09) | payload[0:256], payload[16:272], payload[2:274], full 68 words; 16-byte control blocks | 8 keys | vector-table score max 2 of 16 words (chance level) |
+
+The detection oracle tested for an AVR interrupt vector table in decrypted output: `jmp` long-call opcodes (`0x940C` little-endian words, or `rjmp` `0xC000–0xCFFF`) at even word offsets in the first 64 bytes, requiring at least 6 of 16. A secondary score measured 0x00/0xFF byte density. Both stayed at chance levels for every key and framing. No combination decrypted to recognizable AVR machine code.
+
+### 10.4 Conclusion and the boundary
+
+The evidence supports one conclusion: **the bootloader's decryption key is not among the eight published protocol keys, and it is not present in any host-side artifact we hold.** The key lives in the 4,096-word lock-protected boot section of the ATmega1281, which reads back as `0xFF` on a stock machine.
+
+What remains reachable requires hardware:
+
+1. **Logic-analyzer capture of a live update session.** The update link is 14,400 baud 8N1 — a standard rate, trivially instrumentable, no special drivers. A capture records the complete dialogue: every packet, every response byte, the meaning of `0x11`/`0x22`, and the retry behaviour. This characterizes the bootloader's state machine completely (minus the cipher) and is the highest-value next experiment when a machine and a cheap probe are available.
+2. **AVR lock-bit attack** on the boot section (high effort, bricking risk, era-appropriate techniques exist).
+3. **No decryption needed for function**: the stock update path — CDS under wine at 14,400 baud — flashes v2.34 directly; the machine performs its own decryption. The functional goal was never blocked; only offline analysis is.
+
+### 10.5 What the campaign delivered despite the wall
+
+- The complete firmware-update wire protocol, recovered entirely from static analysis and verified by clean parses of all eight files — previously unpublished.
+- The container structure, completely: packet framing, strict alternation, header-as-first-packet, size classes.
+- The definitive location of every cryptographic system in the host software stack (protocol XXTEA + hardcoded keys in the native DLL; activation Rijndael in the managed exe; firmware cipher in the bootloader), with the one incorrect attribution caught and corrected through explicit falsification.
+- The complete eight-file firmware archive with hashes and provenance, plus installers and drivers, preserved from a fading community archive.
+
+## 11. Status and next steps
+
+Completed: artifact recovery (installer, plugin, keys, full firmware set, wiki archive), protocol documentation, key-mapping falsification test defined, two control paths documented, flashing playbook written with hardware photography, firmware wire protocol recovered, decryption campaign executed to its evidence-backed boundary.
 
 Open, in priority order:
 
-1. **Container framing search.** Implement XXTEA in Python; search framings × 8 keys × 8 firmware files against the vector-table oracle. This is the highest-value next step: success converts the `.enc` set into flashable, analyzable ATmega1281 images.
-2. **Stock firmware update path.** Install CDS under wine, verify the 198,347 bps link through D2XX, and update the Expression to v2.34 using the recovered images (with the known a/b two-pass sequence). This unblocks the SCAL 5/plugin GUI path on a stock machine.
-3. **SCAL 5 trial under wine.** The commercial host's trial mode plus the recovered plugin; the GUI-path baseline.
-4. **Native libcutter validation.** CI-built binaries plus the canonical keys file; `draw_svg` as the scripted end-to-end test.
+1. **Stock firmware update path.** Install CDS under wine, verify the 14,400-baud update link (and the 198,347-bps cutting link through D2XX), and update the Expression to v2.34 using the recovered images (the known a/b two-pass sequence). This unblocks the SCAL 5/plugin GUI path on a stock machine.
+2. **SCAL 5 trial under wine.** The commercial host's trial mode plus the recovered plugin; the GUI-path baseline.
+3. **Native libcutter validation.** CI-built binaries plus the canonical keys file; `draw_svg` as the scripted end-to-end test.
+4. **Logic-analyzer capture** of a live update session (requires hardware access) to complete the bootloader state-machine characterization.
 
 The report will be revised as these steps complete; each revision will note its diary step.
 
