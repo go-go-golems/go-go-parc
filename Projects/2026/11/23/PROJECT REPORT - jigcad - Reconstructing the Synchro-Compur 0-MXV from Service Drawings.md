@@ -21,9 +21,17 @@ The five shutter blades provide a compact answer to two questions about this rec
 
 Those distinctions matter when reading the model. A technician ordering a replacement needs a service number and the shutter revision. A designer checking light passage needs the projected contours of all five blades at a particular angle. Someone making a replacement needs thickness, bend, material, clearances and tolerances. The same CAD file can answer the second question in detail while leaving much of the third open.
 
+![Assembled M-11 shutter viewed from the front at an angle](_assets/compur-m11.png)
+
+*M-11 in the JigCAD Stage. The closed blades are visible through the front seat. The dimension arrows describe the modeled assembly bounds, including projections. The factory sheet separately dimensions the circular case and setting ring.*
+
 ## Which shutter, and what counts as a part?
 
 The target is the Synchro-Compur **size 0 with tensioning ring**, factory type **CN-1210-000**. The repair binder covers several sizes, later revisions and camera-specific versions. On the May 1956 exploded drawing of the blade assembly, for example, the heading names CN-1110-000, the smaller size 00. An inset on that sheet identifies CN-1210-000. The repair text specifically calls out the end blades for size 0. Looking up a number without reading the inset or sheet heading can assign a genuine Compur part to the wrong mechanism. [Factory repair manual, PDF pp. 9 and 56, specification page 1 and plate 7.]
+
+![Exploded drawing of the size-0 blade plate, blades and fastening screw](_assets/compur-plate7.jpg)
+
+*The size-0 inset on factory plate 7 (PDF p56) labels the retaining plate 225 and its screw 230. The small unboxed numerals at the blade outlines give the assembly order. Source: the supplied reconstruction archive’s plate-7 crop.*
 
 There are three useful counts. A **service item** is an entry that identifies a replaceable piece or assembly. A CAD **occurrence** is one named placement in an assembly, such as `blade3`. A **solid body** is one connected volume produced by the geometry kernel. Five blade occurrences use three service numbers. The front cover and its retaining ring are combined in one builder. A pair of spacer pillars in the timer study can produce two solids from one occurrence. A count at any one level gives no reliable conversion to either of the others.
 
@@ -42,6 +50,14 @@ The full-shutter preset M-11 has **29 named occurrences**. CP-01 through CP-05 i
 
 The diaphragm illustrates the importance of revision control. Supplement sheet 13, September 1973, specifies five enameled blades 105 for replacement housing 101, index 88. That is evidence for a particular replacement configuration. Plate 8, PDF p57, supplies a useful view of the related size-00 covers and leaf pins. CP-08 identifies both sources. M-11 still represents the diaphragm by an annulus. Likewise the delay cartridge and flash contacts remain separate studies. An occurrence in a study establishes that the piece was drawn. Installation in M-11 requires an independently supported position and orientation.
 
+![Lesson 9 side photograph of the delayed-action unit](_assets/compur-lesson9-timer.jpg)
+
+*Repair Course Lesson 9, figure 59. This side photograph of the size-00 delayed-action unit shows a layered cartridge. Its projected outline gives little information about the heights of the internal wheels. Source: the supplied archive’s figure-59 crop.*
+
+![Axonometric JigCAD drawing of the separate delayed-action cartridge](_assets/compur-self-timer.png)
+
+*CP-07 in JigCAD. Compare the setting lever and spaced plates with the preceding service photograph. The open region between the modeled end mechanisms is where the unresolved intermediate train belongs.*
+
 ## How a drawing becomes a coordinate
 
 The November 1956 specification sheet gives the strongest dimensional evidence. In its upper drawing, the **bracketed** dimensions apply to CN-1210-000. The housing outside diameter is 57.1 mm, the maximum outside diameter is 58.5 mm, the clear opening is 24 mm, the cell-seat spacing is 20 mm and the rear projection is 6.1 mm. The cell threads are M29.5 × 0.5 and the rear mounting thread is M32.5 × 0.5. Using the neighboring unbracketed 4.5 mm projection would shorten the size-0 rear mount by 1.6 mm. These numbers describe nominal interfaces. No specimen was measured in this project.
@@ -58,6 +74,10 @@ model X              = 21.7 × cos(43°)      ≈ 15.8704 mm
 model Y              = 21.7 × sin(43°)      ≈ 14.7994 mm
 ```
 
+![Front drawing with the fitted housing rim and the pinion measurement](_assets/compur-pivot-measurement.jpg)
+
+*Factory plate 2, size 00, with the archive’s fitted center and rim in teal and the center-to-pinion radius in orange. The overlay uses the original pixel coordinates in compur/book/data/plate2.json. Scaling this measurement to size 0 introduces the uncertainty discussed below.*
+
 The archive subsequently fitted a circle to points on the scanned housing rim. The fitted radius was 375.4 pixels. The revised reading placed the pinion at 0.761 radii and 42.5°, equivalent to about 21.73 mm on the size-0 scale. A second feature, the cell bore, came out at 28.82 mm against a nominal minor diameter of about 28.96 mm. The bore supplies a check on image scale. Both pinion readings still share the assumption that the relative position transfers from size 00 to size 0. The archive estimates roughly half a millimetre of uncertainty for plate-derived positions. Four decimal places in the code let two features reuse the same center exactly within the model. They do not establish four decimal places of physical accuracy. [Model archive, book chapters 3 and 23.]
 
 The reconstruction consequently contains several kinds of number. The 57.1 mm housing diameter is **specified**. The cam center is **estimated from a drawing**. Its XY components are **calculated**. A wall thickness of 0.6 mm and a blade thickness of 0.08 mm are **design assumptions**. Spring and braking parameters selected to reproduce target exposures are **calibrated**. For the last category, testing against the target used during calibration supplies little new evidence. A trace of an independent physical release would supply substantially more.
@@ -65,6 +85,10 @@ The reconstruction consequently contains several kinds of number. The 57.1 mm ho
 ## A placement error that passed the original render
 
 The earlier M-11 model ran a continuous mounting tube between the two cell seats. It met the external mounting dimensions and rendered plausibly with the cover installed. It also put a cylindrical wall through both sets of moving leaves. A drawing can specify two end surfaces precisely while leaving a modeler considerable freedom to draw the wrong material between them.
+
+![Factory axial section showing the lens seats and bracketed size-0 dimensions](_assets/compur-seat-section.png)
+
+*November 1956 specification page 1 (PDF p9), upper section detail. The horizontal line is the optical axis. The bracketed 20 mm spans the cell seats and the bracketed 6.1 mm gives the rear projection. Hatching identifies material on each side of the central mechanism.*
 
 The enlarged axial section on factory PDF p9 shows distinct front and rear seats. The corrected model attaches the rear threaded projection to housing 101 and starts the separate front seat at Z = 11.52 mm. A relieved lower section extends 3.48 mm to Z = 15 mm. Separating the seats follows the section. Those two internal lengths are estimates chosen to clear the reconstructed mechanism. On the final assembled-pose check, the front tube cleared the shutter blades, iris and pallet carrier. It still meets the retaining cover at their nominal common diameter.
 
@@ -103,6 +127,10 @@ The optical check projects the five posed blade meshes onto a plane and counts c
 | 3.7° | 18,859 | 23.397 mm |
 | 7.4° | 0 | 26.056 mm |
 
+![Five shutter blades projected at closed, middle and fully open positions](_assets/compur-blade-stroke.png)
+
+*Plan projections regenerated from CP-02’s posed CAD meshes. Color distinguishes the five blades and the dashed circle marks the 25 mm test pupil. All three panels use the same scale and optical center.*
+
 A ray here is a projected point-in-triangle test. All points have equal weight. The result establishes sampled coverage for those model poses. Slivers between samples, transmission through a lens, blade flex, time to traverse the stroke and the factory tip bends remain outside the calculation.
 
 ## A coupled gear train can move correctly and still clash
@@ -110,6 +138,10 @@ A ray here is a projected point-in-triangle test. All points have equal weight. 
 The cocking gear check examines a different property. The inherited sector and pinion use the equivalent of 127 and 18 teeth. The gear module is its pitch diameter divided by the number of teeth. The pitch radius is half that diameter. At a module of 0.3 mm, the sum of their pitch radii is 0.3 × (127 + 18) / 2 = 21.75 mm. The modeled axes are 21.70 mm apart. Keeping the ratio, the revision chose a module of approximately 0.29862 mm, giving a pitch-radius sum of 21.65 mm. It also relieved the sector blank and phased a pinion gap opposite a tooth. The ticket's checker reads the actual modeled profiles and rotates them around their port axes at 761 positions from −19° to +19°. The minimum sampled planar separation was 0.017339 mm. That is a numerical property of these profiles at these poses. Physical backlash under load still requires a measurement.
 
 The slower exposure speeds engage a different train. In CP-03 three external meshes give angular factors of −90/6, −64/6 and −60/6. A +0.05° input at the gear segment yields −0.75° at wheel one, +8° at wheel two and −80° at the star wheel. A nonzero input exposed a missing rigid seat between the escapement cartridge and its base. Both components appeared in the correct place at rest. Only after adding the joint did the solver produce the expected wheel angles.
+
+![CP-03 workbench screenshot showing plan view, mechanism controls and service notes](_assets/compur-escapement.png)
+
+*CP-03 in the workbench. The plan view shows where the speed train sits on the plate. The Mechanism pane exposes the modeled joint values. To investigate the wheel–kicker overlap, the next measurement must resolve height along Z.*
 
 There is still a physical contradiction at the first wheel. The wheel and segment both occupy Z = 11.95–12.25 mm. The driving pin, called the kicker, extends to Z = 13.30 mm. Its center lies 2.44 mm from the wheel axis, inside the wheel's 3.2 mm pitch radius. Raising the first wheel above the pin would lose engagement with the second pinion, which ends at Z = 13.00 mm. A solver that enforces angular ratios can give the exact four angles above through this clash. The decisive missing evidence is the axial stack on a size-0 specimen, including both wheel faces, both pinion faces and the separation between the supporting plates.
 
@@ -131,6 +163,10 @@ return j.assembly('First leaf on its stud')
 Here a factory is a function that constructs a fresh part each time it is called. It returns builders whose geometry already uses the shutter coordinate frame. Applying the pivot displacement again when adding the leaf would translate it twice. The revolute joint makes the axes coincident and permits rotation. CP-02 supplies the rotation calculated from the pin path. M-11 instead plays precomputed poses from the external planar exposure simulation. Its nine render tests check properties including component identity, pivot mapping, animation and the material budget. Their success tells us that the renderer is displaying the model's intended motion.
 
 Repository presets share the canonical part file through relative links resolved at build time. In the running workbench, **Code → Files → Copy a published part file** copies one library into the open project. A local edit then affects that project's copy. For an isolated study such as CP-06, this mechanism transfers the geometry; installing it in M-11 also requires a size-0 mounting transform. A pivot center establishes location, a bearing axis establishes direction, and a second landmark fixes angular orientation around the axis. Axial seating and lever contact heights must agree as well.
+
+![Code editor displaying the copied Compur part factory in a different preset](_assets/compur-library.png)
+
+*The published Compur library opened in the A-01 editor after copying it through Files. The visible tube factory contains both the front-seat construction and its named pivot ports.*
 
 ## What would establish catalog completeness?
 
