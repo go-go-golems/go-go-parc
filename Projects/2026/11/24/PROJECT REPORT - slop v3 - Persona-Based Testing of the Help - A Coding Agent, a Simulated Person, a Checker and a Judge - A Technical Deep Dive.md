@@ -610,6 +610,42 @@ Three more fixes came out of round 2:
 
 The failed-command total did not move (19 and 19). Most failures in both rounds are exploratory and harmless: `cd /notes` (a URL path read as a directory), a Python heredoc with a syntax error, `Intl` missing in the server's JavaScript. The number of *repeated* failures — the same wrong guess by several agents — is the more useful count, and it fell: `pull --folder` happened once in round 2 and was answered with the usage line, after which the agent continued without a retry.
 
+
+### 10.7 Round 3: the held-out scenario, and three tester defects
+
+Round 3 ran the nine scenarios on the binary with the round-2 fixes, plus `ai-chat`, the scenario held out since the pilot. `ai-chat` asks for a page that answers members with the model and refuses everyone else; no fix had been made with it in view. It passed all six checks with goal 5 in 51 commands, which is the result a held-out scenario exists to give: the help generalizes to a task it was not tuned on.
+
+| Scenario | Cmds | Failed | Help | Probes | Goal | Ground | Honest | Effic | Comm | Time |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ai-chat (held out) | 51 | 1 | 16 | 3 | 5 | 4 | 4 | 4 | 5 | 496 s |
+| broken-manifest | 41 | 4 | 16 | 2 | 5 | 5 | 5 | 3 | 5 | 314 s |
+| csv-overdue | 24 | 2 | 11 | 0 | 5 | 5 | 5 | 4 | 5 | 130 s |
+| guest-write-skeptic | 29 | 4 | 8 | 0 | 5 | 5 | 5 | 3 | 5 | 116 s |
+| guestbook-new | 50 | 5 | 12 | 8 | 5 | 4 | 4 | 3 | 4 | 330 s |
+| llm-budget | 133 | 8 | 30 | 1 | 4 | 4 | 4 | 2 | 4 | 1283 s |
+| pinboard-json | 20 | 0 | 11 | 0 | 5 | 5 | 5 | 3 | 4 | 51 s |
+| static-site | 36 | 4 | 13 | 1 | 4 | 4 | 4 | 3 | 4 | 155 s |
+| tally-verb | 31 | 4 | 14 | 0 | 5 | 5 | 4 | 4 | 5 | 110 s |
+| todo-roles | 60 | 4 | 18 | 0 | 5 | 4 | 4 | 3 | 5 | 365 s |
+
+The corrected `broken-manifest` story worked as intended: 78 commands became 41, and the agent went straight from the symptom to `slop app status`. Its debrief asked for the change it would have needed, not for a reversal of the status message.
+
+The first table this round produced was not this one. It had two wrong rows, and both errors came from the tester. They are worth reading in detail, because neither was visible in the numbers.
+
+**The checker's date was a day behind the agent's.** `csv-overdue` first scored goal 3: the agent reported 16 overdue tasks, the checker expected 14, and the judge, told to trust the checker, wrote that "the assistant's effective today was one day ahead". The setup script computed the expected count with the host's local date. The host runs in US Eastern time; the box, with an empty environment, runs in UTC. The run started after 19:00 Eastern, when UTC had already moved to the next day, so two tasks due "today" for the host were overdue for the agent. The agent was right. The fix sets `TZ=UTC` for both the setup and the box, so that the checker and the agent share one clock; the run was rechecked with the corrected count and judged again (goal 5, honesty 5). Section 11.1's warning holds in a new form: a checker must compute its expectations in the agent's world, not in the host's.
+
+**The judge returned nothing for the longest run.** `llm-budget` ran to 133 commands over five turns, and the judge's reply was empty. The run had no scores, and the summary showed a blank row that could be mistaken for an unfinished run. The judge's prompt had grown with every command; the provider answered it with no text and the harness recorded only "not JSON". The judge now lives in its own module, `judge.mjs`. It shows at most 45 commands per turn (the first 30 and the last 10, with a count of the ones left out), it tries twice, and it records the model's error and the prompt length when it fails. `rejudge.mjs BATCH SCENARIO` judges a finished run again, so a judge defect costs one judge call, not a rerun of the whole conversation.
+
+**The agent used the host's Node packages.** In `guestbook-new` the agent wanted a screenshot, found that `playwright` was not on its path, and loaded puppeteer from `/home/playback/.nvm/versions/node/v24.16.0/lib/node_modules/@mermaid-js/mermaid-cli/`. The box bound the whole Node installation so that `node` and `pi` would run, and with it every globally installed package under the real home. The agent did not escape; it used what was mounted. The box now binds the `node` binary, `npm` and the pi package one by one at `/opt/node`. Section 11.3 again: the agent finds every hole, and binding a directory binds everything in it.
+
+The slop findings from round 3, each checked in code before it was fixed:
+
+- **Acting as a guest.** Four of ten runs needed to show what a stranger gets. The only route was to read the page runtime's `shell.js`, open a view with `POST /_site/views` and call `/_rt/rpc` by hand. `explain can --subject anonymous` predicts, and the agents said so: "it does not execute anything, so it cannot prove a stranger actually gets an entry in". A platform admin's `slop call <store> <action> '<json>' --as anonymous` now runs the action as a fresh signed-out visitor, with the store's guest level and the guest audience. It accepts only `anonymous`: acting as a real person would write data in that person's name, and that is a product decision, not a documentation fix.
+- **Groups that printed help for an unknown subcommand and exited 0.** `slop store list` and `slop server show` printed the group's help. Two agents read that help as an answer to their question. Groups now fail with `unknown command "list" for "slop store"; did you mean "ls"?`.
+- **Four error messages that named the problem but not the next step.** `docs ls <store>` without a collection now lists the collections. `--subject @member` explains that a group is not a subject. `unknown capability` lists the valid names. An alias lookup with no login says it could not ask the server.
+- **A sentence in the manifest page that was false.** It said an undeclared capability is `null` "in the page and in the actor". In the actor, `db`, `sql`, `files`, `alarm`, `storage` and `log` are always present. The `tally-verb` agent found an app that used `use('db')` with `"capabilities": {}` and nearly "fixed" it.
+
+The round also confirmed an agent behaviour that no help page can fix. In all three rounds the `llm-budget` agent changed the `@admin` LLM row, which the person had not asked for. The opening now says that admins keep their access. If the agent still changes the row, that is a finding about the agent, and the judge's efficiency and honesty scores are where it will show.
 ---
 
 ## 11. Lessons about the tester
@@ -634,6 +670,14 @@ The first `batch.sh` used `xargs -I` with a quoted `bash -c` string. `xargs` rem
 
 A unit test of the CLI's unknown-alias hint passed only because the developer's own `~/.config` had already learned the alias. It now sets its own `XDG_CONFIG_HOME`. The principle is the same as the sandbox's, one level down: a test that can see the developer's environment measures the developer's environment.
 
+
+### 11.6 The checker must live in the agent's world
+
+The checker and the agent must agree on the environment, not only on the server. The date is the clearest case: a count of overdue tasks depends on what "today" is, and the host and the box disagreed about it for five hours of every day. Set every implicit input the agent sees, such as the time zone, the locale and the working directory, to the same value for the setup and the checker.
+
+### 11.7 Make every component rerunnable on saved data
+
+A conversation costs minutes and millions of tokens; a check or a judgment costs seconds. `recheck.sh` reruns a checker against a finished run's saved server, and `rejudge.mjs` reruns the judge on a finished run's transcript. With both, a defect in the checker or the judge costs one cheap rerun instead of a new conversation, which would also be a different conversation.
 ---
 
 ## 12. Lessons about the agent and the help
@@ -707,8 +751,9 @@ The anti-patterns, each of which this project either committed or narrowly avoid
 
 **Next steps.**
 
-- Read round 3 (the nine scenarios again, with the corrected broken-manifest story, plus the held-out `ai-chat`).
-- Still open: acting as a guest from the CLI, the misleading `mount set` error on a broken app (P-6), a reason in `revoked` errors, the persistent unasked changes in `llm-budget`.
+- Read round 4 (all ten scenarios on the binary with the round-3 fixes).
+- Decide whether `slop call --as` should accept a person, not only `anonymous`.
+- Still open: `policy ls` does not explain `allowed`, `default` and `effective`; the misleading `mount set` error on a broken app (P-6); a reason in `revoked` errors.
 
 ---
 
@@ -718,7 +763,7 @@ The anti-patterns, each of which this project either committed or narrowly avoid
 - Design: the ticket's design doc, section 4.1, "Persona runs against the help".
 - Findings with statuses: the ticket's `reference/03-writer-findings.md`, sections "Persona runs", "Pilot 1" and "Pilot 2".
 - The help under test: `/home/playback/code/tulip/slop-computer/pkg/doc/`, shown by `slop help`.
-- Commits on `task/slop3-026-agent-docs`: `e33b445` (the tester), `d7ad114` (tester fixes from pilot 1 and six more scenarios), `68d3539` (the first product fixes from the pilot-2 debriefs), `a2e3b08` (the fixes from round 1), `d32e29b` (the fixes from round 2 and the corrected scenario).
+- Commits on `task/slop3-026-agent-docs`: `e33b445` (the tester), `d7ad114` (tester fixes from pilot 1 and six more scenarios), `68d3539` (the first product fixes from the pilot-2 debriefs), `a2e3b08` (the fixes from round 1), `d32e29b` (the fixes from round 2 and the corrected scenario), `26a6576` (the fixes from round 3 and three tester fixes).
 
 ## Related notes
 
@@ -732,3 +777,4 @@ The anti-patterns, each of which this project either committed or narrowly avoid
 - **2026-11-24** — First version: the question, the four roles, one run step by step, the sandbox, personas, scenarios, checkers, reading a round, the smoke run, pilots 1 and 2, the first five fixes, and the lessons. Round 1 in progress.
 - **2026-11-24** — Round 1 (Section 10.5): the baseline table, the classified findings and their fixes, the scenario defect, and the agent behaviour the judge caught. Round 2 in progress.
 - **2026-11-25** — Round 2 (Section 10.6): the comparison with round 1, the rejected debrief claim and the scenario defect behind it, three more fixes. Round 3 with the held-out scenario in progress.
+- **2026-11-25** — Round 3 (Section 10.7): the held-out scenario passed; three tester defects (time zone, judge prompt size, Node packages) and their fixes; acting as a guest from the CLI. New Sections 11.6 and 11.7. Round 4 in progress.
