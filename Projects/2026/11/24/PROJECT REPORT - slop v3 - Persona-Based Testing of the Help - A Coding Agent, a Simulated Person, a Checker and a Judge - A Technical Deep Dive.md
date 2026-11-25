@@ -581,6 +581,35 @@ The judge also recorded agent behaviour that is not slop's fault but that the he
 
 Round 2 runs the same nine scenarios on the binary with every fix above.
 
+### 10.6 Round 2: what the fixes changed
+
+| Scenario | Cmds (r1 → r2) | Failed | Help | Probes | Goal | Ground | Honest | Effic | Comm | Time (r1 → r2) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| broken-manifest | 44 → 78 | 4 → 2 | 12 → 27 | 1 → 4 | 5 → 5 | 4 → 5 | 5 → 5 | 3 → 4 | 5 → 5 | 49 → 295 s |
+| csv-overdue | 28 → 20 | 1 → 1 | 7 → 9 | 0 → 0 | 5 → 5 | 5 → 5 | 4 → 4 | 3 → 4 | 4 → 4 | 86 → 106 s |
+| guest-write-skeptic | 46 → 37 | 3 → 4 | 15 → 10 | 0 → 0 | 5 → 5 | 5 → 5 | 4 → 5 | 2 → 3 | 4 → 5 | 511 → 141 s |
+| guestbook-new | 50 → 41 | 1 → 3 | 14 → 18 | 0 → 0 | 5 → 5 | 5 → 5 | 5 → 4 | 3 → 3 | 5 → 5 | 191 → 167 s |
+| llm-budget | 84 → 56 | 3 → 5 | 24 → 19 | 0 → 0 | 4 → 4 | 4 → 3 | 3 → 3 | 2 → 2 | 4 → 4 | 588 → 348 s |
+| pinboard-json | 11 → 11 | 0 → 1 | 7 → 4 | 0 → 0 | 5 → 5 | 5 → 3 | 5 → 3 | 4 → 4 | 5 → 4 | 38 → 52 s |
+| static-site | 28 → 13 | 1 → 0 | 8 → 8 | 2 → 0 | 4 → 5 | 4 → 4 | 4 → 4 | 3 → 3 | 4 → 5 | 401 → 22 s |
+| tally-verb | 41 → 22 | 3 → 2 | 18 → 12 | 13 → 0 | 5 → 5 | 4 → 5 | 4 → 5 | 2 → 4 | 4 → 5 | 205 → 72 s |
+| todo-roles | 43 → 35 | 3 → 1 | 7 → 18 | 0 → 0 | 5 → 5 | 3 → 4 | 3 → 4 | 3 → 4 | 5 → 5 | 588 → 108 s |
+| **total** | **375 → 313** | **19 → 19** | | **16 → 4** | | | | | | |
+
+The clearest effect is in `tally-verb`, the scenario whose missing feature had sent every earlier agent into the binary. With top-level verbs documented and working, the agent made no source probe at all, used half the commands, and finished in a third of the time; efficiency rose from 2 to 4, honesty and grounding to 5. `static-site` and `todo-roles` also became shorter and more honest. These are the changes the fixes were aimed at.
+
+Two runs moved the other way, and both repay reading. In `pinboard-json` the agent tried `slop pb kitchen clip ls --tag dinner -o json` — the global flag, on an app verb — and got `unknown shorthand flag: 'o'`; later it invented an answer about renaming the board, which the judge marked as ungrounded. The first problem is a command fix (app verbs now read `-o` as `--format`); the second is the agent's, and is recorded rather than fixed. In `broken-manifest` the command count rose from 44 to 78, and the debrief blamed the new `app status` wording, `(the store still serves snapshot 1: n and manifest are that one)`, for making a broken app look healthy.
+
+That debrief claim is instructive because it is wrong, and because of *why* it is wrong. The code serves the last good snapshot when a newer one fails to activate; a dry run of the scenario confirmed that the store had been activated at snapshot 1 and keeps serving it. So the status message was true. What was false was the scenario: its opening said the page had been blank since yesterday's change. The agent faced a person describing a symptom the server contradicted, and spent 34 extra commands trying to reconcile them. The defect was in the tester, again; the scenario now says what a person would actually see — "the change never showed up: the page still looks exactly like before".
+
+Three more fixes came out of round 2:
+
+- **App verbs read `-o` and `--output` as `--format`**, unless a verb defines its own `output` field, so the global flag works everywhere.
+- **`policy ls` and `policy set` refuse an instance store and name its app.** The `llm-budget` agent had read an instance's all-off policy matrix as the app's: `guestbook runs the app guestbook-app; policy belongs to the app: slop policy ls guestbook-app`.
+- **"ships no command-line verbs" now says where verbs live** — `verbs/*.js` in the app's own tree — and how to add them.
+
+The failed-command total did not move (19 and 19). Most failures in both rounds are exploratory and harmless: `cd /notes` (a URL path read as a directory), a Python heredoc with a syntax error, `Intl` missing in the server's JavaScript. The number of *repeated* failures — the same wrong guess by several agents — is the more useful count, and it fell: `pull --folder` happened once in round 2 and was answered with the usage line, after which the agent continued without a retry.
+
 ---
 
 ## 11. Lessons about the tester
@@ -678,10 +707,8 @@ The anti-patterns, each of which this project either committed or narrowly avoid
 
 **Next steps.**
 
-- Read round 2 in full and compare it with round 1, scenario by scenario.
-- Run the held-out `ai-chat`.
-- Correct the broken-manifest scenario's story after round 2.
-- Still open: `-o` for app verbs, acting as a guest from the CLI, the misleading `mount set` error on a broken app (P-6), a reason in `revoked` errors.
+- Read round 3 (the nine scenarios again, with the corrected broken-manifest story, plus the held-out `ai-chat`).
+- Still open: acting as a guest from the CLI, the misleading `mount set` error on a broken app (P-6), a reason in `revoked` errors, the persistent unasked changes in `llm-budget`.
 
 ---
 
@@ -691,7 +718,7 @@ The anti-patterns, each of which this project either committed or narrowly avoid
 - Design: the ticket's design doc, section 4.1, "Persona runs against the help".
 - Findings with statuses: the ticket's `reference/03-writer-findings.md`, sections "Persona runs", "Pilot 1" and "Pilot 2".
 - The help under test: `/home/playback/code/tulip/slop-computer/pkg/doc/`, shown by `slop help`.
-- Commits on `task/slop3-026-agent-docs`: `e33b445` (the tester), `d7ad114` (tester fixes from pilot 1 and six more scenarios), `68d3539` (the first product fixes from the pilot-2 debriefs), `a2e3b08` (the fixes from round 1).
+- Commits on `task/slop3-026-agent-docs`: `e33b445` (the tester), `d7ad114` (tester fixes from pilot 1 and six more scenarios), `68d3539` (the first product fixes from the pilot-2 debriefs), `a2e3b08` (the fixes from round 1), `d32e29b` (the fixes from round 2 and the corrected scenario).
 
 ## Related notes
 
@@ -704,3 +731,4 @@ The anti-patterns, each of which this project either committed or narrowly avoid
 
 - **2026-11-24** — First version: the question, the four roles, one run step by step, the sandbox, personas, scenarios, checkers, reading a round, the smoke run, pilots 1 and 2, the first five fixes, and the lessons. Round 1 in progress.
 - **2026-11-24** — Round 1 (Section 10.5): the baseline table, the classified findings and their fixes, the scenario defect, and the agent behaviour the judge caught. Round 2 in progress.
+- **2026-11-25** — Round 2 (Section 10.6): the comparison with round 1, the rejected debrief claim and the scenario defect behind it, three more fixes. Round 3 with the held-out scenario in progress.
