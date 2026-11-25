@@ -158,25 +158,41 @@ The 64-sample run shaded frames 0–71, 97–191, 192–239 and 240–311. Frame
 
 ## Sampling cost on the DGX Spark
 
-The second export changed one rendering parameter, the number of path samples accumulated per pixel. Both runs used the same 312 camera samples, component transforms, geometry variants, 1,920 × 1,080 frame size, scene denoiser and Stage plates. The 1,024-SPP run reused the original exposure of EV 6.50414. Holding the exposure fixed matters here because a change in metering would change pixel brightness even where sampling noise had already converged.
+The three exports vary the number of path samples accumulated per pixel. All three runs used the same 312 camera samples, component transforms, geometry variants, 1,920 × 1,080 frame size, scene denoiser and Stage plates. The 1,024- and 2,048-SPP runs reused the original exposure of EV 6.50414. Holding the exposure fixed matters here because a change in metering would change pixel brightness even where sampling noise had already converged.
 
-| Measurement on the NVIDIA GB10 | 64 SPP | 1,024 SPP |
-|---|---:|---:|
-| Frames traced by OptiX | 287 | 287 |
-| Frames drawn entirely by the CAD stage | 25 | 25 |
-| Native render time summed over the four segments | 38.20 s | 594.00 s |
-| Mean native time per traced frame | 0.133 s | 2.070 s |
-| Time from native job start to verified MP4 on the Spark | 1 min 53 s | 10 min 27 s |
+| Measurement on the NVIDIA GB10 | 64 SPP | 1,024 SPP | 2,048 SPP |
+|---|---:|---:|---:|
+| Frames traced by OptiX | 287 | 287 | 287 |
+| Frames drawn entirely by the CAD stage | 25 | 25 | 25 |
+| Native render time summed over the four segments | 38.20 s | 594.00 s | 1,163.44 s |
+| Mean native time per traced frame | 0.133 s | 2.070 s | 4.054 s |
+| Time from native job start to verified MP4 on the Spark | 1 min 53 s | 10 min 27 s | 19 min 57 s |
 
-The native timer includes installing the sampled pose, synchronizing the scene, and launching and waiting for the GPU. Image output, CAD compositing, H.264 encoding and decode checks run outside that timer. The wall-clock row uses the native log's creation time and the verification log's final write time. It includes time between stages, including a roughly 41-second gap before the original job began compositing. Both jobs already had the frame track and plates on disk when timing began. These numbers characterize the Singer shot with this framing and this driver.
+The native timer includes installing the sampled pose, synchronizing the scene, and launching and waiting for the GPU. Image output, CAD compositing, H.264 encoding and decode checks run outside that timer. The wall-clock row uses the native log's creation time and the verification log's final write time. It includes time between stages, including a roughly 41-second gap before the original job began compositing. All three jobs already had the frame track and plates on disk when timing began. These numbers characterize the Singer shot with this framing and this driver.
 
 ![Same frame at both sample counts with amplified per-channel difference](_assets/jig-shot-sampling.png)
 
 *Sampling detail.* Both crops show pixels 802–1061 horizontally and 400–854 vertically in the frame-zero native beauty image, before compositing or video compression. The third panel takes the absolute per-channel difference and multiplies it by eight, clipping at 255. The mean absolute difference across this rectangle, including its gray background, is 2.20 levels on an 8-bit channel. The machined faces, spring and needle plate account for much of the visible change. This experiment measures disagreement between two displayed images. A quantitative claim about convergence would require an independent reference with more samples.
 
-A subsequent 2,048-SPP job produced the same frame at the same exposure. Its crop differs from the 1,024-SPP crop by 0.50 channel levels on average. Early shaded frames took about 4.1 seconds each. The 2,048-SPP observation here covers the sampled frame only.
+In the same frame-zero crop, doubling the sample count from 1,024 to 2,048 changed the displayed image by 0.50 channel levels on average. Some surfaces change more than this mean suggests. At 0 seconds the reflections on the crank and spring produce larger differences than the comparatively uniform cutaway at 8.5 seconds. The fifth column below uses the same eightfold gain as the fourth. The 1,024- and 2,048-SPP columns retain visible differences on reflective surfaces.
 
-[Play or download the verified 1,024-SPP movie](_assets/jig-shot-sg09-1024spp.mp4) · [Inspect its render receipt](_assets/jig-shot-sg09-1024spp.json)
+![Three matched crops at each sample count with amplified differences](_assets/jig-shot-sampling-details.png)
+
+| Native 168 × 152 pixel crop | Mean absolute channel difference, 64 to 1,024 SPP | Mean absolute channel difference, 1,024 to 2,048 SPP |
+|---|---:|---:|
+| Crank and spring, frame 0 | 4.30 | 0.89 |
+| Sectioned guide, frame 204 | 1.03 | 0.18 |
+| Needle and presser foot, frame 264 | 2.91 | 0.60 |
+
+### Sampling differences during one second of sewing
+
+To check how sampling affects a moving mechanism, the comparison takes 24 consecutive native images, starting at frame 252 (10.5 seconds). Every panel uses the same 260 × 494 pixel rectangle for the whole second. The lossless loop displays the three versions side by side at the original average rate of 24 fps. Each of its 72 panels was decoded and checked pixel for pixel against the corresponding native source crop.
+
+![A one-second lossless playback comparison at 64, 1,024 and 2,048 samples per pixel](_assets/jig-shot-sampling-motion.webp)
+
+Across this sequence, the same-frame mean absolute RGB difference was **1.89** levels between 64 and 1,024 SPP, and **0.43** between 1,024 and 2,048 SPP. A second measurement compares how the two runs change over time. At each pixel, subtract one run's RGB value from the other's at the same frame. Then measure the absolute change in this signed difference between adjacent frames. Averaging over the 23 transitions gives **1.53** and **0.63** levels, respectively. An edge can carry its residual across the image as it moves, so this temporal figure includes motion as well as changes in sampling noise. All reported means include the gray background inside the fixed crop. [Comparison script and crop definitions](https://github.com/go-go-golems/jig/blob/337dde1/ttmp/2026/11/24/JIG-020-SHOT-STYLES--animated-cad-and-pbr-rendering-styles-for-mechanism-studies/scripts/12-three-way-spark-sampling.py)
+
+Moving from 1,024 to 2,048 SPP added 9 min 29 s of native rendering on this GPU. For a repeat of this particular shot, 1,024 SPP is a practical setting for reviewing motion and annotations. The 2,048-SPP movie preserves the higher-sample result for inspecting small reflections. Both final movies include all 312 presentation frames. [1,024-SPP movie](_assets/jig-shot-sg09-1024spp.mp4) · [1,024-SPP receipt](_assets/jig-shot-sg09-1024spp.json) · [2,048-SPP movie](_assets/jig-shot-sg09-2048spp.mp4) · [2,048-SPP receipt](_assets/jig-shot-sg09-2048spp.json)
 
 ## Design and implementation records
 
