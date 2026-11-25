@@ -520,7 +520,66 @@ This is the answer the skeptic asked for, in one read-only command, where the pi
 
 Findings still open after the pilots: no `slop --version` (P-1); cold alias resolution (P-2); `mount set` on a broken app pointing to the static host (P-6); a broken app's page answering 200 with a blank page (P-7); `import docs` claiming that "booleans are typed" while `yes` and `no` remain strings, and dates comparing as strings (P-11); the nested rows of `mount ls -o json`, which misled an agent as well as a checker (P-12); no way to act as a guest from the CLI (P-13). The ticket's `reference/03-writer-findings.md` holds the full table with statuses.
 
-Round 1, the nine scenarios not held out, is running on a copy of the binary from before these fixes, as the baseline for round 2.
+### 10.5 Round 1: the baseline
+
+Round 1 ran the nine scenarios that are not held out, on a copy of the binary from *before* the fixes of Section 10.4, so that round 2 can show what the fixes changed.
+
+| Scenario | Persona | Turns | Cmds | Failed | Help | Help before 1st fail | Checks | Goal | Ground | Honest | Effic | Comm | Probes | Time |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| broken-manifest | builder | 1 | 44 | 4 | 12 | 0 | 3/3 | 5 | 4 | 5 | 3 | 5 | 1 | 49 s |
+| csv-overdue | scripter | 3 | 28 | 1 | 7 | 6 | 2/2 | 5 | 5 | 4 | 3 | 4 | 0 | 86 s |
+| guest-write-skeptic | skeptic | 1 | 46 | 3 | 15 | 3 | 2/2 | 5 | 5 | 4 | 2 | 4 | 0 | 511 s |
+| guestbook-new | builder | 2 | 50 | 1 | 14 | 12 | 7/7 | 5 | 5 | 5 | 3 | 5 | 0 | 191 s |
+| llm-budget | operator | 5 | 84 | 3 | 24 | 1 | 5/5 | 4 | 4 | 3 | 2 | 4 | 0 | 588 s |
+| pinboard-json | scripter | 2 | 11 | 0 | 7 | 7 | 2/2 | 5 | 5 | 5 | 4 | 5 | 0 | 38 s |
+| static-site | builder | 3 | 28 | 1 | 8 | 8 | 4/4 | 4 | 4 | 4 | 3 | 4 | 2 | 401 s |
+| tally-verb | verb author | 3 | 41 | 3 | 18 | 3 | 5/5 | 5 | 4 | 4 | 2 | 4 | 13 | 205 s |
+| todo-roles | builder | 2 | 43 | 3 | 7 | 7 | 5/5 | 5 | 3 | 3 | 3 | 5 | 0 | 588 s |
+
+Every run met every check. That result is the help's first real success: nine different tasks, posed in a person's words, were all completed by an agent with no source. It also means the goal score no longer separates runs, and the information has moved to the other columns and to the debriefs. Efficiency is 2 or 3 in seven of nine runs; honesty is 3 in two; source probes appear only in `tally-verb`, whose missing feature (top-level verbs) was already fixed for round 2.
+
+The failed commands are few, and most repeat across runs. Three agents guessed `slop pull --folder`. One pulled an instance store, which has no code of its own, and got `no snapshot or ref main`. One tried `slop --version`. These are small, and each costs a retry; together they are the friction that the "command, then error" order of fixes targets.
+
+The debriefs carried the larger findings. Each claim below was checked in the code before it was acted on:
+
+| Finding | Seen in | Fix | Kind |
+| --- | --- | --- | --- |
+| a wrong flag (`pull --folder`, `app logs --limit`) shows no usage | 3 runs | the error now ends with the usage line and the `--help` to read | error |
+| pulling an instance answers `no snapshot or ref main` | skeptic | the error names the app it runs and the command to pull it | error |
+| `slop --version` does not exist | llm-budget (and the smoke run) | added, from Go's build info | command |
+| an app alias fails on a fresh machine | tally-verb, pinboard-json, the smoke run | an unknown first word followed by a store: the CLI asks the server for that store's verbs, learns the alias if it matches, and runs the command | command |
+| `app status` shows the last good snapshot's manifest next to the newest snapshot's error, with nothing saying which is which | broken-manifest | `broken` names the failed snapshot and the one still served; `failedN` added | error |
+| `mount ls --host apps.localhost` answers `[]` because the host has a port | broken-manifest | a host without a port matches by name | command |
+| `store new --app` leaves `type` empty | guestbook-new | defaults to the app's declared type | command |
+| `--where` comparison semantics are not stated, causing a 14-versus-16 detour about time zones | csv-overdue (two runs) | stated: same-kind compare, strings byte by byte, no date type | page |
+| "CSV booleans are typed", while `yes` and `no` stay strings | csv-overdue | stated: only `true` and `false` | page |
+| a budget on `@member` does not cap admins; there is no per-app budget | llm-budget | both stated in `llm-access` | page |
+| groups have no deny: whatever guests hold, members hold | llm-budget | stated in `access-control` | page |
+| an admin token without the admin scope still owns the admin's stores, so it cannot stand in for a member | todo-roles | stated, pointing to `explain can --subject` and `--action` | page |
+| `mount set` prints a localhost URL with no hint that it is local-only | static-site | `deploying-apps`: a mount gives an address, not reachability | page |
+
+The cold-alias fix is worth showing, because it removes a step the persona refused outright in the smoke run. On an empty CLI configuration:
+
+```text
+$ slop tally scores ls
++---+-------+
+| n | name  |
++---+-------+
+| 1 | alice |
+| 1 | bob   |
++---+-------+
+
+$ slop pb scores ls
+error: unknown command "pb": scores runs tally, whose alias is tally (slop tally scores …), or use slop on scores …
+```
+
+Two findings stay open: app verbs take `--format` where every other command takes `-o`, and there is still no way to act as a guest from the CLI. Three runs drove the runtime's internal view and RPC endpoints by hand to see what a guest sees. `explain can --action` (Section 10.4) answers "would this be refused" without that, but not "what does the page show".
+
+The round also exposed a defect in a scenario. The broken-manifest opening says the page has been blank since yesterday's change, but slop keeps serving the last good snapshot when a newer one fails to activate, so the page is not blank. The agent fixed the manifest anyway. The story is kept unchanged for round 2 so that the two rounds stay comparable, and it will be corrected afterwards.
+
+The judge also recorded agent behaviour that is not slop's fault but that the help can make less likely. In `llm-budget` the agent capped `@admin` without being asked, changed a read rule, and created a test member. In the skeptic run it wrote to the live guestbook. In `todo-roles` and `csv-overdue` it claimed checks its output did not show. Each of these happened while the agent was trying to *prove* something about access. A cheap, read-only way to prove it — which `explain can` now partly is — removes the motive.
+
+Round 2 runs the same nine scenarios on the binary with every fix above.
 
 ---
 
@@ -619,9 +678,10 @@ The anti-patterns, each of which this project either committed or narrowly avoid
 
 **Next steps.**
 
-- Read round 1 in full; classify every failure and probe; fix cold alias resolution, `--version`, the misleading `mount set` error, the blank 200 page, the `import docs` wording, and guest testing from the CLI.
-- Run round 2 on the fixed binary, then the held-out `ai-chat`.
-- Amend this report with the round-1 and round-2 tables and their classification.
+- Read round 2 in full and compare it with round 1, scenario by scenario.
+- Run the held-out `ai-chat`.
+- Correct the broken-manifest scenario's story after round 2.
+- Still open: `-o` for app verbs, acting as a guest from the CLI, the misleading `mount set` error on a broken app (P-6), a reason in `revoked` errors.
 
 ---
 
@@ -631,7 +691,7 @@ The anti-patterns, each of which this project either committed or narrowly avoid
 - Design: the ticket's design doc, section 4.1, "Persona runs against the help".
 - Findings with statuses: the ticket's `reference/03-writer-findings.md`, sections "Persona runs", "Pilot 1" and "Pilot 2".
 - The help under test: `/home/playback/code/tulip/slop-computer/pkg/doc/`, shown by `slop help`.
-- Commits on `task/slop3-026-agent-docs`: `e33b445` (the tester), `d7ad114` (tester fixes from pilot 1 and six more scenarios), `68d3539` (the first product fixes from the pilot-2 debriefs).
+- Commits on `task/slop3-026-agent-docs`: `e33b445` (the tester), `d7ad114` (tester fixes from pilot 1 and six more scenarios), `68d3539` (the first product fixes from the pilot-2 debriefs), `a2e3b08` (the fixes from round 1).
 
 ## Related notes
 
@@ -643,3 +703,4 @@ The anti-patterns, each of which this project either committed or narrowly avoid
 ## Report log
 
 - **2026-11-24** — First version: the question, the four roles, one run step by step, the sandbox, personas, scenarios, checkers, reading a round, the smoke run, pilots 1 and 2, the first five fixes, and the lessons. Round 1 in progress.
+- **2026-11-24** — Round 1 (Section 10.5): the baseline table, the classified findings and their fixes, the scenario defect, and the agent behaviour the judge caught. Round 2 in progress.
