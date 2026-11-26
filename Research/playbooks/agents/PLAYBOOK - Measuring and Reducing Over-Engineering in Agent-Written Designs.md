@@ -87,6 +87,8 @@ Copy `00-env.example.sh` to `env.sh` and set the variables:
 
 Then `source env.sh`. Each round creates one worktree per item at `$WORKTREES/<round>-<item>` on a branch `<round>/<item>`. The launcher records each worktree, base and resulting head revision in `$OUT/<round>/heads.json`. The later steps read revisions from there, never from a worktree's current state.
 
+If `$OUT` lies inside a docmgr ticket, `docmgr doctor` will reject the raw material the scripts write (prompts, `*.last-message.md`, and the extracts `system-prompt.md`, `skills-catalogue.md`, `agents-md.md`, `multi-agent.md`, `messages.md`), because none of it has frontmatter. `.docmgrignore` matches file and directory *names*, not paths, so add name globs to `ttmp/.docmgrignore`: those names, `*.last-message.md`, your prompt file names, and `*judge-rubric*.md`. IRWB-018's commit `230fec2` in the compiler-workbench repository is an example.
+
 ## 4. Step 1: write a neutral baseline brief
 
 Start from `templates/baseline-brief-skeleton.md`. The baseline must measure the model's own tendency, so it should contain no instruction about simplicity in either direction. Three properties of the brief turned out to shape the output directly. Decide each one deliberately.

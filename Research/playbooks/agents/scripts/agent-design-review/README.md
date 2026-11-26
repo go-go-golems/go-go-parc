@@ -45,6 +45,8 @@ node $K/05-content-metrics.mjs $(node -e 'for (const k of require(process.argv[1
 
 Keep `$JUDGE` outside `$OUT`, so that the judge never sees the key. Commit `$OUT`: logs, `heads.json`, extracts, key, scores.
 
+If `$OUT` lies inside a docmgr ticket, `docmgr doctor` will reject the raw material the scripts write (prompts, `*.last-message.md`, and the extracts `system-prompt.md`, `skills-catalogue.md`, `agents-md.md`, `multi-agent.md`, `messages.md`), because none of it has frontmatter. `.docmgrignore` matches file and directory *names*, not paths, so add name globs to `ttmp/.docmgrignore`: those names, `*.last-message.md`, your prompt file names, and `*judge-rubric*.md`. IRWB-018's commit `230fec2` in the compiler-workbench repository is an example.
+
 ## Scripts
 
 | Script | Does |
