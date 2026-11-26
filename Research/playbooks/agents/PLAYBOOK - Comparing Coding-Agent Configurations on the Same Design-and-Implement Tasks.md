@@ -157,6 +157,8 @@ Prefer tasks where:
 
 Use a known-answer question only as a calibration of the rubric.
 
+**Fix only what the comparison needs, and fix it narrowly.** The first stage-1 brief allowed affine expressions in parameter types ("dim := affine expression of shape names and integers"), which no program used. Twelve of sixteen designs then planned a general shape solver. A brief's specification is read as a requirement, and the policy's "keep the domain narrow" does not override it. Write the fixed surface at the generality the corpus uses.
+
 ## 10. Open questions *(to be filled as the experiment proceeds)*
 
 - Does a review change designs in the same direction for every configuration?

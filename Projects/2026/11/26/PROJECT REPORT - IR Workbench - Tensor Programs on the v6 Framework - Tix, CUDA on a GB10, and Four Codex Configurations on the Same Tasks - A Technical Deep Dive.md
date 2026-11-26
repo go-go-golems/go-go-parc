@@ -10,7 +10,7 @@ created: 2026-11-26
 repo: /home/manuel/code/wesen/2026-11-24--compiler-workbench
 ticket: IRWB-019
 tickets: [IRWB-020, IRWB-021, IRWB-018]
-source_revision: 8eeed67
+source_revision: b12c92a
 ---
 
 # Tensor programs on the v6 framework: Tix, CUDA on a GB10, and four Codex configurations on the same tasks
@@ -135,6 +135,41 @@ The strongest idea, found in four documents, splits this merge into two smaller 
 The differences between cells are small, and each cell had one run. Pi scored above Codex by half a point, Astra above Sol by half a point, and high and xhigh above medium by a point. Length and over-engineering grew with effort. The lowest cell (Codex, Sol, medium) made the one error the judge found: it claimed that its rules reach softmax followed by a contraction, without an inlining rule that would make that reachable.
 
 The main finding is a ceiling. Streaming attention is well known, its identities are in the literature, and all twelve configurations know them. A design-only question with a known answer measures recall. It does not separate the configurations. The objective version of this research is its implementation (T5 in the repository's `BACKLOG.md`), where the derived kernel's measured GPU time against an unfused and a hand-written kernel would decide.
+
+## 5. Stage 1 designs: the task that separates the configurations
+
+Stage 1 drew sixteen designs. Twelve came from the Codex and Pi cells. Four came from Claude cells, Opus 5.5 and Fable 5.2 at medium and xhigh effort, run as subagents of the coordinating session. The Claude cells are kept few because they share the coordinator's quota. A blind judge scored all sixteen with a rubric of over-engineering counts and five fitness criteria:
+- semantic fidelity to the brief;
+- the contract;
+- the framework analysis;
+- the test plan;
+- implementability.
+
+All 192 of its quotes were verified against the documents.
+
+| Group | Over-engineering (0–10) | Fitness (0–10) | Excess items | Words |
+|---|---:|---:|---:|---:|
+| Claude (Opus, Fable) | 2.75 | 8.50 | 12.3 | 4,990 |
+| Codex CLI | 2.50 | 7.50 | 6.3 | 2,577 |
+| Pi | 4.50 | 6.67 | 12.0 | 2,608 |
+| Codex · Astra | 2.00 | 8.00 | 5.7 | 2,627 |
+| Codex · Sol | 3.00 | 7.00 | 7.0 | 2,528 |
+| Pi · Astra | 4.00 | 7.00 | 11.0 | 2,581 |
+| Pi · Sol | 5.00 | 6.33 | 13.0 | 2,635 |
+
+The table supports three readings. Each cell had one run, and each group combines three or four cells.
+
+**The harness matters, in the direction opposite to the one report 10 suggested.** Report 10 traced defensive error contracts to a rule in Codex's system prompt. Here, with the policy present in both harnesses, the Pi cells, whose prompt lacks that rule, specify more error conditions than the Codex cells (4.7 against 3.0 on average) and twice the excess overall. The defensive tendency is partly the model's own. Something in the Codex context restrains it. The most likely candidate is the policy's rank: Codex passes it as a developer message, ranked above anything the user writes, while Pi appends it to its own system prompt.
+
+**Sol is the weakest model in both harnesses.** It is weaker in fitness and stronger in over-engineering than Astra on the same harness. That makes Sol the target of the prompting experiment (Section 6).
+
+**The most common excess was caused by the brief.** Twelve of sixteen designs plan a general solver for symbolic shapes, because the brief's grammar allows an affine expression in a parameter's type, such as `f32[N + 1]`, which no corpus program uses. The policy's "keep the input domain as narrow as the experiment allows" did not prevail over a grammar that explicitly admits more. A brief's specification is read as a requirement, and its generality is implemented.
+
+All sixteen designs agree on the two framework changes the tensor domain needs, and both are in `src/framework/passes/define-pass.ts`:
+- **A synchronous entry point.** Checked pass application exists only as an asynchronous function, because the analysis manager is asynchronous, while the fixed API `optimizeTix` is synchronous.
+- **A lazy edit.** `applyPass` always opens an IR edit, which throws for an adapter that cannot rebuild a native value, even when the pass returns one and never edits.
+
+Most designs also found that the framework's differential check already carries both relations, exact and tolerance, without change. The first finding of the tensor track is therefore small and specific. Contract checking generalizes, and pass application assumed a rewritable, asynchronous domain.
 
 ## Where the material is
 
