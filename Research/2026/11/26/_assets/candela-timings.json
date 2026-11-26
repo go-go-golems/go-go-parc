@@ -1,0 +1,123 @@
+{
+  "film": "PT-S02 Singer orbit, preview A",
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "frames": 1200,
+  "spp": 64,
+  "movieSha256": "83d65ec64074cdfaab4bc9d48779ee0d77297bebffdc77cf0d8a4b3af201ad00",
+  "inputDigests": {
+    "stageReceipt": "40ebbac0f11d0cf5b59b98050cc5a7c91f33acee5927f23e3dcb15746bd4dfe5",
+    "sparkNativeLog": "758634f0e18c2cf479a8c7d15b82a0646321897d90102b55a2b949aab04f2318",
+    "submitterLog": "56e6ba815595e41938f5b8948d63d56ad0483a583a27d2f0d17109fb1fd17991",
+    "earlierReelReceipt": "24a93d19886981731aa0601599e42407ec06c683293e43e3541b4b43d04b5357"
+  },
+  "submitToFetchedSeconds": 658,
+  "intervalSeconds": {
+    "Candela scene build": 132.874,
+    "Tracing-program NVRTC compile": 9.023,
+    "OptiX pipeline setup": 32.232,
+    "Native frame render interval": 218.9026,
+    "Native output interval": 36.738,
+    "Remaining elapsed time": 228.2304
+  },
+  "launches": 59264,
+  "singleFrameGroups": 200,
+  "nvrtcCacheHits": 201,
+  "countsBySourceInterval": [
+    {
+      "first": 0,
+      "last": 299,
+      "traced": 300,
+      "reused": 0,
+      "noBeauty": 0,
+      "calls": 1,
+      "renderSeconds": 27.6418
+    },
+    {
+      "first": 300,
+      "last": 419,
+      "traced": 120,
+      "reused": 0,
+      "noBeauty": 0,
+      "calls": 120,
+      "renderSeconds": 25.9544
+    },
+    {
+      "first": 420,
+      "last": 509,
+      "traced": 31,
+      "reused": 59,
+      "noBeauty": 0,
+      "calls": 1,
+      "renderSeconds": 14.1145
+    },
+    {
+      "first": 510,
+      "last": 635,
+      "traced": 0,
+      "reused": 0,
+      "noBeauty": 126,
+      "calls": 0,
+      "renderSeconds": 0.0
+    },
+    {
+      "first": 636,
+      "last": 894,
+      "traced": 170,
+      "reused": 89,
+      "noBeauty": 0,
+      "calls": 1,
+      "renderSeconds": 83.7337
+    },
+    {
+      "first": 895,
+      "last": 974,
+      "traced": 80,
+      "reused": 0,
+      "noBeauty": 0,
+      "calls": 80,
+      "renderSeconds": 37.1699
+    },
+    {
+      "first": 975,
+      "last": 1199,
+      "traced": 225,
+      "reused": 0,
+      "noBeauty": 0,
+      "calls": 1,
+      "renderSeconds": 30.2883
+    }
+  ],
+  "earlier2048sppDifferentWorkloads": [
+    {
+      "chapter": "PT-C03-rack-focus",
+      "spp": 2048,
+      "panelFrames": 120,
+      "nativeSeconds": 711.138,
+      "secondsPerPanel": 5.9262
+    },
+    {
+      "chapter": "PT-L01-strip-travel",
+      "spp": 2048,
+      "panelFrames": 120,
+      "nativeSeconds": 272.903,
+      "secondsPerPanel": 2.2742
+    },
+    {
+      "chapter": "PT-L07-three-point-studio",
+      "spp": 2048,
+      "panelFrames": 168,
+      "nativeSeconds": 872.663,
+      "secondsPerPanel": 5.1944
+    }
+  ],
+  "measurementNotes": [
+    "Submit timer starts with an existing browser-generated ZIP. It ends on verified download, before local full decode and playback.",
+    "Scene build times openRender after JS bundle and content reads. Native output covers postprocessing, readback and PNG generation.",
+    "Render interval includes setSample, scene upload/update, sample launches and GPU synchronization. GPU-only active time was not measured.",
+    "NVRTC counts apply to the tracing program. AS and JS helper timers are excluded from the partition because their scopes intersect other operations.",
+    "The remaining elapsed time is a residual. It includes job transfer, process/scene setup outside logged intervals, compositing, encoding and fetch, plus log rounding. No allocation within this residual was measured.",
+    "Single-panel preview. Source frames without beauty views contribute directly through deterministic drafting plates."
+  ]
+}
