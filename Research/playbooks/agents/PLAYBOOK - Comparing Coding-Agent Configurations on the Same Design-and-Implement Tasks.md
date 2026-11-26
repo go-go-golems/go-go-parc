@@ -44,7 +44,7 @@ The first application crossed three factors at two levels each:
 | Model | gpt-6.2-sol, gpt-6.2-astra | `MODEL` (Codex: `gpt-6.2-sol`; Pi: `openai-codex/gpt-6.2-sol`) |
 | Effort | medium, high | `EFFORT` (Codex: `model_reasoning_effort`; Pi: `--thinking`) |
 
-That is eight agents per task, one per cell. A full factorial separates the effects: Codex against Pi on the same model and effort isolates the harness, Sol against Astra the model, and medium against high the effort. With one agent per cell no difference is statistically secure. Repeat the cells that matter, rather than adding factors.
+That is eight agents per task, one per cell. The user then added `xhigh` (12 cells: 2 harnesses × 2 models × 3 efforts), and Claude cells: Opus 5.5 and Fable 5.2 at medium and xhigh, four cells, on stage 1 only. The Claude cells are kept few on purpose, because they draw on the same quota as the coordinating session ("don't launch a whole fleet, keep an eye on usage"). A full factorial separates the effects: Codex against Pi on the same model and effort isolates the harness, Sol against Astra the model, and medium against high the effort. With one agent per cell no difference is statistically secure. Repeat the cells that matter, rather than adding factors.
 
 Give every cell the same context except the factor under study:
 - the same brief, byte for byte;
@@ -61,6 +61,19 @@ What then differs between the harnesses is their own text and tools. Measure bot
 | Sandbox | workspace-write; network off unless `-c sandbox_workspace_write.network_access=true`; escalations go to an auto-reviewer | none: commands run as the user |
 | Transcript | `~/.codex/sessions/.../rollout-*.jsonl`, plus approval sidecars | `--session-dir <dir>`, one JSONL per session, including the system message's sections |
 | Resume | `codex exec resume <id>`, appended to the same rollout | `pi -p --session <file>`, appended to the same session |
+
+### Claude cells
+
+A headless `claude -p` with `--dangerously-skip-permissions` is refused by the coordinating session's auto-mode classifier as undermining oversight. Do not route around it. Run Claude cells with the coordinator's own Agent tool instead:
+- Set `model` (`opus`, `fable`) and `effort` (`low`, `medium`, `high`, `xhigh`). Setting effort is allowed only when the user asks for those levels.
+- Create the worktree yourself, at the same base.
+- Give the agent a short prompt that points to its brief, kept in a file outside the repository.
+- Continue the agent later with `SendMessage`.
+
+The confounds, to record:
+- The agent gets the Claude Code subagent prompt.
+- The policy arrives in the task text, not the system prompt.
+- Shell state does not persist between commands, so the brief says "start every command with `cd <worktree> && `".
 
 ## 3. Blinding
 
@@ -111,6 +124,13 @@ Build once, for every configuration, anything that is transport rather than the 
 
 ## 7. Measuring behaviour
 
+**Coordinator scripts** (in the experiment's ticket, `scripts/`; they keep the coordinator's own token use small):
+- `08-status.mjs [task]`: one line per agent, for every task and harness, from the config keys, the exit files and each worktree's git state. It shows the state, commits, design words, lines added per area, other paths touched, and the last commit subject.
+- `09-judge-pack.sh <task> <dir> <rubric>`: writes missing `heads.json` (for Claude cells), packs every design blind, renames the key per task, and copies in the rubric and the neutralized brief.
+- `10-dispatch-turn.sh <task> <turn> <template> [reviews] [--network]`: one prompt per agent, with its review spliced in through the blind key. Codex and Pi cells are resumed with the kit's scripts; Claude cells get a prompt file to send with `SendMessage`.
+- The kit's Codex launchers accept `CODEX_EXTRA`, for example `-c sandbox_workspace_write.network_access=true`.
+
+
 - **Codex:** `03-collect-rollouts.mjs` and `04-extract-codex-sessions.mjs` (minutes, tool calls, commands, interpreter runs, skill files read, tokens).
 - **Pi:** `14-extract-pi-sessions.mjs` (the same measures, per-tool counts, and the system message's section sizes).
 - **During implementation:** `11-snapshot-round.mjs` every few minutes, giving lines per category, test blocks, assertions, helper functions, and edits outside the agent's scope.
@@ -123,6 +143,8 @@ Build once, for every configuration, anything that is transport rather than the 
 - **`cmd | while read …; do … & done; wait` does not wait.** The loop runs in a pipeline subshell. Use `while …; done < <(cmd)`.
 - **`codex exec` run in the foreground waits on stdin** ("Reading additional input from stdin..."). Pass `< /dev/null`.
 - **`node -e 'require(relativePath)'`** resolves against node's own directory, not the shell's working directory. Pass absolute paths.
+- **A headless `claude -p --dangerously-skip-permissions` is blocked** in an auto-mode session. Use the Agent tool (see §2).
+- **The kit's blind-pack writes `results/blind-key.json` under a fixed name.** With several tasks, rename it per task, or the second pack overwrites the first. `09-judge-pack.sh` does the rename.
 
 ## 9. Open questions *(to be filled as the experiment proceeds)*
 
