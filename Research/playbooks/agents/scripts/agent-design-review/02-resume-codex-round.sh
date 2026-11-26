@@ -8,6 +8,8 @@ set -u
 round=$1; from=$2; pfile=$3; shift 3
 : "${REPO:?}" "${OUT:?}" "${MODEL:?}" "${EFFORT:?}"
 L=$OUT/$round/logs; mkdir -p "$L"
+# CODEX_EXTRA: further codex arguments, split on spaces, e.g. "-c sandbox_workspace_write.network_access=true"
+read -ra EXTRA <<< "${CODEX_EXTRA:-}"
 DEV=()
 if [ -n "${DEV_INSTRUCTIONS_FILE:-}" ]; then
   # Codex prepends developer_instructions to its second developer message, ahead of AGENTS.md (a user message).
@@ -17,7 +19,7 @@ fi
 for item in "$@"; do
   sid=$(grep -m1 "session id:" "$OUT/$from/logs/$item.log" | awk '{print $3}')
   w=$(node -e 'console.log(require(process.argv[1])[process.argv[2]].worktree)' "$OUT/$from/heads.json" "$item")
-  ( cd "$w" && timeout "${AGENT_TIMEOUT:-3600}" codex exec resume -m "$MODEL" -c model_reasoning_effort="$EFFORT" "${DEV[@]}" \
+  ( cd "$w" && timeout "${AGENT_TIMEOUT:-3600}" codex exec resume -m "$MODEL" -c model_reasoning_effort="$EFFORT" "${DEV[@]}" "${EXTRA[@]}" \
       -c sandbox_mode=\"workspace-write\" -c "sandbox_workspace_write.writable_roots=[\"$REPO/.git\"]" \
       -o "$L/$item.last-message.md" "$sid" "$(sed "s/<ID>/$item/g" "$pfile")" \
       > "$L/$item.log" 2>&1; echo "$item exit $?" >> "$L/exits.txt" ) &

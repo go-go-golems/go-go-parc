@@ -11,6 +11,8 @@ round=$1; prompts=$2; shift 2
 : "${REPO:?}" "${BASE:?}" "${OUT:?}" "${WORKTREES:?}" "${MODEL:?}" "${EFFORT:?}"
 L=$OUT/$round/logs; mkdir -p "$L"
 base=$(git -C "$REPO" rev-parse --short "$BASE")
+# CODEX_EXTRA: further codex arguments, split on spaces, e.g. "-c sandbox_workspace_write.network_access=true"
+read -ra EXTRA <<< "${CODEX_EXTRA:-}"
 DEV=()
 if [ -n "${DEV_INSTRUCTIONS_FILE:-}" ]; then
   # Codex prepends developer_instructions to its second developer message, ahead of AGENTS.md (a user message).
@@ -21,7 +23,7 @@ for item in "$@"; do
   w=$WORKTREES/$round-${item,,}; br=$round/${item,,}
   [ -d "$w" ] || git -C "$REPO" worktree add -q -b "$br" "$w" "$base"
   prompt="$(cat "$prompts/common.md" "$prompts/$item.md" | sed "s/<ID>/$item/g")"
-  ( cd "$w" && timeout "${AGENT_TIMEOUT:-3600}" codex exec -m "$MODEL" -c model_reasoning_effort="$EFFORT" "${DEV[@]}" \
+  ( cd "$w" && timeout "${AGENT_TIMEOUT:-3600}" codex exec -m "$MODEL" -c model_reasoning_effort="$EFFORT" "${DEV[@]}" "${EXTRA[@]}" \
       -s workspace-write --add-dir "$REPO/.git" -o "$L/$item.last-message.md" "$prompt" \
       > "$L/$item.log" 2>&1; echo "$item exit $?" >> "$L/exits.txt" ) &
 done
