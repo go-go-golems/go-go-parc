@@ -295,7 +295,7 @@ Computing them in double and rounding should close the gap. A backend built that
 - two treated the probe as sampled evidence only;
 - two rejected exactness because NaN payloads differ, which the f32 meaning does not define.
 
-An exhaustive comparison over all 2³² f32 inputs, about a minute on the GPU for each unary function, would have settled it. The designs measured the right thing and then defaulted to the weaker, more familiar claim.
+An exhaustive comparison over all 2³² f32 inputs for each unary function would have settled it. It needs every GPU result and every rounded JavaScript result, which is large but feasible in chunks. The designs measured the right thing and then defaulted to the weaker, more familiar claim.
 
 **The model effect held; the harness effect did not, for Sol.** Astra over-engineered less than Sol in both harnesses, as in stage 1, and Codex · Astra was again the best group. But Codex · Sol was now the weakest, below Pi · Sol, which contradicts stage 1's finding that the Codex context restrains defensive defaults. With one run per cell, and judges that differ by up to two fitness points, the harness difference for Sol is within the noise.
 
