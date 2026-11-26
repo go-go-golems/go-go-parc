@@ -5,7 +5,7 @@ Scripts for running parallel Codex design agents in rounds, analysing their nati
 The first application was IRWB-018 in `/home/manuel/code/wesen/2026-11-24--compiler-workbench`. Every script here was run against that data and reproduces its numbers.
 
 ## Requirements
-- `git`, `codex` CLI (tested with 0.172.0), `node` 20 or later, `python3` with `matplotlib`.
+- `git`, `codex` CLI (tested with 0.172.0), `node` 20 or later, `python3` with `matplotlib`. For harness comparisons, `pi` (tested with 1.5.1).
 - Codex rollouts under `$CODEX_HOME/sessions` (default `~/.codex`). They are read, never modified.
 
 ## Quick start
@@ -63,4 +63,7 @@ If `$OUT` lies inside a docmgr ticket, `docmgr doctor` will reject the raw mater
 | `09-figures.py` | Small multiples: words, over-engineering, fitness by item and round |
 | `10-check-contamination.sh` | Commands in a round that touch other rounds' branches or worktrees |
 | `11-snapshot-round.mjs` | Live or final snapshot of a round: lines added per category (source, test, harness, docs, data), test cases, assertions, functions in test and harness code, edits under `src/` or `tools/`, and from the live rollout minutes, test runs, builds, latest commentary. Appends to `snapshots.jsonl` |
+| `12-launch-pi-round.sh` | The Pi counterpart of `01`: one `pi -p` per item in its own worktree, with `--no-extensions --no-mcp` (Pi's base prompt, four tools, skills) and `DEV_INSTRUCTIONS_FILE` appended to the system prompt. Sessions go to `$OUT/<round>/sessions/<item>/`. Pi has no sandbox |
+| `13-resume-pi-round.sh` | The Pi counterpart of `02`: continue each Pi session with one prompt (`--session <file>`) |
+| `14-extract-pi-sessions.mjs` | The Pi counterpart of `04`: commands, reads, skill loads, interpreter runs, minutes, tokens, per-tool counts, and the system message's section sizes (`system-sections.json`). `--turn N` for resumed sessions |
 | `templates/` | Baseline brief skeleton, policy section, self-review prompt, rubric, judge prompt |
