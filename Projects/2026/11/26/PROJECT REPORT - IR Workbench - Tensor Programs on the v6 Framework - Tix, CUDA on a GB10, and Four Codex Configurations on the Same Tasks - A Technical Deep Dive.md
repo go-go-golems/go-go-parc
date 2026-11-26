@@ -10,7 +10,7 @@ created: 2026-11-26
 repo: /home/manuel/code/wesen/2026-11-24--compiler-workbench
 ticket: IRWB-019
 tickets: [IRWB-020, IRWB-021, IRWB-018]
-source_revision: b12c92a
+source_revision: 4dff51b
 ---
 
 # Tensor programs on the v6 framework: Tix, CUDA on a GB10, and four Codex configurations on the same tasks
@@ -172,6 +172,70 @@ All sixteen designs agree on the two framework changes the tensor domain needs, 
 - **A lazy edit.** `applyPass` always opens an IR edit, which throws for an adapter that cannot rebuild a native value, even when the pass returns one and never edits.
 
 Most designs also found that the framework's differential check already carries both relations, exact and tolerance, without change. The first finding of the tensor track is therefore small and specific. Contract checking generalizes, and pass application assumed a rewritable, asynchronous domain.
+
+## 7. Stage 1 implementations: fourteen correct compilers
+
+Fourteen of the sixteen design cells went on to implement: the twelve Codex and Pi cells and the two medium-effort Claude cells. Each received a blind review of its design, about 350 words. A reviewer checked the review's claims against the base revision. Each implementer revised its design, then implemented the language, the IR, the evaluators, the contract and the two passes in its own worktree.
+
+### How the implementations were scored
+
+Three measures were used, all written before any implementation's code was read.
+
+**A hidden acceptance suite.** The suite has 25 tests of the fixed core and API. It compares the six corpus programs bit for bit against hand-written f32 references, and checks f64 precision, the reduction-body rule, precedence, two-index accumulation order, four compile errors, and both passes through `optimizeTix`. Reading the suite against the brief before use found one invalid test, and one test that did not test what it named:
+- The two-index test used an output index with no use at all. The brief makes that a compile error, so the test would have failed exactly the correct implementations. Two of them later confirmed this, with "2:5 Cannot infer extent" and "2:31: cannot infer index extent".
+- The `inline` test ran only on programs where the brief's inline condition (pointwise, single use) never held. A pass that did nothing would have passed it.
+
+Both were fixed before the first implementation was scored, and the suite was then frozen by hash.
+
+**A differential cross-check.** A generator produces random valid programs in the fixed core as syntax trees. It prints them as Tix and evaluates the trees directly under the brief's f32 rules, so the reference needs no parser. Its programs avoid domain errors by construction: `log` and `sqrt` take e·e + c, `exp` takes tanh(e)·2, and division is by e·e + 1 or by a shape value. Sixty programs with three inputs each contain 88 reductions, 103 calls and 62 unary minuses. Every implementation runs them in its own process. Both passes are correct on every program, so a rejection by `optimizeTix` is a false rejection by the implementation's contract.
+
+**A sensitivity variant.** The suite's mlp program uses `x` both as its input tensor and as an output index, `y[i, x] = …`. The brief does not say whether index and tensor names may coincide. The variant renames that one index and is reported next to the frozen score.
+
+### Results
+
+| Cell | Suite | Variant | Cross-check f32 | `inline` | `split-sum` | `src/tensor` lines | Framework diff |
+|---|---|---|---|---|---|---:|---|
+| Codex · Astra · medium (B) | 25/25 | 25/25 | 180/180 | 60/60 | 60/60 | 917 | +85/−27 |
+| Codex · Astra · high (D) | 25/25 | 25/25 | 180/180 | 60/60 | 60/60 | 972 | +86/−28 |
+| Codex · Astra · xhigh (I) | 25/25 | 25/25 | 180/180 | 60/60 | 60/60 | 1,086 | +140/−71 |
+| Codex · Sol · medium (C) | 25/25 | 25/25 | 180/180 | 60/60 | 60/60 | 1,380 | +132/−47 |
+| Codex · Sol · high (A) | 25/25 | 25/25 | 180/180 | 60/60 | 60/60 | 1,336 | +102/−34 |
+| Codex · Sol · xhigh (L) | 25/25 | 25/25 | 180/180 | 60/60 | 60/60 | 1,278 | +112/−45 |
+| Pi · Astra · medium (E) | 25/25 | 25/25 | 180/180 | 60/60 | 59/60 | 805 | +85/−26 |
+| Pi · Astra · high (H) | 25/25 | 25/25 | 180/180 | 60/60 | 59/60 | 1,004 | +32/−19 |
+| Pi · Astra · xhigh (J) | 25/25 | 25/25 | 180/180 | 60/60 | 60/60 | 1,067 | +118/−0 |
+| Pi · Sol · medium (F) | 25/25 | 25/25 | 180/180 | 60/60 | 60/60 | 1,300 | +105/−29 |
+| Pi · Sol · high (G) | 25/25 | 25/25 | 180/180 | 60/60 | 60/60 | 1,279 | +123/−37 |
+| Pi · Sol · xhigh (K) | 25/25 | 25/25 | 180/180 | 60/60 | 55/60 | 1,317 | +177/−81 |
+| Claude · Opus · medium (N) | 22/25 | 25/25 | 180/180 | 60/60 | 60/60 | 1,674 | +193/−36 |
+| Claude · Fable · medium (P) | 22/25 | 25/25 | 180/180 | 60/60 | 60/60 | 1,717 | +168/−55 |
+
+**Correctness is uniform.** All fourteen implementations agree bit for bit with the tree-walking reference on every random case, in f32, and agree with it in f64. Every result of `inline` is bit-identical to its input. Every accepted `split-sum` computes the same function. The fixed core's f32 meaning, written in four sentences, was precise enough that fourteen independent implementations compute identical bits. No implementation changed a file outside the scope the brief allowed.
+
+**What separates them is the contract.** Three implementations reject a correct `split-sum` on some random programs:
+- K on 5 of 60;
+- E and H, both Pi with Astra, on the same program.
+
+The rejected programs are well conditioned: plain f32 evaluation stays within 4e-7 of f64, relative to max(1, |r|). K's tolerance is a fixed bound, |c − r| ≤ 2·10⁻⁶ + 2·10⁻⁵·|r|. One design (P) had measured in advance that a fixed relative bound cannot separate correct from wrong programs: correct evaluations reached a relative error of 9.9·10⁻³, wrong ones went as low as 1.6·10⁻⁶. It used a running first-order error bound instead, which accepted every correct `split-sum`. The tolerance is the one place where the brief left a numerical judgement open, and it is the one place where the implementations differ in behaviour.
+
+**The name-reuse rule divides them by vendor.** Both Claude implementations reject `y[i, x]` when `x` is a tensor: "'x' is a tensor and cannot be an index" and "index x is a parameter". All twelve OpenAI implementations accept it. The brief is silent, and neither reading is wrong. The lesson is for the brief: a fixed core must specify its namespaces, and a test must not depend on a rule the brief does not state.
+
+**Size follows the model more than the harness.** Astra wrote 805 to 1,086 lines of tensor source and Sol 1,278 to 1,380, in either harness; the Claude cells wrote about 1,700. In the implementation turn, Sol also generated more output tokens than Astra (38,000 to 46,000 against 20,000 to 33,000). Effort level made no consistent difference to size or correctness.
+
+**The framework changes converge.** Every implementation changes `src/framework/passes/define-pass.ts` and nothing else in the framework:
+- every one adds a synchronous checked application for passes that return a native value, because the fixed `optimizeTix` is synchronous;
+- most also make `applyPass` open its edit lazily, so that an adapter without `rebuild` can be used.
+
+The differential contract machinery needed no change in any of the fourteen. The framework generalizes to a second domain with one missing entry point.
+
+### The base for stage 2
+
+The implementation merged as the base for the CUDA stage was chosen by three criteria, in order:
+1. every objective check passes;
+2. the smallest framework change;
+3. the smallest source.
+
+Nine cells meet the first. Codex · Astra · medium (B) and Codex · Astra · high (D) tie on the second, and B is smaller. B's framework change adds `applyNativePassSync(pass, before, gate, params)` and moves the shared native-result steps into two helpers that `applyPass` also uses. It does not make `applyPass`'s edit lazy, so the asynchronous path still requires `rebuild`; that remains in the backlog. B's design was one of the two in which the reviewer found nothing it had to change.
 
 ## Where the material is
 
