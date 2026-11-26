@@ -1,0 +1,63 @@
+{
+  "mesh": "Candela mesh.torus(1,0.18), default tessellation",
+  "triangles": 3072,
+  "nodes": 1935,
+  "grid": [
+    96,
+    96
+  ],
+  "workloads": [
+    {
+      "name": "above",
+      "rays": 9216,
+      "hits": 3064,
+      "full": {
+        "nodes": 143116,
+        "triangles": 21101
+      },
+      "early": {
+        "nodes": 115918,
+        "triangles": 14862
+      }
+    },
+    {
+      "name": "below",
+      "rays": 9216,
+      "hits": 3064,
+      "full": {
+        "nodes": 168636,
+        "triangles": 38953
+      },
+      "early": {
+        "nodes": 115918,
+        "triangles": 14862
+      }
+    },
+    {
+      "name": "side",
+      "rays": 9216,
+      "hits": 1176,
+      "full": {
+        "nodes": 41272,
+        "triangles": 5842
+      },
+      "early": {
+        "nodes": 31693,
+        "triangles": 3678
+      }
+    },
+    {
+      "name": "short segment",
+      "rays": 9216,
+      "hits": 0,
+      "full": {
+        "nodes": 9216,
+        "triangles": 0
+      },
+      "early": {
+        "nodes": 9216,
+        "triangles": 0
+      }
+    }
+  ]
+}

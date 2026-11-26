@@ -1,0 +1,20 @@
+# Phase 3: the OptiX target, 2026-11-21 (GB10 sm_121, OptiX SDK 9.0.0 / driver 580, NVRTC 13.0)
+## Compile (candela-rt cuda-sweep --backend optix, CUDA_CACHE_DISABLE=1)
+105/105 compile to OptiX-IR and create a module + pipeline; NVRTC 1968 ms mean, 3440 ms max (10 threads)
+optixModuleCreate at maxRegisterCount 255: ~8-17 s on first use per program; later from OptiX's disk cache (~12 ms)
+## Parity vs WebGPU (Dawn), motion blur off on both sides
+1 spp 640x360: B-01 100.0 % of pixels within 0.1 %; K-09 99.9 %; X-02 91.6 % (64 spp: mean -0.006 %)
+64 spp 320x180, all presets (scripts/parity-sweep.ts --backend optix): displayed (tone-mapped) 8x8 blocks within 2 %
+of white for 104/105; F-03 (Voronoi cell colours from the sine hash) 2.9 %. Linear metrics are dominated by
+fireflies (X-03 sun glint: linear block rel. RMSE 584 %, displayed 0.34 %).
+## Register limit (K-09, 960x540, 256 spp)
+maxRegisterCount 0/128: 2907/2821 ms; 168: 1474 ms; 200: 831 ms; 255: 749 ms (plain CUDA kernel: 155 regs, 973 ms)
+V-04: 8126 ms at 168, 8295 ms at 200 and 255 (not register-bound)
+## Speed, 960x540, 256 spp, motion blur off (render time)
+          WebGPU/Dawn   plain CUDA   OptiX(255 regs)   auto
+B-01         516 ms       141 ms        422 ms          136 ms (cuda)
+K-09        5201 ms       973 ms        741 ms          747 ms (optix)
+X-02       14829 ms      2001 ms       1144 ms         1146 ms (optix)
+V-04        8110 ms      4671 ms       8295 ms         4668 ms (cuda)
+Tried and reverted: keeping the BVH walk inside the OptiX program for small scenes (B-01 173 ms, V-04 7693 ms,
+K-09 929 ms — the larger raygen slowed the mesh case).
