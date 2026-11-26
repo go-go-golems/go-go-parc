@@ -110,10 +110,22 @@ If every implementation fails the same test, suspect the reference first.
 One session per agent, continued across turns:
 1. **Design.** The agent creates its ticket, writes the design, starts its diary, and commits. The brief says "design only; a reviewer will reply in this session".
 2. **Blind score.** A judge subagent scores all designs of the task at once with a rubric: over-engineering counts with quotes, plus fitness criteria specific to the task.
-3. **Blind review.** A reviewer subagent writes an engineering review of each design, following a fixed protocol: must change, cut, framework changes, keep, with quotes, at most 350 words. The coordinator checks the reviews against the designs before sending each one to its author. *(to be filled: what review content changes behaviour)*
+3. **Blind review.** A reviewer subagent writes an engineering review of each design, following a fixed protocol: must change, cut, framework changes, keep, with quotes, at most 350 words. It works in a clean checkout at the agents' base revision, so it can verify repository claims without seeing the experiment. For GPU work it may run a few short probes.
+   - **The coordinator verifies the reviewer's load-bearing claims before sending.** In stage 1 there were four framework facts (an unconditional `beginEdit`, a throwing registry, a store that rejects unknown revisions); in stage 2, lazy CUDA module loading inflating the first timed launch. Each was rechecked in the source or on the GPU.
+   - **The coordinator checks that no review mentions another document,** and replaces each review's title, which names the author's blind letter. Check both spellings ("doc-A", "doc A").
+   - **What review content changed behaviour:** implementers accepted nearly every must-change and cut. But they also implemented less than the reviewed design. In stage 1, all sixteen designs and their reviews included a lazy-edit framework change, and only four of fourteen implementations made it, because the synchronous path made it unnecessary.
 4. **Revise and implement.** The agent receives its review, revises the design and implements it in the same turn, with a diary and commits.
-5. **Hidden acceptance.** The coordinator builds each worktree and runs the hidden suite against it. *(to be filled)*
-6. **Report.** The agent writes its report draft in its ticket. The coordinator publishes it.
+5. **Hidden acceptance.** The coordinator builds each worktree and runs three measures, each written before any implementation was read:
+   - **A hidden suite of the fixed API,** frozen by hash after its first use.
+   - **A differential cross-check:** random valid programs from a generator that evaluates its own syntax trees under the brief's semantics, so the reference needs no parser. Run each implementation in its own process.
+   - **A sensitivity variant for any rule the brief turns out not to specify,** reported next to the frozen score, never instead of it.
+   
+   Report rates over the cases where a measure applies. A pass that cannot change a program counts as "accepted" in most APIs (N's report pointed this out).
+6. **Report, with the agent's own results.** The agent receives its evaluation results, including the inputs it failed on, must not change code, and must diagnose every failure with `file:line` before writing its final report in its ticket.
+   - This measures something the earlier turns cannot: whether a configuration reports its own failures faithfully, and whether it disputes a result or accepts it. In stage 1 all fourteen reported their results accurately. The two Claude cells conceded their failure ("The suite's result is right and the failure is mine"). The Pi Astra cells framed theirs as "a real accuracy violation, not a rewrite regression".
+   - Give every failing input. Agents correctly declined to diagnose the rejections for which only the count was given.
+   - Release the hidden material into the repository after this turn, not before.
+   - Publish the merged implementation's report to the vault with a note on its provenance. The others stay in their tickets, and the coordinator's report compares all of them.
 
 Scoring the design (step 2) before the review (step 3) keeps the design score a measurement of the configuration, not of the review.
 
@@ -132,7 +144,11 @@ Build once, for every configuration, anything that is transport rather than the 
 **Coordinator scripts** (in the experiment's ticket, `scripts/`; they keep the coordinator's own token use small):
 - `08-status.mjs [task]`: one line per agent, for every task and harness, from the config keys, the exit files and each worktree's git state. It shows the state, commits, design words, lines added per area, other paths touched, and the last commit subject.
 - `09-judge-pack.sh <task> <dir> <rubric>`: writes missing `heads.json` (for Claude cells), packs every design blind, renames the key per task, and copies in the rubric and the neutralized brief.
-- `10-dispatch-turn.sh <task> <turn> <template> [reviews] [--network]`: one prompt per agent, with its review spliced in through the blind key. Codex and Pi cells are resumed with the kit's scripts; Claude cells get a prompt file to send with `SendMessage`.
+- `10-dispatch-turn.sh <task> <turn> <template> [reviews|results] [--network]`: one prompt per agent, with its review spliced in through the blind key (or a per-item `<item>.md`, for the results of the report turn). Codex and Pi cells are resumed with the kit's scripts; Claude cells get a prompt file to send with `SendMessage`.
+- `12-acceptance.mjs`, `14-impl-summary.mjs`, `15-turn3-results.mjs`: build and test every worktree; one row per implementation (correctness, size, framework diff, commands and output tokens of the implementation turn); each agent's own results as text.
+- **Pack designs from the design turn, not from the worktree.** The implementation turn revises the design document in place. A later comparison (a prompting variant against the original designs) must use the turn-1 copies kept in the first blind pack.
+- **Evaluation harness hygiene:** a timeout helper must clear its timer, or a finished worker waits out every pending timer before exiting (up to 10 minutes per implementation in stage 2). Exit explicitly after writing the result.
+- **Status relative to the right base:** when a stage branches from a merged earlier stage, measure each worktree against its own base (from `heads.json`), or the earlier stage's code appears as each agent's work.
 - The kit's Codex launchers accept `CODEX_EXTRA`, for example `-c sandbox_workspace_write.network_access=true`.
 
 
@@ -170,11 +186,40 @@ Use a known-answer question only as a calibration of the rubric.
 
 **Fix only what the comparison needs, and fix it narrowly.** The first stage-1 brief allowed affine expressions in parameter types ("dim := affine expression of shape names and integers"), which no program used. Twelve of sixteen designs then planned a general shape solver. A brief's specification is read as a requirement, and the policy's "keep the domain narrow" does not override it. Write the fixed surface at the generality the corpus uses.
 
-## 10. Open questions *(to be filled as the experiment proceeds)*
+## 10. Prompting the OpenAI models (Sol and Astra)
+
+What two stages, three policies and two harnesses showed about gpt-6.2-sol and gpt-6.2-astra. Each cell had one run, so treat differences under about one rubric point as noise: two judges differed by up to two fitness points on the same document.
+
+**The model matters more than the harness or the effort.**
+- Astra over-engineered less than Sol in both harnesses, in both stages: over-engineering 1.8–3.0 against 3.2–4.0.
+- Codex · Astra was the best group in both stages.
+- Astra's implementations were also smaller (805–1,086 lines of source against Sol's 1,278–1,380 in stage 1), equally correct, and cheaper in output tokens.
+- Reasoning effort (medium, high, xhigh) had no consistent effect on any measure. For design and implementation work at this size, medium is enough.
+- When the task allows, prefer Astra. Where Sol is needed, give it the policy below.
+
+**The harness effect is not stable.** In stage 1, with the same policy, Codex cells specified half as much excess as Pi cells. In stage 2, Codex · Sol was the weakest group. Report the harness × model interaction, not a harness main effect.
+
+**The policy (developer instructions).**
+- v1 (report 10's rules) is the baseline.
+- Adding task-specific rules (v3: "accept everything the brief fixes; cover it with the simplest method; reject only what would need unused machinery; rely on stated input assumptions; one path per job; justify every threshold") reduced Sol's excess by one or two items per cell and its over-engineering by about one point, at a fitness cost of about half a point.
+- **A policy outranks the brief.** v2's rule carried an example that narrowed the brief's fixed grammar, and every agent followed the policy over the brief. Never put examples in a policy that could contradict a task's specification.
+- **Some defaults no wording reached:** unrequested contract statuses, evidence formats, and rules for non-finite values in a brief that says inputs are finite. A brief that wants them gone has to say so for the specific case ("the contract returns only accepted, relation and reason").
+
+**Agents default to the familiar claim.** In stage 2, every design chose a tolerance relation for the GPU lowering. Four had probed the operations that decide exactness and found no mismatch. One implementation (J) built a backend that is bit-exact by construction, with explicit round-to-nearest arithmetic and transcendentals in double, which an exhaustive check over all 2³² inputs confirmed. It still checked and reported it under tolerance. Ask explicitly for "the strongest relation your evidence supports, and the probe that would settle it". Otherwise the agent states the weaker claim even when its own measurement supports the stronger one.
+
+**They implement less than they design, which is usually right.** Implementers dropped proposed framework changes that the final code did not need. Score the implementation, not the design's promises.
+
+**Infrastructure notes for OpenAI agents:**
+- Codex agents escalate a blocked command on the first call, and the approval sidecar grants it. Grant needed access (network for ssh) explicitly, so their work stays in the sandbox.
+- Astra batches commands in one script, so count commands from `CommandExecution` events.
+- A `node --test <dir>` invocation fails on Node 24; give file globs in every brief.
+
+## 11. Open questions *(to be filled as the experiment proceeds)*
 
 - Does a review change designs in the same direction for every configuration?
-- How do design scores predict hidden-suite results?
-- What does the harness change, with the same model and policy?
+- **How do design scores predict hidden results?** In stage 1, not at all at the level of correctness: every implementation was correct, whatever its design score. Design scores did predict size and contract quality.
+- What does the harness change, with the same model and policy? The answer so far is: something for Astra, nothing stable for Sol (§10).
+- Do the differences survive repeated runs per cell? This needs M2: three runs of the cells that differ most.
 
 ## Related notes
 
