@@ -145,7 +145,7 @@ Naming two skills in the brief was, in effect, a choice to exclude the others.
 
 One agent (IRWB-015) went further. It found guides that other agents had not yet merged on their own branches (`69ae7a0`, `d0e6415`), reachable because all worktrees share one `.git`, and read them with `git show`. Worktree isolation does not isolate the history.
 
-**Probing.** The two agents that ran code produced the two most consequential findings. IRWB-015 ran five `node` probes; IRWB-017 ran six.
+**Probing.** The two agents that ran code produced the two most consequential findings. IRWB-015 ran four `node` commands; IRWB-017 ran eight.
 - IRWB-015 found that any function containing `new Int32Array(n)` fails the default ingest with `unknown tape opcode 252`. It also found that two of the three project loaders drop the option that selects the working path.
 - IRWB-017 found that its most natural fixture, chess's opening position searched to depth 1, takes 20,778 evaluator statements, over the 20,000 limit.
 
@@ -322,7 +322,7 @@ R1 to R4 are sums over the six documents. The other judge columns are means.
 **Round 2 removed the excess without losing purpose.** Over-engineering fell from 6.33 to 1.00, and every count from R1 to R6 and R8 fell to zero. Fitness rose from 6.67 to 8.67. Optimization value (A4) did not fall: the leaner designs still give inlining, bounds-check removal, specialization and rule search something to work on.
 
 Two results lie outside the rubric and are therefore not circular:
-- **Every round-2 design that uses frame arrays found the tape-ingest requirement:** four of four, against one of four in the baseline. The probing rule produced 1 to 8 probes per run, and five of six round-2 runs ran four or more. Three of six baseline runs ran none.
+- **Every round-2 design that uses frame arrays found the tape-ingest requirement:** four of four, against one of four in the baseline. The probing rule produced 5 to 11 `node` commands per round-2 run. Three of six baseline runs ran none.
 - **Round-2 chess replaced the 53-function fixture regime.** It uses two checked entry points with measured statement counts (pinned en passant perft 9,206; a promotion search 12,054 to 12,953 at budget 2; the opening position at depth 1 over 20,000), and proposes forwarding `entries` through `ProjectMeta` and `Program.fromProject`. This is the small infrastructure change the baseline had identified and designed around.
 
 Round 2 also weighs alternatives where the baseline never did. It averages 1.37 "would … but" constructions and 0.57 uses of "simpler", "easier" or "cheaper" per 1,000 words; baseline and round 3 have none of either. Two examples:
@@ -413,6 +413,7 @@ These rules summarize what the three rounds showed. Each is tied to a measured e
 - **The rubric is partly circular.** Its counts come from the review's categories, and round 2 was told rules covering them. Fitness, A1 and A4, and the discoveries outside the rubric (tape ingest found, `entries` proposed) carry the less circular part of the result.
 - **The judge is not fully blind.** Round-2 documents have recognizable "Later" sections and similar lengths. The judge is a Claude model, like the reviewer, and may share its judgments.
 - **The keyword metrics are crude.** "Case" also matches "in this case". The metrics select candidates; the judge's quoted counts are the measurement.
+- **Command counts were recounted.** The first extractors matched `cmd: "…"` in the tool-call text, and missed commands a model batches inside one code-mode script. The counts in this report come from the rollouts' `CommandExecution` events, which record every command Codex ran (IRWB-018 `scripts/07-recount-with-command-events.mjs`). The recount corrected the node-command counts in Section 3, the round-2 probe range, and the test-run and bookkeeping columns of Section 9.3. The other counts held.
 - **Round 4 differs from round 2 in two ways besides the layer.** Round 4's global AGENTS.md had been cleaned up, and the block is shorter than the round-2 policy. Its documents were scored by a second judge instance, which reproduces the first judge's round-2 scores within 0.17 points.
 - **The implementation round is one run per program,** with designs that had already been judged good (round 2). Implementers given baseline designs might behave differently.
 - **Tooling.** The transcript-analysis skill's query verbs no longer run on the installed `go-minitrace` build: `TypeError: Object has no member 'RuntimeArchives'`, after the move to a source and query builder. The analysis read the rollouts directly with a script kept in the ticket. (Since fixed: the skill was updated from the go-minitrace repository, IRWB-018 diary step 7.)
@@ -463,12 +464,12 @@ A snapshot script (`11-snapshot-round.mjs` in the vault kit) read each worktree 
 
 | Program | Minutes | Source lines | Test lines | Harness lines | Test / source | Test blocks | Assertions | Test runs | Bookkeeping commands |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Bytecode VM | 5.9 | 58 | 231 | 21 | 3.98 | 3 | 35 | 2 | 4 |
-| SHA-256 and ChaCha20 | 7.5 | 245 | 170 | 33 | 0.69 | 2 | 18 | 2 | 11 |
-| LZ compressor | 5.9 | 86 | 177 | 12 | 2.06 | 2 | 18 | 3 | 9 |
-| Regex matcher | 4.8 | 101 | 136 | 10 | 1.35 | 2 | 19 | 3 | 13 |
-| f32 DSP | 5.7 | 77 | 267 | 27 | 3.47 | 3 | 23 | 4 | 11 |
-| Chess search | 8.7 | 625 | 51 | 272 | 0.08 | 4 | 12 | 4 | 16 |
+| Bytecode VM | 5.9 | 58 | 231 | 21 | 3.98 | 3 | 35 | 6 | 11 |
+| SHA-256 and ChaCha20 | 7.5 | 245 | 170 | 33 | 0.69 | 2 | 18 | 4 | 13 |
+| LZ compressor | 5.9 | 86 | 177 | 12 | 2.06 | 2 | 18 | 5 | 10 |
+| Regex matcher | 4.8 | 101 | 136 | 10 | 1.35 | 2 | 19 | 5 | 14 |
+| f32 DSP | 5.7 | 77 | 267 | 27 | 3.47 | 3 | 23 | 6 | 11 |
+| Chess search | 8.7 | 625 | 51 | 272 | 0.08 | 4 | 12 | 7 | 16 |
 
 (Chess's source is mostly the ported engine; its 272 harness lines are a fixture runner the design asked for.)
 
@@ -485,7 +486,7 @@ What only a project's own test can provide is the independent oracle, the `speed
 
 **There was no framework-building, but there were workarounds.** No agent wrote a general utility outside its test file. Four of six found that `tools/reference-check.mjs` ignores its project argument. Since the brief forbade changes to `tools/`, they called the reference compiler directly and recorded the deviation. Under that brief this was the right decision. The cost shows up in the next section.
 
-**Bookkeeping is the largest class of commands.** The docmgr and diary skills account for 4 to 16 commands per agent, about a third of the total, against 2 to 4 test runs.
+**Bookkeeping is the largest class of commands.** The docmgr and diary skills account for 10 to 16 commands per agent, 28% to 50% of the total (34% on average), against 4 to 7 test runs.
 
 The programs also produced the round's first optimizer measurements:
 - `speed` makes the bytecode VM slower, from 7,678 to 9,286 RV32 instructions for Fibonacci. The hand-specialized loop takes 75.
