@@ -10,7 +10,7 @@ created: 2026-11-26
 repo: /home/manuel/code/wesen/2026-11-24--compiler-workbench
 ticket: IRWB-019
 tickets: [IRWB-020, IRWB-021, IRWB-018]
-source_revision: 9725ee0
+source_revision: 9cfad72
 ---
 
 # Tensor programs on the v6 framework: Tix, CUDA on a GB10, and four Codex configurations on the same tasks
@@ -305,6 +305,55 @@ An exhaustive comparison over all 2³² f32 inputs for each unary function would
 - Ten designs leave `src/framework` unchanged. They use the differential contract's existing `decide`, `baselineKey` and `subjectKey` to batch cases into one remote run and to reuse verdicts.
 - Two propose a batch-only differential specification, without the per-case synchronous `run` and `compare` that the current type requires. A third works around the same gap with a stub that throws.
 - The one tool change the designs agree on is a private remote working directory per call, with a lock on each compile key, so that concurrent agents cannot see each other's half-written binaries.
+
+## 9. Stage 2 implementations: twelve correct lowerings, three of them exact
+
+All twelve stage-2 implementations lower every Tix program to CUDA, run it on the GB10, and compute the right function. All twelve still pass the frozen stage-1 suite. The evaluation was written before any stage-2 design was read. Its reference is the merged stage-1 interpreter, already validated bit for bit, and it measures more than the brief required.
+
+### Whether the lowering is exact
+
+The decisive measurement is how many output elements are bit-identical to the f32 meaning. Here is a representative cell from each pattern. The table in the diary (step 25) has all twelve.
+
+| Cell | Corpus, small | After the passes | Random programs | Corpus, full size | Construction |
+|---|---|---|---|---|---|
+| Codex · Sol · high (I) | 6/6 exact | 4/4 | 20/20 | 6/6 | `__fadd_rn`/`__fmul_rn`, transcendentals in double |
+| Codex · Sol · medium (J) | 6/6 | 4/4 | 20/20 | 6/6 | the same |
+| Pi · Sol · xhigh (C) | 6/6 | 4/4 | 20/20 | 6/6 | the same |
+| the other nine | 3/6 | 1/4 | 16/20 | 3/6 | no contraction; `expf`, `tanhf` in single precision |
+
+The nine all fail on the same programs: those that use `exp` or `tanh` (softmax, attention, the MLP's GELU). Their elements differ by about one unit in the last place, and up to 2.2·10⁻⁵ (scaled) at full size in the MLP, where the GELU's differences pass through a second contraction. The programs without transcendentals are bit-exact in all twelve. Every implementation prevented contraction into fused multiply-adds, either with flags or with round-to-nearest intrinsics. That was the one arithmetic difference the designs had all identified.
+
+Three implementations, all running Sol, computed the transcendentals in double and rounded them. Section 8's question was whether that makes the lowering exact. A separate exhaustive check settled it: for all 2³² f32 bit patterns, CUDA's double-precision `exp`, `log` and `tanh`, rounded to f32, equal `Math.fround(Math.exp(x))` and so on. The comparison hashed each block of 2²⁰ results on the GPU and in JavaScript and compared the hashes. It took 1.5 s on the GPU and 156 s in eight worker threads, and found no mismatch. (The f32 meaning is defined through JavaScript's `Math` functions, so this holds for V8 in Node 24.18. It is not a property of the language.)
+
+So three of the twelve backends are bit-exact by construction. **Yet all twelve check their lowering under the tolerance relation.** The strongest available relation was built, and not claimed, by every implementation that built it.
+
+### What else was measured
+
+- **The checks cost seconds.** `checkLowering` took 2.5 to 6.0 s per program, almost all of it the remote round trip: copying the inputs, compiling unless the build is cached, running, and copying back. Batching all of a check's cases into one launch, through the differential contract's existing `decide` hook, is what keeps it at one round trip per check.
+- **Kernel times are close across implementations,** because the mapping was fixed:
+
+  | Program | GPU time |
+  |---|---|
+  | 512³ matmul | 0.17–0.26 ms |
+  | attention (1,024 × 1,024, width 64) | 1.4–1.8 ms, one outlier at 7.3 ms |
+  | MLP | 0.8–1.15 ms |
+  | softmax and layernorm, 4,096 × 1,024 | about 0.45 ms |
+
+  These are naive kernels. The comparison with tiled kernels and cuBLAS is a later stage.
+- **Size by model:** Astra wrote 391 to 498 lines of new tensor source, Sol 607 to 744. Sol wrote more, and built all three exact backends. Astra wrote less, and built none.
+- **Framework and tool changes:**
+  - Ten implementations change nothing in `src/framework`. Two add a batch-only differential spec.
+  - Eleven change the GPU tool, mostly by giving each call a private remote directory and locking the compile cache. One leaves the tool as it was.
+
+### The base for stage 3
+
+All twelve passed everything the brief required. Stage 3, fusion, benefits most from a base whose lowering is bit-exact: then a fused kernel that keeps the evaluation order can be checked under the exact relation, by comparing bits, with no tolerance to justify. So the criteria were, in order:
+1. bit-exact with the f32 meaning on every measured case;
+2. the smallest framework change;
+3. the smallest tool change;
+4. the smallest source.
+
+Codex · Sol · high (I) met all four. It was the stage's worst-scored *design* (over-engineering 4, fitness 6). In neither stage did the design score predict the quality of the implementation.
 
 ## Where the material is
 
