@@ -10,7 +10,7 @@ created: 2026-11-26
 repo: /home/manuel/code/wesen/2026-11-24--compiler-workbench
 ticket: IRWB-019
 tickets: [IRWB-020, IRWB-021, IRWB-018]
-source_revision: 4dff51b
+source_revision: 3969f11
 ---
 
 # Tensor programs on the v6 framework: Tix, CUDA on a GB10, and four Codex configurations on the same tasks
@@ -172,6 +172,36 @@ All sixteen designs agree on the two framework changes the tensor domain needs, 
 - **A lazy edit.** `applyPass` always opens an IR edit, which throws for an adapter that cannot rebuild a native value, even when the pass returns one and never edits.
 
 Most designs also found that the framework's differential check already carries both relations, exact and tolerance, without change. The first finding of the tensor track is therefore small and specific. Contract checking generalizes, and pass application assumed a rewritable, asynchronous domain.
+
+## 6. Prompting Sol: three policies on the same four cells
+
+The stage-1 scores made Sol the target of the prompting work: it was the weaker model in both harnesses. Two revisions of the developer policy were tried on the four Sol cells that matter most in practice (Codex and Pi, medium and high effort). Each revision redesigned stage 1 from the same base with the same brief.
+
+- **v1** is the policy from report 10: state the input domain, compare with the simplest alternative, prefer the smallest deliverable, describe only what can be built, probe before relying on a feature.
+- **v2** adds four rules aimed at what the stage-1 judge counted:
+  - support only the subset the corpus uses, and reject the rest with an ordinary error;
+  - specify errors only by where they are detected and what their message says;
+  - build one path per job;
+  - justify every numeric threshold by an error argument or a measurement.
+- **v3** replaces v2's first rule. That rule had given as its example "affine expressions in parameter types that no program uses", to be rejected, but those expressions are part of the brief's fixed grammar. v3's version: accept everything the brief fixes; cover it with the simplest method that works; reject only what would need machinery no example uses. v3 also adds a rule to rely on the input assumptions the brief states, such as "inputs are finite".
+
+Judges disagree with each other by up to two fitness points on the same document, so all twelve designs (four cells × three policies) were scored blind in one session:
+
+| Policy | Excess items | Over-engineering | Fitness | Fidelity to the fixed core (A1) |
+|---|---:|---:|---:|---:|
+| v1 | 7.00 | 3.75 | 8.25 | 4.75 |
+| v2 | 5.00 | 2.75 | 6.50 | 2.25 |
+| v3 | 5.75 | 3.00 | 7.75 | 4.00 |
+
+**v2 shows that a policy outranks a brief.** All four v2 designs restricted parameter dimensions to bare names, as the policy's example said, although the brief's grammar admits affine expressions there. The policy came as a developer message (Codex) or in the system prompt (Pi), and both rank above the user's brief. The agents followed the higher-ranked instruction where the two conflicted. Fidelity fell by 2.5 points, and fitness with it. A policy rule must never be stated in terms that can contradict a task's fixed specification.
+
+**v3 is the best trade-off, and the gain is small.** It keeps most of v2's reduction: excess falls by one or two items in every cell against v1, and over-engineering by one point in three of the four cells. It also restores most of the fidelity, with fitness equal to v1's in three of the four cells. The size of the effect is about one rubric point, with one run per cell. An earlier session comparing only v1 and v2 found the same direction with larger magnitudes. Counts there were not capped at one per kind, and excess fell from 12.25 to 9.00.
+
+**What no wording removed.** Every policy left two kinds of excess in place:
+- contract statuses and evidence formats nobody asked for, such as "a function with no sampled case cannot be accepted" (11 of 12);
+- rules for non-finite values in a brief that says inputs are finite.
+
+v3's explicit rule about stated assumptions did not remove the second. These are defaults strong enough that a general instruction does not reach them; a brief that wants them gone has to say so for the specific case.
 
 ## 7. Stage 1 implementations: fourteen correct compilers
 

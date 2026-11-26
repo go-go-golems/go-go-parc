@@ -153,6 +153,10 @@ Build once, for every configuration, anything that is transport rather than the 
 
 - **A sandbox setting is not necessarily a boundary.** Under Codex `workspace-write` with network access off, an agent that needed the network requested escalation on its first call, and the approval-assessor sidecar granted it. Check the rollout for `require_escalated` and for sidecar sessions before relying on a sandbox setting to keep agents apart. Where agents legitimately need a resource, grant it explicitly, so that their use of it stays inside the sandbox and on the record.
 
+- **A policy outranks the brief.** A developer policy rule whose example contradicted the brief's fixed grammar ("reject affine expressions in parameter types") was followed by all four agents over the brief. Write policy rules in terms of the task's own specification ("accept everything the brief fixes"), never with examples that could narrow it.
+- **Score policy variants in one judge session.** Two judges differed by up to 4 excess items and 2 fitness points on the same documents. Rescore the baseline documents in the same session as each variant.
+- **Don't cap counts unless you mean to.** "Count each kind at most once per document" made a criterion binary (1 in all twelve documents) and hid a difference that an uncapped session had shown.
+
 ## 9. Choosing tasks that separate configurations
 
 A task can be too easy to measure anything. In the first application, all twelve configurations derived streaming attention correctly, a design-only research question whose answer is in the literature. Four of the seven rubric criteria were 5 out of 5 for every document. The differences that remained were half a point, with one run per cell.
