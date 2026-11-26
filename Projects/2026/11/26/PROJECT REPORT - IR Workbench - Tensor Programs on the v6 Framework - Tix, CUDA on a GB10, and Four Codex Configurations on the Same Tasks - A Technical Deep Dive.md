@@ -329,7 +329,7 @@ So three of the twelve backends are bit-exact by construction. **Yet all twelve 
 
 ### What else was measured
 
-- **The checks cost seconds.** `checkLowering` took 2.5 to 6.0 s per program, almost all of it the remote round trip: copying the inputs, compiling unless the build is cached, running, and copying back. Batching all of a check's cases into one launch, through the differential contract's existing `decide` hook, is what keeps it at one round trip per check.
+- **The checks cost seconds.** `checkLowering` took 2.5 to 6.0 s per program. The kernels themselves run for milliseconds, so the time goes to the remote round trip (copying the inputs, compiling unless the build is cached, running, copying back) and to the local reference evaluation. The two were not timed separately. Batching all of a check's cases into one launch, through the differential contract's existing `decide` hook, is what keeps it at one round trip per check.
 - **Kernel times are close across implementations,** because the mapping was fixed:
 
   | Program | GPU time |
