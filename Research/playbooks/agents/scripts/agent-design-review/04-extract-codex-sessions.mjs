@@ -2,7 +2,7 @@
 // What each Codex agent was shown and what it did, from native rollouts.
 // Usage: node 04-extract-codex-sessions.mjs <sessions.tsv> <out-dir>
 //   sessions.tsv: "<item>\t<rollout path>" per line (from 03-collect-rollouts.mjs).
-// Writes per item: commands.tsv (tool-call index, command), reads.tsv (paths passed to cat/sed/head/tail/nl),
+// Writes per item: commands.tsv (index, command; from CommandExecution events when the rollout has them), reads.tsv (paths passed to cat/sed/head/tail/nl),
 //   messages.md (assistant commentary); once: system-prompt.md, skills-catalogue.md, agents-md.md, multi-agent.md
 //   (identical across sessions up to paths; differences are reported); summary.json with, per item: model, effort,
 //   minutes (first task_started to first task_complete), tool calls, commands, interpreter runs (commands invoking
@@ -49,8 +49,21 @@ for (const [id, file] of rows) {
       commands.push({ seq: i, cmd: Array.isArray(cmd) ? cmd.join(' ') : cmd });
     }
   });
+  // Authoritative record when present: every command Codex actually ran is an item_completed event of type
+  // CommandExecution (command, parsed_cmd with read paths, exit_code). It sees commands a model batches inside one
+  // code-mode script (for example an array mapped over tools.exec_command), which the regex above misses.
+  const executed = L.filter(l => l.type === 'event_msg' && l.payload?.type === 'item_completed' && l.payload.item?.type === 'CommandExecution').map(l => l.payload.item);
+  const parsedReads = [];
+  if (executed.length) {
+    commands.length = 0;
+    executed.forEach((x, i) => {
+      const cmd = Array.isArray(x.command) ? (x.command.at(-1) ?? '') : String(x.command ?? '');
+      commands.push({ seq: i, cmd, exit: x.exit_code });
+      for (const pc of x.parsed_cmd ?? []) if (pc.type === 'read' && pc.path) parsedReads.push([pc.path, i]);
+    });
+  }
   fs.writeFileSync(path.join(dir, 'commands.tsv'), commands.map(c => `${c.seq}\t${c.cmd.replace(/\n/g, '\\n')}`).join('\n') + '\n');
-  const reads = new Map();
+  const reads = new Map(parsedReads.filter(([p]) => p).map(([p, s]) => [p, s]));
   for (const { seq, cmd } of commands)
     for (const m of cmd.matchAll(/(?:^|[;&|(]\s*|\s)(?:cat|sed -n '[^']*'|sed -n "[^"]*"|sed -n \S+|head(?: -n? ?\d+)?|tail(?: -n? ?\d+)?|nl -ba)\s+((?:[^\s;&|<>]+\s*)+)/g))
       for (const p of m[1].split(/\s+/)) if (/[./]/.test(p) && !p.startsWith('-') && !/^\d/.test(p) && !reads.has(p)) reads.set(p, seq);
@@ -64,7 +77,7 @@ for (const [id, file] of rows) {
   summary.push({
     id, file, model: turnCtx.model ?? null, effort: turnCtx.effort ?? null,
     minutes: t0 && t1 ? +((Date.parse(t1) - Date.parse(t0)) / 60000).toFixed(1) : null,
-    toolCalls: calls.length, commands: commands.length, tools,
+    toolCalls: calls.length, commands: commands.length, commandSource: executed.length ? 'CommandExecution events' : 'tool-call text', failedCommands: commands.filter(c => c.exit && c.exit !== 0).length, tools,
     interpreterRuns: commands.filter(c => /(^|[\s;&|(])(node|python3?|deno|tsx|bun)\s/.test(c.cmd)).length,
     skillReads: [...reads.keys()].filter(p => /\/skills\//.test(p)),
     reasoningItems: reasoning.length, reasoningSummaries: reasoning.filter(r => (r.payload.summary || []).length).length,

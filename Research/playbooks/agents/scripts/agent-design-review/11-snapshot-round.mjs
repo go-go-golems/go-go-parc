@@ -65,6 +65,9 @@ for (const [item, h] of Object.entries(heads)) {
       const src = o.payload.input ?? o.payload.arguments ?? '';
       for (const m of src.matchAll(/["']?cmd["']?\s*:\s*("(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`)/g)) { try { cmds.push(m[1].startsWith('`') ? m[1].slice(1, -1) : JSON.parse(m[1])); } catch { cmds.push(m[1]); } }
     }
+    // Prefer the authoritative per-command events (they include commands batched inside one code-mode script).
+    const executed = T.filter(o => o.type === 'event_msg' && o.payload?.type === 'item_completed' && o.payload.item?.type === 'CommandExecution');
+    if (executed.length) { cmds.length = 0; for (const o of executed) { const c = o.payload.item.command; cmds.push(Array.isArray(c) ? c.at(-1) : String(c)); } }
     const t0 = Date.parse(T.find(o => o.type === 'event_msg' && o.payload?.type === 'task_started')?.timestamp ?? NaN);
     const tLast = Date.parse(T.at(-1)?.timestamp ?? NaN);
     const done = T.some(o => o.type === 'event_msg' && o.payload?.type === 'task_complete');

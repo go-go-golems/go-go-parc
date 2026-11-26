@@ -134,7 +134,7 @@ Build once, for every configuration, anything that is transport rather than the 
 - **Codex:** `03-collect-rollouts.mjs` and `04-extract-codex-sessions.mjs` (minutes, tool calls, commands, interpreter runs, skill files read, tokens).
 - **Pi:** `14-extract-pi-sessions.mjs` (the same measures, per-tool counts, and the system message's section sizes).
 - **During implementation:** `11-snapshot-round.mjs` every few minutes, giving lines per category, test blocks, assertions, helper functions, and edits outside the agent's scope.
-- **First observation:** in the Codex cells, Astra read no skill file in three of its four agents, and Sol read docmgr and diary in all four. Record which skills each cell reads, because the skills carry conventions such as diaries and tickets.
+- **Count commands from the authoritative record.** Codex rollouts contain one `item_completed` event of type `CommandExecution` for every command run, with the command, a parsed form (`{type: read, path}`) and the exit code. Models differ in how they issue commands. Sol writes one `tools.exec_command({cmd})` call per command. Astra batches several in a JavaScript array mapped over `exec_command`. A regex over the tool-call text therefore undercounts Astra badly (15 against 80 in one session), and Sol by up to 2.6×. An early "Astra skips the skills under Codex" finding was this artifact: all twelve Codex cells read docmgr and diary. `04-` and `11-` now use the events.
 
 ## 8. Pitfalls met so far
 
