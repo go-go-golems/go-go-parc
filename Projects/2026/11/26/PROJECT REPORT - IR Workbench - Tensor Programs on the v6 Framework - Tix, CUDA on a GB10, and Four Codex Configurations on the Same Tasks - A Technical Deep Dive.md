@@ -222,11 +222,13 @@ The rejected programs are well conditioned: plain f32 evaluation stays within 4e
 
 **Size follows the model more than the harness.** Astra wrote 805 to 1,086 lines of tensor source and Sol 1,278 to 1,380, in either harness; the Claude cells wrote about 1,700. In the implementation turn, Sol also generated more output tokens than Astra (38,000 to 46,000 against 20,000 to 33,000). Effort level made no consistent difference to size or correctness.
 
-**The framework changes converge.** Every implementation changes `src/framework/passes/define-pass.ts` and nothing else in the framework:
-- every one adds a synchronous checked application for passes that return a native value, because the fixed `optimizeTix` is synchronous;
-- most also make `applyPass` open its edit lazily, so that an adapter without `rebuild` can be used.
+**The framework changes converge on one entry point.** Every implementation adds a synchronous checked application for passes that return a native value, because the fixed `optimizeTix` is synchronous:
+- thirteen in `src/framework/passes/define-pass.ts`, most sharing the native-result steps with `applyPass` through new helpers;
+- one (J) in a new file, `passes/sampled-sync.ts`, leaving the existing code untouched.
 
-The differential contract machinery needed no change in any of the fourteen. The framework generalizes to a second domain with one missing entry point.
+All sixteen designs had also proposed making `applyPass` open its edit lazily, so that an adapter without `rebuild` can be used. Only four implementations did it (I, K, N, P). Once the synchronous path exists, the fixed API never opens an edit, so the lazy edit is needed only by designs that also test the asynchronous path on the new adapter. Most implementers dropped it: they implemented less than they had designed, and less than the review had approved.
+
+No implementation changed anything else in the framework. The differential contract machinery needed no change in any of the fourteen. The framework generalizes to a second domain with one missing entry point.
 
 ### The base for stage 2
 
@@ -235,7 +237,7 @@ The implementation merged as the base for the CUDA stage was chosen by three cri
 2. the smallest framework change;
 3. the smallest source.
 
-Nine cells meet the first. Codex · Astra · medium (B) and Codex · Astra · high (D) tie on the second, and B is smaller. B's framework change adds `applyNativePassSync(pass, before, gate, params)` and moves the shared native-result steps into two helpers that `applyPass` also uses. It does not make `applyPass`'s edit lazy, so the asynchronous path still requires `rebuild`; that remains in the backlog. B's design was one of the two in which the reviewer found nothing it had to change.
+Nine cells meet the first. Codex · Astra · medium (B) and Codex · Astra · high (D) tie on the second, and B is smaller. B's framework change adds `applyNativePassSync(pass, before, gate, params)` and moves the shared native-result steps into two helpers that `applyPass` also uses. Like ten of the fourteen, it does not make `applyPass`'s edit lazy, so the asynchronous path still requires `rebuild`; that remains in the backlog. B's design was one of the two in which the reviewer found nothing it had to change.
 
 ## Where the material is
 
