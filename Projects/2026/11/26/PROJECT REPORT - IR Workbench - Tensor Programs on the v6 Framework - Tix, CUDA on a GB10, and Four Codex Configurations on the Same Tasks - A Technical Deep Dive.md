@@ -10,7 +10,7 @@ created: 2026-11-26
 repo: /home/manuel/code/wesen/2026-11-24--compiler-workbench
 ticket: IRWB-019
 tickets: [IRWB-020, IRWB-021, IRWB-018]
-source_revision: 3969f11
+source_revision: 9725ee0
 ---
 
 # Tensor programs on the v6 framework: Tix, CUDA on a GB10, and four Codex configurations on the same tasks
@@ -268,6 +268,43 @@ The implementation merged as the base for the CUDA stage was chosen by three cri
 3. the smallest source.
 
 Nine cells meet the first. Codex · Astra · medium (B) and Codex · Astra · high (D) tie on the second, and B is smaller. B's framework change adds `applyNativePassSync(pass, before, gate, params)` and moves the shared native-result steps into two helpers that `applyPass` also uses. Like ten of the fourteen, it does not make `applyPass`'s edit lazy, so the asynchronous path still requires `rebuild`; that remains in the backlog. B's design was one of the two in which the reviewer found nothing it had to change.
+
+## 8. Stage 2 designs: lowering to CUDA, and an exactness nobody claimed
+
+Stage 2 asks for a checked lowering of Tix to CUDA C on the GB10.
+- **The mapping is fixed** so that implementations can be compared: one kernel per statement, one thread per output element, each reduction a sequential loop in the order the f32 meaning prescribes.
+- **The relation is not fixed.** The lowering's contract runs the candidate on the remote GPU, and each design must decide whether the GPU result is bit-identical with the f32 meaning or only within a tolerance of the f64 reference, and establish its choice by probing.
+- **The fixed API adds three functions:** `cudaSource`, `runTixCuda` (returning `gpuMs`, measured with CUDA events) and `checkLowering`.
+
+All twelve agents start from the merged stage 1, on a branch without the experiment's own ticket. The same twelve Codex and Pi cells took part; the Claude cells were left out to save usage.
+
+The question I expected to separate the designs was not stated in the brief. In IEEE mode, CUDA's `+`, `−`, `*`, `/` and `sqrt` are correctly rounded. Rounding a double to f32 is what `Math.fround` does. With one thread per element and a sequential loop, the order of accumulation is the f32 meaning's order. What remains is two things:
+- **Contraction:** `nvcc` fuses a·b + c into one FMA by default, unless told `-fmad=false` or given `__fmul_rn` and `__fadd_rn`.
+- **The transcendental functions:** `expf`, `logf` and `tanhf` are accurate to a few ulps but not correctly rounded, whereas `Math.fround(Math.exp(x))` almost always is.
+
+Computing them in double and rounding should close the gap. A backend built that way would be bit-exact, and its lowering could be checked under the exact relation, the cheapest and strongest check there is.
+
+| Group | Over-engineering | Fitness | Excess items |
+|---|---:|---:|---:|
+| Codex · Astra | 1.33 | 9.00 | 3.0 |
+| Codex · Sol | 3.33 | 7.00 | 7.3 |
+| Pi · Astra | 2.33 | 8.00 | 5.7 |
+| Pi · Sol | 3.00 | 8.00 | 7.0 |
+
+**Every design chose the tolerance relation**, and the judge found their arithmetic claims sound. Four designs went further and probed double-precision `exp`, `log` and `tanh` rounded to f32 on the GB10, and found no mismatch apart from NaN bit patterns. None took the step to an exact relation:
+- two treated the probe as sampled evidence only;
+- two rejected exactness because NaN payloads differ, which the f32 meaning does not define.
+
+An exhaustive comparison over all 2³² f32 inputs, about a minute on the GPU for each unary function, would have settled it. The designs measured the right thing and then defaulted to the weaker, more familiar claim.
+
+**The model effect held; the harness effect did not, for Sol.** Astra over-engineered less than Sol in both harnesses, as in stage 1, and Codex · Astra was again the best group. But Codex · Sol was now the weakest, below Pi · Sol, which contradicts stage 1's finding that the Codex context restrains defensive defaults. With one run per cell, and judges that differ by up to two fitness points, the harness difference for Sol is within the noise.
+
+**The review found one GPU effect most designs missed.** Under CUDA 13's default lazy module loading, a kernel's first timed interval includes loading it: 0.101 ms against 0.003 ms on the next launch, and 0.005 ms after an explicit `cudaFuncGetAttributes`. So nine designs' `gpuMs` would have included start-up time, which the API excludes.
+
+**The framework mostly fits.**
+- Ten designs leave `src/framework` unchanged. They use the differential contract's existing `decide`, `baselineKey` and `subjectKey` to batch cases into one remote run and to reuse verdicts.
+- Two propose a batch-only differential specification, without the per-case synchronous `run` and `compare` that the current type requires. A third works around the same gap with a stub that throws.
+- The one tool change the designs agree on is a private remote working directory per call, with a lock on each compile key, so that concurrent agents cannot see each other's half-written binaries.
 
 ## Where the material is
 
