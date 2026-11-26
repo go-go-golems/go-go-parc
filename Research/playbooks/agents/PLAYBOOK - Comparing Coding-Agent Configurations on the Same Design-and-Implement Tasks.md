@@ -98,6 +98,11 @@ Write the hidden suite against the brief alone, before seeing any implementation
 - a few error cases;
 - the passes, checked through the API.
 
+Then read the suite against the brief, rule by rule, before any implementation exists, as a reviewer reads a design:
+- **Every test program must be valid under the brief.** In the first application, one test used an output index with no use at all. The brief makes that a compile error, so the test would have failed exactly the implementations that follow the brief.
+- **Every test must exercise the rule it names.** The `inline` test ran on programs where the brief's inline condition (pointwise, single use) never held, so a pass that did nothing would have passed. Add programs where the rule applies, including one that catches the typical wrong variant (here a transposed read).
+- **Assert inside the test that the data separates right from wrong,** for example that row-major and column-major accumulation give different f32 results on the chosen inputs.
+
 If every implementation fails the same test, suspect the reference first.
 
 ## 5. The turn structure
