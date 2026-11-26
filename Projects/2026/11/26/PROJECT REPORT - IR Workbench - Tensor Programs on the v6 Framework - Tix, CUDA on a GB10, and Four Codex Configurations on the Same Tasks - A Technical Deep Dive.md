@@ -10,7 +10,7 @@ created: 2026-11-26
 repo: /home/manuel/code/wesen/2026-11-24--compiler-workbench
 ticket: IRWB-019
 tickets: [IRWB-020, IRWB-021, IRWB-018]
-source_revision: 0a54e14
+source_revision: 8eeed67
 ---
 
 # Tensor programs on the v6 framework: Tix, CUDA on a GB10, and four Codex configurations on the same tasks
@@ -24,7 +24,8 @@ The stages are designed and implemented by Codex agents. Each task is given to f
 > [!summary]
 > - **The question is the framework's generality.** The primary result of each stage is the list of changes the tensor domain forces in `src/framework`, each with its reason.
 > - **Tix is index notation with five constructs:** shaped parameters, pointwise expressions, `sum` and `max` reductions over named indices, single-assignment statements, and affine index arithmetic. Its f32 meaning is fixed down to the order of accumulation, so implementations can be compared bit for bit.
-> - **Four configurations per task:** gpt-6.2-sol and gpt-6.2-astra, each at medium and high reasoning effort. Each configuration writes its own ticket, design, implementation, diary and report. The coordinator reviews the designs, and a blind judge and a hidden test suite score them.
+> - **Twelve configurations per task:** Codex CLI or Pi, gpt-6.2-sol or gpt-6.2-astra, medium, high or xhigh. Four Claude cells (Opus 5.5 and Fable 5.2, medium and xhigh) also take stage 1. Each configuration writes its own ticket, design, implementation, diary and report. The coordinator reviews the designs, and a blind judge and a hidden test suite score them.
+> - **First result (Section 4):** all twelve configurations derived streaming attention correctly, so a design-only question with a known answer produces a ceiling. The small differences favour Pi over Codex, Astra over Sol, and high or xhigh over medium.
 
 ## 1. Why tensors, and why this language
 
@@ -98,6 +99,42 @@ The research round r1 (IRWB-021) asks a harder question of the same four configu
 - how each step is checked;
 - which other programs the rules reach;
 - a falsifiable experiment on the GB10.
+
+## 4. The research round: every configuration derived streaming attention correctly
+
+The matrix grew before the first results came in. Pi was added as a second harness at the same models and efforts, and xhigh as a third effort. That gives twelve cells per task: Codex CLI or Pi, gpt-6.2-sol or gpt-6.2-astra, medium, high or xhigh.
+
+Pi differs from Codex in what the harness itself says. Its own system-message text is about 2.3K characters (a preamble, four tools, rules and documentation pointers), against Codex's 27,750-character system prompt. Pi has none of the coding and writing rules that report 10 traced the over-engineering to. Both harnesses received the same policy, Pi through `--append-system-prompt`, so the difference between them is the harness's own text and tools.
+
+A blind judge scored the twelve research designs with a rubric that checks the mathematics rule by rule. The judge re-ran every numeric example the documents quote, and each of its 86 quotes was verified against the documents by script.
+
+| Grouping | Overall (0–10) | Over-engineering | Insight (M7) | Words |
+|---|---:|---:|---:|---:|
+| Codex CLI | 8.17 | 2.50 | 4.17 | 3,096 |
+| Pi | 8.67 | 2.83 | 4.67 | 3,218 |
+| gpt-6.2-sol | 8.17 | 2.50 | 4.17 | 3,198 |
+| gpt-6.2-astra | 8.67 | 2.83 | 4.67 | 3,116 |
+| medium | 7.75 | 2.00 | 3.75 | 2,593 |
+| high | 8.75 | 2.75 | 4.75 | 3,217 |
+| xhigh | 8.75 | 3.25 | 4.75 | 3,660 |
+
+The first four criteria were 5 out of 5 for all twelve documents: mathematical correctness, completeness of the derivation, the new construct's semantics, and the checking plan. Every design represents the empty prefix with a tag rather than with −∞, which avoids the indeterminate form exp(−∞ − (−∞)). Every design applies both rescaling factors when two partial summaries merge. Every design proves the merge associative over the summaries that can actually occur.
+
+The construct all of them added is a reduction whose state is a triple: the running maximum *m*, the normalizer *l*, and the output accumulator *o*. Two such states merge as
+
+```
+m = max(m₁, m₂)
+l = l₁·exp(m₁ − m) + l₂·exp(m₂ − m)
+o = o₁·exp(m₁ − m) + o₂·exp(m₂ − m)
+```
+
+and the output is *o / l* once the last block has been merged.
+
+The strongest idea, found in four documents, splits this merge into two smaller lemmas. The first rebases each block's sum to the block's own maximum. The second folds the resulting (maximum, sum) pairs. One document abstracts this into a scale-transport law, r(u, u) = 1 and r(u, v)·r(v, h) = r(u, h). From that law, the rescaling in the merge follows for any reduction whose terms scale multiplicatively, not only for softmax.
+
+The differences between cells are small, and each cell had one run. Pi scored above Codex by half a point, Astra above Sol by half a point, and high and xhigh above medium by a point. Length and over-engineering grew with effort. The lowest cell (Codex, Sol, medium) made the one error the judge found: it claimed that its rules reach softmax followed by a contraction, without an inlining rule that would make that reachable.
+
+The main finding is a ceiling. Streaming attention is well known, its identities are in the literature, and all twelve configurations know them. A design-only question with a known answer measures recall. It does not separate the configurations. The objective version of this research is its implementation (T5 in the repository's `BACKLOG.md`), where the derived kernel's measured GPU time against an unfused and a hand-written kernel would decide.
 
 ## Where the material is
 

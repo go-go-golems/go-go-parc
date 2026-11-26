@@ -146,7 +146,18 @@ Build once, for every configuration, anything that is transport rather than the 
 - **A headless `claude -p --dangerously-skip-permissions` is blocked** in an auto-mode session. Use the Agent tool (see §2).
 - **The kit's blind-pack writes `results/blind-key.json` under a fixed name.** With several tasks, rename it per task, or the second pack overwrites the first. `09-judge-pack.sh` does the rename.
 
-## 9. Open questions *(to be filled as the experiment proceeds)*
+## 9. Choosing tasks that separate configurations
+
+A task can be too easy to measure anything. In the first application, all twelve configurations derived streaming attention correctly, a design-only research question whose answer is in the literature. Four of the seven rubric criteria were 5 out of 5 for every document. The differences that remained were half a point, with one run per cell.
+
+Prefer tasks where:
+- **the answer is not known**, so that the design has to find something;
+- **an implementation is scored objectively**, by a hidden suite or a measurement;
+- **the brief leaves real choices open**, such as the IR, the contract or framework changes, while fixing the surface the comparison needs.
+
+Use a known-answer question only as a calibration of the rubric.
+
+## 10. Open questions *(to be filled as the experiment proceeds)*
 
 - Does a review change designs in the same direction for every configuration?
 - How do design scores predict hidden-suite results?
