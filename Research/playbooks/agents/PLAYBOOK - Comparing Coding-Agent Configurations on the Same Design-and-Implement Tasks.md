@@ -151,6 +151,8 @@ Build once, for every configuration, anything that is transport rather than the 
 - **A headless `claude -p --dangerously-skip-permissions` is blocked** in an auto-mode session. Use the Agent tool (see §2).
 - **The kit's blind-pack writes `results/blind-key.json` under a fixed name.** With several tasks, rename it per task, or the second pack overwrites the first. `09-judge-pack.sh` does the rename.
 
+- **A sandbox setting is not necessarily a boundary.** Under Codex `workspace-write` with network access off, an agent that needed the network requested escalation on its first call, and the approval-assessor sidecar granted it. Check the rollout for `require_escalated` and for sidecar sessions before relying on a sandbox setting to keep agents apart. Where agents legitimately need a resource, grant it explicitly, so that their use of it stays inside the sandbox and on the record.
+
 ## 9. Choosing tasks that separate configurations
 
 A task can be too easy to measure anything. In the first application, all twelve configurations derived streaming attention correctly, a design-only research question whose answer is in the literature. Four of the seven rubric criteria were 5 out of 5 for every document. The differences that remained were half a point, with one run per cell.

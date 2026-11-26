@@ -66,6 +66,8 @@ The laptop that runs the agents has Intel Iris Xe graphics and no NVIDIA GPU. Th
 
 A second probe established that the Codex sandbox can reach that machine only when asked. A sandboxed agent's `ssh` fails with "Could not resolve hostname bling.local" under the default `sandbox_workspace_write.network_access=false`. With the setting `true`, it prints the host and the GPU's name. The stages that run on the GPU pass that setting. The others do not.
 
+A later probe refined this. The machine is also on the tailnet as `bling`, which resolves wherever the laptop is, while `bling.local` resolves only on the home LAN, so the tools now use `bling`. And the network setting turned out not to be a boundary. With `network_access=false`, a Codex agent asked to run the same `ssh` requested escalation on its first call. An approval-assessor sidecar granted it, and the command ran outside the sandbox. With `true`, the command ran inside the sandbox without escalation. The setting decides whether an agent must ask, not whether it can reach the network. The GPU stages pass `true` so that their runs stay sandboxed.
+
 ## 3. The experiment
 
 Each task goes to four Codex configurations: gpt-6.2-sol and gpt-6.2-astra, each at medium and high reasoning effort. This 2×2 design separates the model's effect from the effort's. Each configuration gets one agent per task, its own git worktree, and the same context:
