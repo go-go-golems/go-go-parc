@@ -8,10 +8,16 @@ set -u
 round=$1; from=$2; pfile=$3; shift 3
 : "${REPO:?}" "${OUT:?}" "${MODEL:?}" "${EFFORT:?}"
 L=$OUT/$round/logs; mkdir -p "$L"
+DEV=()
+if [ -n "${DEV_INSTRUCTIONS_FILE:-}" ]; then
+  # Codex prepends developer_instructions to its second developer message, ahead of AGENTS.md (a user message).
+  # A JSON string is also a valid TOML basic string, which is what -c expects.
+  DEV=(-c "developer_instructions=$(node -e 'process.stdout.write(JSON.stringify(require("fs").readFileSync(process.argv[1], "utf8")))' "$DEV_INSTRUCTIONS_FILE")")
+fi
 for item in "$@"; do
   sid=$(grep -m1 "session id:" "$OUT/$from/logs/$item.log" | awk '{print $3}')
   w=$(node -e 'console.log(require(process.argv[1])[process.argv[2]].worktree)' "$OUT/$from/heads.json" "$item")
-  ( cd "$w" && timeout "${AGENT_TIMEOUT:-3600}" codex exec resume -m "$MODEL" -c model_reasoning_effort="$EFFORT" \
+  ( cd "$w" && timeout "${AGENT_TIMEOUT:-3600}" codex exec resume -m "$MODEL" -c model_reasoning_effort="$EFFORT" "${DEV[@]}" \
       -c sandbox_mode=\"workspace-write\" -c "sandbox_workspace_write.writable_roots=[\"$REPO/.git\"]" \
       -o "$L/$item.last-message.md" "$sid" "$(sed "s/<ID>/$item/g" "$pfile")" \
       > "$L/$item.log" 2>&1; echo "$item exit $?" >> "$L/exits.txt" ) &

@@ -52,7 +52,7 @@ If `$OUT` lies inside a docmgr ticket, `docmgr doctor` will reject the raw mater
 | Script | Does |
 |---|---|
 | `00-env.example.sh` | Settings: repo, base revision, output, worktree root, model, effort |
-| `01-launch-codex-round.sh` | One fresh `codex exec` per item, each in its own worktree and branch, in parallel. Records `heads.json` |
+| `01-launch-codex-round.sh` | One fresh `codex exec` per item, each in its own worktree and branch, in parallel. Records `heads.json`. With `DEV_INSTRUCTIONS_FILE` set, passes that file as `developer_instructions` |
 | `02-resume-codex-round.sh` | `codex exec resume` of each agent of an earlier round with one prompt. Records the new heads |
 | `03-collect-rollouts.mjs` | Maps session ids to rollouts, cuts a resumed rollout to one turn, finds approval sidecars by worktree and time window |
 | `04-extract-codex-sessions.mjs` | Extracts system prompt, skills catalogue, AGENTS.md, commands, reads, skill loads, interpreter runs, minutes, tokens |
@@ -62,4 +62,5 @@ If `$OUT` lies inside a docmgr ticket, `docmgr doctor` will reject the raw mater
 | `08-aggregate.mjs` | Per-round sums and means, plus per-item over-engineering and fitness |
 | `09-figures.py` | Small multiples: words, over-engineering, fitness by item and round |
 | `10-check-contamination.sh` | Commands in a round that touch other rounds' branches or worktrees |
+| `11-snapshot-round.mjs` | Live or final snapshot of a round: lines added per category (source, test, harness, docs, data), test cases, assertions, functions in test and harness code, edits under `src/` or `tools/`, and from the live rollout minutes, test runs, builds, latest commentary. Appends to `snapshots.jsonl` |
 | `templates/` | Baseline brief skeleton, policy section, self-review prompt, rubric, judge prompt |

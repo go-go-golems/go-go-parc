@@ -7,3 +7,4 @@ export MODEL=gpt-6.2-sol                  # codex model id
 export EFFORT=medium                      # codex model_reasoning_effort
 export CODEX_HOME=${CODEX_HOME:-$HOME/.codex}
 export AGENT_TIMEOUT=3600                 # seconds per agent
+# export DEV_INSTRUCTIONS_FILE=/path/to/developer-instructions.md   # optional: passed as -c developer_instructions
