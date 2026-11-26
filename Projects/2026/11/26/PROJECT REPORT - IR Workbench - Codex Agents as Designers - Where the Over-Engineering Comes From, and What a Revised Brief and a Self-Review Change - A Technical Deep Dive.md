@@ -10,7 +10,7 @@ created: 2026-11-26
 repo: /home/manuel/code/wesen/2026-11-24--compiler-workbench
 ticket: IRWB-018
 tickets: [IRWB-012, IRWB-013, IRWB-014, IRWB-015, IRWB-016, IRWB-017, IRWB-001]
-source_revision: d65bbbf
+source_revision: 19ad269
 ---
 
 # Codex agents as designers: where the over-engineering comes from, and what a revised brief and a self-review change
@@ -43,6 +43,8 @@ The evidence comes from four sources:
 > - **The agents' instructions explain it closely.** The Codex system prompt asks code to "handle the full range of supported inputs" and to keep state consistent if an operation "can fail partway". It also forbids contrastive framing and comparison with alternatives nobody asked about. The documents follow both: they specify every failure, and they contain almost no weighing of alternatives (0–0.9 contrast markers per 1,000 words, against 1.28–2.22 in Claude-written guides from the same repository).
 > - **Stating a design policy in the brief removed nearly all of it.** Mean over-engineering went from 6.33 to 1.00 and mean fitness from 6.67 to 8.67, on a 0–10 scale from a blind judge. Every design that used frame arrays found the ingest blocker the baseline had missed. An open-ended self-review shortened the documents more, but kept more of the defensive structure (3.17 and 7.33).
 > - **Part of the weight is the framework's.** The meaning check treats any two traps as equal, compares every guest byte, and checks every function on independently generated inputs. The programs absorbed those properties. A contract the project can declare (domain, observation, relation) would remove the pressure at its source.
+> - **Follow-up (Section 9): the general rules belong in `developer_instructions`, the scope rules in the brief.** With the baseline brief and only the general rules as a developer instruction, invented error contracts disappear completely (R1+R2 from 28 to 0), and over-engineering falls to 3.00 with fitness 7.33. What remains is scope that only a task can exclude. The block is now in `~/.codex/config.toml`.
+> - **Six implementers built the designs in under nine minutes each, and tested what the designs prescribed.** Five of six wrote the same private evaluator, image and reference harness, and half of each test matrix repeats checks that the repository already runs on every project. The causes are the design, missing repository conventions, and a brief that banned changes to shared tools, rather than caution in the implementer.
 
 ## 1. The setup
 
@@ -411,7 +413,117 @@ These rules summarize what the three rounds showed. Each is tied to a measured e
 - **The rubric is partly circular.** Its counts come from the review's categories, and round 2 was told rules covering them. Fitness, A1 and A4, and the discoveries outside the rubric (tape ingest found, `entries` proposed) carry the less circular part of the result.
 - **The judge is not fully blind.** Round-2 documents have recognizable "Later" sections and similar lengths. The judge is a Claude model, like the reviewer, and may share its judgments.
 - **The keyword metrics are crude.** "Case" also matches "in this case". The metrics select candidates; the judge's quoted counts are the measurement.
-- **Tooling.** The transcript-analysis skill's query verbs no longer run on the installed `go-minitrace` build: `TypeError: Object has no member 'RuntimeArchives'`, after the move to a source and query builder. The analysis read the rollouts directly with a script kept in the ticket.
+- **Round 4 differs from round 2 in two ways besides the layer.** Round 4's global AGENTS.md had been cleaned up, and the block is shorter than the round-2 policy. Its documents were scored by a second judge instance, which reproduces the first judge's round-2 scores within 0.17 points.
+- **The implementation round is one run per program,** with designs that had already been judged good (round 2). Implementers given baseline designs might behave differently.
+- **Tooling.** The transcript-analysis skill's query verbs no longer run on the installed `go-minitrace` build: `TypeError: Object has no member 'RuntimeArchives'`, after the move to a source and query builder. The analysis read the rollouts directly with a script kept in the ticket. (Since fixed: the skill was updated from the go-minitrace repository, IRWB-018 diary step 7.)
+
+## 9. Follow-up: the policy as a developer instruction, and six agents implementing the designs
+
+Sections 5 to 7 left two questions open. The first is where a policy like the one in round 2 should live. A brief is written for one task, and the same over-engineering appears in every design task Codex is given. The second is what happens after the design. The user expected the implementers to "still overindex on testing and overcautious frameworking". This section reports one more design round, which answers the first question, and an implementation round, which tests the second.
+
+### 9.1 The layers an instruction can occupy
+
+Codex assembles its context from several sources, and each reaches the model with a different rank. The rollouts of the earlier rounds show the order, and a probe confirmed which layers can be changed:
+
+| Layer | Where it comes from | Role in the context | Can the user change it? |
+|---|---|---|---|
+| System prompt | built into the CLI (27,750 characters) | first developer message | no; `-c base_instructions=…` is ignored |
+| `developer_instructions` | `~/.codex/config.toml` or `-c` | prepended to the second developer message, ahead of the skills catalogue | yes |
+| Global `~/.codex/AGENTS.md` | the user's home directory | first user message, inside `<INSTRUCTIONS>` | yes |
+| Repository `AGENTS.md` files | the repository root and nested directories | the same user message, after the global file | yes, per repository |
+| The brief | the task prompt | the user's request | yes, per task |
+
+A developer message ranks above everything the user writes. The system prompt's coding rules, which Section 4.1 traced as the main source of the defensive contracts, are themselves developer-level text. An instruction meant to qualify them therefore belongs at the same level, which is `developer_instructions`. The global AGENTS.md was a candidate as well. It was cleaned up before round 4: the bootstrap guidance was removed, and its Go-only rules were scoped to Go repositories. The design policy was not added to it, because it ranks below the rules it would have to qualify.
+
+The round-2 policy mixed two kinds of rule. Some rules apply to any design task: specify only the valid domain, name the simplest alternative, probe before relying on a feature, list missing work under "Later", propose infrastructure instead of working around it. Others belong to this experiment only: the word target, "leave out measurement methodology beyond the primary metric, alternate input profiles, and tests of the program's own guards", and "a specialization constant that is a single number is a scalar parameter". Round 4 moved only the general rules into `developer_instructions`. It also qualified two of them against the system prompt directly. Comparing alternatives "is requested; contrastive phrasing is allowed for that purpose", and covering every part of a request "means addressing each requested item, not maximizing its depth".
+
+### 9.2 Round 4: the general rules alone
+
+Round 4 used the baseline brief byte for byte, the same six programs and the same base revision as round 2. Each agent received the general block as `developer_instructions`, plus one line asking it to stay in its own worktree. All six documents were scored blind against the six round-2 documents by a second judge, with the same rubric and the counting conventions of the first judging. The second judge scored round 2 at 1.17 for over-engineering and 8.83 for fitness, against 1.00 and 8.67 from the first, so the two scales are comparable. Its 52 quotes were checked verbatim by script.
+
+| Round | Brief | Developer instructions | Over-engineering | Fitness | R1+R2 | R5 | R7 yes | R8 | Words | Error-contract % | Testing % |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Baseline | baseline | none | 6.33 | 6.67 | 28 | — | — | — | 3,419 | 10.9 | 19.7 |
+| Round 2 | baseline + policy | none | 1.17 | 8.83 | 0 | 0 | 2 | 2 | 2,064 | 3.9 | 16.8 |
+| Round 4 | baseline | general rules | 3.00 | 7.33 | 0 | 5 | 4 | 12 | 2,832 | 5.0 | 20.9 |
+
+(R1 and R2 count invented error values and guarantees about state on failure. R5 counts measurement methodology beyond the primary metric, R7 whether the design works around a missing piece instead of proposing it, and R8 extra input configurations. The baseline's R5 to R8 were not counted by the second judge.)
+
+The general rules removed the largest family of excess completely. In round 4, as in round 2, no design invents a status code or promises anything about memory on an invalid input. The error-contract share of sentences fell from 10.9% to 5.0%. What remains is scope. Round 4 has twelve extra input configurations, five measurement plans beyond the primary metric, and four designs that work around a gap instead of proposing to close it. These are exactly the things the round-2 brief excluded by name. Section 4.3's mechanism explains why the general block cannot exclude them: a brief that asks for a section gets that section at full depth, unless something says what to leave out. Only the task can say what is out of scope for the task.
+
+Neither policy reduced the share of the documents spent on testing: 19.7% in the baseline, 16.8% in round 2, 20.9% in round 4. Neither policy addressed testing, and the implementation round below shows where that share goes.
+
+The division of labour this suggests is the following. The general rules go in `developer_instructions`, where they qualify the system prompt for every task. The scope rules go in the brief, or in a repository's AGENTS.md when they hold for every task in that repository. After round 4 the general block was added to `~/.codex/config.toml`. A fresh session confirms that Codex places it in the second developer message.
+
+### 9.3 The implementation round
+
+Six fresh Codex agents (gpt-6.2-sol, medium effort) each implemented one round-2 design. Each had the general rules as developer instructions and its own worktree. Two small loader changes the designs had proposed were made first, so that the designs could be built as written: `project.json`'s `ingest` and `entries` now reach the Node loaders and the parity tool. The brief told the agents to implement the design as written and record any deviation. It also told them to run only their own tests, never the full suite or anything touching Candela, and not to modify `src/`, `tools/`, other projects or existing tests. It said nothing about how much to test, so that the agents' own inclination would show.
+
+A snapshot script (`11-snapshot-round.mjs` in the vault kit) read each worktree and each live rollout every five minutes. It recorded lines added by category, test blocks, assertions, helper functions, edits under `src/` and `tools/`, and test runs. The final snapshot:
+
+| Program | Minutes | Source lines | Test lines | Harness lines | Test / source | Test blocks | Assertions | Test runs | Bookkeeping commands |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Bytecode VM | 5.9 | 58 | 231 | 21 | 3.98 | 3 | 35 | 2 | 4 |
+| SHA-256 and ChaCha20 | 7.5 | 245 | 170 | 33 | 0.69 | 2 | 18 | 2 | 11 |
+| LZ compressor | 5.9 | 86 | 177 | 12 | 2.06 | 2 | 18 | 3 | 9 |
+| Regex matcher | 4.8 | 101 | 136 | 10 | 1.35 | 2 | 19 | 3 | 13 |
+| f32 DSP | 5.7 | 77 | 267 | 27 | 3.47 | 3 | 23 | 4 | 11 |
+| Chess search | 8.7 | 625 | 51 | 272 | 0.08 | 4 | 12 | 4 | 16 |
+
+(Chess's source is mostly the ported engine; its 272 harness lines are a fixture runner the design asked for.)
+
+Every agent finished in under nine minutes, with two commits and nothing outside its scope. Every parity run the agents made agreed on all of its cases. The hypothesis was over-testing and over-cautious framework-building, and the record supports it in a specific and narrower form.
+
+**Test volume follows the design, and the design prescribes it.** In three programs the test code is two to four times the program code. Each design's oracle section asks for that matrix. The bytecode VM's design, for example, specifies a JavaScript reference VM, a replay of all 442 valid entry/count/seed combinations, comparison at r0 and after `speed` on both the evaluator and the RV32 image, and a second comparison against the reference compiler. The implementation contains exactly that, and no implementation added a layer its design lacked. The appetite for testing is a design-stage property. That is why the testing share in Section 9.2 did not move: no rule addressed it.
+
+**The same harness was written five times.** All six test files check the same layers: an oracle for the program's result, the evaluator, RV32 images, the `speed` pipeline, the reference compiler, and a workbench run. Five of the six built private helpers for this, between 4 and 17 functions per file, under names like `evalCase`, `imageCase`, `checkedSpeed` and `assertCompleted`. Three of those layers repeat checks the repository already runs on every corpus project:
+- RV32 image agreement at r0 (test P2.4);
+- agreement with the reference compiler's images (P2.6);
+- the checked O2 pipeline (the parity tool).
+
+What only a project's own test can provide is the independent oracle, the `speed` images and the fixtures. The agents could not know this. Nothing in the repository says what the corpus-wide tests cover, and the brief kept the agents away from those tests.
+
+**There was no framework-building, but there were workarounds.** No agent wrote a general utility outside its test file. Four of six found that `tools/reference-check.mjs` ignores its project argument. Since the brief forbade changes to `tools/`, they called the reference compiler directly and recorded the deviation. Under that brief this was the right decision. The cost shows up in the next section.
+
+**Bookkeeping is the largest class of commands.** The docmgr and diary skills account for 4 to 16 commands per agent, about a third of the total, against 2 to 4 test runs.
+
+The programs also produced the round's first optimizer measurements:
+- `speed` makes the bytecode VM slower, from 7,678 to 9,286 RV32 instructions for Fibonacci. The hand-specialized loop takes 75.
+- After `speed`, the regex matcher takes 8,040 instructions where the reference compiler's image takes 6,628. Chess takes 10.08 million, below the reference's 10.83 million.
+- Specializing on a scalar does almost nothing. Binding the FFT length saves one instruction (4,065 to 4,064), and binding LZ's chain limit saves 0.06%.
+
+### 9.4 Integration
+
+Merging the six branches gave a clean build and eight failures in the full suite, 386 of 397 tests passing. The failures fall into three groups, and each traces back to a decision recorded in a brief or a test.
+
+The first group is totals. Five corpus-wide tests assert the corpus's size, such as 44 projects or 70 functions, and fail when six projects are added. Every per-function assertion inside them passed. Two other tests loaded each project without its `ingest` setting, and one of them read only `main.typed`. Both failed on the frame arrays with `unknown tape opcode 252`.
+
+The second group is one failure that looked like a compiler bug. P2.6 compares the evaluator with the reference compiler's image on generated cases for every entry function. It reported 100 disagreements, all of them in the DSP project's `dot3`:
+
+```
+dot3(a, b, c, d, e, f: f32): f32  { return (a * b + c * d) + e * f; }
+counterexample 0: args (as f32 bits) [-1082145218, -1085805348, 1062128515, …]
+                  expected 1066357427   got -1082145218   (= args[0])
+```
+
+The value the image "returned" is always the first argument's bits, so the call never looked at the result. Under the RV32 ilp32f convention, f32 arguments and results travel in the `fa` registers. The test built the reference image with `imageFromCode(id, r.image, r.entries)` and did not pass the `signatures` the reference compile returns. Without them `runImage` calls every function through the integer registers and reads `a0`, which still holds the first argument. No earlier corpus entry took f32 scalars, so the omission had never mattered. With the signatures passed, all 8,286 decided cases agree. The DSP agent's own test had used the signature-aware runner from the start.
+
+The third group is a convention. The workbench shows each corpus file in a 72-column tile. `tests/typed/format.test.mjs` enforces 80 columns for `.typed` and `.js` files and 73 for `project.json` and `notes.md`, and the new files ran to 108. The rule appears nowhere an agent would read before writing a file. The repository's formatter also refused one file. `wrapProse` re-wraps an already-wrapped list item line by line, drops the continuation indent, and so splits the item in two. This is a pre-existing bug that no earlier notes file had triggered.
+
+The first two groups were fixed in the tests. The widths were handed back to the agents that wrote the files. Each agent's session was resumed with a two-paragraph prompt stating the limits and the formatter's bug, and all six fixed their files in one to four minutes. After that merge the suite passes: 394 pass, none fail, 3 skipped.
+
+Every workaround the agents recorded during implementation reappeared during integration: the reference tool, the loaders and the conventions. The brief's ban on shared code did not remove that work. It moved the work to integration, where it was found as test failures instead of being stated as proposals.
+
+### 9.5 Additions to the working rules
+
+The rules of Section 7 hold. The two follow-up rounds add four:
+
+11. **Put the general design policy in `developer_instructions`, and scope rules in the brief.** The general block removes invented error contracts in every task. Only a brief, or a repository AGENTS.md, can say what a particular task should leave out.
+12. **Tell implementers what is already checked.** A one-paragraph list of the corpus-wide tests (image agreement, reference agreement, the checked pipeline) would have removed about half of each project's test matrix. The same paragraph belongs in the design brief, since that is where the matrix is decided.
+13. **Grant narrow permissions instead of broad bans.** "You may fix `tools/reference-check.mjs`'s project filter" costs one sentence. The ban on all of `tools/` produced four workarounds and integration work.
+14. **Write the repository's conventions where agents read.** The tile widths, the formatter and the totals that corpus-wide tests assert belong in a repository AGENTS.md. A test that agents are told not to run cannot teach them anything.
+
+The five-fold harness duplication is also a framework finding, in the sense of Section 6. A single framework call that runs a program on the evaluator, the RV32 image and the reference compiler, with calling signatures handled, would replace five private helper sets. It would also have prevented the signature omission in P2.6.
 
 ## Where the material is
 
@@ -426,6 +538,7 @@ These rules summarize what the three rounds showed. Each is tied to a measured e
   - baseline: `codex/irwb-012` to `codex/irwb-017`, at `4038fb8`, `a493a0b`, `43baa4b`, `8ba5bba`, `07592d2`, `8daa63c`;
   - round 3: the same branches, one commit later;
   - round 2: `codex2/irwb-012` to `codex2/irwb-017`.
+- **Round 4 and the implementation round (Section 9):** `various/kit/` in the ticket, written by the vault kit, with one directory per round (`round4`, `impl`, `impl-fmt`): logs, `heads.json`, extracts, snapshots. Scores, key and metrics are in `various/kit/results/` and `various/results/impl-metrics.json`. The diary steps are 8 to 11. Branches: `round4/irwb-0NN` and `impl/irwb-0NN`, merged into the workbench at `411a278`.
 - **Native rollouts:** `~/.codex/sessions/2026/11/26/`, unmodified.
 
 ## Related notes
