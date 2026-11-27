@@ -355,6 +355,60 @@ All twelve passed everything the brief required. Stage 3, fusion, benefits most 
 
 Codex · Sol · high (I) met all four. It was the stage's worst-scored *design* (over-engineering 4, fitness 6). In neither stage did the design score predict the quality of the implementation.
 
+## 10. A research round: four models on "what would make Tix best in class?"
+
+After stage 2, four configurations got the same open question: Sol and Astra in Codex at high effort, and Opus and Fable as Claude subagents at their default effort. Each was asked to define "best in class" for Tix, propose the compiler work, and back it with literature and with experiments on the GB10. The product code stayed unchanged.
+- **The base** held stage 2 as merged, without the coordinator's backlog or analysis, so each idea is the agent's own.
+- **The policy** was the same for all four, and neutral: probe before relying on a feature, and stay isolated. The usual anti-over-engineering rules would have capped a creativity round.
+- **Time:** every cell finished in 16 to 62 minutes of a three-hour budget.
+
+### What they proposed
+
+All four defined best in class around Tix's exactly specified f32 meaning: the fastest code that stays bit-identical to it, with every step checked. Each found its own way there.
+
+| Cell | Central idea | Strongest evidence |
+|---|---|---|
+| Astra | fast `exp` with one table coefficient fitted by interval intersection, plus exact fused rows | softmax 4.25× and attention 1.38× (reproduced), bit-identical; the deployed binary certified against Node by digest |
+| Opus | exact-meaning scheduling with exhaustively verified fast `exp` and `tanh`, and per-shape checks by symbolic fingerprints | all six programs 2.0–7.6× faster and bit-identical; a planner from the IR at 3.19× geometric mean; `exp` and `tanh` match on all 2³² inputs (reproduced) |
+| Fable | acceptance by proof (normal-form equivalence), plus a *parity transducer* | a mutant the merged gate accepts and the proof rejects (reproduced); a parallel fold bit-identical to the sequential one, by two-entry chunk summaries |
+| Sol | certified row schedules as v6 postconditions; an INT8 route that is exact on a proved dyadic grid | rows 2.0× and 2.5× faster; exact 512³ tile 3.9× faster than stage 2 (reproduced); INT8 exact but slower than the FP32 tile |
+
+**The convergent measurements** carry the most weight, because independent cells found them:
+- **Exact tiling:** an exact tiled 512³ matmul takes 0.054–0.058 ms in three cells. That is about 3.7× faster than stage 2, and 1.6–1.75× slower than cuBLAS. The ceiling is the meaning's separate multiply and add: 14.4 TFLOP/s on this GPU, against 27.0 with FMA.
+- **cuBLAS:** at 4096³ it computes exactly a sequential FMA fold, found by two cells.
+- **A parallel exact fold** was found by two cells: Fable's parity summary and Astra's even-translation certificate. Neither judge found it in print.
+
+Fable's cell also found a real hole in the merged stage-1 gate. Its sample shapes cycle through three sizes over the sorted shape symbols, so in `mlp` the extents D and O are equal in every case. A pass that confuses them is accepted.
+
+### How it was judged, and what the judging showed
+
+Two blind judges scored the four tickets twice each: a Claude subagent, and Codex · Sol with web access. They scored ingenuity, creativity, scientific depth, evidence, correctness, grounding and padding.
+
+| Model | Claude judge (two runs) | Codex judge (two runs) | Mean | Errors listed |
+|---|---|---|---|---|
+| Astra | 7, 7 | 9, 9 | **8.0** | 2 |
+| Opus | 9, 8 | 6, 7 | 7.5 | 30 |
+| Fable | 8, 7 | 7, 7 | 7.25 | 22 |
+| Sol | 6, 6 | 8, 8 | 7.0 | 7 |
+
+Each judge put its own family's designs first: by 1.5 points out of 10 for the Claude judge, and 1.75 for the Codex judge. That is more than the largest gap between models once both are averaged (1.0). Each judge repeated itself within a point.
+
+A ranking from either judge alone would have been confident, and reversed by the other. This bears on Sections 5 and 8, whose design scores came from Claude judges only.
+
+**What both judges agree on:**
+- **The Claude designs contain more errors.** That holds in all four runs, and every error the coordinator re-checked held. Examples:
+  - Opus's claim that batch invariance is a theorem of the meaning fails for `y[i] = x[i] + N`;
+  - Fable's comparison with the fixed tolerance used a different reference from the gate's.
+- **Sol's design is the least creative,** the closest to the standard fusion and tiling playbook.
+
+Read with the family effect removed:
+- **Astra** produced the best-evidenced, most correct design.
+- **Opus** produced the broadest and most ambitious one, with the most overclaims.
+- **Fable** produced the most original theoretical idea, in the shortest time.
+- **Sol** produced the most conventional plan.
+
+The ideas are now items in the workbench's backlog.
+
 ## Where the material is
 
 - **Ticket:** `/home/manuel/code/wesen/2026-11-24--compiler-workbench/ttmp/2026/11/26/IRWB-019--tensor-programs-on-the-v6-framework-and-a-codex-model-comparison-on-the-same-tasks/`
