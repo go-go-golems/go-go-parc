@@ -22,7 +22,7 @@ for item in "$@"; do
   ( cd "$w" && timeout "${AGENT_TIMEOUT:-3600}" codex exec resume -m "$MODEL" -c model_reasoning_effort="$EFFORT" "${DEV[@]}" "${EXTRA[@]}" \
       -c sandbox_mode=\"workspace-write\" -c "sandbox_workspace_write.writable_roots=[\"$REPO/.git\"]" \
       -o "$L/$item.last-message.md" "$sid" "$(sed "s/<ID>/$item/g" "$pfile")" \
-      > "$L/$item.log" 2>&1; echo "$item exit $?" >> "$L/exits.txt" ) &
+      < /dev/null > "$L/$item.log" 2>&1; echo "$item exit $?" >> "$L/exits.txt" ) &
 done
 wait
 node -e '
