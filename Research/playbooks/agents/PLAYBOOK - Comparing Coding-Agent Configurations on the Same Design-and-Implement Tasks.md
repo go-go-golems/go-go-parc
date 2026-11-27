@@ -214,11 +214,43 @@ What two stages, three policies and two harnesses showed about gpt-6.2-sol and g
 - Astra batches commands in one script, so count commands from `CommandExecution` events.
 - A `node --test <dir>` invocation fails on Node 24; give file globs in every brief.
 
-## 11. Open questions *(to be filled as the experiment proceeds)*
+## 11. Judging across model families, and research rounds
+
+Round R2 (IRWB-023) asked Sol and Astra (in Codex), Opus and Fable the same open research question: what compiler work would make Tix best in class? Two blind judges, a Claude subagent and Codex · Sol, scored the designs twice each.
+
+**A judge favours its own family by more than the models differ.**
+- The Claude judge scored the two Claude designs 1.5 points higher (out of 10) than the two Codex designs.
+- The Codex judge scored the Codex designs 1.75 points higher.
+- Their rankings are close to reversed (Claude judge: Opus, Fable, Astra, Sol; Codex judge: Astra, Sol, then Fable and Opus).
+- Averaged over both, the largest gap between models was 1.0.
+- Each judge repeated itself within 1 point per model, so the bias is systematic, not noise.
+
+Blinding hides the author's name, not their family's style. So:
+- **Never rank configurations from different model families with one judge.** Use one judge from each family, report both, and average them. Report how far the families disagree as a result in its own right.
+- **Prefer scores that a judge cannot bias:** listed errors, which the coordinator adjudicates, and reproduced experiments.
+  - In R2, both judges, in all four runs, listed more errors in the Claude designs (7–19 against 0–4). Every error I re-checked held.
+  - The judges differed in rigour more than in direction. The Codex judge listed about three times as many errors.
+- **Verify the load-bearing claims yourself before reporting a ranking.** Four of four headline experiments reproduced in R2, and one of them exposed a real hole in the merged base (F21 in the backlog).
+
+**Build the blind pack carefully.**
+- **Check completeness, not only leaks.** My first R2 pack copied files by an extension list that missed `.jsonl`. It dropped 21 result logs from three of the four tickets, and none from the fourth, so the error was not neutral. Compare file counts against the source.
+- **Neutralize the coordinator's own text.** Claude subagents quote their launch prompt in their diaries, and a different wrapper sets them apart. Replace it, and the scratchpad paths it names.
+- **Shuffle with a seed whose permutation actually moves the letters.** A small linear congruential seed can give the identity.
+
+**Research rounds need their own policy and brief.**
+- Anti-over-engineering rules cap creativity. v1's "describe only what can be built with the current code" and "prefer the smallest deliverable" would cap a creativity round, and a policy outranks the brief. R2 gave all four cells the same two neutral rules: probe before relying on a feature, and stay isolated.
+- **Facts in the brief anchor the ideas.** R2's facts section led with the bit-exact result, and all four designs centred on exactness. If breadth is the point, give facts without a lead.
+- **Give every cell the same research tools.** Codex `exec` has no `--search` flag, but `-c web_search=live` works.
+- **Expect agents to finish early.** All four finished in 16–62 minutes of a three-hour budget.
+
+**Running Codex headless:** `codex exec` reads extra prompt input from a non-terminal stdin. A command inside a backgrounded shell inherits an open one and waits forever ("Reading additional input from stdin…"). Always pass `< /dev/null`.
+
+## 12. Open questions *(to be filled as the experiment proceeds)*
 
 - Does a review change designs in the same direction for every configuration?
 - **How do design scores predict hidden results?** In stage 1, not at all at the level of correctness: every implementation was correct, whatever its design score. Design scores did predict size and contract quality.
 - What does the harness change, with the same model and policy? The answer so far is: something for Astra, nothing stable for Sol (§10).
+- Do the stage-1 and stage-2 design scores, judged by Claude subagents alone, carry the family effect §11 measured? Re-judge one stage with a Codex judge to find out.
 - Do the differences survive repeated runs per cell? This needs M2: three runs of the cells that differ most.
 
 ## Related notes
