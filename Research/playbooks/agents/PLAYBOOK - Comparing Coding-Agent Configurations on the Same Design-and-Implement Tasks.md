@@ -270,6 +270,7 @@ IRWB-019 added DeepSeek 4.1 Flash, GLM 5.3 and GLM 5.3 Flash (through Pi and the
 **Make the hidden programs differ in structure from the visible ones.** Stage 3's hidden programs (from stage 1's hidden suite) divide inside reductions: `sum(d) x / D`. The visible corpus divides the reduced value. Every agent measured layernorm 2–3× faster on the visible corpus. On the hidden programs, fused layernorm and attention were mostly slower than unfused, because the division ran in one thread's serial loop.
 - Without the structural difference, the agents' performance claims would have gone unchallenged.
 - When the next brief names such variants, the hidden evaluation needs held-out programs that the brief does not name. Write them before the agents start.
+- **It paid off in stage 3b.** Three held-out programs (rmsnorm, centering, log-softmax) showed that the merged stage-3 code ran log-softmax 6.6× slower than unfused, a regression none of the brief's programs exposed. They also separated the one cell that staged only divisions from the nine that staged every costly body. Evaluate the current main in the same run, as the baseline.
 
 **Verify contradictory findings before recording either.** Two cells reported opposite results on the same framework check: made-up correspondence IDs accepted, and an undeclared ID rejected. Reading the code showed one gap: the entity lists are declared by the caller and never compared with the artifacts.
 
