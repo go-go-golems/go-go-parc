@@ -10,7 +10,7 @@ created: 2026-11-26
 repo: /home/manuel/code/wesen/2026-11-24--compiler-workbench
 ticket: IRWB-019
 tickets: [IRWB-020, IRWB-021, IRWB-018, IRWB-022, IRWB-023, IRWB-029, IRWB-030]
-source_revision: 5f81dde
+source_revision: 452500b
 ---
 
 # Tensor programs on the v6 framework: Tix, CUDA on a GB10, and four Codex configurations on the same tasks
@@ -27,6 +27,7 @@ The stages are designed and implemented by Codex agents. Each task is given to f
 > - **Twelve configurations per task:** Codex CLI or Pi, gpt-6.2-sol or gpt-6.2-astra, medium, high or xhigh. Four Claude cells (Opus 5.5 and Fable 5.2, medium and xhigh) also take stage 1. Each configuration writes its own ticket, design, implementation, diary and report. The coordinator reviews the designs, and a blind judge and a hidden test suite score them.
 > - **New model families (Section 11):** DeepSeek 4.1 Flash, GLM 5.3 and GLM 5.3 Flash, through Pi, scored below every OpenAI and Anthropic cell on both research rounds, under both judges, with real mathematical errors and some fabricated references.
 > - **Stage 3, checked fusion (Section 12):** nine of ten configurations produced bit-exact fusion, and the new families came close to Opus and Fable on this implementation task. Fused layernorm and attention lose to stage 2 when a reduction divides each term, because the term runs in one thread's serial loop. Opus's implementation is merged.
+> - **Stage 3b (Section 13):** parallel terms with a serial fold, and a launch-time gate. All ten configurations are exact and nine are never slower on nine programs. Held-out programs exposed a 6.6× regression in the merged stage 3. Fable's implementation (1.86× geomean) is merged.
 > - **First result (Section 4):** all twelve configurations derived streaming attention correctly, so a design-only question with a known answer produces a ceiling. The small differences favour Pi over Codex, Astra over Sol, and high or xhigh over medium.
 
 ## 1. Why tensors, and why this language
@@ -545,16 +546,53 @@ No cell computes the terms in parallel and accumulates them serially, although t
 - Sol and Astra were the fastest by a factor of three to seven in wall-clock time.
 - Correctness did not separate any of the nine: a precise brief and a hidden exact evaluator left nothing to get wrong. The differences were in performance.
 
-## 13. Stage 3b, under way
+## 13. Stage 3b: fusion that is never slower
 
-Stage 3b asks for fusion that is never slower than stage 2, using parallel terms with a serial fold, and a decision that keeps a program unfused where fusing would cost time. It runs on the same matrix, with GLM 5.3 Flash at high only and GLM 5.3 max as the tenth cell.
+Stage 3b asked for two things. The first was parallel terms with a serial fold: any thread computes a reduction's terms, and one thread adds them in the meaning's order. That is bit-identical, because each term is rounded as before and the sum keeps its order. The second was a rule that keeps a program unfused where fusing would be slower.
 
-The brief names both division placements, so the hidden evaluation adds three held-out programs, all written before the work started:
+It ran on ten configurations:
+- GLM 5.3 Flash at high only, because it has no xhigh level and its max hit the 20-minute stream cap;
+- GLM 5.3 max as the tenth cell, the coordinator's choice;
+- the rest of the matrix as in stage 3.
+
+The brief named both division placements, so the hidden evaluation added three programs it did not mention, written before the work started:
 - rmsnorm, with the division inside the reduction;
 - centering, with the division inside the reduction;
 - log-softmax, whose reduction body is an `exp`.
 
-Results follow when the round finishes.
+Main's stage-3 code was evaluated in the same run as the baseline. Speed-ups are unfused ÷ fused over nine programs: the four fusable hidden ones, the two "outside" variants and the three held-out programs.
+
+| Cell | Time | Geomean | Worst |
+|---|---|---|---|
+| Fable | 90 min | **1.86×** | 1.31× (attention, division inside) |
+| Astra medium | 16 min | 1.76× | 1.21× (mlp) |
+| Sol medium | 15 min | 1.75× | 1.19× |
+| DeepSeek 4.1 Flash high | 105 min | 1.74× | 1.08× |
+| GLM 5.3 Flash high | 118 min | 1.72× | 1.09× |
+| GLM 5.3 max | 96 min | 1.72× | 1.07× |
+| Opus | 86 min | 1.71× | 1.07× |
+| GLM 5.3 high | 89 min | 1.70× | 1.10× |
+| DeepSeek 4.1 Flash xhigh | 74 min | 1.70× | 1.08× |
+| Terra low | 7 min | 1.27× | 0.15× (log-softmax) |
+| Main before stage 3b | — | 1.04× | 0.15× (log-softmax) |
+
+**What the evaluation showed:**
+- **Correctness:** all ten are exact on every check.
+- **Never slower:** nine meet "never slower" on all nine programs.
+- **The held-out programs found what the named ones could not.** Main's stage-3 code ran log-softmax 6.6× slower than unfused (12.7 against 1.9 ms), because the `exp` in its sum ran in one thread's serial loop. It was also slower on rmsnorm. Terra low staged only divisions and kept the log-softmax regression.
+- **The cells reached the same design independently:**
+  - stage a reduction's terms when the body is costly (a division, a transcendental, a nested reduction);
+  - keep cheap bodies serial;
+  - decide at launch from the row length.
+
+  Opus and Fable found by measurement that short rows, not few long rows, are the slow case for block mode.
+- **Where Fable pulled ahead:** it writes a member over the row it was computed from when nothing reads that row again. That fits more blocks on each SM, and it is the only one of Fable's changes that lifts attention-inside (1.31×) and mlp (1.51×) above the cluster. Its gate also checks both sides under the exact relation. Fable's implementation is merged; `npm test` passes 460 tests, none failing.
+
+**Two framework findings:**
+- nothing records that a run chose one checked artifact over another by a rule at given shapes (Opus);
+- the differential's `baselineKey` contract, that cases depend on the key alone, is not checked (Fable).
+
+**Across the matrix,** the stage-3 pattern held. Every configuration was correct, and the performance spread was narrow (1.70–1.86× for nine of ten). The Codex cells finished in 7–16 minutes, the others in 74–118. The new families matched Opus.
 
 ## Where the material is
 
@@ -567,8 +605,9 @@ Results follow when the round finishes.
 - **Agents' tickets:** IRWB-020-A to D (stage 1) and IRWB-021-A to D (research round), on branches `t1-<config>/irwb-020-<letter>` and `r1-<config>/irwb-021-<letter>`.
   - IRWB-021-M to S and IRWB-023-E to K: the DeepSeek and GLM cells of R1 and R2.
   - IRWB-029-A to J: stage 3. The merged cell is IRWB-029-D (Opus).
-  - IRWB-030-A to J: stage 3b, running.
+  - IRWB-030-A to J: stage 3b. The merged cell is IRWB-030-E (Fable).
 - **Section 11's data:** `various/results/r1-all-*`, `r2-all-*`, `blind-key-r1-all.json`, `blind-key-r2-all.json`; scripts 36–40.
+- **Section 13's data:** `various/results/eval-t3b*.json`, `eval-t3b-summary.txt`; scripts 50–51; the hidden evaluator in `various/hidden-t3b/`.
 - **Section 12's data:** `various/results/eval-t3*.json`, `eval-t3-summary.txt`, `division-placement.txt`; scripts 42–44; the hidden evaluator in `various/hidden-t3/`.
 
 ## Related notes
