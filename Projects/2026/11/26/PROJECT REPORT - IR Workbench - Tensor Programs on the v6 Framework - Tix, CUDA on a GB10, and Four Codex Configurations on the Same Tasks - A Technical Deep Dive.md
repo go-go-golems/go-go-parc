@@ -3,14 +3,14 @@ title: "Tensor programs on the v6 framework: Tix, CUDA on a GB10, and four Codex
 aliases:
   - IR Workbench, report 11
   - Tix and the tensor track (IRWB-019)
-tags: [project, compiler, tensor, gpu, cuda, agents, codex]
+tags: [project, compiler, tensor, gpu, cuda, agents, codex, deepseek, glm]
 type: project
 status: active
 created: 2026-11-26
 repo: /home/manuel/code/wesen/2026-11-24--compiler-workbench
 ticket: IRWB-019
-tickets: [IRWB-020, IRWB-021, IRWB-018]
-source_revision: 9cfad72
+tickets: [IRWB-020, IRWB-021, IRWB-018, IRWB-022, IRWB-023, IRWB-029, IRWB-030]
+source_revision: 5f81dde
 ---
 
 # Tensor programs on the v6 framework: Tix, CUDA on a GB10, and four Codex configurations on the same tasks
@@ -25,6 +25,8 @@ The stages are designed and implemented by Codex agents. Each task is given to f
 > - **The question is the framework's generality.** The primary result of each stage is the list of changes the tensor domain forces in `src/framework`, each with its reason.
 > - **Tix is index notation with five constructs:** shaped parameters, pointwise expressions, `sum` and `max` reductions over named indices, single-assignment statements, and affine index arithmetic. Its f32 meaning is fixed down to the order of accumulation, so implementations can be compared bit for bit.
 > - **Twelve configurations per task:** Codex CLI or Pi, gpt-6.2-sol or gpt-6.2-astra, medium, high or xhigh. Four Claude cells (Opus 5.5 and Fable 5.2, medium and xhigh) also take stage 1. Each configuration writes its own ticket, design, implementation, diary and report. The coordinator reviews the designs, and a blind judge and a hidden test suite score them.
+> - **New model families (Section 11):** DeepSeek 4.1 Flash, GLM 5.3 and GLM 5.3 Flash, through Pi, scored below every OpenAI and Anthropic cell on both research rounds, under both judges, with real mathematical errors and some fabricated references.
+> - **Stage 3, checked fusion (Section 12):** nine of ten configurations produced bit-exact fusion, and the new families came close to Opus and Fable on this implementation task. Fused layernorm and attention lose to stage 2 when a reduction divides each term, because the term runs in one thread's serial loop. Opus's implementation is merged.
 > - **First result (Section 4):** all twelve configurations derived streaming attention correctly, so a design-only question with a known answer produces a ceiling. The small differences favour Pi over Codex, Astra over Sol, and high or xhigh over medium.
 
 ## 1. Why tensors, and why this language
@@ -425,6 +427,135 @@ After R2, the stage-1 and stage-2 design packs went to a Codex judge (Sol, high)
 
 Neither judge is neutral, so the experiment's cross-family design rankings rest on the mean of the two judges. Error counts and reproduced experiments carry more weight than either judge's ranking. The scorecard shows both judges.
 
+## 11. Two more model families on the research rounds: DeepSeek and GLM
+
+The first two rounds compared OpenAI and Anthropic models. To widen the comparison, both research questions were rerun on three models reachable through the Pi coding agent and the LunaRoute provider:
+- DeepSeek 4.1 Flash, at high, xhigh and max;
+- GLM 5.3 Flash, at high and max;
+- GLM 5.3, at high and max.
+
+Each got the round's original brief, base and budget. R1 is the streaming-attention derivation of Section 4, with seven new designs. R2 is the best-in-class question of Section 10, with seven new tickets.
+
+The new cells were packed blind together with the round's original cells, so old and new were scored side by side:
+- R1 had 19 designs: the twelve OpenAI cells and the seven new ones.
+- R2 had 11 whole tickets: four originals and seven new.
+
+Ticket letters, model, vendor, provider and harness names were replaced, and a leak scan ran after packing. Each pack went to one Codex judge and one Claude judge. Neither judge belongs to the new models' families, so on the new cells neither had an own-family preference. Afterwards, the Codex judges' session records were scanned for reads outside the pack and the base repository, and none were found.
+
+**R1, the derivation** (overall out of 10, per-model means):
+
+| Model | Designs | Codex judge | Claude judge | Errors per design (Codex / Claude) | Words |
+|---|---|---|---|---|---|
+| Astra | 6 | 10.0 | 8.5 | 0 / 0 | 3.1k |
+| Sol | 6 | 9.7 | 8.2 | 0.2 / 0.2 | 3.2k |
+| GLM 5.3 | 2 | 4.5 | 6.5 | 17 / 6.5 | 8.3k |
+| DeepSeek 4.1 Flash | 3 | 4.7 | 6.3 | 17.7 / 5.7 | 13.0k |
+| GLM 5.3 Flash | 2 | 3.5 | 4.5 | 16.5 / 6.5 | 6.9k |
+
+The two judges rank the 19 designs alike: Spearman 0.89 overall, and 0.93 for over-engineering. The new designs are two to five times longer, and their errors are in the mathematics itself. The coordinator re-checked four of the Codex judge's major errors, and all held:
+- an "identity" whose combine evaluates `exp(−∞ − (−∞))` on two empty states;
+- the claim that finite inputs give a finite maximum, which fails when `q·k` overflows in f32;
+- a shifted offset claimed bit-exact, although `exp(s − c)` rounds differently for a different `c`;
+- a hoisted division claimed exact.
+
+The Claude judge simulated one design's combine in f32 and refuted its claimed bit-identity on 73 of 200 rows.
+
+**R2, the open question:**
+
+| Model | Codex judge | Claude judge |
+|---|---|---|
+| Opus | 9 | 9 |
+| Sol high | 9 | 8 |
+| Fable | 8 | 8 |
+| Astra high | 10 | 7 |
+| DeepSeek 4.1 Flash high / xhigh / max | 5 / 6 / 7 | 3 / 5 / 6 |
+| GLM 5.3 high / max | 5 / 6 | 4 / 6 |
+| GLM 5.3 Flash high / max | 6 / 7 | 5 / 5 |
+
+- **Agreement:** the judges agree on the overall ranking (0.88), on correctness (0.79) and on creativity (0.87), but not on padding (0.13).
+- **The family effect from Section 10 holds:** each judge rates its own family about one point above the other.
+- **Every new cell scored below every original cell** under both judges.
+
+The weakest new tickets cite papers that do not say what is claimed, and some references are fabricated. In the GLM 5.3 Flash max ticket the coordinator resolved three of them:
+- the arXiv ID cited as Tiramisu is a LIGO white paper;
+- the ID cited as Ansor is a paper on presolar silicon carbide;
+- the DOI cited as Necula and Lee is Grover's quantum-search paper.
+
+**Effort** helped the new models in R2: the higher setting scored higher in every case but one. In R1 it did not: the Claude judge scores DeepSeek 7, 6 and 6 from high to max. With one run per setting, effort has no measured effect yet.
+
+**One finding outside the comparison.** The R2 Claude judge found the closest prior art to Tix's approach: Yang, Riasanovsky, Deng and Sarkar, arXiv 2609.11356 (September 2026). It reconstructs cuBLAS's reduction order, enforces a fixed reduction tree in Triton's lowering, and checks bitwise equivalence between compiled kernels statically, so that Triton's autotuner searches only one bit-equivalence class. Five R2 tickets claimed a version of that idea as new. It is now required reading for the tiling stage.
+
+## 12. Stage 3: checked fusion, ten configurations
+
+Stage 3 fuses Tix statements into fewer CUDA kernels without changing any result bit. That covers elementwise chains, epilogues, and row reductions with their producers and consumers. Legality is decided from the Tix IR, and `checkLowering` checks the fused lowering on the GB10 under the exact relation.
+
+The task went to ten configurations, the matrix now used for implementation stages:
+- Codex: Sol medium, Astra medium, Terra low;
+- Claude subagents: Opus and Fable;
+- Pi with LunaRoute: GLM 5.3 high, DeepSeek 4.1 Flash high and xhigh, GLM 5.3 Flash high and max.
+
+**One configuration could not run.** GLM 5.3 Flash at max failed twice in the same way. After about a minute of reading, its next request streamed thinking for exactly 20 minutes, and LunaRoute ended it ("the upstream stream failed before completion"). The cap is on the provider side. This model's longest single request in R1 had been 14.5 minutes. It is dropped from the matrix.
+
+**All nine others are correct.** The hidden evaluation was written from the brief before any stage-3 work existed. On every cell it found:
+- fused and unfused corpus bits identical to the f32 meaning;
+- optimized programs and 20 random programs exact;
+- all 16 `checkLowering` verdicts accepted as exact;
+- full-size outputs exact.
+
+Speed-up from fusion on the hidden programs (unfused ÷ fused, benchmark medians):
+
+| Cell | Time | softmax | layernorm | attention | mlp | Geomean | Worst |
+|---|---|---|---|---|---|---|---|
+| Opus | 54 min | 2.06× | 0.95× | 1.07× | 1.21× | **1.26×** | 0.95× |
+| GLM 5.3 Flash high | 77 min | 2.09× | 1.02× | 0.70× | 1.24× | 1.17× | 0.70× |
+| Sol medium | 15 min | 2.01× | 0.80× | 0.82× | 1.25× | 1.13× | 0.80× |
+| Fable | 43 min | 2.06× | 0.82× | 0.75× | 1.17× | 1.10× | 0.75× |
+| Astra medium | 10 min | 2.24× | 0.48× | 1.09× | 1.24× | 1.10× | 0.48× |
+| DeepSeek 4.1 Flash high | 45 min | 1.76× | 0.97× | 0.78× | 1.08× | 1.09× | 0.78× |
+| DeepSeek 4.1 Flash xhigh | 56 min | 1.99× | 0.93× | 0.69× | 1.07× | 1.08× | 0.69× |
+| GLM 5.3 high | 71 min | 1.11× | 0.74× | 1.17× | 1.26× | 1.05× | 0.74× |
+| Terra low | 4 min | 1.01× | 1.01× | 0.97× | 0.99× | 1.00× | 0.97× |
+
+Terra low reported its own work as incomplete: it had fused only short chains. Every other cell fused softmax and layernorm into one kernel each.
+
+**The gap between the agents' numbers and the evaluator's** has one cause: where the program divides. The agents measured layernorm 2–3× faster on the visible corpus, which divides the reduced value: `(sum(d) x[i, d]) / D`. The hidden programs come from stage 1's hidden suite, which divides each term inside the reduction: `sum(d) x[i, d] / D`. The two are different f32 programs, and both must stay exact. A probe timed both placements on the same code:
+
+| Cell | layernorm, division inside / outside | attention, division inside / outside |
+|---|---|---|
+| Opus | 1.01× / 2.53× | 1.06× / 1.37× |
+| Astra | 0.50× / 2.11× | 1.08× / 1.30× |
+| GLM 5.3 Flash high | 1.05× / 3.20× | 0.70× / 1.34× |
+| Sol | 0.84× / 2.70× | 0.84× / 1.36× |
+
+The emitter shows why. In block mode, one block takes a row, and a per-row statement such as `mu[i]` runs on thread 0 with the reduction's whole body inlined. The division therefore sits in one thread's serial loop. Stage 2 runs the same reduction one thread per row, all rows at once. When the body is cheap, fusion's saved memory traffic wins. When it holds a division, the lost concurrency costs more than fusion saves.
+
+No cell computes the terms in parallel and accumulates them serially, although that keeps the bits: each term is rounded the same way, and the sum keeps its order. No cell decides by cost whether to fuse.
+
+**What the agents agreed on:**
+- **Where fusion lives:** seven of nine planned fusion from the Tix IR and printed it in the emitter. Fable alone made a second v6 artifact, a kernel plan whose validator is the legality check.
+- **Framework changes:** none was needed.
+- **Softmax's bound:** four cells measured independently that it stays near 2×, not the 4.25× of an earlier prototype, because the exactly rounded double-precision `exp` bounds it. Faster `exp` is a later stage.
+
+**The framework finding.** Two cells reported what looked like opposite results on the same check: Opus found made-up entity IDs in a correspondence accepted, and DeepSeek xhigh found an undeclared kernel ID rejected. They are one gap. `makeCorrespondence` checks entries against entity lists that the caller supplies, and nothing compares those lists with the entities the two artifacts contain. For a lowering from Tix statements to CUDA kernels, nothing derives the kernel list at all. It is backlog item F23.
+
+**The merge.** Opus's implementation is merged. It has the best geomean and no program more than 5% slower; it fuses every program to one kernel, changes nothing in `src/framework` or `tools`, and `fuse: false` still prints stage 2's lowering byte for byte. After the merge, `npm test` reports 445 tests passing, none failing, and 3 skipped.
+
+**Across the matrix:**
+- On this implementation task the new model families came close to Opus and Fable, unlike the research rounds, where they scored far below.
+- Sol and Astra were the fastest by a factor of three to seven in wall-clock time.
+- Correctness did not separate any of the nine: a precise brief and a hidden exact evaluator left nothing to get wrong. The differences were in performance.
+
+## 13. Stage 3b, under way
+
+Stage 3b asks for fusion that is never slower than stage 2, using parallel terms with a serial fold, and a decision that keeps a program unfused where fusing would cost time. It runs on the same matrix, with GLM 5.3 Flash at high only and GLM 5.3 max as the tenth cell.
+
+The brief names both division placements, so the hidden evaluation adds three held-out programs, all written before the work started:
+- rmsnorm, with the division inside the reduction;
+- centering, with the division inside the reduction;
+- log-softmax, whose reduction body is an `exp`.
+
+Results follow when the round finishes.
+
 ## Where the material is
 
 - **Ticket:** `/home/manuel/code/wesen/2026-11-24--compiler-workbench/ttmp/2026/11/26/IRWB-019--tensor-programs-on-the-v6-framework-and-a-codex-model-comparison-on-the-same-tasks/`
@@ -434,6 +565,11 @@ Neither judge is neutral, so the experiment's cross-family design rankings rest 
   - the launchers: `scripts/`;
   - per-round output (logs, heads, extracts): `various/kit/<round>/`.
 - **Agents' tickets:** IRWB-020-A to D (stage 1) and IRWB-021-A to D (research round), on branches `t1-<config>/irwb-020-<letter>` and `r1-<config>/irwb-021-<letter>`.
+  - IRWB-021-M to S and IRWB-023-E to K: the DeepSeek and GLM cells of R1 and R2.
+  - IRWB-029-A to J: stage 3. The merged cell is IRWB-029-D (Opus).
+  - IRWB-030-A to J: stage 3b, running.
+- **Section 11's data:** `various/results/r1-all-*`, `r2-all-*`, `blind-key-r1-all.json`, `blind-key-r2-all.json`; scripts 36–40.
+- **Section 12's data:** `various/results/eval-t3*.json`, `eval-t3-summary.txt`, `division-placement.txt`; scripts 42–44; the hidden evaluator in `various/hidden-t3/`.
 
 ## Related notes
 
