@@ -131,6 +131,7 @@ Scoring the design (step 2) before the review (step 3) keeps the design score a 
 
 ## 6. Shared infrastructure
 
+- **Keep every script in a ticket.** The briefs tell agents to put probes, prototypes and temporary programs in their ticket's `scripts/` directory and commit them. The coordinator does the same: a probe or analysis run only inline or in a session scratchpad is lost to a reboot or a context compaction. IRWB-019 had to archive 38 such scripts after the fact (`scripts/27-scratchpad-archive/`, with an index). A scratchpad holds only bulky generated data that a committed script can rebuild.
 Build once, for every configuration, anything that is transport rather than the work under study. Otherwise each agent builds its own version, and the comparison measures that.
 
 - **Remote GPU runner:** `tools/cuda-remote.mjs <dir> [--timed]`.
@@ -159,6 +160,7 @@ Build once, for every configuration, anything that is transport rather than the 
 
 ## 8. Pitfalls met so far
 
+- **Never edit a launcher script while it runs.** Bash reads a script as it executes it. After the agent it launched exits, bash resumes reading at its old byte offset in the edited file. In IRWB-019 that landed on the launch line twice, and re-ran two finished agents in their own worktrees. Each re-run overwrote its agent's log, and its own final message said the work was "already complete". Copy a launcher before changing it, or kill the outer launcher (not the agents) first. Codex's rollout files (`~/.codex/sessions/`) keep every session, so the lost logs could be recovered from them.
 - **zsh does not expand a glob in an assignment.** `S=dir/*/x.sh` leaves the pattern literal. Use `S=$(ls dir/*/x.sh)`.
 - **zsh aborts a loop on an unmatched glob** ("no matches found"). Monitors that watch files which do not exist yet must run under `bash -c` with `shopt -s nullglob`.
 - **`cmd | while read …; do … & done; wait` does not wait.** The loop runs in a pipeline subshell. Use `while …; done < <(cmd)`.

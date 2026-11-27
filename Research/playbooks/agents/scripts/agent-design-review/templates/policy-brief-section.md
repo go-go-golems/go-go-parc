@@ -9,6 +9,6 @@
 - {{PROJECT_SPECIFIC_RULE, e.g. "A specialization constant that is a single number is a scalar parameter."}}
 - Mention only the related tickets or systems this design directly exercises, one line each.
 - If the repository lacks a small piece of infrastructure the design needs, propose the change in a short section instead of designing around it.
-- Before relying on a language, library or loader feature, run a minimal probe and state the result.
+- Before relying on a language, library or loader feature, run a minimal probe and state the result. Keep the probe in the ticket's `scripts/` directory.
 - Each section should be as long as an implementer needs and no longer. Target {{WORDS_LOW}} to {{WORDS_HIGH}} words. Leave out measurement methodology beyond the primary metric, alternate input profiles, and tests of the design's own guards.
 - Work only from the files in your worktree. Do not read other git branches, other worktrees, or other agents' tickets.
