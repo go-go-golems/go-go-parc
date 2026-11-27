@@ -247,13 +247,40 @@ Blinding hides the author's name, not their family's style. So:
 
 **Running Codex headless:** `codex exec` reads extra prompt input from a non-terminal stdin. A command inside a backgrounded shell inherits an open one and waits forever ("Reading additional input from stdin…"). Always pass `< /dev/null`.
 
-## 12. Open questions *(to be filled as the experiment proceeds)*
+## 12. More model families, and implementation stages with hidden evaluators
+
+IRWB-019 added DeepSeek 4.1 Flash, GLM 5.3 and GLM 5.3 Flash (through Pi and the LunaRoute provider) to both research rounds. It then ran stage 3, checked CUDA fusion, on a ten-cell matrix: Codex Sol and Astra medium, Terra low; Opus; Fable; and five Pi cells.
+
+**Adding a provider through Pi.**
+- **Read the model's thinking-level map** (`~/.pi/agent/models-store.json`) before choosing efforts. GLM 5.3 and GLM 5.3 Flash map `xhigh` to nothing, so "xhigh" there silently means something else.
+- **A provider can cap one streamed response.** LunaRoute ends a response at exactly 20 minutes ("the upstream stream failed before completion"). GLM 5.3 Flash at max thinks longer than that while planning a large implementation, and failed twice in the same way, without a commit. Before a long task, measure each max-effort cell's longest single request in earlier rounds; a cell near the cap will fail. Do not retry a systematic failure.
+- **Load the provider's extension explicitly** (`--no-extensions --no-mcp -e <extension>`), because `--no-extensions` alone removes its models.
+
+**Blind packs with several families.**
+- **Scan for leaks with word boundaries.** A substring scan flags "fable" inside "diffable" and "Glm" inside base64. Neutralize lowercase and hyphenless ticket IDs too (`irwb-023e` in a script).
+- **Choose the ticket directory with the most files.** One agent left an empty directory literally named `IRWB-023-E--*`, an unexpanded glob, which sorted first and packed an empty ticket.
+- **Audit the judges from their session records.** A script that scans each Codex judge's tool calls for paths outside the pack and the base repository (the blind key, the config keys, the coordinator's ticket, other worktrees) found none in seven sessions. The Claude judges' transcripts need the same check.
+- **Claude judges cost the most.** Scoring 19 and 11 documents took 445K and 527K tokens, and the second judge spawned its own citation-checking subagents.
+
+**What the new families showed.**
+- **Research and design:** both judges placed every new cell below every OpenAI and Anthropic cell. Their documents were two to five times longer, with real mathematical errors and some fabricated references. The two judges' rankings agreed at 0.88–0.89, because neither belonged to the new families.
+- **Implementation:** under a precise brief and an exact hidden evaluator, all nine stage-3 cells that ran were correct. The new families' fusion speed-ups came close to Opus's and Fable's. So research rounds separate the configurations far more than implementation stages do.
+- **Time:** the Codex cells finished in 4–15 minutes, and the others in 43–77.
+
+**Make the hidden programs differ in structure from the visible ones.** Stage 3's hidden programs (from stage 1's hidden suite) divide inside reductions: `sum(d) x / D`. The visible corpus divides the reduced value. Every agent measured layernorm 2–3× faster on the visible corpus. On the hidden programs, fused layernorm and attention were mostly slower than unfused, because the division ran in one thread's serial loop.
+- Without the structural difference, the agents' performance claims would have gone unchallenged.
+- When the next brief names such variants, the hidden evaluation needs held-out programs that the brief does not name. Write them before the agents start.
+
+**Verify contradictory findings before recording either.** Two cells reported opposite results on the same framework check: made-up correspondence IDs accepted, and an undeclared ID rejected. Reading the code showed one gap: the entity lists are declared by the caller and never compared with the artifacts.
+
+## 13. Open questions *(to be filled as the experiment proceeds)*
 
 - Does a review change designs in the same direction for every configuration?
 - **How do design scores predict hidden results?** In stage 1, not at all at the level of correctness: every implementation was correct, whatever its design score. Design scores did predict size and contract quality.
 - What does the harness change, with the same model and policy? The answer so far is: something for Astra, nothing stable for Sol (§10).
 - *(Answered.)* Do the stage-1 and stage-2 design scores, judged by Claude subagents alone, carry the family effect §11 measured? Yes, across families. On stage 1 (12 OpenAI and 4 Claude designs) a Codex judge's fitness ranking correlates at −0.29 with the Claude judge's. On stage 2 (OpenAI designs only) the two judges agree, at 0.62.
 - Do the differences survive repeated runs per cell? This needs M2: three runs of the cells that differ most.
+- Does effort help the weaker families? DeepSeek and GLM scored higher at higher effort in R2 (under both judges, all but one pair), but not in R1. One run per setting.
 
 ## Related notes
 
