@@ -250,7 +250,7 @@ Blinding hides the author's name, not their family's style. So:
 - Does a review change designs in the same direction for every configuration?
 - **How do design scores predict hidden results?** In stage 1, not at all at the level of correctness: every implementation was correct, whatever its design score. Design scores did predict size and contract quality.
 - What does the harness change, with the same model and policy? The answer so far is: something for Astra, nothing stable for Sol (§10).
-- Do the stage-1 and stage-2 design scores, judged by Claude subagents alone, carry the family effect §11 measured? Re-judge one stage with a Codex judge to find out.
+- *(Answered.)* Do the stage-1 and stage-2 design scores, judged by Claude subagents alone, carry the family effect §11 measured? Yes, across families. On stage 1 (12 OpenAI and 4 Claude designs) a Codex judge's fitness ranking correlates at −0.29 with the Claude judge's. On stage 2 (OpenAI designs only) the two judges agree, at 0.62.
 - Do the differences survive repeated runs per cell? This needs M2: three runs of the cells that differ most.
 
 ## Related notes

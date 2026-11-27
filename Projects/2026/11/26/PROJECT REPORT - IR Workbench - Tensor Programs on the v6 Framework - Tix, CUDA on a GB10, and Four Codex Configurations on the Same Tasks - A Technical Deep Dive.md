@@ -409,6 +409,22 @@ Read with the family effect removed:
 
 The ideas are now items in the workbench's backlog.
 
+### Stages 1 and 2, re-judged by a Codex judge
+
+After R2, the stage-1 and stage-2 design packs went to a Codex judge (Sol, high) with the same rubrics and base revisions. The design scores in Sections 5 and 8 had come from Claude judges alone.
+
+| | Claude judge | Codex judge |
+|---|---|---|
+| Stage 1, the 4 Claude designs: fitness / over-engineering | 8.50 / 2.75 | 5.25 / 7.00 |
+| Stage 1, the 12 OpenAI designs: fitness / over-engineering | 7.08 / 3.50 | 8.92 / 2.08 |
+| Stage 1, rank correlation (Spearman), fitness / over-engineering | −0.29 / 0.33 | |
+| Stage 2, 12 OpenAI designs only: rank correlation | 0.62 / 0.60 | |
+
+- **Within one family the two judges mostly agree,** as stage 2 shows. That leaves the comparisons among the OpenAI cells standing: Sol against Astra, Codex against Pi, and effort level.
+- **Across families they disagree.** On stage 1 their fitness rankings are weakly opposed. Section 5's finding that the Claude designs were the fittest holds only under the Claude judge. Under the Codex judge, Codex · Astra's designs are the fittest (9.17 against Fable's 5.50), and the Claude designs the most over-engineered.
+
+Neither judge is neutral, so the experiment's cross-family design rankings rest on the mean of the two judges. Error counts and reproduced experiments carry more weight than either judge's ranking. The scorecard shows both judges.
+
 ## Where the material is
 
 - **Ticket:** `/home/manuel/code/wesen/2026-11-24--compiler-workbench/ttmp/2026/11/26/IRWB-019--tensor-programs-on-the-v6-framework-and-a-codex-model-comparison-on-the-same-tasks/`
