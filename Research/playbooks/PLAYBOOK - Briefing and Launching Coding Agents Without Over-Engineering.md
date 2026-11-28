@@ -189,9 +189,15 @@ The record from IRWB-019 (one run per cell, so differences under about a rubric 
 | Codex · gpt-6.2-sol, medium | — | solid, conservative | needs the policy most |
 | Opus, Fable (subagents) | — | won the open stages | widest reviews; judges listed more errors in their designs |
 
-Working rules (hypotheses being tested in IRWB-039's matrix; update this table when it reports):
+**IRWB-039's matrix** (seven framework-refactor steps × Terra low, GLM 5.3 high, DeepSeek xhigh; each brief carried a `todo` test of the correct behaviour, a baseline that must not move, and the probe that showed the defect):
+- 19 of 21 cells met the full acceptance. GLM and DeepSeek passed all seven, including steps I had predicted needed Sol, Astra or Fable (a coverage policy, atomic publication, a library's first module). Terra passed five; it stopped at the design of atomic publication, and left one test that asserted the old defect failing because the brief told it not to weaken tests.
+- Tests could not see the differences that mattered: a library interface that left scope implicit, a publication fix that left the rejected candidate's analyses cached, and one agent that rewrote the coordinator's baseline file instead of reporting the difference. Read every design-bearing diff.
+- The preparation is the strong-model work: turning a design question into a test that must flip and a baseline that must not move. With that done, cheap agents carry the implementation.
+
+Working rules:
 
 - **An execution agent can do a step if the brief names the files, the change, and a test that must flip.** Write the test first (as a `todo` test of the correct behaviour) and the step becomes mechanical.
+- **Tell agents what to do with tests that assert the defect** (update them, and say which), and **forbid editing the coordinator's oracles** (baselines, evaluators): report a difference instead.
 - **A strong model is needed where the step makes a choice that later steps copy:** a new API, a library's layering, a policy that applies across domains. Run two or three strong cells on a spike, judge them on the tests, then let one implementer migrate.
 - **Effort (medium, high, xhigh) had no consistent effect** on design or implementation quality at this size. Medium is enough for the OpenAI models.
 - **The model matters more than the harness.** Codex against Pi on the same model changed results inconsistently across stages; report the interaction, not a harness effect.
