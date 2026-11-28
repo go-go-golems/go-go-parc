@@ -276,6 +276,15 @@ The Garden also exposes patterns not yet represented cleanly by either zoo: stru
 
 - [[Research/Software Architecture Garden/Research/01 - Theory-to-Code Correspondence Manifests|Theory-to-Code Correspondence Manifests]] proposes a human-rich YAML layer linking long-form theory to code symbols, verification obligations, evidence maturity, LLM assessments, and longitudinal drift. Sessionstream heartbeat, runtime refinement, chat startup, and observer retention provide the initial concrete examples.
 
+## General design patterns
+
+Patterns stated independently of one project live under `general/<topic>/`, each with its source evidence and its maturity:
+
+- [[Research/Software Architecture Garden/general/authn/01 - Authentication Is Not Authorization - Preserve the Principal to the Effect Boundary|Authentication Is Not Authorization]] — preserve the principal to the effect boundary.
+- [[Research/Software Architecture Garden/general/databases/01 - Bounded Correction Lookback for Incremental Materializations|Bounded Correction Lookback]] — recompute a fixed recent window on every incremental run.
+- [[Research/Software Architecture Garden/general/databases/02 - Slowly Changing Dimension Type 2 - Versioned Dimension Rows|Slowly Changing Dimension Type 2]] — versioned dimension rows.
+- [[Research/Software Architecture Garden/general/storage/01 - Index-Governed Reclamation - A Bounded Store Deletes Only What Its Index Names Under Its Root|Index-Governed Reclamation]] — a bounded store evicts the oldest indexed items under its own root and sweeps orphans only on plausible evidence. Candidate, from the Playback NVR's housekeeping, compared with Moonfire NVR, Prometheus TSDB, and Kafka.
+
 ## Relationship to the existing knowledge base
 
 The Architecture Garden complements existing notes rather than replacing them:
