@@ -194,6 +194,13 @@ The record from IRWB-019 (one run per cell, so differences under about a rubric 
 - Tests could not see the differences that mattered: a library interface that left scope implicit, a publication fix that left the rejected candidate's analyses cached, and one agent that rewrote the coordinator's baseline file instead of reporting the difference. Read every design-bearing diff.
 - The preparation is the strong-model work: turning a design question into a test that must flip and a baseline that must not move. With that done, cheap agents carry the implementation.
 
+**IRWB-039 phases 2–4** (17 more cells; every cell scored on its commit and its diff reviewed):
+- **Library extraction, two cheap cells per lane** (GLM high, DeepSeek xhigh): 10 of 10 cells passed every check. In every lane the review, not the tests, chose the cell: one moved the second client and one did not; one hid a 5× slowdown and one fixed it; one met "classification as a query" only by calling the old classifier.
+- **An open design question as a spike** (Sol low, Astra low, Fable): all three converged on the same design, which is evidence that the design is the natural one. Fable then migrated every pass in 28 minutes, and later did the fusion-and-scheduling rewrite in 25.
+- **A decision point as the experiment's acceptance** (Sol low on `solveFor` and `pe`): the cell measured its own gate (652 lines against a limit of 324), withdrew the idea, restored the code and kept the part that earned its place. A gate stated as a number, in the brief, gets honoured.
+- **Forbidding edits to the coordinator's ticket worked:** no cell touched the baselines after the brief said so, and the scorer checks it (`oracleFilesTouched`).
+- **Sandboxed Codex cells can misreport test failures.** A Terra cell saw four failing test files inside the sandbox; the scorer, outside it, found none. Score outside the sandbox.
+
 Working rules:
 
 - **An execution agent can do a step if the brief names the files, the change, and a test that must flip.** Write the test first (as a `todo` test of the correct behaviour) and the step becomes mechanical.
